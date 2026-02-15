@@ -18,16 +18,16 @@
     <string name="cool">Cool!</string>
     <string name="tip_start_typing_for_rename">Tipp: Beginnen Sie mit der Eingabe der Option „App RENAME“.</string>
     <string name="your_wallpaper_will_update_shortly">Ihr Hintergrundbild wird in Kürze aktualisiert</string>
-    <string name="olauncher_is_not_default_launcher">Olauncher ist kein Standard-Launcher. Die tägliche Aktualisierung des Hintergrundbilds schlägt möglicherweise fehl.</string>
+    <string name="parem_is_not_default_launcher">Parem Launcher ist kein Standard-Launcher. Die tägliche Aktualisierung des Hintergrundbilds schlägt möglicherweise fehl.</string>
     <string name="long_press_to_enable">Zum Aktivieren lange drücken</string>
     <string name="no_hidden_apps">Keine versteckten Apps</string>
     <string name="hidden_apps">Versteckte Apps</string>
-    <string name="hidden_apps_message">Hinweis: Tippen Sie oben auf dieser Einstellungsseite auf „Olauncher“, um Ihre versteckten Apps zu finden.
+    <string name="hidden_apps_message">Hinweis: Tippen Sie oben auf dieser Einstellungsseite auf „Parem Launcher“, um Ihre versteckten Apps zu finden.
         \n\nWeitere Einzelheiten finden Sie auf der „Über“ Seite unten.</string>
     <string name="swipe_down_for">Wischen Sie nach unten für</string>
     <string name="search">Suchen</string>
     <string name="notifications">Benachrichtigungen</string>
-    <string name="accessibility_disclosure">Bitte schalten Sie den Barrierefreiheitsdienst von Olauncher in den Einstellungen Ihres Geräts ein oder aus, um diese Funktion zu aktivieren oder zu deaktivieren.
+    <string name="accessibility_disclosure">Bitte schalten Sie den Barrierefreiheitsdienst von Parem Launcher in den Einstellungen Ihres Geräts ein oder aus, um diese Funktion zu aktivieren oder zu deaktivieren.
         \n\nBitte beachten Sie, dass dieser Dienst nur dazu dient, den Bildschirm Ihres Geräts mit der Doppeltipp-Geste auszuschalten. Unser Barrierefreiheitsdienst erfasst oder gibt keine Daten weiter.</string>
     <string name="accept">Akzeptieren</string>
     <string name="permission">Erlaubnis</string>
@@ -41,7 +41,7 @@
     <string name="enabled">Aktiviert</string>
     <string name="disabled">Deaktiviert</string>
     <string name="please_turn_on_double_tap_to_unlock">Zum Sperren bitte Doppeltippen aktivieren</string>
-    <string name="launcher_failed_to_lock_device">Olauncher konnte das Gerät nicht sperren. Bitte überprüfen Sie Ihre App-Einstellungen.</string>
+    <string name="launcher_failed_to_lock_device">Parem Launcher konnte das Gerät nicht sperren. Bitte überprüfen Sie Ihre App-Einstellungen.</string>
     <string name="long_press_to_select_app">Lange drücken, um die App auszuwählen</string>
     <string name="unable_to_open_app">App-Informationen können nicht geöffnet werden</string>
     <string name="copied">Kopiert</string>
@@ -51,7 +51,7 @@
     <string name="adapter_hide">Verstecken</string>
     <string name="app_text_color">Textfarbe</string>
     <string name="double_tap_to_lock_screen">Zum Sperren zweimal tippen</string>
-    <string name="admin_permission_message">Olauncher verspricht, verantwortungsvoll mit der Sperrbildschirmberechtigung umzugehen. Olauncher sammelt oder gibt keine Daten weiter.</string>
+    <string name="admin_permission_message">Parem Launcher verspricht, verantwortungsvoll mit der Sperrbildschirmberechtigung umzugehen. Parem Launcher sammelt oder gibt keine Daten weiter.</string>
     <string name="about">Über</string>
     <string name="off">Aus</string>
     <string name="on">Ein</string>
@@ -82,23 +82,23 @@
     <string name="system_default">System</string>
     <string name="dark">Dunkel</string>
     <string name="light">Hell</string>
-    <string name="welcome_to_olauncher_settings">Willkommen in den Einstellungen!
-        \n\nDenken Sie daran, wenn Sie Fragen haben, unsere Seite „Über“ hat die Antwort.</string><string name="keyboard_message">Hallo, die Tastatur ist der schnellste Weg, Apps in Olauncher zu finden und zu starten. Können wir Sie bitten, die Funktion noch ein paar Tage eingeschaltet zu lassen und dann zu entscheiden?
+    <string name="welcome_to_parem_settings">Willkommen in den Einstellungen!
+        \n\nDenken Sie daran, wenn Sie Fragen haben, unsere Seite „Über“ hat die Antwort.</string><string name="keyboard_message">Hallo, die Tastatur ist der schnellste Weg, Apps in Parem Launcher zu finden und zu starten. Können wir Sie bitten, die Funktion noch ein paar Tage eingeschaltet zu lassen und dann zu entscheiden?
         \n\nDie Wahl liegt immer bei Ihnen.</string>
     <string name="digital_wellbeing_message">Wenn Sie Zeitlimits für bestimmte Apps festlegen möchten, kann Ihnen die Digital Wellbeing-Funktion von Android dabei helfen.
         \n\nBitte suchen Sie in Ihren Telefoneinstellungen nach Digital Wellbeing und aktivieren Sie es.</string>
     <string name="app_usage_message">Um die Bildschirmzeit auf dem Startbildschirm anzuzeigen oder zu verbergen, erteilen Sie bitte die Erlaubnis für die App-Nutzung oder verweigern Sie sie.
-        \n\nHinweis: Es werden keine Daten zur App-Nutzung gesammelt. Alles wird auf Ihrem Gerät verarbeitet.</string><string name="accessibility_service_description">Die Zugriffsberechtigung ist erforderlich, um das Sperren durch Doppeltippen zu ermöglichen. Die von Olauncher über diesen Dienst erfassten Daten verlassen Ihr Gerät nicht.</string><string name="open">Verbindung öffnen</string>
+        \n\nHinweis: Es werden keine Daten zur App-Nutzung gesammelt. Alles wird auf Ihrem Gerät verarbeitet.</string><string name="accessibility_service_description">Die Zugriffsberechtigung ist erforderlich, um das Sperren durch Doppeltippen zu ermöglichen. Die von Parem Launcher über diesen Dienst erfassten Daten verlassen Ihr Gerät nicht.</string><string name="open">Verbindung öffnen</string>
     <string name="copy">Kopieren</string>
     <string name="close">Schließen</string>
     <string name="not_now">Nicht jetzt</string>
-    <string name="public_roadmap">Öffentliche Olauncher-Roadmap</string>
+    <string name="public_roadmap">Öffentliche Parem Launcher-Roadmap</string>
     <string name="instagram">Instagram</string><string name="roadmap">Roadmap</string>
     <string name="date">Datum</string>
     <string name="date_only">Nur Datum</string>
     <string name="bottom_on">Unten: Ein</string>
     <string name="bottom_off">Unten: Aus</string>
-    <string name="please_set_olauncher_as_default_first">Bitte legen Sie zunächst Olauncher als Ihren Standard-Launcher fest</string>
+    <string name="please_set_parem_as_default_first">Bitte legen Sie zunächst Parem Launcher als Ihren Standard-Launcher fest</string>
     <string name="affiliate">Affiliate</string>
     <string name="app_not_found">App nicht gefunden</string>
     <string name="unable_to_launch_app">App kann nicht gestartet werden</string>
@@ -107,7 +107,7 @@
     <string name="swipe_right_app_enabled">App nach rechts wischen aktiviert</string>
     <string name="swipe_left_app_disabled">App nach links wischen deaktiviert</string>
     <string name="swipe_right_app_disabled">App nach rechts wischen deaktiviert</string><string name="screen_time">Bildschirmzeit</string>
-    <string name="about_olauncher">Über Olauncher</string>
+    <string name="about_parem">Über Parem Launcher</string>
     <string name="learn_more">Erfahren Sie mehr</string><string name="alignment_changed">Ausrichtung geändert ✅</string>
     <string name="home_screen">Startbildschirm</string><string name="notification_bar">Benachrichtigungsleiste</string>
 </resources>

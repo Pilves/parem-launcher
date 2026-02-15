@@ -1,4 +1,4 @@
-# Olauncher
+# Parem Launcher
 
 A minimal, text-based Android launcher designed to help you use your phone less and more intentionally.
 

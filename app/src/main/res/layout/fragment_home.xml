@@ -209,7 +209,7 @@
     </LinearLayout>
 
     <!-- Gesture letter overlay -->
-    <app.olauncher.ui.GestureLetterOverlayView
+    <com.parem.launcher.ui.GestureLetterOverlayView
         android:id="@+id/gestureLetterOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

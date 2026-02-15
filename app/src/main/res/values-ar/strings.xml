@@ -18,17 +18,17 @@
     <string name="cool">رائع!</string>
     <string name="tip_start_typing_for_rename">نصيحة: ابدأ الكتابة بتغيير اسم التطبيق</string>
     <string name="your_wallpaper_will_update_shortly">سيتم تحديث الخلفية الخاصة بك قريبًا</string>
-    <string name="olauncher_is_not_default_launcher">Olauncher ليس المشغل الافتراضي. قد يفشل التحديث اليومي للخلفية.</string>
+    <string name="parem_is_not_default_launcher">Parem Launcher ليس المشغل الافتراضي. قد يفشل التحديث اليومي للخلفية.</string>
     <string name="long_press_to_enable">اضغط مطولًا للتمكين</string>
     <string name="no_hidden_apps">لا توجد تطبيقات مخفية</string>
     <string name="hidden_apps">تطبيقات مخفية</string>
     <string name="swipe_left_app_disabled">التمرير لليسار معطّل</string>
     <string name="swipe_right_app_disabled">التمرير لليمين معطّل</string>
-    <string name="hidden_apps_message">ملاحظة: اضغط على \"Olauncher\" أعلى الصفحة للعثور على تطبيقاتك المخفية.  المزيد من التفاصيل متوفرة في صفحة \"حول\" أدناه.</string>
+    <string name="hidden_apps_message">ملاحظة: اضغط على \"Parem Launcher\" أعلى الصفحة للعثور على تطبيقاتك المخفية.  المزيد من التفاصيل متوفرة في صفحة \"حول\" أدناه.</string>
     <string name="swipe_down_for">اسحب لأسفل من أجل</string>
     <string name="search">يبحث</string>
     <string name="notifications">إشعارات</string>
-    <string name="accessibility_disclosure">يرجى تشغيل أو إيقاف تشغيل خدمة الوصول في Olauncher في إعدادات جهازك لتمكين هذه الميزة أو تعطيلها.       يرجى ملاحظة أن هذه الخدمة تُستخدم فقط للسماح لك بإيقاف تشغيل شاشة جهازك باستخدام إيماءة النقر المزدوج. خدمة الوصول لدينا لا تجمع أو تشارك أي بيانات.</string>
+    <string name="accessibility_disclosure">يرجى تشغيل أو إيقاف تشغيل خدمة الوصول في Parem Launcher في إعدادات جهازك لتمكين هذه الميزة أو تعطيلها.       يرجى ملاحظة أن هذه الخدمة تُستخدم فقط للسماح لك بإيقاف تشغيل شاشة جهازك باستخدام إيماءة النقر المزدوج. خدمة الوصول لدينا لا تجمع أو تشارك أي بيانات.</string>
     <string name="accept">يقبل</string>
     <string name="permission">إذن</string>
     <string name="double_tap_lock">النقر المزدوج للقفل</string>
@@ -41,7 +41,7 @@
     <string name="enabled">ممكّن</string>
     <string name="disabled">مُطفأ</string>
     <string name="please_turn_on_double_tap_to_unlock">يرجى تشغيل النقر المزدوج لفتح القفل</string>
-    <string name="launcher_failed_to_lock_device">فشل Olauncher في قفل الجهاز. يرجى التحقق من إعدادات التطبيق الخاص بك.</string>
+    <string name="launcher_failed_to_lock_device">فشل Parem Launcher في قفل الجهاز. يرجى التحقق من إعدادات التطبيق الخاص بك.</string>
     <string name="long_press_to_select_app">اضغط مطوّلًا لاختيار التطبيق</string>
     <string name="unable_to_open_app">تعذر فتح التطبيق</string>
     <string name="copied">نُسخ</string>
@@ -51,7 +51,7 @@
     <string name="adapter_hide">يخفي</string>
     <string name="app_text_color">لون الخط</string>
     <string name="double_tap_to_lock_screen">انقر مرتين لقفل الشاشة</string>
-    <string name="admin_permission_message">يعد Olauncher باستخدام إذن قفل الشاشة بشكل مسؤول. لا يقوم Olauncher بجمع أو مشاركة أي بيانات.</string>
+    <string name="admin_permission_message">يعد Parem Launcher باستخدام إذن قفل الشاشة بشكل مسؤول. لا يقوم Parem Launcher بجمع أو مشاركة أي بيانات.</string>
     <string name="about">حول</string>
     <string name="off">ﻻ</string>
     <string name="on">نعم</string>
@@ -81,27 +81,27 @@
     <string name="system_default">نظام</string>
     <string name="dark">مظلم</string>
     <string name="light">مضيء</string>
-    <string name="welcome_to_olauncher_settings">مرحبًا بك في الإعدادات!\n\nتذكر، إذا كان لديك أي سؤال، فإن صفحة "حول" لدينا تحتوي على الإجابة.</string><string name="keyboard_message">مرحبًا ، لوحة المفاتيح هي أسرع طريقة للعثور على التطبيقات وتشغيلها في Olauncher. هل يمكننا أن نطلب منك الاحتفاظ بهذا الأمر لبضعة أيام أخرى ثم اتخاذ القرار؟ الاختيار دائما لك.</string>
+    <string name="welcome_to_parem_settings">مرحبًا بك في الإعدادات!\n\nتذكر، إذا كان لديك أي سؤال، فإن صفحة "حول" لدينا تحتوي على الإجابة.</string><string name="keyboard_message">مرحبًا ، لوحة المفاتيح هي أسرع طريقة للعثور على التطبيقات وتشغيلها في Parem Launcher. هل يمكننا أن نطلب منك الاحتفاظ بهذا الأمر لبضعة أيام أخرى ثم اتخاذ القرار؟ الاختيار دائما لك.</string>
     <string name="digital_wellbeing_message">إذا كنت تريد تعيين حدود زمنية لتطبيقات معينة، فيمكن أن تساعدك ميزة الرفاهية الرقمية في Android على القيام بذلك.
         \n\nيرجى البحث عن الرفاهية الرقمية في إعدادات هاتفك وتمكينها.</string>
     <string name="app_usage_message">لعرض/إخفاء وقت استخدام الشاشة على الشاشة الرئيسية، يرجى السماح أو منع إذن استخدام التطبيق.
-        \n\nملاحظة: لا يتم جمع أي بيانات حول استخدام التطبيقات. يتم معالجة كل شيء على جهازك.</string><string name="accessibility_service_description">إذن الوصول مطلوب لتمكين النقر المزدوج للقفل. أي بيانات حصل عليها Olauncher عبر هذه الخدمة لن تترك جهازك.</string><string name="open">افتح الرابط</string>
+        \n\nملاحظة: لا يتم جمع أي بيانات حول استخدام التطبيقات. يتم معالجة كل شيء على جهازك.</string><string name="accessibility_service_description">إذن الوصول مطلوب لتمكين النقر المزدوج للقفل. أي بيانات حصل عليها Parem Launcher عبر هذه الخدمة لن تترك جهازك.</string><string name="open">افتح الرابط</string>
     <string name="copy">ينسخ</string>
     <string name="close">يغلق</string>
     <string name="not_now">ليس الآن</string>
-    <string name="public_roadmap">خارطة طريق Olauncher العامة</string>
+    <string name="public_roadmap">خارطة طريق Parem Launcher العامة</string>
     <string name="instagram">انستغرام</string><string name="roadmap">خريطة الطريق</string>
     <string name="date">تاريخ</string>
     <string name="date_only">التاريخ فقط</string>
     <string name="bottom_on">المحاذاة ﻷسفل</string>
     <string name="bottom_off">المحاذاة ﻷعلى</string>
-    <string name="please_set_olauncher_as_default_first">يرجى تعيين Olauncher كمشغل افتراضي أولاً</string>
+    <string name="please_set_parem_as_default_first">يرجى تعيين Parem Launcher كمشغل افتراضي أولاً</string>
     <string name="affiliate">شركة تابعة</string>
     <string name="app_not_found">التطبيق غير موجود</string>
     <string name="unable_to_launch_app">تعذر تشغيل التطبيق</string>
     <string name="search_for_Launcher_or_home_app">ابحث عن Launcher أو Home app</string>
     <string name="swipe_left_app_enabled">التمرير لليسار مفعّل</string>
-    <string name="swipe_right_app_enabled">التمرير لليمين مفعّل</string><string name="about_olauncher">عن Olauncher</string>
+    <string name="swipe_right_app_enabled">التمرير لليمين مفعّل</string><string name="about_parem">عن Parem Launcher</string>
     <string name="learn_more">تعلم أكثر</string><string name="screen_time">وقت الشاشة</string>
     <string name="alignment_changed">تم تغيير المحاذاة ✅</string>
     <string name="home_screen">الشاشة الرئيسية</string><string name="notification_bar">شريط الإشعارات</string>

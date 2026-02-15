@@ -43,7 +43,7 @@
                     android:layout_height="wrap_content">
 
                     <TextView
-                        android:id="@+id/olauncherHiddenApps"
+                        android:id="@+id/paremHiddenApps"
                         style="@style/TextLarge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -70,7 +70,7 @@
                     android:text="@string/set_as_default_launcher" />
 
                 <TextView
-                    android:id="@+id/aboutOlauncher"
+                    android:id="@+id/aboutParem"
                     style="@style/TextSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -79,7 +79,7 @@
                     android:layout_marginBottom="8dp"
                     android:drawablePadding="8dp"
                     android:gravity="center"
-                    android:text="@string/about_olauncher" />
+                    android:text="@string/about_parem" />
 
             </LinearLayout>
 

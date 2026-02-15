@@ -19,5 +19,5 @@
 -renamesourcefileattribute SourceFile
 
 # Keep WorkManager workers (instantiated via reflection)
--keep class app.olauncher.helper.ThemeScheduleWorker { *; }
--keep class app.olauncher.helper.WallpaperWorker { *; }
+-keep class com.parem.launcher.helper.ThemeScheduleWorker { *; }
+-keep class com.parem.launcher.helper.WallpaperWorker { *; }

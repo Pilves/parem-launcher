@@ -6,7 +6,7 @@
     <string name="set_as_default_launcher_first">Establecer como lanzador principal</string>
     <string name="app_text_color">Color del texto</string>
     <string name="double_tap_to_lock_screen">Tocar dos veces para bloquear</string>
-    <string name="admin_permission_message">Olauncher promete usar el permiso de la pantalla de bloqueo de manera responsable. Olauncher no recopila ni comparte ningún dato.</string>
+    <string name="admin_permission_message">Parem Launcher promete usar el permiso de la pantalla de bloqueo de manera responsable. Parem Launcher no recopila ni comparte ningún dato.</string>
     <string name="about">Acerca de</string>
     <string name="off">No</string>
     <string name="on">Sí</string>
@@ -49,31 +49,31 @@
     <string name="system_default">Sistema</string>
     <string name="dark">Oscuro</string>
     <string name="light">Claro</string>
-    <string name="welcome_to_olauncher_settings">¡Bienvenido a la configuración!
-        \n\nRecuerda, si tienes alguna pregunta, nuestra página Acerca de tiene la respuesta.</string><string name="keyboard_message">Hola, el teclado es la forma más rápida de encontrar y ejecutar aplicaciones en Olauncher. ¿Podemos pedirte que mantenga esto activado durante unos días más y luego decidir?
+    <string name="welcome_to_parem_settings">¡Bienvenido a la configuración!
+        \n\nRecuerda, si tienes alguna pregunta, nuestra página Acerca de tiene la respuesta.</string><string name="keyboard_message">Hola, el teclado es la forma más rápida de encontrar y ejecutar aplicaciones en Parem Launcher. ¿Podemos pedirte que mantenga esto activado durante unos días más y luego decidir?
         \n\nLa decisión siempre es vuestra.</string>
     <string name="digital_wellbeing_message">Si deseas establecer límites de tiempo para determinadas aplicaciones, la función Bienestar digital de Android puede ayudarte a hacerlo.
         \n\nBusca Bienestar digital en la configuración de su teléfono y habilítelo.</string>
     <string name="app_usage_message">Para mostrar/ocultar el tiempo de pantalla en la pantalla de inicio, permita o deniegue el permiso de uso de la aplicación.
-        \n\nNota: No se recopilan datos de uso de la aplicación. Todo se procesa en su dispositivo.</string><string name="accessibility_service_description">"Se requiere el permiso de accesibilidad para habilitar el doble toque para bloquear. Cualquier dato adquirido por Olauncher a través de este servicio no saldrá de su dispositivo."</string><string name="open">Abrir enlace</string>
+        \n\nNota: No se recopilan datos de uso de la aplicación. Todo se procesa en su dispositivo.</string><string name="accessibility_service_description">"Se requiere el permiso de accesibilidad para habilitar el doble toque para bloquear. Cualquier dato adquirido por Parem Launcher a través de este servicio no saldrá de su dispositivo."</string><string name="open">Abrir enlace</string>
     <string name="copy">Copiar</string>
     <string name="close">Cerrar</string>
     <string name="not_now">Ahora no</string>
-    <string name="public_roadmap">Hoja de ruta pública de Olauncher</string>
+    <string name="public_roadmap">Hoja de ruta pública de Parem Launcher</string>
     <string name="instagram">Instagram</string><string name="roadmap">Hoja de ruta</string>
     <string name="date">Fecha</string>
     <string name="date_only">Solo fecha</string>
     <string name="bottom_on">Abajo: Sí</string>
     <string name="bottom_off">Abajo: No</string>
-    <string name="please_set_olauncher_as_default_first">Primero seleccione Olauncher como su iniciador predeterminado</string>
+    <string name="please_set_parem_as_default_first">Primero seleccione Parem Launcher como su iniciador predeterminado</string>
     <string name="affiliate">Afiliado</string>
     <string name="tip_start_typing_for_rename">Sugerencia: Comienza a escribir para RENOMBRAR la aplicación</string>
-    <string name="hidden_apps_message">Nota: pulsa \'Olauncher\' en la parte superior de esta página de Configuración para encontrar las aplicaciones ocultas.
+    <string name="hidden_apps_message">Nota: pulsa \'Parem Launcher\' en la parte superior de esta página de Configuración para encontrar las aplicaciones ocultas.
         \n\nMás detalles disponibles en nuestra página \'Acerca de\' más abajo.</string>
     <string name="swipe_down_for">Deslizar hacia abajo para</string>
     <string name="search">Búsqueda</string>
     <string name="notifications">Notificaciones</string>
-    <string name="accessibility_disclosure">Activa o desactiva el servicio de accesibilidad de Olauncher en la configuración de su dispositivo para activar o desactivar esta función.
+    <string name="accessibility_disclosure">Activa o desactiva el servicio de accesibilidad de Parem Launcher en la configuración de su dispositivo para activar o desactivar esta función.
         \n\nTen en cuenta que este servicio solo se utiliza para permitir apagar la pantalla de tu dispositivo con el gesto de doble toque. Nuestro servicio de accesibilidad no recopila ni comparte ningún dato.</string>
     <string name="accept">Aceptar</string>
     <string name="permission">Permiso</string>
@@ -87,7 +87,7 @@
     <string name="enabled">Activado</string>
     <string name="disabled">Desactivado</string>
     <string name="please_turn_on_double_tap_to_unlock">Active el bloqueo con doble toque</string>
-    <string name="launcher_failed_to_lock_device">Olauncher no pudo bloquear el dispositivo.\nVerifique la configuración de la aplicación.</string>
+    <string name="launcher_failed_to_lock_device">Parem Launcher no pudo bloquear el dispositivo.\nVerifique la configuración de la aplicación.</string>
     <string name="long_press_to_select_app">Mantenga pulsado para seleccionar una aplicación</string>
     <string name="unable_to_open_app">No se ha podido abrir la información de la aplicación</string>
     <string name="copied">Copiado</string>
@@ -101,12 +101,12 @@
     <string name="swipe_left_app_disabled">Deslizar hacia la izquierda para abrir aplicación: desactivado</string>
     <string name="swipe_right_app_disabled">Deslizar hacia la derecha para abrir aplicación: desactivado</string>
     <string name="your_wallpaper_will_update_shortly">Tu fondo de pantalla se actualizará en breve</string>
-    <string name="olauncher_is_not_default_launcher">Olauncher no es tu lanzador predeterminado.\nLa actualización diaria del fondo de pantalla puede fallar.</string>
+    <string name="parem_is_not_default_launcher">Parem Launcher no es tu lanzador predeterminado.\nLa actualización diaria del fondo de pantalla puede fallar.</string>
     <string name="long_press_to_enable">Mantenga presionado para habilitar</string>
     <string name="no_hidden_apps">Sin aplicaciones ocultas</string>
     <string name="hidden_apps">Aplicaciones ocultas</string>
     <string name="adapter_show">Mostrar</string>
-    <string name="adapter_hide">Ocultar</string><string name="about_olauncher">Acerca de Olauncher</string>
+    <string name="adapter_hide">Ocultar</string><string name="about_parem">Acerca de Parem Launcher</string>
     <string name="learn_more">Aprende más</string><string name="screen_time">Tiempo de pantalla</string><string name="alignment_changed">Alineación cambiada ✅</string>
     <string name="home_screen">Pantalla de inicio</string><string name="notification_bar">Barra de notificaciones</string>
 </resources><!-- Spanish -->

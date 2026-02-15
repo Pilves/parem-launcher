@@ -1,0 +1,140 @@
+package com.parem.launcher.data
+
+object Constants {
+
+    object Key {
+        const val FLAG = "flag"
+        const val RENAME = "rename"
+    }
+
+    object Dialog {
+        const val HIDDEN = "HIDDEN"
+        const val KEYBOARD = "KEYBOARD"
+        const val DIGITAL_WELLBEING = "DIGITAL_WELLBEING"
+    }
+
+    object WidgetPlacement {
+        const val ABOVE = 0
+        const val BELOW = 1
+    }
+
+    object DateTime {
+        const val OFF = 0
+        const val ON = 1
+        const val DATE_ONLY = 2
+
+        fun isTimeVisible(dateTimeVisibility: Int): Boolean {
+            return dateTimeVisibility == ON
+        }
+
+        fun isDateVisible(dateTimeVisibility: Int): Boolean {
+            return dateTimeVisibility == ON || dateTimeVisibility == DATE_ONLY
+        }
+    }
+
+    object SwipeDownAction {
+        const val SEARCH = 1
+        const val NOTIFICATIONS = 2
+    }
+
+    object GestureAction {
+        const val OPEN_APP = 0
+        const val OPEN_NOTIFICATIONS = 1
+        const val OPEN_SEARCH = 2
+        const val LOCK_SCREEN = 3
+        const val OPEN_CAMERA = 4
+        const val TOGGLE_FLASHLIGHT = 5
+        const val NONE = 6
+    }
+
+    object TextSize {
+        const val ONE = 0.6f
+        const val TWO = 0.75f
+        const val THREE = 0.9f
+        const val FOUR = 1f
+        const val FIVE = 1.1f
+        const val SIX = 1.2f
+        const val SEVEN = 1.3f
+    }
+
+    object CharacterIndicator {
+        const val SHOW = 202
+        const val HIDE = 201
+    }
+
+    val CLOCK_APP_PACKAGES = arrayOf(
+        "com.google.android.deskclock", //Google Clock
+        "com.sec.android.app.clockpackage", //Samsung Clock
+        "com.oneplus.deskclock", //OnePlus Clock
+        "com.miui.clock", //Xiaomi Clock
+    )
+
+    const val WALL_TYPE_LIGHT = "light"
+    const val WALL_TYPE_DARK = "dark"
+
+    const val FLAG_LAUNCH_APP = 100
+    const val FLAG_HIDDEN_APPS = 101
+
+    const val FLAG_SET_HOME_APP_1 = 1
+    const val FLAG_SET_HOME_APP_2 = 2
+    const val FLAG_SET_HOME_APP_3 = 3
+    const val FLAG_SET_HOME_APP_4 = 4
+    const val FLAG_SET_HOME_APP_5 = 5
+    const val FLAG_SET_HOME_APP_6 = 6
+    const val FLAG_SET_HOME_APP_7 = 7
+    const val FLAG_SET_HOME_APP_8 = 8
+
+    const val FLAG_SET_SWIPE_LEFT_APP = 11
+    const val FLAG_SET_SWIPE_RIGHT_APP = 12
+    const val FLAG_SET_CLOCK_APP = 13
+    const val FLAG_SET_CALENDAR_APP = 14
+
+    const val FLAG_SET_SWIPE_UP_APP_1 = 21
+    const val FLAG_SET_SWIPE_UP_APP_2 = 22
+    const val FLAG_SET_SWIPE_UP_APP_3 = 23
+    const val FLAG_SET_SWIPE_UP_APP_4 = 24
+    const val FLAG_SET_SWIPE_UP_APP_5 = 25
+    const val FLAG_SET_SWIPE_UP_APP_6 = 26
+    const val FLAG_SET_SWIPE_UP_APP_7 = 27
+    const val FLAG_SET_SWIPE_UP_APP_8 = 28
+    const val FLAG_SET_DOUBLE_TAP_APP = 30
+    const val FLAG_SET_GESTURE_LETTER_APP = 40
+
+    const val APPWIDGET_HOST_ID = 1024
+
+    const val LONG_PRESS_DELAY_MS = 500L
+    const val ONE_DAY_IN_MILLIS = 86400000L
+    const val ONE_HOUR_IN_MILLIS = 3600000L
+    const val ONE_MINUTE_IN_MILLIS = 60000L
+
+    const val MIN_ANIM_REFRESH_RATE = 10f
+
+    const val URL_ABOUT_PAREM = ""
+    const val URL_PAREM_PRIVACY = ""
+    const val URL_DOUBLE_TAP = ""
+    const val URL_PAREM_GITHUB = ""
+    const val URL_WALLPAPERS = "https://gist.githubusercontent.com/tanujnotes/85e2d0343ace71e76615ac346fbff82b/raw"
+    const val URL_DEFAULT_DARK_WALLPAPER = "https://images.unsplash.com/photo-1512551980832-13df02babc9e"
+    const val URL_DEFAULT_LIGHT_WALLPAPER = "https://images.unsplash.com/photo-1515549832467-8783363e19b6"
+    const val URL_DUCK_SEARCH = "https://duck.co/?q="
+
+    const val DIGITAL_WELLBEING_PACKAGE_NAME = "com.google.android.apps.wellbeing"
+    const val DIGITAL_WELLBEING_ACTIVITY = "com.google.android.apps.wellbeing.settings.TopLevelSettingsActivity"
+    const val DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME = "com.samsung.android.forest"
+    const val DIGITAL_WELLBEING_SAMSUNG_ACTIVITY = "com.samsung.android.forest.launcher.LauncherActivity"
+    const val WALLPAPER_WORKER_NAME = "WALLPAPER_WORKER_NAME"
+    const val THEME_SCHEDULE_WORKER_NAME = "THEME_SCHEDULE_WORKER"
+
+    object FocusTimer {
+        const val MINUTES_25 = 25
+        const val HOURS_1 = 60
+        const val HOURS_2 = 120
+        const val UNTIL_DISABLED = -1
+    }
+
+    object ThemeScheduleMode {
+        const val MANUAL = 0
+        const val SCHEDULED = 1
+        const val SUNRISE_SUNSET = 2
+    }
+}

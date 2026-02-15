@@ -14,14 +14,13 @@ android {
     }
 
     defaultConfig {
-        applicationId "app.olauncher"
+        applicationId "com.parem.launcher"
         minSdkVersion 24
         targetSdkVersion 35
         versionCode 99
         versionName "v5.4.0"
 
         resourceConfigurations += ["en", "ar", "de", "es-rES", "es-rUS", "fr", "he", "hr", "hu", "in", "it", "ja", "pl", "pt-rBR", "ru-rRU", "sv", "tr", "uk", "zh"]
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -55,7 +54,7 @@ android {
         viewBinding = true
         buildConfig = true
     }
-    namespace 'app.olauncher'
+    namespace 'com.parem.launcher'
 }
 
 dependencies {

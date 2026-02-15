@@ -1,11 +1,11 @@
 <resources>
     <string name="app">יישום</string>
     <string name="set_as_default_launcher">הגדרה בתור משגר ברירת המחדל</string>
-    <string name="set_as_default_launcher_u">הגדר תחילה את Olauncher כברירת מחדל</string>
-    <string name="set_as_default_launcher_first"><u>הגדר תחילה את Olauncher כברירת מחדל</u></string>
+    <string name="set_as_default_launcher_u">הגדר תחילה את Parem Launcher כברירת מחדל</string>
+    <string name="set_as_default_launcher_first"><u>הגדר תחילה את Parem Launcher כברירת מחדל</u></string>
     <string name="app_text_color">צבע הטקסט</string>
     <string name="double_tap_to_lock_screen">נעילת המסך בהקשה כפולה</string>
-    <string name="admin_permission_message">יישום Olauncher ישתמש בהרשאה של נעילת המסך באופן מתון. יישום Olauncher אינו אוסף או משתף נתונים כלל.</string>
+    <string name="admin_permission_message">יישום Parem Launcher ישתמש בהרשאה של נעילת המסך באופן מתון. יישום Parem Launcher אינו אוסף או משתף נתונים כלל.</string>
     <string name="about">מידע כללי</string>
     <string name="off">כבוי</string>
     <string name="on">מופעל</string>
@@ -47,26 +47,26 @@
     <string name="system_default">מערכת</string>
     <string name="dark">כהה</string>
     <string name="light">בהירה</string>
-    <string name="welcome_to_olauncher_settings">למטה מופיע קישור לעמוד "מידע כללי", ובו אפשר למצוא תשובות לכל השאלות. לא לשכוח :)
-        \n\nThank you.</string><string name="keyboard_message">היי, יותר מהיר למצוא ולפתוח יישומים ב־Olauncher בעזרת ההקלדה. אולי בכל זאת היית רוצה להשאיר את ההגדרה הזאת ולתת לה עוד הזדמנות?
-        \n\nThe choice is always yours.</string><string name="accessibility_service_description">הרשאת הנגישות נחוצה להפעלת הנעילה בהקשה כפולה. כל הנתונים שייאספו על ידי Olauncher דרך השירות הזה לא יועברו הלאה ממכשירך.</string><string name="open">פתיחת קישור</string>
+    <string name="welcome_to_parem_settings">למטה מופיע קישור לעמוד "מידע כללי", ובו אפשר למצוא תשובות לכל השאלות. לא לשכוח :)
+        \n\nThank you.</string><string name="keyboard_message">היי, יותר מהיר למצוא ולפתוח יישומים ב־Parem Launcher בעזרת ההקלדה. אולי בכל זאת היית רוצה להשאיר את ההגדרה הזאת ולתת לה עוד הזדמנות?
+        \n\nThe choice is always yours.</string><string name="accessibility_service_description">הרשאת הנגישות נחוצה להפעלת הנעילה בהקשה כפולה. כל הנתונים שייאספו על ידי Parem Launcher דרך השירות הזה לא יועברו הלאה ממכשירך.</string><string name="open">פתיחת קישור</string>
     <string name="copy">העתקה</string>
     <string name="close">סגירה</string>
     <string name="not_now">לא כעת</string>
-    <string name="public_roadmap">Olauncher public roadmap</string>
+    <string name="public_roadmap">Parem Launcher public roadmap</string>
     <string name="instagram">אינסטגרם</string><string name="roadmap">Roadmap</string>
     <string name="date">תאריך</string>
     <string name="date_only">תאריך בלבד</string>
     <string name="bottom_on">הצגה למטה: מופעל</string>
     <string name="bottom_off">הצגה למטה: כבוי</string>
-    <string name="please_set_olauncher_as_default_first">ראשית, נא להגדיר את Olauncher בתור ברירת המחדל למסך בית.</string>
+    <string name="please_set_parem_as_default_first">ראשית, נא להגדיר את Parem Launcher בתור ברירת המחדל למסך בית.</string>
     <string name="affiliate">Affiliate</string>
     <string name="tip_start_typing_for_rename">עצה: אפשר להתחיל להקליד בשביל להגיע לאפשרות לשינוי שם של יישומים</string>
-    <string name="hidden_apps_message">הערה: בשביל להגיע ליישומים המוסתרים, יש ללחוץ על הכיתוב \'Olauncher\' שנמצא בראש עמוד ההגדרות.\n\nפרטים נוספים אפשר למצוא בעמוד ה"מידע כללי" שלנו למטה.</string>
+    <string name="hidden_apps_message">הערה: בשביל להגיע ליישומים המוסתרים, יש ללחוץ על הכיתוב \'Parem Launcher\' שנמצא בראש עמוד ההגדרות.\n\nפרטים נוספים אפשר למצוא בעמוד ה"מידע כללי" שלנו למטה.</string>
     <string name="swipe_down_for">פעולה בעת החלקה למטה</string>
     <string name="search">חיפוש</string>
     <string name="notifications">התראות</string>
-    <string name="accessibility_disclosure">נא להפעיל או לכבות את שירות הנגישות של Olauncher בהגדרות המכשיר שלך בשביל להפעיל או לנטרל אפשרות זו.
+    <string name="accessibility_disclosure">נא להפעיל או לכבות את שירות הנגישות של Parem Launcher בהגדרות המכשיר שלך בשביל להפעיל או לנטרל אפשרות זו.
     \n\nלתשומת ליבך, נעשה שימוש בשירות זה אך ורק בשביל לאפשר לך לכבות את המסך בעזרת הקשה לחיצה כפולה. שירות הנגישות שלנו אינו אוסף או משתף נתונים כלל.</string>
     <string name="accept">הסכמה</string>
     <string name="permission">הרשאה</string>
@@ -80,7 +80,7 @@
     <string name="enabled">מופעל</string>
     <string name="disabled">מושבת</string>
     <string name="please_turn_on_double_tap_to_unlock">נא להפעיל את מחוות ההקשה הכפולה בשביל לצורך הנעילה</string>
-    <string name="launcher_failed_to_lock_device">ל־Olauncher אין אפשרות לנעול את המסך.\nנא לבדוק את הגדרות היישום.</string>
+    <string name="launcher_failed_to_lock_device">ל־Parem Launcher אין אפשרות לנעול את המסך.\nנא לבדוק את הגדרות היישום.</string>
     <string name="long_press_to_select_app">לבחירת יישום יש ללחוץ לחיצה ארוכה</string>
     <string name="unable_to_open_app">אין אפשרות לפתוח את המידע על היישום</string>
     <string name="copied">הועתק ללוח</string>
@@ -94,12 +94,12 @@
     <string name="swipe_left_app_disabled">פתיחת היישום בהחלקה שמאלה כבויה</string>
     <string name="swipe_right_app_disabled">פתיחת היישום בהחלקה ימינה כבויה</string>
     <string name="your_wallpaper_will_update_shortly">הרקע שלך תכף יתעדכן</string>
-    <string name="olauncher_is_not_default_launcher">יישום Olauncher לא מוגדר בתור ברירת מחדל.\nייתכן שעדכון הרקע היומי לא יצליח.</string>
+    <string name="parem_is_not_default_launcher">יישום Parem Launcher לא מוגדר בתור ברירת מחדל.\nייתכן שעדכון הרקע היומי לא יצליח.</string>
     <string name="long_press_to_enable">לחיצה ארוכה להפעלה</string>
     <string name="no_hidden_apps">אין יישומים מוסתרים</string>
     <string name="hidden_apps">אפליקציות מוסתרות</string>
     <string name="adapter_show">הצגה</string>
-    <string name="adapter_hide">הסתרה</string><string name="about_olauncher">אודות ושאלות נפוצות</string>
+    <string name="adapter_hide">הסתרה</string><string name="about_parem">אודות ושאלות נפוצות</string>
     <string name="screen_time">זמן מסך</string>
     <string name="learn_more">למדו עוד</string><string name="alignment_changed">היישור השתנה ✅</string>
     <string name="home_screen">מסך הבית</string>

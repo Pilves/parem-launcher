@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="app.olauncher.ui.HomeFragment"
+        android:name="com.parem.launcher.ui.HomeFragment"
         android:label="main_fragment"
         tools:layout="@layout/fragment_home">
         <action
@@ -35,7 +35,7 @@
 
     <fragment
         android:id="@+id/appListFragment"
-        android:name="app.olauncher.ui.AppDrawerFragment"
+        android:name="com.parem.launcher.ui.AppDrawerFragment"
         android:label="app_list_fragment"
         tools:layout="@layout/fragment_app_drawer">
         <action
@@ -50,7 +50,7 @@
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="app.olauncher.ui.SettingsFragment"
+        android:name="com.parem.launcher.ui.SettingsFragment"
         android:label="SettingsFragment"
         android:layout="@layout/fragment_settings">
         <action
@@ -64,7 +64,7 @@
 
     <fragment
         android:id="@+id/onboardingFragment"
-        android:name="app.olauncher.ui.OnboardingFragment"
+        android:name="com.parem.launcher.ui.OnboardingFragment"
         android:label="OnboardingFragment" />
 
 </navigation>

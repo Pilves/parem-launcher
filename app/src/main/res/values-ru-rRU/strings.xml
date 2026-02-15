@@ -6,7 +6,7 @@
     <string name="set_as_default_launcher_first">Сделать лаунчером по умолчанию</string>
     <string name="app_text_color">Цвет текста</string>
     <string name="double_tap_to_lock_screen">Блокировка двойным тапом</string>
-    <string name="admin_permission_message">Olauncher обещает ответственно использовать разрешение экрана блокировки. Olauncher не собирает и не передает какие-либо данные.</string>
+    <string name="admin_permission_message">Parem Launcher обещает ответственно использовать разрешение экрана блокировки. Parem Launcher не собирает и не передает какие-либо данные.</string>
     <string name="about">О нас</string>
     <string name="off">Выкл</string>
     <string name="on">Вкл</string>
@@ -49,31 +49,31 @@
     <string name="system_default">Системная</string>
     <string name="dark">Темная</string>
     <string name="light">Светлая</string>
-    <string name="welcome_to_olauncher_settings">Добро пожаловать в настройки!
-        \n\nПомните, если у вас есть вопросы, на нашей странице «О нас» есть ответ.</string><string name="keyboard_message">Привет, клавиатура — это самый быстрый способ найти и запустить приложения в Olauncher. Могли бы вы продолжить использовать Автопоказ клавиатуры еще несколько дней, прежде чем принять окончательное решение?
+    <string name="welcome_to_parem_settings">Добро пожаловать в настройки!
+        \n\nПомните, если у вас есть вопросы, на нашей странице «О нас» есть ответ.</string><string name="keyboard_message">Привет, клавиатура — это самый быстрый способ найти и запустить приложения в Parem Launcher. Могли бы вы продолжить использовать Автопоказ клавиатуры еще несколько дней, прежде чем принять окончательное решение?
         \n\nВыбор всегда за вами.</string>
     <string name="digital_wellbeing_message">Если вы хотите установить ограничения по времени для определенных приложений, функция «Цифровое благополучие» Android может помочь вам в этом.
         \n\nНайдите параметр «Цифровое благополучие» в настройках телефона и включите его.</string>
     <string name="app_usage_message">Чтобы показать/скрыть время экрана на домашнем экране, разрешите или запретите разрешение на использование приложения.
-        \n\nПримечание: Не собираются данные об использовании приложения. Все обрабатывается на вашем устройстве.</string><string name="accessibility_service_description">" Разрешение на доступ требуется, чтобы включить двойное касание для блокировки. Любые данные, полученные Olauncher через этот сервис, не покинут ваше устройство."</string><string name="open">Открыть ссылку</string>
+        \n\nПримечание: Не собираются данные об использовании приложения. Все обрабатывается на вашем устройстве.</string><string name="accessibility_service_description">" Разрешение на доступ требуется, чтобы включить двойное касание для блокировки. Любые данные, полученные Parem Launcher через этот сервис, не покинут ваше устройство."</string><string name="open">Открыть ссылку</string>
     <string name="copy">Копировать</string>
     <string name="close">Закрыть</string>
     <string name="not_now">Не сейчас</string>
-    <string name="public_roadmap">Публичная дорожная карта Olauncher</string>
+    <string name="public_roadmap">Публичная дорожная карта Parem Launcher</string>
     <string name="instagram">Instagram</string><string name="roadmap">Дорожная карта</string>
     <string name="date">Дата</string>
     <string name="date_only">Только дата</string>
     <string name="bottom_on">Внизу: Вкл</string>
     <string name="bottom_off">Внизу: Выкл</string>
-    <string name="please_set_olauncher_as_default_first">Сначала установите Olauncher в качестве лаунчера по умолчанию.</string>
+    <string name="please_set_parem_as_default_first">Сначала установите Parem Launcher в качестве лаунчера по умолчанию.</string>
     <string name="affiliate">Партнер</string>
     <string name="tip_start_typing_for_rename">Совет: начните вводить текст чтобы ПЕРЕИМЕНОВАТЬ приложение.</string>
-    <string name="hidden_apps_message">Примечание: для доступа к скрытым приложениям, нажмите «Olauncher» в верхней части страницы настроек.
+    <string name="hidden_apps_message">Примечание: для доступа к скрытым приложениям, нажмите «Parem Launcher» в верхней части страницы настроек.
         \n\nБолее подробная информация доступна на нашей странице «О нас» ниже.</string>
     <string name="swipe_down_for">Проведите вниз для</string>
     <string name="search">Поиск</string>
     <string name="notifications">Уведомления</string>
-    <string name="accessibility_disclosure">Включите или отключите службу специальных возможностей Olauncher в настройках вашего устройства, чтобы включить или отключить эту функцию.
+    <string name="accessibility_disclosure">Включите или отключите службу специальных возможностей Parem Launcher в настройках вашего устройства, чтобы включить или отключить эту функцию.
         \n\nОбратите внимание, что эта служба используется только для того, чтобы вы могли выключить экран вашего устройства с помощью жеста двойного касания. Наша служба доступности не собирает и не передает какие-либо данные.</string>
     <string name="accept">Принять</string>
     <string name="permission">Разрешение</string>
@@ -87,7 +87,7 @@
     <string name="enabled">Включено</string>
     <string name="disabled">Выключено</string>
     <string name="please_turn_on_double_tap_to_unlock">Пожалуйста, включите двойное касание для блокировки</string>
-    <string name="launcher_failed_to_lock_device">Olauncher не удалось заблокировать устройство.\nПожалуйста, проверьте настройки вашего приложения.</string>
+    <string name="launcher_failed_to_lock_device">Parem Launcher не удалось заблокировать устройство.\nПожалуйста, проверьте настройки вашего приложения.</string>
     <string name="long_press_to_select_app">Длительное нажатие для выбора приложения</string>
     <string name="unable_to_open_app">Не удалось открыть информацию о приложении</string>
     <string name="copied">Скопировано</string>
@@ -101,12 +101,12 @@
     <string name="swipe_left_app_disabled">Приложение для левого свайпа отключено</string>
     <string name="swipe_right_app_disabled">Приложение для правого свайпа отключено</string>
     <string name="your_wallpaper_will_update_shortly">Ваши обои скоро обновятся</string>
-    <string name="olauncher_is_not_default_launcher">Olauncher не является лаунчером по умолчанию.\nЕжедневное обновление обоев может завершиться ошибкой.</string>
+    <string name="parem_is_not_default_launcher">Parem Launcher не является лаунчером по умолчанию.\nЕжедневное обновление обоев может завершиться ошибкой.</string>
     <string name="long_press_to_enable">Нажмите и удерживайте, чтобы включить</string>
     <string name="no_hidden_apps">Нет скрытых приложений</string>
     <string name="hidden_apps">Скрытые приложения</string>
     <string name="adapter_show">Показать</string>
-    <string name="adapter_hide">Скрыть</string><string name="about_olauncher">О нас Olauncher</string>
+    <string name="adapter_hide">Скрыть</string><string name="about_parem">О нас Parem Launcher</string>
     <string name="screen_time">Время на экране</string>
     <string name="learn_more">Узнать больше</string><string name="alignment_changed">Выравнивание изменено ✅</string>
     <string name="home_screen">Главный экран</string><string name="notification_bar">Панель уведомлений</string>

@@ -19,16 +19,16 @@
 
     <string name="tip_start_typing_for_rename">ヒント: アプリの RENAME オプションの入力を開始します</string>
     <string name="your_wallpaper_will_update_shortly">壁紙は間もなく更新されます</string>
-    <string name="olauncher_is_not_default_launcher">Olauncher はデフォルトのランチャーではありません。 毎日の壁紙の更新に失敗する場合があります。</string>
+    <string name="parem_is_not_default_launcher">Parem Launcher はデフォルトのランチャーではありません。 毎日の壁紙の更新に失敗する場合があります。</string>
     <string name="long_press_to_enable">長押しして有効にします</string>
     <string name="no_hidden_apps">隠れたアプリはありません</string>
     <string name="hidden_apps">隠しアプリ</string>
-    <string name="hidden_apps_message">注: この設定ページの上部にある「Olauncher」をタップして、隠れたアプリを見つけます。
+    <string name="hidden_apps_message">注: この設定ページの上部にある「Parem Launcher」をタップして、隠れたアプリを見つけます。
         \n\n詳細については、以下の About ページをご覧ください。</string>
     <string name="swipe_down_for">下にスワイプして</string>
     <string name="search">検索</string>
     <string name="notifications">通知</string>
-    <string name="accessibility_disclosure">この機能を有効または無効にするには、デバイスの設定で Olauncher のアクセシビリティ サービスをオンまたはオフにしてください。
+    <string name="accessibility_disclosure">この機能を有効または無効にするには、デバイスの設定で Parem Launcher のアクセシビリティ サービスをオンまたはオフにしてください。
         \n\nこのサービスは、ダブルタップ ジェスチャを使用してデバイスの画面をオフにするためにのみ使用されることに注意してください。 当社のアクセシビリティ サービスは、いかなるデータも収集または共有しません。</string>
     <string name="accept">受け入れる</string>
     <string name="permission">許可</string>
@@ -42,7 +42,7 @@
     <string name="enabled">有効</string>
     <string name="disabled">無効</string>
     <string name="please_turn_on_double_tap_to_unlock">ダブルタップしてロックをオンにしてください</string>
-    <string name="launcher_failed_to_lock_device">Olauncher がデバイスをロックできませんでした。 アプリの設定を確認してください。</string>
+    <string name="launcher_failed_to_lock_device">Parem Launcher がデバイスをロックできませんでした。 アプリの設定を確認してください。</string>
     <string name="long_press_to_select_app">長押ししてアプリを選択します</string>
     <string name="unable_to_open_app">アプリ情報を開けません</string>
     <string name="copied">コピーされました</string>
@@ -52,7 +52,7 @@
     <string name="adapter_hide">隠れる</string>
     <string name="app_text_color">テキストの色</string>
     <string name="double_tap_to_lock_screen">ダブルタップしてロックします</string>
-    <string name="admin_permission_message">Olauncher は、ロック画面のアクセス許可を責任を持って使用することを約束します。 Olauncher はデータを収集または共有しません。</string>
+    <string name="admin_permission_message">Parem Launcher は、ロック画面のアクセス許可を責任を持って使用することを約束します。 Parem Launcher はデータを収集または共有しません。</string>
     <string name="about">アバウト</string>
     <string name="off">オフ</string>
     <string name="on">オン</string>
@@ -83,22 +83,22 @@
     <string name="system_default">システム</string>
     <string name="dark">ダーク</string>
     <string name="light">ライト</string>
-    <string name="welcome_to_olauncher_settings">設定へようこそ！
-        \n\n質問がある場合は、私たちの「About」ページに答えがありますので、覚えておいてください。</string><string name="keyboard_message">こんにちは、キーボードは Olauncher でアプリを見つけて起動する最も速い方法です。もう数日間これをオンにしてから判断していただくようお願いできますか?選択は常にあなた次第です。</string>
+    <string name="welcome_to_parem_settings">設定へようこそ！
+        \n\n質問がある場合は、私たちの「About」ページに答えがありますので、覚えておいてください。</string><string name="keyboard_message">こんにちは、キーボードは Parem Launcher でアプリを見つけて起動する最も速い方法です。もう数日間これをオンにしてから判断していただくようお願いできますか?選択は常にあなた次第です。</string>
     <string name="digital_wellbeing_message">特定のアプリに時間制限を設定したい場合は、Android の Digital Wellbeing 機能を使用すると便利です。
         \n\n携帯電話の設定で Digital Wellbeing を検索し、有効にしてください。</string>
     <string name="app_usage_message">ホーム画面で画面時間を表示/非表示するには、アプリの使用権限を許可または拒否してください。
-        \n\n注意: アプリの使用データは収集されません。すべての処理はあなたのデバイスで行われます。</string><string name="accessibility_service_description">ダブルタップしてロックを有効にするには、アクセシビリティ許可が必要です。このサービスを通じて Olauncher が取得したデータは、デバイスから流出することはありません。</string><string name="open">リンクを開く</string>
+        \n\n注意: アプリの使用データは収集されません。すべての処理はあなたのデバイスで行われます。</string><string name="accessibility_service_description">ダブルタップしてロックを有効にするには、アクセシビリティ許可が必要です。このサービスを通じて Parem Launcher が取得したデータは、デバイスから流出することはありません。</string><string name="open">リンクを開く</string>
     <string name="copy">コピー</string>
     <string name="close">閉じる</string>
     <string name="not_now">今はやめろ</string>
-    <string name="public_roadmap">Olauncher の公開ロードマップ</string>
+    <string name="public_roadmap">Parem Launcher の公開ロードマップ</string>
     <string name="instagram">インスタグラム</string><string name="roadmap">ロードマップ</string>
     <string name="date">日にち</string>
     <string name="date_only">日付のみ</string>
     <string name="bottom_on">下: オン</string>
     <string name="bottom_off">下：オフ</string>
-    <string name="please_set_olauncher_as_default_first">まず Olauncher をデフォルトのランチャーとして設定してください</string>
+    <string name="please_set_parem_as_default_first">まず Parem Launcher をデフォルトのランチャーとして設定してください</string>
     <string name="affiliate">アフィリエイト</string>
     <string name="app_not_found">アプリが見つかりません</string>
     <string name="unable_to_launch_app">アプリを起動できません</string>
@@ -107,7 +107,7 @@
     <string name="swipe_right_app_enabled">アプリを右にスワイプ有効</string>
     <string name="swipe_left_app_disabled">左にスワイプするとアプリが無効になります</string>
     <string name="screen_time">スクリーンタイム</string>
-    <string name="swipe_right_app_disabled">アプリを右にスワイプすると無効になります</string><string name="about_olauncher">アバウト Olauncher</string>
+    <string name="swipe_right_app_disabled">アプリを右にスワイプすると無効になります</string><string name="about_parem">アバウト Parem Launcher</string>
     <string name="learn_more">もっと詳しく知る</string><string name="alignment_changed">アライメントが変更されました ✅</string>
     <string name="home_screen">ホーム画面</string><string name="notification_bar">通知バー</string>
 </resources> <!-- Japanese -->

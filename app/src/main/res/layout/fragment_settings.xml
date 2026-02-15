@@ -28,7 +28,7 @@
             android:orientation="vertical"
             android:paddingVertical="64dp">
 
-            <!-- Card 1: Olauncher -->
+            <!-- Card 1: Parem Launcher -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -44,7 +44,7 @@
                     android:layout_marginTop="8dp">
 
                     <TextView
-                        android:id="@+id/olauncherHiddenApps"
+                        android:id="@+id/paremHiddenApps"
                         style="@style/TextLarge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -71,7 +71,7 @@
                     android:text="@string/set_as_default_launcher" />
 
                 <TextView
-                    android:id="@+id/aboutOlauncher"
+                    android:id="@+id/aboutParem"
                     style="@style/TextSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -80,7 +80,7 @@
                     android:layout_marginBottom="8dp"
                     android:drawablePadding="8dp"
                     android:gravity="center"
-                    android:text="@string/about_olauncher" />
+                    android:text="@string/about_parem" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -1144,37 +1144,7 @@
                         android:text="@string/off" />
                 </LinearLayout>
 
-                <!-- Grayscale -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginBottom="4dp"
-                    android:orientation="horizontal">
 
-                    <TextView
-                        style="@style/TextSmall"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginEnd="24dp"
-                        android:layout_weight="1"
-                        android:lines="1"
-                        android:paddingVertical="8dp"
-                        android:text="@string/grayscale"
-                        android:textColor="?attr/primaryColor" />
-
-                    <TextView
-                        android:id="@+id/grayscaleToggle"
-                        style="@style/TextSmallBold"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end|center_vertical"
-                        android:layout_marginEnd="4dp"
-                        android:lines="1"
-                        android:padding="8dp"
-                        android:text="@string/off" />
-                </LinearLayout>
 
             </LinearLayout>
 
