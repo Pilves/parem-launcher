@@ -9,6 +9,7 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -1420,6 +1421,86 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         }
         wrapper.addView(overlay)
 
+        // Resize handle at the bottom edge of the widget
+        val density = resources.displayMetrics.density
+        val minHeightPx = (80 * density).toInt()
+        val maxHeightPx = (600 * density).toInt()
+
+        val handleBar = View(requireContext()).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                (40 * density).toInt(),
+                (3 * density).toInt()
+            ).apply { gravity = Gravity.CENTER }
+            background = GradientDrawable().apply {
+                setColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
+                cornerRadius = 2 * density
+            }
+        }
+
+        val resizeHandle = FrameLayout(requireContext()).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                (24 * density).toInt()
+            ).apply { gravity = Gravity.BOTTOM }
+            addView(handleBar)
+
+            var initialY = 0f
+            var initialHeight = 0
+            setOnTouchListener { _, event ->
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        initialY = event.rawY
+                        initialHeight = wrapper.layoutParams.height
+                        // Prevent ScrollView from stealing the drag
+                        var p = parent
+                        while (p != null) {
+                            p.requestDisallowInterceptTouchEvent(true)
+                            p = p.parent
+                        }
+                        handleBar.alpha = 1.0f
+                        true
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val dy = event.rawY - initialY
+                        val newHeight = (initialHeight + dy.toInt()).coerceIn(minHeightPx, maxHeightPx)
+                        wrapper.layoutParams = (wrapper.layoutParams).apply {
+                            height = newHeight
+                        }
+                        wrapper.requestLayout()
+                        true
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        val finalHeightDp = (wrapper.layoutParams.height / density).toInt()
+                        prefs.setWidgetHeight(widgetId, finalHeightDp)
+                        // Notify widget of new size
+                        wrapper.post {
+                            if (!isAdded || _binding == null) return@post
+                            val widthDp = (wrapper.width / density).toInt()
+                            if (widthDp > 0 && finalHeightDp > 0) {
+                                val options = Bundle().apply {
+                                    putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, widthDp)
+                                    putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, widthDp)
+                                    putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, finalHeightDp)
+                                    putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, finalHeightDp)
+                                }
+                                hostView.updateAppWidgetSize(options, widthDp, finalHeightDp, widthDp, finalHeightDp)
+                            }
+                        }
+                        // Re-allow scroll interception
+                        var p = parent
+                        while (p != null) {
+                            p.requestDisallowInterceptTouchEvent(false)
+                            p = p.parent
+                        }
+                        handleBar.alpha = 0.5f
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }
+        wrapper.addView(resizeHandle)
+
         container.addView(wrapper)
 
         wrapper.post {
@@ -1509,7 +1590,6 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         addMenuItem(getString(R.string.swap_widget)) {
             showWidgetPicker { providerInfo -> bindWidget(providerInfo, replaceIndex = index) }
         }
-        addMenuItem(getString(R.string.resize_widget)) { showWidgetResizeDialog(widgetId) }
         addMenuItem(getString(R.string.remove_widget)) { removeWidget(widgetId) }
         if (ids.size > 1 && index > 0)
             addMenuItem(getString(R.string.move_up)) { moveWidget(index, index - 1) }
@@ -1526,52 +1606,6 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         ids.add(toIndex, id)
         prefs.setWidgetIdList(ids)
         rebuildWidgetContainer()
-    }
-
-    private fun showWidgetResizeDialog(widgetId: Int) {
-        val sizes = arrayOf(
-            getString(R.string.widget_size_small) to 100,
-            getString(R.string.widget_size_medium) to 200,
-            getString(R.string.widget_size_large) to 300,
-            getString(R.string.widget_size_extra_large) to 400,
-            getString(R.string.widget_size_full) to 500
-        )
-        val currentHeight = prefs.getWidgetHeight(widgetId)
-
-        val dialog = BottomSheetDialog(requireContext())
-        val container = android.widget.LinearLayout(requireContext()).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryInverseColor))
-            setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
-        }
-
-        // Drag handle
-        val handle = View(requireContext()).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-                bottomMargin = 16.dpToPx()
-            }
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-        }
-        container.addView(handle)
-
-        for ((label, heightVal) in sizes) {
-            val tv = TextView(requireContext()).apply {
-                text = if (heightVal == currentHeight) "$label  \u2713" else label
-                textSize = 16f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-                setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-                setOnClickListener {
-                    prefs.setWidgetHeight(widgetId, heightVal)
-                    resizeWidgetWrappers()
-                    dialog.dismiss()
-                }
-            }
-            container.addView(tv)
-        }
-
-        dialog.setContentView(container)
-        dialog.show()
     }
 
     private fun rebuildWidgetContainer() {
