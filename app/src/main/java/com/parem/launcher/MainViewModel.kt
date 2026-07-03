@@ -18,6 +18,7 @@ import androidx.work.WorkManager
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
+import com.parem.launcher.helper.AppOpenCounter
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.SingleLiveEvent
@@ -185,9 +186,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             try {
                 launcherApps.startMainActivity(component, userHandle, null, null)
+                AppOpenCounter.increment(appContext, packageName)
             } catch (e: SecurityException) {
                 try {
                     launcherApps.startMainActivity(component, android.os.Process.myUserHandle(), null, null)
+                    AppOpenCounter.increment(appContext, packageName)
                 } catch (e: Exception) {
                     appContext.showToast(appContext.getString(R.string.unable_to_open_app))
                 }

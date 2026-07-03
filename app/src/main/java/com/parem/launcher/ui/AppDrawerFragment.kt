@@ -21,6 +21,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentAppDrawerBinding
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.helper.AppLimitManager
+import com.parem.launcher.helper.AppOpenCounter
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
@@ -54,10 +55,17 @@ class AppDrawerFragment : Fragment() {
     private val searchHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var searchRunnable: Runnable? = null
 
-    // Omnibox state: non-null when the query is an arithmetic expression,
-    // true when a leading space marks the query as a web search
+    // Omnibox state: non-null when the query is an arithmetic expression or a
+    // dialable number, true when a leading space marks the query as a web search
     private var calcResult: String? = null
+    private var dialNumber: String? = null
     private var webSearchMode = false
+
+    companion object {
+        // Digits with optional leading + and spaces, at least 4 digits total.
+        // Hyphenated numbers lose to the calculator (they parse as subtraction).
+        private val DIAL_REGEX = Regex("^\\+?[0-9][0-9 ]{2,}[0-9]$")
+    }
 
     private val viewModel: MainViewModel by activityViewModels()
     private var _binding: FragmentAppDrawerBinding? = null
@@ -109,6 +117,18 @@ class AppDrawerFragment : Fragment() {
                         ctx.copyToClipboard(calcResult!!)
                         ctx.showToast(getString(R.string.copied))
                     }
+                    dialNumber != null -> {
+                        try {
+                            startActivity(
+                                android.content.Intent(
+                                    android.content.Intent.ACTION_DIAL,
+                                    android.net.Uri.parse("tel:" + dialNumber!!.replace(" ", ""))
+                                )
+                            )
+                        } catch (e: Exception) {
+                            ctx.showToast(getString(R.string.unable_to_open_app))
+                        }
+                    }
                     webSearchMode ->
                         ctx.openUrl(Constants.URL_GOOGLE_SEARCH + java.net.URLEncoder.encode(q.trim(), "UTF-8"))
                     q.startsWith("!") ->
@@ -127,7 +147,7 @@ class AppDrawerFragment : Fragment() {
                     try {
                         adapter.filter.filter(newText) {
                             _binding?.let { b ->
-                                if (calcResult != null || webSearchMode) return@let
+                                if (calcResult != null || dialNumber != null || webSearchMode) return@let
                                 if (adapter.itemCount == 0 && newText.isNotBlank()) {
                                     b.appDrawerTip.text = getString(R.string.no_apps_found)
                                     b.appDrawerTip.visibility = View.VISIBLE
@@ -154,6 +174,7 @@ class AppDrawerFragment : Fragment() {
     private fun updateOmniboxState(newText: String) {
         val b = _binding ?: return
         calcResult = null
+        dialNumber = null
         webSearchMode = false
         val trimmed = newText.trim()
 
@@ -164,6 +185,12 @@ class AppDrawerFragment : Fragment() {
                 b.appDrawerTip.visibility = View.VISIBLE
                 return
             }
+        }
+        if (DIAL_REGEX.matches(trimmed) && trimmed.count { it.isDigit() } >= 4) {
+            dialNumber = trimmed
+            b.appDrawerTip.text = getString(R.string.call_hint, trimmed)
+            b.appDrawerTip.visibility = View.VISIBLE
+            return
         }
         if (newText.startsWith(" ") && trimmed.isNotEmpty()) {
             webSearchMode = true
@@ -241,6 +268,7 @@ class AppDrawerFragment : Fragment() {
         )
         adapter.showIcons = prefs.showIcons
         adapter.iconPackPackage = prefs.iconPackPackage
+        adapter.openCounts = AppOpenCounter.getCounts(requireContext())
 
         linearLayoutManager = object : LinearLayoutManager(requireContext()) {
             override fun scrollVerticallyBy(

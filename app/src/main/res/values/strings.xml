@@ -53,6 +53,7 @@
     <string name="google_search_hint" translatable="false">↵  Google: %1$s</string>
     <string name="light_theme_from" translatable="false">Light theme from</string>
     <string name="dark_theme_from" translatable="false">Dark theme from</string>
+    <string name="call_hint" translatable="false">↵  Call: %1$s</string>
     <string name="okay">Okay</string>
     <string name="cool">Cool!</string>
     <string name="auto_show_keyboard">Auto show keyboard</string>

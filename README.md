@@ -9,7 +9,9 @@ No icons, no clutter — just the apps you need, the habits you want to build, a
 The app drawer search bar is a single point of truth:
 
 - **Type** — apps filter instantly; a single match auto-launches
+- **Fuzzy match** — `gm` finds Google Maps (initials); `s ki` finds Shaurmas Kitchen (word prefixes, GE-style)
 - **`2+2`** — arithmetic shows a live result inline (`+ - * / % ^`, parentheses); tap or hit enter to copy it
+- **`0612 3456`** — type a number, enter opens the dialer with it
 - **`␣ query`** — start with a space and enter searches Google
 - **`!bang query`** — DuckDuckGo bang searches (`!w`, `!yt`, …)
 
@@ -36,7 +38,7 @@ The app drawer search bar is a single point of truth:
 - **Configurable Double-Tap** — Lock screen, open app, notifications, search, camera, flashlight, or nothing
 
 ### App Drawer
-- Per-app daily usage time shown next to each app
+- Per-app daily usage time and open count ("1h 23m · 7×") shown next to each app
 - Sort apps by usage time
 - Long-press menu: delete, rename, hide, set time limit, app info
 - App renaming and per-profile (work profile) support

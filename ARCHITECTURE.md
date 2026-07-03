@@ -92,4 +92,6 @@ After an AGP upgrade, re-copy the new aapt2 binary — the override pins a speci
 - Gesture-letter drawing and swipe gestures both see the same touch stream; a fast letter draw can also register as a swipe.
 - The 4-hour self-recreate + cacheDir wipe in MainActivity is inherited from Olauncher and unproven; candidates for removal after long on-device observation.
 - Onboarding pager rebuilds its views on every bind (one-time screen, cosmetic).
-- No automated tests; the safety net is `./gradlew assembleDebug` plus manual runs.
+- JVM unit tests exist only for pure logic (`app/src/test`: evaluator, search
+  matcher, sunrise calculator — `./gradlew testDebugUnitTest`); everything
+  touching Android still relies on `assembleDebug` plus manual runs.

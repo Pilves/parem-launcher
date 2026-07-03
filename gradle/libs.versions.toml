@@ -1,5 +1,6 @@
 [versions]
 appcompat = "1.7.0"
+junit = "4.13.2"
 coreKtx = "1.16.0"
 gradle = "8.9.1"
 kotlinStdlib = "2.1.20"
@@ -10,6 +11,7 @@ recyclerview = "1.4.0"
 workRuntimeKtx = "2.10.1"
 [libraries]
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+junit = { module = "junit:junit", version.ref = "junit" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinStdlib" }

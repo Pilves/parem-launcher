@@ -27,8 +27,8 @@ import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isSystemApp
+import com.parem.launcher.helper.SearchMatcher
 import com.parem.launcher.helper.showKeyboard
-import java.text.Normalizer
 
 class AppDrawerAdapter(
     private var flag: Int,
@@ -48,9 +48,6 @@ class AppDrawerAdapter(
             override fun areContentsTheSame(oldItem: AppModel, newItem: AppModel): Boolean =
                 oldItem == newItem
         }
-
-        private val DIACRITICAL_REGEX = Regex("\\p{InCombiningDiacriticalMarks}+")
-        private val SEPARATOR_REGEX = Regex("[-_+,. ]")
     }
 
     @Volatile private var autoLaunch = true
@@ -59,13 +56,14 @@ class AppDrawerAdapter(
     private val myUserHandle = android.os.Process.myUserHandle()
 
     @Volatile var usageStats: Map<String, Long> = emptyMap()
+    @Volatile var openCounts: Map<String, Int> = emptyMap()
     var sortByUsage: Boolean = false
     var showIcons: Boolean = false
     var iconPackPackage: String = ""
 
     @Volatile var appsList: MutableList<AppModel> = mutableListOf()
     @Volatile var appFilteredList: MutableList<AppModel> = mutableListOf()
-    @Volatile private var normalizedLabels: Map<String, String> = emptyMap()
+    @Volatile private var labelKeys: Map<String, SearchMatcher.LabelKey> = emptyMap()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
         ViewHolder(AdapterAppDrawerBinding.inflate(LayoutInflater.from(parent.context), parent, false))
@@ -85,6 +83,7 @@ class AppDrawerAdapter(
                 appHideListener,
                 appRenameListener,
                 usageStats,
+                openCounts,
                 showIcons,
                 iconPackPackage
             )
@@ -151,8 +150,8 @@ class AppDrawerAdapter(
     }
 
     private fun appLabelMatches(appLabel: String, charSearch: String): Boolean {
-        return appLabel.contains(charSearch, true) ||
-                (normalizedLabels[appLabel] ?: appLabel).contains(charSearch, true)
+        val key = labelKeys[appLabel] ?: SearchMatcher.key(appLabel)
+        return SearchMatcher.matches(appLabel, key, charSearch)
     }
 
     fun setAppList(appsList: MutableList<AppModel>) {
@@ -160,13 +159,11 @@ class AppDrawerAdapter(
         val list = appsList.toMutableList()
         list.add(AppModel("", null, "", "", false, android.os.Process.myUserHandle()))
         this.appsList = list
-        val newLabels = mutableMapOf<String, String>()
+        val newKeys = mutableMapOf<String, SearchMatcher.LabelKey>()
         for (app in list) {
-            newLabels[app.appLabel] = Normalizer.normalize(app.appLabel, Normalizer.Form.NFD)
-                .replace(DIACRITICAL_REGEX, "")
-                .replace(SEPARATOR_REGEX, "")
+            newKeys[app.appLabel] = SearchMatcher.key(app.appLabel)
         }
-        normalizedLabels = newLabels
+        labelKeys = newKeys
         if (sortByUsage && usageStats.isNotEmpty()) {
             filter.filter("")
         } else {
@@ -203,6 +200,7 @@ class AppDrawerAdapter(
             appHideListener: (AppModel, Int) -> Unit,
             appRenameListener: (AppModel, String) -> Unit,
             usageStats: Map<String, Long> = emptyMap(),
+            openCounts: Map<String, Int> = emptyMap(),
             showIcons: Boolean = false,
             iconPackPackage: String = "",
         ) =
@@ -242,8 +240,14 @@ class AppDrawerAdapter(
                 }
 
                 val timeMs = usageStats[appModel.appPackage] ?: 0L
-                if (timeMs > 0 && appModel.appPackage.isNotEmpty()) {
-                    appUsageTime.text = root.context.formattedTimeSpent(timeMs)
+                val opens = openCounts[appModel.appPackage] ?: 0
+                if ((timeMs > 0 || opens > 0) && appModel.appPackage.isNotEmpty()) {
+                    val timeText = if (timeMs > 0) root.context.formattedTimeSpent(timeMs) else ""
+                    appUsageTime.text = when {
+                        timeMs > 0 && opens > 0 -> "$timeText · ${opens}×"
+                        opens > 0 -> "${opens}×"
+                        else -> timeText
+                    }
                     appUsageTime.visibility = View.VISIBLE
                 } else {
                     appUsageTime.visibility = View.GONE

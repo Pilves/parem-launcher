@@ -6,8 +6,11 @@ Read ARCHITECTURE.md first: code map, conventions, and the "Traps" section
 ## Rules
 
 - Build-verify every change: `./gradlew compileDebugKotlin` for a quick check,
-  `./gradlew assembleDebug` before calling anything done. There are no tests.
+  `./gradlew testDebugUnitTest` for the JVM test suite (app/src/test — pure
+  logic only), `./gradlew assembleDebug` before calling anything done.
   A pipeline like `./gradlew … | tail` reports tail's exit code — check gradle's.
+- New pure logic (parsers, matchers, calculators) goes in helper/ as an
+  Android-free object with unit tests next to the existing ones.
 - Bottom sheets go through `ui/BottomSheetMenu`; app-launch/selection flows go
   through `MainViewModel.selectedApp(model, flag)`.
 - All state is SharedPreferences file `"com.parem.launcher"`. New exported keys
