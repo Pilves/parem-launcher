@@ -1,0 +1,1 @@
+Omnibox: fuzzy app search (initials + word prefixes), inline calculator, dial mode, Google/DuckDuckGo web search — one search bar for everything. Daily open counts in the app drawer. Scheduled theme times are now configurable. Focus Mode never blocks the phone app. Faster app launches and drawer scrolling, less battery. Many bug fixes.
