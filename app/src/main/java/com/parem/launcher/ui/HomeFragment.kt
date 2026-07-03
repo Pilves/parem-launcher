@@ -39,7 +39,6 @@ import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.expandNotificationDrawer
-import com.parem.launcher.helper.getChangedAppTheme
 import com.parem.launcher.helper.getUserHandleFromString
 import com.parem.launcher.helper.isPackageInstalled
 import com.parem.launcher.helper.openAlarmApp
@@ -47,7 +46,6 @@ import com.parem.launcher.helper.openCalendar
 import com.parem.launcher.helper.openCameraApp
 import com.parem.launcher.helper.openDialerApp
 import com.parem.launcher.helper.openSearch
-import com.parem.launcher.helper.setPlainWallpaperByTheme
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.listener.OnSwipeTouchListener
 import com.parem.launcher.listener.ViewSwipeTouchListener
@@ -63,7 +61,6 @@ import com.parem.launcher.helper.QuickNoteManager
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.SwipeUpAppManager
 import com.parem.launcher.helper.WeatherManager
-import com.parem.launcher.ui.FocusModeDialog
 import com.parem.launcher.ui.ScreenTimeGraphDialog
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.Dispatchers
@@ -154,6 +151,9 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
     override fun onClick(view: View) {
         when (view.id) {
+            // The lock view must stay clickable but do nothing here: clicking it emits the
+            // accessibility event MyAccessibilityService matches (by contentDescription) to
+            // perform GLOBAL_ACTION_LOCK_SCREEN. See lockPhone().
             R.id.lock -> {}
             R.id.clock -> openClockApp()
             R.id.date -> openCalendarApp()
@@ -483,12 +483,12 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             showQuickNoteDialog()
             return
         }
-        if (prefs.getAppName(location).isEmpty()) showLongPressToast()
+        if (prefs.getHomeAppName(location).isEmpty()) showLongPressToast()
         else checkBadHabitAndLaunch(
-            prefs.getAppName(location),
-            prefs.getAppPackage(location),
-            prefs.getAppActivityClassName(location),
-            prefs.getAppUser(location)
+            prefs.getHomeAppName(location),
+            prefs.getHomeAppPackage(location),
+            prefs.getHomeAppActivityClassName(location),
+            prefs.getHomeAppUser(location)
         )
     }
 
@@ -753,17 +753,6 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE or View.SYSTEM_UI_FLAG_FULLSCREEN
             }
         }
-    }
-
-    private fun changeAppTheme() {
-        if (prefs.dailyWallpaper.not()) return
-        val changedAppTheme = getChangedAppTheme(requireContext(), prefs.appTheme)
-        prefs.appTheme = changedAppTheme
-        if (prefs.dailyWallpaper) {
-            setPlainWallpaperByTheme(requireContext(), changedAppTheme)
-            viewModel.setWallpaperWorker()
-        }
-        requireActivity().recreate()
     }
 
     private fun openScreenTimeDigitalWellbeing() {
@@ -1194,17 +1183,6 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         dialog.setContentView(view)
         dialog.show()
     }
-
-    private fun showFocusModeDialog() {
-        val topApps = viewModel.perAppScreenTime.value?.entries
-            ?.sortedByDescending { it.value }
-            ?.take(10)
-            ?.map { it.key to (requireContext().packageManager.let { pm ->
-                try { pm.getApplicationLabel(pm.getApplicationInfo(it.key, 0)).toString() } catch (_: Exception) { it.key }
-            }) } ?: emptyList()
-        FocusModeDialog(requireContext(), topApps).show()
-    }
-
 
     // ─── Multi-widget system ───
 
