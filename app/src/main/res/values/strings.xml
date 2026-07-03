@@ -274,6 +274,14 @@
     <string name="onboarding_gesture_swipe_right">Swipe right to open an app (customizable)</string>
     <string name="onboarding_gesture_double_tap">Double tap to lock the screen</string>
 
+    <string name="onboarding_omnibox_title" translatable="false">One Search Bar</string>
+    <string name="onboarding_omnibox_subtitle" translatable="false">Swipe up and just type</string>
+    <string name="onboarding_omnibox_apps" translatable="false">Type an app name — a single match launches itself</string>
+    <string name="onboarding_omnibox_fuzzy" translatable="false">Fuzzy: gm → Google Maps, s ki → Shaurmas Kitchen</string>
+    <string name="onboarding_omnibox_calc" translatable="false">2+2 — instant calculator, enter copies the result</string>
+    <string name="onboarding_omnibox_dial" translatable="false">Type a phone number, enter opens the dialer</string>
+    <string name="onboarding_omnibox_web" translatable="false">Space + text searches Google, !bang goes to DuckDuckGo</string>
+
     <string name="onboarding_home_title">Home Screen</string>
     <string name="onboarding_home_subtitle">Your home screen, your rules</string>
     <string name="onboarding_home_slots">Up to 8 app slots on the home screen</string>

@@ -27,6 +27,17 @@ class OnboardingPagerAdapter : RecyclerView.Adapter<OnboardingPagerAdapter.PageV
             )
         ),
         Page(
+            R.string.onboarding_omnibox_title,
+            R.string.onboarding_omnibox_subtitle,
+            listOf(
+                R.string.onboarding_omnibox_apps,
+                R.string.onboarding_omnibox_fuzzy,
+                R.string.onboarding_omnibox_calc,
+                R.string.onboarding_omnibox_dial,
+                R.string.onboarding_omnibox_web
+            )
+        ),
+        Page(
             R.string.onboarding_home_title,
             R.string.onboarding_home_subtitle,
             listOf(

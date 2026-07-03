@@ -211,6 +211,9 @@ class AppDrawerFragment : Fragment() {
         calcResult = null
         dialNumber = null
         webSearchMode = false
+        // Omnibox modes only make sense when the drawer is a launcher, not when
+        // it is open as an app picker (set home app / swipe app / etc.)
+        if (flag != Constants.FLAG_LAUNCH_APP) return
         val trimmed = newText.trim()
 
         if (ExpressionEvaluator.looksLikeExpression(trimmed)) {
@@ -233,7 +236,7 @@ class AppDrawerFragment : Fragment() {
             b.appDrawerTip.visibility = View.VISIBLE
             return
         }
-        if (flag == Constants.FLAG_LAUNCH_APP) b.appDrawerTip.visibility = View.GONE
+        b.appDrawerTip.visibility = View.GONE
     }
 
     private fun initAdapter() {

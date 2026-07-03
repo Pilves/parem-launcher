@@ -37,6 +37,14 @@ class GestureLetterOverlayView @JvmOverloads constructor(
     /** When false, all touch events pass through to views below. */
     var isGestureLettersEnabled: Boolean = false
 
+    /**
+     * True while a letter stroke is actively being captured (drag threshold
+     * exceeded). Swipe listeners must not process events while this holds,
+     * otherwise a letter draw also fires a swipe action.
+     */
+    val isCapturing: Boolean
+        get() = isTracking && hasExceededThreshold
+
     private val points = mutableListOf<PointF>()
     private val drawPath = Path()
     private var isTracking = false

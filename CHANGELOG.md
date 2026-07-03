@@ -1,6 +1,11 @@
 # Changelog
 
-## v5.5.0 (unreleased)
+## v5.5.0
+
+### New
+- New app icon: a minimal `>_` prompt (with Android 13+ themed-icon support)
+- Onboarding now introduces the omnibox
+- App drawer shows daily open counts next to usage time ("1h 23m · 7×")
 
 ### Omnibox — the search bar is now the single point of truth
 - Fuzzy app search: initials (`gm` → Google Maps) and word-prefix tokens
@@ -9,9 +14,16 @@
 - Dial mode: type a phone number, enter opens the dialer
 - Space-prefixed queries search Google on enter; `!bang` queries go to
   DuckDuckGo (fixed: previously pointed at the defunct duck.co)
-- App drawer shows daily open counts next to usage time ("1h 23m · 7×")
 
 ### Fixed
+- Drawing a gesture letter no longer also triggers a swipe action, and
+  strokes that start on an app label now track correctly
+- Omnibox modes no longer hijack enter when the drawer is open as an
+  app picker
+- App info and uninstall now work for work-profile apps (from upstream
+  Olauncher, #446)
+- Auto-launch no longer fires mid-composition on CJK keyboards (from
+  upstream, #629/#694)
 - Focus Mode can no longer block the phone app, and opening it from
   Settings no longer shows an empty whitelist
 - "Scheduled" theme mode now asks for light/dark times (previously silently

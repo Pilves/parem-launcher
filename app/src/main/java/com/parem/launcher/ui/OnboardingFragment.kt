@@ -18,7 +18,7 @@ import com.parem.launcher.helper.getColorFromAttr
 
 class OnboardingFragment : Fragment() {
 
-    private val pageCount = 4
+    private var pageCount = 0
     private var currentPage = 0
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -35,7 +35,9 @@ class OnboardingFragment : Fragment() {
 
         val layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         pager.layoutManager = layoutManager
-        pager.adapter = OnboardingPagerAdapter()
+        val pagerAdapter = OnboardingPagerAdapter()
+        pager.adapter = pagerAdapter
+        pageCount = pagerAdapter.itemCount
 
         val snapHelper = PagerSnapHelper()
         snapHelper.attachToRecyclerView(pager)

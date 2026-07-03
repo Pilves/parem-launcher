@@ -911,10 +911,35 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
     private fun textOnLongClick(view: View) = onLongClick(view)
 
+    /**
+     * Forwards a touch event to the gesture-letter overlay, translating from
+     * [sourceView]'s local coordinates when needed. Returns true while the
+     * overlay is capturing a letter — the caller must then swallow the event
+     * so swipe/click detection doesn't run on the same stroke.
+     */
+    private fun forwardToLetterOverlay(sourceView: View?, motionEvent: MotionEvent): Boolean {
+        val overlay = binding.gestureLetterOverlay ?: return false
+        if (!overlay.isGestureLettersEnabled) return false
+        val wasCapturing = overlay.isCapturing
+        if (sourceView == null || sourceView === binding.mainLayout) {
+            overlay.forwardTouchEvent(motionEvent)
+        } else {
+            // Per-view listeners deliver view-local coordinates; shift into the
+            // overlay's frame so strokes starting on an app label track correctly
+            val src = IntArray(2).also { sourceView.getLocationInWindow(it) }
+            val dst = IntArray(2).also { overlay.getLocationInWindow(it) }
+            val copy = MotionEvent.obtain(motionEvent)
+            copy.offsetLocation((src[0] - dst[0]).toFloat(), (src[1] - dst[1]).toFloat())
+            overlay.forwardTouchEvent(copy)
+            copy.recycle()
+        }
+        return wasCapturing || overlay.isCapturing
+    }
+
     private fun getSwipeGestureListener(context: Context): OnSwipeTouchListener {
         return object : OnSwipeTouchListener(context) {
             override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
-                binding.gestureLetterOverlay?.forwardTouchEvent(motionEvent)
+                if (forwardToLetterOverlay(null, motionEvent)) return true
                 return super.onTouch(view, motionEvent)
             }
 
@@ -964,6 +989,14 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
     private fun getViewSwipeTouchListener(context: Context, view: View): ViewSwipeTouchListener {
         val listener = object : ViewSwipeTouchListener(context, view) {
+            override fun onTouch(v: View, motionEvent: MotionEvent): Boolean {
+                if (forwardToLetterOverlay(v, motionEvent)) {
+                    v.isPressed = false
+                    return true
+                }
+                return super.onTouch(v, motionEvent)
+            }
+
             override fun onSwipeLeft() {
                 super.onSwipeLeft()
                 openSwipeLeftApp()
