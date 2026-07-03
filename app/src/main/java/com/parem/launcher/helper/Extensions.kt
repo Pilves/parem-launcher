@@ -110,25 +110,6 @@ fun Context.isEinkDisplay(): Boolean {
     }
 }
 
-fun Context.searchOnPlayStore(query: String? = null): Boolean {
-    return try {
-        startActivity(
-            Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("https://play.google.com/store/search?q=${Uri.encode(query)}&c=apps")
-            ).addFlags(
-                Intent.FLAG_ACTIVITY_NO_HISTORY or
-                        Intent.FLAG_ACTIVITY_NEW_DOCUMENT or
-                        Intent.FLAG_ACTIVITY_MULTIPLE_TASK
-            )
-        )
-        true
-    } catch (e: Exception) {
-        Log.e("Extensions", "Failed to open Play Store search", e)
-        false
-    }
-}
-
 fun Context.isPackageInstalled(packageName: String, userHandle: UserHandle = android.os.Process.myUserHandle()): Boolean {
     val launcher = getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
     val activityInfo = launcher.getActivityList(packageName, userHandle)

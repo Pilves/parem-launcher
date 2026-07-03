@@ -77,7 +77,6 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     private var screenTouchListener: OnSwipeTouchListener? = null
     private val viewTouchListeners = mutableListOf<ViewSwipeTouchListener>()
     private lateinit var folderManager: FolderManager
-    private var expandedFolderSlot: Int = -1
     private var effectiveNoteSlot: Int = -1
     private var flashlightOn: Boolean = false
     private var torchCallback: android.hardware.camera2.CameraManager.TorchCallback? = null
