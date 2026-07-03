@@ -1,8 +1,17 @@
 # Parem Launcher
 
-A minimal, text-based Android launcher designed to help you use your phone less and more intentionally.
+**Minimal but hyperfunctional.** A text-based Android launcher that strips your home screen to what matters, then packs real utility behind a single search bar.
 
 No icons, no clutter — just the apps you need, the habits you want to build, and the tools to stay in control of your screen time.
+
+## The Omnibox
+
+The app drawer search bar is a single point of truth:
+
+- **Type** — apps filter instantly; a single match auto-launches
+- **`2+2`** — arithmetic shows a live result inline (`+ - * / % ^`, parentheses); tap or hit enter to copy it
+- **`␣ query`** — start with a space and enter searches Google
+- **`!bang query`** — DuckDuckGo bang searches (`!w`, `!yt`, …)
 
 ## Features
 
@@ -15,24 +24,21 @@ No icons, no clutter — just the apps you need, the habits you want to build, a
 
 ### Widgets
 - Add multiple widgets to your home screen (long-press > Add widget)
-- Per-widget height control with 5 size presets
-- Swap, remove, resize, reorder, or place widgets above or below your app list
+- Drag the handle under a widget to resize it
+- Swap, remove, reorder, or place widgets above or below your app list
 - Search and filter in the widget picker
 
 ### Digital Wellbeing
 - **Focus Mode** — Timed sessions (25m, 1h, 2h) that block all but 5 whitelisted apps
-- **Grayscale Mode** — One-tap grayscale filter over the entire launcher
 - **Screen Time Graph** — 7-day usage bar chart, tap the home screen time display to view
-- **Screen Time Limits** — Soft per-app time limits with toast warnings when exceeded
+- **Screen Time Limits** — Soft per-app time limits with warnings when exceeded
 - **Bad Habit Apps** — Mark distracting apps with a daily time limit; a confirmation dialog asks "Open anyway?" once the limit is reached
-- **Habit Streaks** — Mark apps as daily habits; streak counter shown in the app drawer, resets if you skip a day
 - **Configurable Double-Tap** — Lock screen, open app, notifications, search, camera, flashlight, or nothing
 
 ### App Drawer
-- Auto-launch apps by typing in the search bar
 - Per-app daily usage time shown next to each app
 - Sort apps by usage time
-- Long-press menu: delete, rename, hide, mark as habit, mark as bad habit, app info
+- Long-press menu: delete, rename, hide, set time limit, app info
 - App renaming and per-profile (work profile) support
 
 ### Gestures & Shortcuts
@@ -51,15 +57,17 @@ No icons, no clutter — just the apps you need, the habits you want to build, a
 ## Building
 
 ```
-# Requires Android SDK (min SDK 24, target 35)
+# Requires Android SDK (min SDK 24, target 35), JDK 17+
 ./gradlew assembleDebug
 ```
 
-The debug APK will be at `app/build/outputs/apk/debug/app-debug.apk`.
+The debug APK lands at `app/build/outputs/apk/debug/app-debug.apk`.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the code map, release process, and notes on building on ARM64 hosts (e.g. a Raspberry Pi).
 
 ## Origins
 
-Originally forked from [Olauncher](https://github.com/tanujnotes/Olauncher) by [tanujnotes](https://github.com/tanujnotes). This project has since diverged significantly with a full digital wellbeing suite, multi-widget system, gesture shortcuts, and many other features.
+Originally forked from [Olauncher](https://github.com/tanujnotes/Olauncher) by [tanujnotes](https://github.com/tanujnotes). This project has since diverged significantly with a full digital wellbeing suite, multi-widget system, omnibox search, gesture shortcuts, and many other features.
 
 ## License
 

@@ -117,6 +117,16 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         populateWellbeingSection()
         initClickListeners()
         initObservers()
+
+        // Rows that link nowhere are hidden until their URL constants are filled in
+        binding.aboutParem.isVisible = Constants.URL_ABOUT_PAREM.isNotEmpty()
+        binding.privacy.isVisible = Constants.URL_PAREM_PRIVACY.isNotEmpty()
+        binding.github.isVisible = Constants.URL_PAREM_GITHUB.isNotEmpty()
+
+        // Focus mode / screen-time dialogs rank apps by today's usage; without this
+        // the list is empty unless the app drawer happened to load first
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && requireContext().appUsagePermissionGranted())
+            viewModel.getPerAppScreenTime()
     }
 
     override fun onClick(view: View) {
@@ -152,7 +162,7 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
             R.id.textSizeValue -> binding.textSizesLayout.visibility = View.VISIBLE
             R.id.actionAccessibility -> openAccessibilityService()
             R.id.closeAccessibility -> toggleAccessibilityVisibility(false)
-            R.id.notWorking -> requireContext().openUrl(Constants.URL_DOUBLE_TAP)
+            R.id.notWorking -> if (Constants.URL_DOUBLE_TAP.isNotEmpty()) requireContext().openUrl(Constants.URL_DOUBLE_TAP)
 
             R.id.tvGestures -> binding.flSwipeDown.visibility = View.VISIBLE
 
@@ -607,66 +617,20 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
     }
 
     private fun showIconPackPicker(packs: List<Pair<String, String>>) {
-        val dialog = BottomSheetDialog(requireContext())
-        val container = android.widget.LinearLayout(requireContext()).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryInverseColor))
-            setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
-        }
-
-        val handle = android.view.View(requireContext()).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = android.view.Gravity.CENTER_HORIZONTAL
-                bottomMargin = 8.dpToPx()
-            }
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-        }
-        container.addView(handle)
-
-        val title = android.widget.TextView(requireContext()).apply {
-            text = getString(R.string.select_icon_pack)
-            textSize = 14f
-            setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 8.dpToPx())
-        }
-        container.addView(title)
-
-        // System icons option
-        val systemOption = android.widget.TextView(requireContext()).apply {
-            text = getString(R.string.system_icons)
-            textSize = 16f
-            setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-            setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-            setOnClickListener {
-                dialog.dismiss()
-                prefs.showIcons = true
-                prefs.iconPackPackage = ""
-                populateShowIcons()
-                viewModel.refreshHome(false)
-            }
-        }
-        container.addView(systemOption)
-
+        val menu = BottomSheetMenu(requireContext())
+            .title(getString(R.string.select_icon_pack))
+        menu.option(getString(R.string.system_icons)) { applyIconPack("") }
         for ((pkg, label) in packs) {
-            val tv = android.widget.TextView(requireContext()).apply {
-                text = label
-                textSize = 16f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-                setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-                setOnClickListener {
-                    dialog.dismiss()
-                    prefs.showIcons = true
-                    prefs.iconPackPackage = pkg
-                    populateShowIcons()
-                    viewModel.refreshHome(false)
-                }
-            }
-            container.addView(tv)
+            menu.option(label) { applyIconPack(pkg) }
         }
+        menu.show()
+    }
 
-        dialog.setContentView(container)
-        dialog.show()
+    private fun applyIconPack(pkg: String) {
+        prefs.showIcons = true
+        prefs.iconPackPackage = pkg
+        populateShowIcons()
+        viewModel.refreshHome(false)
     }
 
     private fun populateShowIcons() {
@@ -753,138 +717,69 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
             return
         }
 
-        val actions = arrayOf(
-            getString(R.string.open_app) to Constants.GestureAction.OPEN_APP,
-            getString(R.string.notifications) to Constants.GestureAction.OPEN_NOTIFICATIONS,
-            getString(R.string.search) to Constants.GestureAction.OPEN_SEARCH,
-            getString(R.string.lock_screen) to Constants.GestureAction.LOCK_SCREEN,
-            getString(R.string.camera) to Constants.GestureAction.OPEN_CAMERA,
-            getString(R.string.flashlight) to Constants.GestureAction.TOGGLE_FLASHLIGHT,
-            getString(R.string.none) to Constants.GestureAction.NONE,
-        )
-
-        val dialog = BottomSheetDialog(requireContext())
-        val container = android.widget.LinearLayout(requireContext()).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryInverseColor))
-            setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
-        }
-
-        val handle = android.view.View(requireContext()).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = android.view.Gravity.CENTER_HORIZONTAL
-                bottomMargin = 8.dpToPx()
-            }
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-        }
-        container.addView(handle)
-
-        val title = android.widget.TextView(requireContext()).apply {
-            text = getString(R.string.select_action)
-            textSize = 14f
-            setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 8.dpToPx())
-        }
-        container.addView(title)
-
-        for ((label, actionValue) in actions) {
-            val tv = android.widget.TextView(requireContext()).apply {
-                text = label
-                textSize = 16f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-                setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-                setOnClickListener {
-                    dialog.dismiss()
-                    if (isLeft) prefs.swipeLeftAction = actionValue
-                    else prefs.swipeRightAction = actionValue
-                    if (actionValue == Constants.GestureAction.OPEN_APP) {
-                        showAppListForSwipe(if (isLeft) Constants.FLAG_SET_SWIPE_LEFT_APP else Constants.FLAG_SET_SWIPE_RIGHT_APP)
-                    } else {
-                        populateSwipeApps()
-                    }
+        val menu = BottomSheetMenu(requireContext())
+            .title(getString(R.string.select_action))
+        for ((label, actionValue) in gestureActionChoices()) {
+            menu.option(label) {
+                if (isLeft) prefs.swipeLeftAction = actionValue
+                else prefs.swipeRightAction = actionValue
+                if (actionValue == Constants.GestureAction.OPEN_APP) {
+                    showAppListForSwipe(if (isLeft) Constants.FLAG_SET_SWIPE_LEFT_APP else Constants.FLAG_SET_SWIPE_RIGHT_APP)
+                } else {
+                    populateSwipeApps()
                 }
             }
-            container.addView(tv)
         }
-
-        dialog.setContentView(container)
-        dialog.show()
+        menu.show()
     }
 
+    private fun gestureActionChoices() = arrayOf(
+        getString(R.string.open_app) to Constants.GestureAction.OPEN_APP,
+        getString(R.string.notifications) to Constants.GestureAction.OPEN_NOTIFICATIONS,
+        getString(R.string.search) to Constants.GestureAction.OPEN_SEARCH,
+        getString(R.string.lock_screen) to Constants.GestureAction.LOCK_SCREEN,
+        getString(R.string.camera) to Constants.GestureAction.OPEN_CAMERA,
+        getString(R.string.flashlight) to Constants.GestureAction.TOGGLE_FLASHLIGHT,
+        getString(R.string.none) to Constants.GestureAction.NONE,
+    )
+
     private fun showDoubleTapActionPicker() {
-        val actions = arrayOf(
-            getString(R.string.lock_screen) to Constants.GestureAction.LOCK_SCREEN,
-            getString(R.string.open_app) to Constants.GestureAction.OPEN_APP,
-            getString(R.string.notifications) to Constants.GestureAction.OPEN_NOTIFICATIONS,
-            getString(R.string.search) to Constants.GestureAction.OPEN_SEARCH,
-            getString(R.string.camera) to Constants.GestureAction.OPEN_CAMERA,
-            getString(R.string.flashlight) to Constants.GestureAction.TOGGLE_FLASHLIGHT,
-            getString(R.string.none) to Constants.GestureAction.NONE,
-        )
-
-        val dialog = BottomSheetDialog(requireContext())
-        val container = android.widget.LinearLayout(requireContext()).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryInverseColor))
-            setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
-        }
-
-        val handle = android.view.View(requireContext()).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = android.view.Gravity.CENTER_HORIZONTAL
-                bottomMargin = 8.dpToPx()
-            }
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-        }
-        container.addView(handle)
-
-        val title = android.widget.TextView(requireContext()).apply {
-            text = getString(R.string.double_tap_action)
-            textSize = 14f
-            setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 8.dpToPx())
-        }
-        container.addView(title)
-
-        for ((label, actionValue) in actions) {
-            val tv = android.widget.TextView(requireContext()).apply {
-                text = label
-                textSize = 16f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-                setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-                setOnClickListener {
-                    dialog.dismiss()
-                    DoubleTapActionManager.setAction(requireContext(), actionValue)
-                    if (actionValue == Constants.GestureAction.OPEN_APP) {
-                        showAppListForSwipe(Constants.FLAG_SET_DOUBLE_TAP_APP)
-                    }
-                    if (actionValue == Constants.GestureAction.LOCK_SCREEN) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                            if (!isAccessServiceEnabled(requireContext())) {
-                                toggleAccessibilityVisibility(true)
-                            }
-                        } else {
-                            if (!deviceManager.isAdminActive(componentName)) {
-                                val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
-                                intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName)
-                                intent.putExtra(
-                                    DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                                    getString(R.string.admin_permission_message)
-                                )
-                                (requireActivity() as MainActivity).enableAdminLauncher.launch(intent)
-                            }
-                        }
-                    }
-                    populateDoubleTapAction()
+        val menu = BottomSheetMenu(requireContext())
+            .title(getString(R.string.double_tap_action))
+        // Lock screen first: it is the double-tap default
+        val choices = gestureActionChoices()
+            .sortedByDescending { it.second == Constants.GestureAction.LOCK_SCREEN }
+        for ((label, actionValue) in choices) {
+            menu.option(label) {
+                DoubleTapActionManager.setAction(requireContext(), actionValue)
+                if (actionValue == Constants.GestureAction.OPEN_APP) {
+                    showAppListForSwipe(Constants.FLAG_SET_DOUBLE_TAP_APP)
                 }
+                if (actionValue == Constants.GestureAction.LOCK_SCREEN) {
+                    ensureLockPermission()
+                }
+                populateDoubleTapAction()
             }
-            container.addView(tv)
         }
+        menu.show()
+    }
 
-        dialog.setContentView(container)
-        dialog.show()
+    private fun ensureLockPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (!isAccessServiceEnabled(requireContext())) {
+                toggleAccessibilityVisibility(true)
+            }
+        } else {
+            if (!deviceManager.isAdminActive(componentName)) {
+                val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
+                intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName)
+                intent.putExtra(
+                    DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+                    getString(R.string.admin_permission_message)
+                )
+                (requireActivity() as MainActivity).enableAdminLauncher.launch(intent)
+            }
+        }
     }
 
     private fun showWeatherSettingsDialog() {
@@ -992,108 +887,32 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
     }
 
     private fun showThemePicker() {
-        val options = arrayOf(
-            getString(R.string.light) to "light",
-            getString(R.string.dark) to "dark",
-            getString(R.string.system_default) to "system",
-            getString(R.string.scheduled) to "scheduled",
-            getString(R.string.sunrise_sunset) to "sunrise_sunset",
-        )
+        BottomSheetMenu(requireContext())
+            .title(getString(R.string.theme_mode))
+            .option(getString(R.string.light)) { setManualTheme(AppCompatDelegate.MODE_NIGHT_NO) }
+            .option(getString(R.string.dark)) { setManualTheme(AppCompatDelegate.MODE_NIGHT_YES) }
+            .option(getString(R.string.system_default)) { setManualTheme(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) }
+            .option(getString(R.string.scheduled)) { setScheduledTheme(Constants.ThemeScheduleMode.SCHEDULED) }
+            .option(getString(R.string.sunrise_sunset)) { setScheduledTheme(Constants.ThemeScheduleMode.SUNRISE_SUNSET) }
+            .show()
+    }
 
-        val dialog = BottomSheetDialog(requireContext())
-        val container = android.widget.LinearLayout(requireContext()).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryInverseColor))
-            setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
-        }
+    private fun setManualTheme(mode: Int) {
+        ThemeScheduleManager.setMode(requireContext(), Constants.ThemeScheduleMode.MANUAL)
+        viewModel.cancelThemeScheduleWorker()
+        updateTheme(mode)
+    }
 
-        val handle = android.view.View(requireContext()).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = android.view.Gravity.CENTER_HORIZONTAL
-                bottomMargin = 8.dpToPx()
-            }
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-        }
-        container.addView(handle)
-
-        val title = android.widget.TextView(requireContext()).apply {
-            text = getString(R.string.theme_mode)
-            textSize = 14f
-            setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 8.dpToPx())
-        }
-        container.addView(title)
-
-        for ((label, mode) in options) {
-            val tv = android.widget.TextView(requireContext()).apply {
-                text = label
-                textSize = 16f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-                setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-                setOnClickListener {
-                    dialog.dismiss()
-                    when (mode) {
-                        "light" -> {
-                            ThemeScheduleManager.setMode(requireContext(), Constants.ThemeScheduleMode.MANUAL)
-                            viewModel.cancelThemeScheduleWorker()
-                            updateTheme(AppCompatDelegate.MODE_NIGHT_NO)
-                        }
-                        "dark" -> {
-                            ThemeScheduleManager.setMode(requireContext(), Constants.ThemeScheduleMode.MANUAL)
-                            viewModel.cancelThemeScheduleWorker()
-                            updateTheme(AppCompatDelegate.MODE_NIGHT_YES)
-                        }
-                        "system" -> {
-                            ThemeScheduleManager.setMode(requireContext(), Constants.ThemeScheduleMode.MANUAL)
-                            viewModel.cancelThemeScheduleWorker()
-                            updateTheme(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-                        }
-                        "scheduled" -> {
-                            ThemeScheduleManager.setMode(requireContext(), Constants.ThemeScheduleMode.SCHEDULED)
-                            viewModel.startThemeScheduleWorker()
-                            populateAppThemeText()
-                        }
-                        "sunrise_sunset" -> {
-                            ThemeScheduleManager.setMode(requireContext(), Constants.ThemeScheduleMode.SUNRISE_SUNSET)
-                            viewModel.startThemeScheduleWorker()
-                            populateAppThemeText()
-                        }
-                    }
-                }
-            }
-            container.addView(tv)
-        }
-
-        dialog.setContentView(container)
-        dialog.show()
+    private fun setScheduledTheme(scheduleMode: Int) {
+        ThemeScheduleManager.setMode(requireContext(), scheduleMode)
+        viewModel.startThemeScheduleWorker()
+        populateAppThemeText()
     }
 
     private fun showGestureLetterConfigDialog() {
-        val dialog = BottomSheetDialog(requireContext())
-        val container = android.widget.LinearLayout(requireContext()).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryInverseColor))
-            setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
-        }
-
-        val handle = android.view.View(requireContext()).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = android.view.Gravity.CENTER_HORIZONTAL
-                bottomMargin = 8.dpToPx()
-            }
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-        }
-        container.addView(handle)
-
-        val title = android.widget.TextView(requireContext()).apply {
-            text = getString(R.string.gesture_letters)
-            textSize = 14f
-            setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 8.dpToPx())
-        }
-        container.addView(title)
+        val menu = BottomSheetMenu(requireContext())
+            .title(getString(R.string.gesture_letters))
+        lateinit var dialog: com.google.android.material.bottomsheet.BottomSheetDialog
 
         val allMappings = GestureLetterManager.getAllMappings(requireContext())
         for (letter in GestureLetterManager.getSupportedLetters()) {
@@ -1139,25 +958,15 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
                 row.addView(clearBtn)
             }
 
-            container.addView(row)
+            menu.customView(row)
         }
 
-        // Disable option
-        val disableOption = android.widget.TextView(requireContext()).apply {
-            text = getString(R.string.disable)
-            textSize = 16f
-            setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-            setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-            setOnClickListener {
-                GestureLetterManager.setEnabled(requireContext(), false)
-                populateWellbeingSection()
-                dialog.dismiss()
-            }
+        menu.option(getString(R.string.disable), dimmed = true) {
+            GestureLetterManager.setEnabled(requireContext(), false)
+            populateWellbeingSection()
         }
-        container.addView(disableOption)
 
-        dialog.setContentView(container)
-        dialog.show()
+        dialog = menu.show()
     }
 
 
@@ -1213,64 +1022,17 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
     }
 
     private fun confirmImportSettings() {
-        val dialog = BottomSheetDialog(requireContext())
-        val container = android.widget.LinearLayout(requireContext()).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryInverseColor))
-            setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
-        }
-
-        val handle = android.view.View(requireContext()).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = android.view.Gravity.CENTER_HORIZONTAL
-                bottomMargin = 16.dpToPx()
-            }
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-        }
-        container.addView(handle)
-
-        val message = android.widget.TextView(requireContext()).apply {
-            text = getString(R.string.import_settings_confirm)
-            textSize = 16f
-            setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-            setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 16.dpToPx())
-        }
-        container.addView(message)
-
-        val buttonRow = android.widget.LinearLayout(requireContext()).apply {
-            orientation = android.widget.LinearLayout.HORIZONTAL
-            setPadding(24.dpToPx(), 0, 24.dpToPx(), 0)
-        }
-
-        val cancelBtn = android.widget.TextView(requireContext()).apply {
-            text = getString(R.string.cancel)
-            textSize = 16f
-            setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-            setPadding(0, 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-            setOnClickListener { dialog.dismiss() }
-        }
-        buttonRow.addView(cancelBtn)
-
-        val confirmBtn = android.widget.TextView(requireContext()).apply {
-            text = getString(R.string.confirm)
-            textSize = 16f
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-            setPadding(0, 14.dpToPx(), 0, 14.dpToPx())
-            setOnClickListener {
-                dialog.dismiss()
+        BottomSheetMenu(requireContext())
+            .message(getString(R.string.import_settings_confirm))
+            .option(getString(R.string.confirm)) {
                 val intent = android.content.Intent(android.content.Intent.ACTION_OPEN_DOCUMENT).apply {
                     addCategory(android.content.Intent.CATEGORY_OPENABLE)
                     type = "application/json"
                 }
                 importSettingsLauncher.launch(intent)
             }
-        }
-        buttonRow.addView(confirmBtn)
-
-        container.addView(buttonRow)
-        dialog.setContentView(container)
-        dialog.show()
+            .option(getString(R.string.cancel), dimmed = true) {}
+            .show()
     }
 
     private fun importSettings(uri: android.net.Uri) {

@@ -23,6 +23,8 @@ import com.parem.launcher.data.AppModel
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.appUsagePermissionGranted
+import com.parem.launcher.helper.copyToClipboard
+import com.parem.launcher.helper.ExpressionEvaluator
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.hideKeyboard
@@ -34,7 +36,6 @@ import com.parem.launcher.helper.openUrl
 import com.parem.launcher.helper.showKeyboard
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.helper.uninstall
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -52,6 +53,11 @@ class AppDrawerFragment : Fragment() {
     private var scrollListener: RecyclerView.OnScrollListener? = null
     private val searchHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var searchRunnable: Runnable? = null
+
+    // Omnibox state: non-null when the query is an arithmetic expression,
+    // true when a leading space marks the query as a web search
+    private var calcResult: String? = null
+    private var webSearchMode = false
 
     private val viewModel: MainViewModel by activityViewModels()
     private var _binding: FragmentAppDrawerBinding? = null
@@ -97,22 +103,31 @@ class AppDrawerFragment : Fragment() {
         binding.search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 val ctx = context ?: return true
-                if (query?.startsWith("!") == true)
-                    ctx.openUrl(Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(query, "UTF-8"))
-                else if (adapter.itemCount == 0)
-                    ctx.openSearch(query?.trim())
-                else
-                    adapter.launchFirstInList()
+                val q = query ?: ""
+                when {
+                    calcResult != null -> {
+                        ctx.copyToClipboard(calcResult!!)
+                        ctx.showToast(getString(R.string.copied))
+                    }
+                    webSearchMode ->
+                        ctx.openUrl(Constants.URL_GOOGLE_SEARCH + java.net.URLEncoder.encode(q.trim(), "UTF-8"))
+                    q.startsWith("!") ->
+                        ctx.openUrl(Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(q, "UTF-8"))
+                    adapter.itemCount == 0 -> ctx.openSearch(q.trim())
+                    else -> adapter.launchFirstInList()
+                }
                 return true
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
                 _binding?.appRename?.visibility = if (canRename && newText.isNotBlank()) View.VISIBLE else View.GONE
+                updateOmniboxState(newText)
                 searchRunnable?.let { searchHandler.removeCallbacks(it) }
                 searchRunnable = Runnable {
                     try {
                         adapter.filter.filter(newText) {
                             _binding?.let { b ->
+                                if (calcResult != null || webSearchMode) return@let
                                 if (adapter.itemCount == 0 && newText.isNotBlank()) {
                                     b.appDrawerTip.text = getString(R.string.no_apps_found)
                                     b.appDrawerTip.visibility = View.VISIBLE
@@ -129,6 +144,34 @@ class AppDrawerFragment : Fragment() {
                 return true
             }
         })
+    }
+
+    /**
+     * The search field doubles as an omnibox: arithmetic shows a live result
+     * (tap or submit to copy), and a leading space turns the query into a
+     * Google search on submit.
+     */
+    private fun updateOmniboxState(newText: String) {
+        val b = _binding ?: return
+        calcResult = null
+        webSearchMode = false
+        val trimmed = newText.trim()
+
+        if (ExpressionEvaluator.looksLikeExpression(trimmed)) {
+            ExpressionEvaluator.evaluate(trimmed)?.let { value ->
+                calcResult = ExpressionEvaluator.format(value)
+                b.appDrawerTip.text = "= $calcResult"
+                b.appDrawerTip.visibility = View.VISIBLE
+                return
+            }
+        }
+        if (newText.startsWith(" ") && trimmed.isNotEmpty()) {
+            webSearchMode = true
+            b.appDrawerTip.text = getString(R.string.google_search_hint, trimmed)
+            b.appDrawerTip.visibility = View.VISIBLE
+            return
+        }
+        if (flag == Constants.FLAG_LAUNCH_APP) b.appDrawerTip.visibility = View.GONE
     }
 
     private fun initAdapter() {
@@ -269,6 +312,11 @@ class AppDrawerFragment : Fragment() {
 
     private fun initClickListeners() {
         binding.appDrawerTip.setOnClickListener {
+            calcResult?.let { result ->
+                requireContext().copyToClipboard(result)
+                requireContext().showToast(getString(R.string.copied))
+                return@setOnClickListener
+            }
             binding.appDrawerTip.isSelected = false
             binding.appDrawerTip.isSelected = true
         }
@@ -347,60 +395,11 @@ class AppDrawerFragment : Fragment() {
     private fun showBadHabitWarningDialog(appModel: AppModel, usageMinutes: Long, limitMinutes: Int) {
         val ctx = context ?: return
         val appName = appModel.appLabel.ifEmpty { appModel.appPackage }
-        val hours = usageMinutes / 60
-        val mins = usageMinutes % 60
-        val usageText = if (hours > 0) "${hours}h ${mins}m" else "${mins}m"
-        val limitText = if (limitMinutes >= 60) "${limitMinutes / 60}h ${limitMinutes % 60}m" else "${limitMinutes}m"
-
-        val dialog = BottomSheetDialog(ctx)
-        val container = android.widget.LinearLayout(ctx).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setBackgroundColor(ctx.getColorFromAttr(R.attr.primaryInverseColor))
-            setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
+        BadHabitDialogs.showLimitWarning(ctx, appName, usageMinutes, limitMinutes) {
+            if (!isAdded) return@showLimitWarning
+            viewModel.selectedApp(appModel, flag)
+            findNavController().popBackStack(R.id.mainFragment, false)
         }
-
-        val handle = android.view.View(ctx).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = android.view.Gravity.CENTER_HORIZONTAL
-                bottomMargin = 16.dpToPx()
-            }
-            setBackgroundColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
-        }
-        container.addView(handle)
-
-        val message = android.widget.TextView(ctx).apply {
-            text = ctx.getString(R.string.app_limit_warning, appName, usageText, limitText)
-            textSize = 16f
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColor))
-            setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 16.dpToPx())
-        }
-        container.addView(message)
-
-        val openAnyway = android.widget.TextView(ctx).apply {
-            text = ctx.getString(R.string.open_anyway)
-            textSize = 16f
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColor))
-            setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-            setOnClickListener {
-                dialog.dismiss()
-                if (!isAdded) return@setOnClickListener
-                viewModel.selectedApp(appModel, flag)
-                findNavController().popBackStack(R.id.mainFragment, false)
-            }
-        }
-        container.addView(openAnyway)
-
-        val goBack = android.widget.TextView(ctx).apply {
-            text = ctx.getString(R.string.go_back)
-            textSize = 16f
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
-            setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-            setOnClickListener { dialog.dismiss() }
-        }
-        container.addView(goBack)
-
-        dialog.setContentView(container)
-        dialog.show()
     }
 
     override fun onStart() {

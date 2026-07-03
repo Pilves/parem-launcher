@@ -50,6 +50,7 @@
     <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Tip: Start typing an app name to auto-launch it</string>
+    <string name="google_search_hint" translatable="false">↵  Google: %1$s</string>
     <string name="okay">Okay</string>
     <string name="cool">Cool!</string>
     <string name="auto_show_keyboard">Auto show keyboard</string>
@@ -151,6 +152,8 @@
     <string name="swipe_left_action">Swipe left action</string>
     <string name="swipe_right_action">Swipe right action</string>
     <string name="open_app">Open app</string>
+    <string name="select_app" translatable="false">Select app</string>
+    <string name="change_app" translatable="false">Change app</string>
     <string name="lock_screen">Lock screen</string>
     <string name="camera">Camera</string>
     <string name="flashlight">Flashlight</string>
