@@ -109,14 +109,16 @@ object Constants {
 
     const val MIN_ANIM_REFRESH_RATE = 10f
 
+    // Rows in settings whose URL is empty are hidden (see SettingsFragment)
     const val URL_ABOUT_PAREM = ""
     const val URL_PAREM_PRIVACY = ""
     const val URL_DOUBLE_TAP = ""
-    const val URL_PAREM_GITHUB = ""
+    const val URL_PAREM_GITHUB = "https://github.com/Pilves/parem-launcher"
     const val URL_WALLPAPERS = "https://gist.githubusercontent.com/tanujnotes/85e2d0343ace71e76615ac346fbff82b/raw"
     const val URL_DEFAULT_DARK_WALLPAPER = "https://images.unsplash.com/photo-1512551980832-13df02babc9e"
     const val URL_DEFAULT_LIGHT_WALLPAPER = "https://images.unsplash.com/photo-1515549832467-8783363e19b6"
-    const val URL_DUCK_SEARCH = "https://duck.co/?q="
+    const val URL_DUCK_SEARCH = "https://duckduckgo.com/?q="
+    const val URL_GOOGLE_SEARCH = "https://www.google.com/search?q="
 
     const val DIGITAL_WELLBEING_PACKAGE_NAME = "com.google.android.apps.wellbeing"
     const val DIGITAL_WELLBEING_ACTIVITY = "com.google.android.apps.wellbeing.settings.TopLevelSettingsActivity"

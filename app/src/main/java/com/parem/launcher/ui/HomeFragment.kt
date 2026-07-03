@@ -198,19 +198,11 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             return true
         }
         when (view.id) {
-            R.id.clock -> {
-                showAppList(Constants.FLAG_SET_CLOCK_APP)
-                prefs.clockAppPackage = ""
-                prefs.clockAppClassName = ""
-                prefs.clockAppUser = ""
-            }
+            // Don't clear the current clock/calendar prefs here: if the user backs out
+            // of the app list without choosing, their existing choice must survive.
+            R.id.clock -> showAppList(Constants.FLAG_SET_CLOCK_APP)
 
-            R.id.date -> {
-                showAppList(Constants.FLAG_SET_CALENDAR_APP)
-                prefs.calendarAppPackage = ""
-                prefs.calendarAppClassName = ""
-                prefs.calendarAppUser = ""
-            }
+            R.id.date -> showAppList(Constants.FLAG_SET_CALENDAR_APP)
 
             R.id.setDefaultLauncher -> {
                 prefs.hideSetDefaultLauncher = true
@@ -691,7 +683,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         val menu = BottomSheetMenu(requireContext())
 
         // Set / change app
-        menu.option(if (hasApp) getString(R.string.rename) else getString(R.string.open_app)) {
+        menu.option(if (hasApp) getString(R.string.change_app) else getString(R.string.select_app)) {
             showAppList(slot, hasApp, true)
         }
 
@@ -720,11 +712,16 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         if (hasApp || isFolder || isNote) {
             menu.option(getString(R.string.delete)) {
                 if (isFolder) folderManager.removeFolder(slot)
-                if (isNote) QuickNoteManager.setEnabled(requireContext(), false)
-                prefs.setHomeAppName(slot, "")
-                prefs.setHomeAppPackage(slot, "")
-                prefs.setHomeAppActivityClassName(slot, "")
-                prefs.setHomeAppUser(slot, "")
+                if (isNote) {
+                    // The note only overlays the last slot; removing it must not wipe
+                    // the app that is pinned underneath
+                    QuickNoteManager.setEnabled(requireContext(), false)
+                } else {
+                    prefs.setHomeAppName(slot, "")
+                    prefs.setHomeAppPackage(slot, "")
+                    prefs.setHomeAppActivityClassName(slot, "")
+                    prefs.setHomeAppUser(slot, "")
+                }
                 populateHomeScreen(false)
             }
         }

@@ -117,6 +117,16 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
         populateWellbeingSection()
         initClickListeners()
         initObservers()
+
+        // Rows that link nowhere are hidden until their URL constants are filled in
+        binding.aboutParem.isVisible = Constants.URL_ABOUT_PAREM.isNotEmpty()
+        binding.privacy.isVisible = Constants.URL_PAREM_PRIVACY.isNotEmpty()
+        binding.github.isVisible = Constants.URL_PAREM_GITHUB.isNotEmpty()
+
+        // Focus mode / screen-time dialogs rank apps by today's usage; without this
+        // the list is empty unless the app drawer happened to load first
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && requireContext().appUsagePermissionGranted())
+            viewModel.getPerAppScreenTime()
     }
 
     override fun onClick(view: View) {
@@ -152,7 +162,7 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
             R.id.textSizeValue -> binding.textSizesLayout.visibility = View.VISIBLE
             R.id.actionAccessibility -> openAccessibilityService()
             R.id.closeAccessibility -> toggleAccessibilityVisibility(false)
-            R.id.notWorking -> requireContext().openUrl(Constants.URL_DOUBLE_TAP)
+            R.id.notWorking -> if (Constants.URL_DOUBLE_TAP.isNotEmpty()) requireContext().openUrl(Constants.URL_DOUBLE_TAP)
 
             R.id.tvGestures -> binding.flSwipeDown.visibility = View.VISIBLE
 
