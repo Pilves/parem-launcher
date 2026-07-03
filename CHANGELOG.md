@@ -15,7 +15,14 @@
 - Space-prefixed queries search Google on enter; `!bang` queries go to
   DuckDuckGo (fixed: previously pointed at the defunct duck.co)
 
+### Removed
+- Quick Notes: the note overlaid the last home slot, hiding the app under
+  it and jumping slots during layout fitting — inherently janky, and a
+  launcher doesn't need to be a notes app
+
 ### Fixed
+- Widgets now work in landscape on tablets (the landscape layout was
+  missing the widget containers entirely)
 - Drawing a gesture letter no longer also triggers a swipe action, and
   strokes that start on an app label now track correctly
 - Omnibox modes no longer hijack enter when the drawer is open as an

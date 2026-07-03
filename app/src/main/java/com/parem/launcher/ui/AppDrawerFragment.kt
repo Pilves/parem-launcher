@@ -52,8 +52,6 @@ class AppDrawerFragment : Fragment() {
     private var flag = Constants.FLAG_LAUNCH_APP
     private var canRename = false
     private var scrollListener: RecyclerView.OnScrollListener? = null
-    private val searchHandler = android.os.Handler(android.os.Looper.getMainLooper())
-    private var searchRunnable: Runnable? = null
     private var searchTextView: TextView? = null
     private var cachedIsCjkKeyboard: Boolean? = null
 
@@ -177,25 +175,23 @@ class AppDrawerFragment : Fragment() {
             override fun onQueryTextChange(newText: String): Boolean {
                 _binding?.appRename?.visibility = if (canRename && newText.isNotBlank()) View.VISIBLE else View.GONE
                 updateOmniboxState(newText)
-                searchRunnable?.let { searchHandler.removeCallbacks(it) }
-                searchRunnable = Runnable {
-                    try {
-                        adapter.filter.filter(newText) {
-                            _binding?.let { b ->
-                                if (calcResult != null || dialNumber != null || webSearchMode) return@let
-                                if (adapter.itemCount == 0 && newText.isNotBlank()) {
-                                    b.appDrawerTip.text = getString(R.string.no_apps_found)
-                                    b.appDrawerTip.visibility = View.VISIBLE
-                                } else {
-                                    b.appDrawerTip.visibility = View.GONE
-                                }
+                // No debounce: matching against precomputed keys is sub-millisecond
+                // and Filter supersedes stale requests itself — instant beats smooth
+                try {
+                    adapter.filter.filter(newText) {
+                        _binding?.let { b ->
+                            if (calcResult != null || dialNumber != null || webSearchMode) return@let
+                            if (adapter.itemCount == 0 && newText.isNotBlank()) {
+                                b.appDrawerTip.text = getString(R.string.no_apps_found)
+                                b.appDrawerTip.visibility = View.VISIBLE
+                            } else {
+                                b.appDrawerTip.visibility = View.GONE
                             }
                         }
-                    } catch (e: Exception) {
-                        Log.e("AppDrawerFragment", "Error filtering app list", e)
                     }
+                } catch (e: Exception) {
+                    Log.e("AppDrawerFragment", "Error filtering app list", e)
                 }
-                searchHandler.postDelayed(searchRunnable!!, 150)
                 return true
             }
         })
@@ -484,7 +480,6 @@ class AppDrawerFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        searchRunnable?.let { searchHandler.removeCallbacks(it) }
         scrollListener?.let { binding.recyclerView.removeOnScrollListener(it) }
         scrollListener = null
         searchTextView = null

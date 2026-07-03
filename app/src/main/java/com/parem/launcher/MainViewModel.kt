@@ -162,18 +162,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun launchApp(packageName: String, activityClassName: String?, userHandle: UserHandle) {
+        // Fast path: the activity is known for every home slot and drawer row —
+        // launch synchronously instead of paying two dispatcher hops per tap
+        if (!activityClassName.isNullOrBlank()) {
+            if (startApp(ComponentName(packageName, activityClassName), userHandle, packageName)) return
+            // Stale component (app updated and renamed its activity) — fall through to resolve
+        }
         viewModelScope.launch {
             val component = withContext(Dispatchers.IO) {
                 try {
                     val activityInfo = launcherApps.getActivityList(packageName, userHandle)
-                    if (activityClassName.isNullOrBlank()) {
-                        when (activityInfo.size) {
-                            0 -> null
-                            1 -> ComponentName(packageName, activityInfo[0].name)
-                            else -> ComponentName(packageName, activityInfo[activityInfo.size - 1].name)
-                        }
-                    } else {
-                        ComponentName(packageName, activityClassName)
+                    when (activityInfo.size) {
+                        0 -> null
+                        1 -> ComponentName(packageName, activityInfo[0].name)
+                        else -> ComponentName(packageName, activityInfo[activityInfo.size - 1].name)
                     }
                 } catch (e: Exception) {
                     Log.e("MainViewModel", "Failed to resolve activity for $packageName", e)
@@ -184,19 +186,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 appContext.showToast(appContext.getString(R.string.app_not_found))
                 return@launch
             }
-            try {
-                launcherApps.startMainActivity(component, userHandle, null, null)
-                AppOpenCounter.increment(appContext, packageName)
-            } catch (e: SecurityException) {
-                try {
-                    launcherApps.startMainActivity(component, android.os.Process.myUserHandle(), null, null)
-                    AppOpenCounter.increment(appContext, packageName)
-                } catch (e: Exception) {
-                    appContext.showToast(appContext.getString(R.string.unable_to_open_app))
-                }
-            } catch (e: Exception) {
+            if (!startApp(component, userHandle, packageName)) {
                 appContext.showToast(appContext.getString(R.string.unable_to_open_app))
             }
+        }
+    }
+
+    /** Returns true if the app was started. */
+    private fun startApp(component: ComponentName, userHandle: UserHandle, packageName: String): Boolean {
+        return try {
+            launcherApps.startMainActivity(component, userHandle, null, null)
+            AppOpenCounter.increment(appContext, packageName)
+            true
+        } catch (e: SecurityException) {
+            try {
+                launcherApps.startMainActivity(component, android.os.Process.myUserHandle(), null, null)
+                AppOpenCounter.increment(appContext, packageName)
+                true
+            } catch (e: Exception) {
+                false
+            }
+        } catch (e: Exception) {
+            false
         }
     }
 

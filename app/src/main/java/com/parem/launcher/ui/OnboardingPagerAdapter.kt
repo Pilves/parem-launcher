@@ -52,7 +52,7 @@ class OnboardingPagerAdapter : RecyclerView.Adapter<OnboardingPagerAdapter.PageV
             R.string.onboarding_features_subtitle,
             listOf(
                 R.string.onboarding_feature_widgets,
-                R.string.onboarding_feature_quick_note,
+                R.string.onboarding_feature_open_counts,
                 R.string.onboarding_feature_focus_mode,
                 R.string.onboarding_feature_gesture_letters
             )

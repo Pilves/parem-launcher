@@ -48,7 +48,6 @@ The app drawer search bar is a single point of truth:
 - **Gesture Letters** — Draw letter shapes (A, C, L, M, N, O, S, V, W, Z) on the home screen to launch assigned apps
 - **Swipe-Up Apps** — Assign a per-slot swipe-up companion app to any home screen slot
 - **App Folders** — Group up to 4 apps into a named folder on any home screen slot
-- **Quick Notes** — Pin a note to a home screen slot, tap to edit
 
 ### Personalization
 - **Icon Packs** — Load icons from third-party ADW-compatible icon packs

@@ -14,7 +14,7 @@ MainViewModel.kt           Shared across all fragments (activity-scoped). App li
 
 ui/
   HomeFragment.kt          Home screen: pinned apps, clock/date, gestures, folders,
-                           quick note, dynamic fitting of app rows.
+                           dynamic fitting of app rows.
   HomeWidgetController.kt  The entire multi-widget system (pick/bind/configure/
                            restore/resize/reorder/remove). Created in
                            HomeFragment.onViewCreated, released in onDestroyView.
@@ -28,7 +28,7 @@ ui/
 
 helper/
   One object per feature, each owning its own SharedPreferences keys:
-  FocusModeManager, AppLimitManager, FolderManager (class), QuickNoteManager,
+  FocusModeManager, AppLimitManager, FolderManager (class),
   GestureLetterManager, SwipeUpAppManager, WeatherManager (Open-Meteo),
   DoubleTapActionManager, ThemeScheduleManager (+ Worker), IconPackManager,
   WallpaperWorker, ExpressionEvaluator (omnibox calculator),
@@ -59,9 +59,8 @@ listener/
 1. **The invisible `lock` view is load-bearing.** `HomeFragment`'s `R.id.lock -> {}` click handler looks dead but isn't: clicking that FrameLayout emits an accessibility event which `MyAccessibilityService` matches *by contentDescription* to run `GLOBAL_ACTION_LOCK_SCREEN`. Renaming `lock_layout_description` or removing the view breaks double-tap-to-lock on Android 9+.
 2. **The launcher recreates itself every 4 hours** (`MainActivity.restartLauncherOrCheckTheme`) and deletes `cacheDir` when it does — an inherited Olauncher stability hack. `checkTheme()` also force-recreates if resolved theme colors look wrong. If you see mysterious recreates, look here.
 3. **Widget IDs are stateful three ways**: the AppWidgetHost allocation, `prefs.widgetIds` (CSV), and `prefs.widgetProviders` (id:component map used to re-bind widgets that the OS invalidated). `HomeWidgetController.restoreWidgets()` reconciles them; keep all three in sync when touching widget code.
-4. **Quick Note overlays the last visible home slot** — it doesn't own a slot. `effectiveNoteSlot` in HomeFragment is recomputed during layout fitting.
-5. **`FLAG_SET_HOME_APP_1..8` are the literal ints 1..8**, and the app-drawer "rename" path writes `prefs.setHomeAppName(flag, …)` using the flag as the slot number.
-6. **Screen-time numbers come from `helper/usageStats/`**, a hand-rolled UsageEvents aggregator (see `UnmatchedCloseEventGuardian`), not `queryUsageStats` — Android's summary API is wildly inaccurate.
+4. **`FLAG_SET_HOME_APP_1..8` are the literal ints 1..8**, and the app-drawer "rename" path writes `prefs.setHomeAppName(flag, …)` using the flag as the slot number.
+5. **Screen-time numbers come from `helper/usageStats/`**, a hand-rolled UsageEvents aggregator (see `UnmatchedCloseEventGuardian`), not `queryUsageStats` — Android's summary API is wildly inaccurate.
 
 ## Build & release
 

@@ -114,16 +114,25 @@ class FolderManager(context: Context) {
 
     // ── Private helpers ─────────────────────────────────────────────────
 
+    // Parsed-root cache: isFolderSlot() runs per slot on every home resume,
+    // so avoid re-parsing the JSON string each time. Guarded by `lock` like
+    // every public method.
+    private var cachedRoot: JSONObject? = null
+
     private fun readJson(): JSONObject {
+        cachedRoot?.let { return it }
         val raw = prefs.getString(KEY_FOLDER_DATA, null)
-        return if (raw.isNullOrBlank()) JSONObject() else try {
+        val root = if (raw.isNullOrBlank()) JSONObject() else try {
             JSONObject(raw)
         } catch (_: Exception) {
             JSONObject()
         }
+        cachedRoot = root
+        return root
     }
 
     private fun writeJson(json: JSONObject) {
+        cachedRoot = json
         prefs.edit().putString(KEY_FOLDER_DATA, json.toString()).apply()
     }
 

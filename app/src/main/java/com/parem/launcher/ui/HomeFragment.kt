@@ -52,8 +52,6 @@ import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.AppLimitManager
-
-import com.parem.launcher.helper.QuickNoteManager
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.SwipeUpAppManager
 import com.parem.launcher.helper.WeatherManager
@@ -77,7 +75,6 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     private var screenTouchListener: OnSwipeTouchListener? = null
     private val viewTouchListeners = mutableListOf<ViewSwipeTouchListener>()
     private lateinit var folderManager: FolderManager
-    private var effectiveNoteSlot: Int = -1
     private var flashlightOn: Boolean = false
     private var torchCallback: android.hardware.camera2.CameraManager.TorchCallback? = null
 
@@ -345,20 +342,12 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         )
         val homeAppsNum = prefs.homeAppsNum.coerceAtMost(homeAppViews.size)
 
-        val noteEnabled = QuickNoteManager.isEnabled(requireContext())
-        effectiveNoteSlot = if (noteEnabled) homeAppsNum else -1
-
         for (i in 0 until homeAppsNum) {
             val slot = i + 1
             val view = homeAppViews[i]
             view.visibility = View.VISIBLE
 
-            if (noteEnabled && slot == homeAppsNum) {
-                // Quick Note always pins to the last visible slot
-                view.text = QuickNoteManager.getPreviewText(requireContext())
-                view.contentDescription = getString(R.string.quick_note)
-                view.setCompoundDrawablesRelative(null, null, null, null)
-            } else if (folderManager.isFolderSlot(slot)) {
+            if (folderManager.isFolderSlot(slot)) {
                 val folder = folderManager.getFolderGroup(slot)
                 view.text = folder?.name ?: ""
                 view.contentDescription = folder?.name ?: getString(R.string.long_press_to_select_app)
@@ -414,21 +403,11 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
                     val maxFitting = usableHeight / singleAppHeight
                     if (maxFitting < homeAppsNum) {
-                        // Hide excess apps from the bottom, but keep Quick Note at last visible slot
+                        // Hide excess apps from the bottom
                         for (j in homeAppViews.indices.reversed()) {
                             if (j >= maxFitting && homeAppViews[j].isVisible) {
                                 homeAppViews[j].visibility = View.GONE
                             }
-                        }
-                        // If note is enabled, ensure it shows at the last visible slot
-                        if (noteEnabled && maxFitting > 0) {
-                            val ctx = context ?: return@fitApps
-                            val noteView = homeAppViews[maxFitting - 1]
-                            noteView.visibility = View.VISIBLE
-                            noteView.text = QuickNoteManager.getPreviewText(ctx)
-                            noteView.contentDescription = getString(R.string.quick_note)
-                            noteView.setCompoundDrawablesRelative(null, null, null, null)
-                            effectiveNoteSlot = maxFitting
                         }
                     }
                 }
@@ -474,10 +453,6 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     private fun homeAppClicked(location: Int) {
         if (folderManager.isFolderSlot(location)) {
             toggleFolderExpansion(location)
-            return
-        }
-        if (effectiveNoteSlot > 0 && location == effectiveNoteSlot) {
-            showQuickNoteDialog()
             return
         }
         if (prefs.getHomeAppName(location).isEmpty()) showLongPressToast()
@@ -691,7 +666,6 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     private fun showHomeSlotMenu(slot: Int) {
         val hasApp = prefs.getHomeAppName(slot).isNotEmpty()
         val isFolder = folderManager.isFolderSlot(slot)
-        val isNote = effectiveNoteSlot > 0 && slot == effectiveNoteSlot
 
         val menu = BottomSheetMenu(requireContext())
 
@@ -705,8 +679,8 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             showCreateFolderDialog(slot)
         }
 
-        // App limit toggle (only for regular apps, not folders or notes)
-        if (hasApp && !isFolder && !isNote) {
+        // App limit toggle (only for regular apps, not folders)
+        if (hasApp && !isFolder) {
             val pkg = prefs.getHomeAppPackage(slot)
             if (pkg.isNotEmpty()) {
                 val hasLimit = AppLimitManager.hasLimit(requireContext(), pkg)
@@ -722,19 +696,13 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         }
 
         // Remove (if occupied)
-        if (hasApp || isFolder || isNote) {
+        if (hasApp || isFolder) {
             menu.option(getString(R.string.delete)) {
                 if (isFolder) folderManager.removeFolder(slot)
-                if (isNote) {
-                    // The note only overlays the last slot; removing it must not wipe
-                    // the app that is pinned underneath
-                    QuickNoteManager.setEnabled(requireContext(), false)
-                } else {
-                    prefs.setHomeAppName(slot, "")
-                    prefs.setHomeAppPackage(slot, "")
-                    prefs.setHomeAppActivityClassName(slot, "")
-                    prefs.setHomeAppUser(slot, "")
-                }
+                prefs.setHomeAppName(slot, "")
+                prefs.setHomeAppPackage(slot, "")
+                prefs.setHomeAppActivityClassName(slot, "")
+                prefs.setHomeAppUser(slot, "")
                 populateHomeScreen(false)
             }
         }
@@ -866,32 +834,12 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         }
     }
 
-    private fun showQuickNoteDialog() {
-        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(requireContext())
-        val view = layoutInflater.inflate(R.layout.dialog_quick_note, null)
-        val editText = view.findViewById<android.widget.EditText>(R.id.noteEditText)
-        val saveButton = view.findViewById<TextView>(R.id.noteSaveButton)
-        val clearButton = view.findViewById<TextView>(R.id.noteClearButton)
-        editText.setText(QuickNoteManager.getText(requireContext()))
-        saveButton.setOnClickListener {
-            QuickNoteManager.setText(requireContext(), editText.text.toString())
-            populateHomeScreen(false)
-            dialog.dismiss()
-        }
-        clearButton?.setOnClickListener {
-            QuickNoteManager.setText(requireContext(), "")
-            editText.setText("")
-            populateHomeScreen(false)
-        }
-        dialog.setContentView(view)
-        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-        dialog.show()
-    }
-
     private fun initGestureLetterOverlay() {
         binding.gestureLetterOverlay?.onLetterDetected = { letter ->
             val mapping = GestureLetterManager.getMapping(requireContext(), letter)
             if (mapping != null) {
+                // Recognition tick: confirms the letter registered before the app appears
+                binding.gestureLetterOverlay?.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
                 launchApp("", mapping.first, mapping.second, mapping.third)
             } else {
                 requireContext().showToast(getString(R.string.no_app_for_letter, letter.toString()))
@@ -966,6 +914,9 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             override fun onLongClick() {
                 super.onLongClick()
                 try {
+                    // GestureDetector callbacks bypass the framework's long-press
+                    // haptic, so fire it ourselves — silence here feels broken
+                    binding.mainLayout.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
                     showHomeLongPressMenu()
                 } catch (e: Exception) {
                     Log.e("HomeFragment", "Failed to show home long press menu", e)
@@ -1047,11 +998,6 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         view.findViewById<TextView>(R.id.menuAddWidget).setOnClickListener {
             dialog.dismiss()
             widgetController?.showWidgetPicker()
-        }
-        view.findViewById<TextView>(R.id.menuQuickNote).setOnClickListener {
-            dialog.dismiss()
-            QuickNoteManager.setEnabled(requireContext(), true)
-            showQuickNoteDialog()
         }
         view.findViewById<TextView>(R.id.menuSettings).setOnClickListener {
             dialog.dismiss()

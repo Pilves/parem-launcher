@@ -75,6 +75,24 @@
         android:orientation="vertical"
         android:paddingVertical="@dimen/home_app_padding_vertical">
 
+        <!-- Widget container above apps -->
+        <ScrollView
+            android:id="@+id/widgetScrollViewAbove"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:fillViewport="true"
+            android:scrollbars="none"
+            android:visibility="gone"
+            tools:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/widgetContainerAbove"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
+
         <TextView
             android:id="@+id/homeApp1"
             style="@style/TextLarge"
@@ -162,6 +180,24 @@
             android:tag="@string/tag_8"
             android:visibility="gone"
             tools:visibility="visible" />
+
+        <!-- Widget container below apps -->
+        <ScrollView
+            android:id="@+id/widgetScrollViewBelow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fillViewport="true"
+            android:scrollbars="none"
+            android:visibility="gone"
+            tools:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/widgetContainerBelow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </ScrollView>
 
     </LinearLayout>
 

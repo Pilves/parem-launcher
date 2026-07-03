@@ -228,7 +228,6 @@
     <string name="app_blocked_focus" translatable="false">Blocked by Focus Mode</string>
 
     <!-- Quick Note -->
-    <string name="quick_note" translatable="false">Quick note</string>
     <string name="note" translatable="false">Note</string>
     <string name="save" translatable="false">Save</string>
     <string name="write_something" translatable="false">Write something\u2026</string>
@@ -292,7 +291,7 @@
     <string name="onboarding_features_title">Features</string>
     <string name="onboarding_features_subtitle">Powerful tools, minimal interface</string>
     <string name="onboarding_feature_widgets">Add widgets via long press menu</string>
-    <string name="onboarding_feature_quick_note">Quick note pinned to home screen</string>
+    <string name="onboarding_feature_open_counts" translatable="false">See how often you open each app, daily</string>
     <string name="onboarding_feature_focus_mode">Focus mode to block distracting apps</string>
     <string name="onboarding_feature_gesture_letters">Draw letters to launch apps instantly</string>
 
