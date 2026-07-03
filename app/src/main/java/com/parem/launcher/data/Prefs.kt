@@ -464,7 +464,6 @@ class Prefs(context: Context) {
         CACHED_USAGE_STATS,
         "WEATHER_CACHED_TEMP", "WEATHER_LAST_FETCHED",
         "FOCUS_MODE_ENABLED", "FOCUS_MODE_END_TIME",
-        "HABIT_STREAK_DATA",
         ONBOARDING_COMPLETE
     )
 

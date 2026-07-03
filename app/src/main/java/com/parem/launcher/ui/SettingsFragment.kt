@@ -904,9 +904,45 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
     }
 
     private fun setScheduledTheme(scheduleMode: Int) {
-        ThemeScheduleManager.setMode(requireContext(), scheduleMode)
+        if (scheduleMode == Constants.ThemeScheduleMode.SCHEDULED) {
+            // The schedule needs actual times; there was previously no UI for them
+            promptScheduleTimes { applyScheduledTheme(scheduleMode) }
+        } else {
+            applyScheduledTheme(scheduleMode)
+        }
+    }
+
+    private fun applyScheduledTheme(scheduleMode: Int) {
+        val ctx = requireContext()
+        ThemeScheduleManager.setMode(ctx, scheduleMode)
         viewModel.startThemeScheduleWorker()
-        populateAppThemeText()
+        // Apply immediately instead of waiting for the periodic worker's next run
+        val newTheme = if (ThemeScheduleManager.shouldBeDark(ctx))
+            AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+        if (AppCompatDelegate.getDefaultNightMode() != newTheme) {
+            prefs.appTheme = newTheme
+            requireActivity().recreate()
+        } else {
+            populateAppThemeText()
+        }
+    }
+
+    private fun promptScheduleTimes(onDone: () -> Unit) {
+        val ctx = requireContext()
+        fun parse(time: String, defH: Int): Pair<Int, Int> {
+            val parts = time.split(":")
+            return (parts.getOrNull(0)?.toIntOrNull() ?: defH) to (parts.getOrNull(1)?.toIntOrNull() ?: 0)
+        }
+
+        val (lightH, lightM) = parse(ThemeScheduleManager.getLightTime(ctx), 7)
+        android.app.TimePickerDialog(ctx, { _, h, m ->
+            ThemeScheduleManager.setLightTime(ctx, String.format(java.util.Locale.ROOT, "%02d:%02d", h, m))
+            val (darkH, darkM) = parse(ThemeScheduleManager.getDarkTime(ctx), 19)
+            android.app.TimePickerDialog(ctx, { _, h2, m2 ->
+                ThemeScheduleManager.setDarkTime(ctx, String.format(java.util.Locale.ROOT, "%02d:%02d", h2, m2))
+                onDone()
+            }, darkH, darkM, true).apply { setTitle(getString(R.string.dark_theme_from)) }.show()
+        }, lightH, lightM, true).apply { setTitle(getString(R.string.light_theme_from)) }.show()
     }
 
     private fun showGestureLetterConfigDialog() {

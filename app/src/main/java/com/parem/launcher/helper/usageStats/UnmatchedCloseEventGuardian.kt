@@ -45,6 +45,9 @@ class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManag
      * @param queryStart Timestamp at which original query started
      * @return True if the event is valid, false otherwise
      */
+    // Synchronized: the wrapper (and thus this cache) can be hit concurrently from
+    // separate viewModelScope IO coroutines; the two cache fields must move together.
+    @Synchronized
     fun test(event: UsageEvents.Event, queryStart: Long): Boolean {
         val events = if (queryStart == cachedQueryStart && cachedEvents != null) {
             cachedEvents!!

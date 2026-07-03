@@ -69,21 +69,6 @@
             app:drawableTopCompat="@drawable/ic_delete" />
 
         <TextView
-            android:id="@+id/appHabit"
-            style="@style/TextSmall"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawablePadding="2dp"
-            android:ellipsize="end"
-            android:gravity="center"
-            android:maxLines="1"
-            android:paddingHorizontal="8dp"
-            android:textSize="12sp"
-            android:visibility="gone"
-            app:drawableTopCompat="@drawable/ic_check" />
-
-        <TextView
             android:id="@+id/appBadHabit"
             style="@style/TextSmall"
             android:layout_width="0dp"

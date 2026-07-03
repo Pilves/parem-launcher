@@ -80,6 +80,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     private var expandedFolderSlot: Int = -1
     private var effectiveNoteSlot: Int = -1
     private var flashlightOn: Boolean = false
+    private var torchCallback: android.hardware.camera2.CameraManager.TorchCallback? = null
 
     private var widgetController: HomeWidgetController? = null
 
@@ -112,6 +113,19 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         deviceManager = context?.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
 
         widgetController = HomeWidgetController(this, binding, prefs)
+
+        // Track the real torch state so toggleFlashlight() can't desync when
+        // another app (or quick settings) switches the torch
+        try {
+            val cameraManager = requireContext().getSystemService(Context.CAMERA_SERVICE) as android.hardware.camera2.CameraManager
+            torchCallback = object : android.hardware.camera2.CameraManager.TorchCallback() {
+                override fun onTorchModeChanged(cameraId: String, enabled: Boolean) {
+                    flashlightOn = enabled
+                }
+            }.also { cameraManager.registerTorchCallback(it, null) }
+        } catch (e: Exception) {
+            Log.e("HomeFragment", "Failed to register torch callback", e)
+        }
 
         initObservers()
         setHomeAlignment(prefs.homeAlignment)
@@ -1018,6 +1032,13 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
 
     override fun onDestroyView() {
+        torchCallback?.let {
+            try {
+                val cameraManager = requireContext().getSystemService(Context.CAMERA_SERVICE) as android.hardware.camera2.CameraManager
+                cameraManager.unregisterTorchCallback(it)
+            } catch (_: Exception) {}
+        }
+        torchCallback = null
         widgetController?.cleanup()
         widgetController = null
         screenTouchListener?.cleanup()

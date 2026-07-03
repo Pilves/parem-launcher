@@ -41,7 +41,6 @@ class ThemeScheduleWorker(appContext: Context, workerParams: WorkerParameters) :
 
             prefs.edit()
                 .putInt(Prefs.KEY_APP_THEME, newTheme)
-                .putBoolean("THEME_CHANGED_BY_WORKER", true)
                 .apply()
         }
 

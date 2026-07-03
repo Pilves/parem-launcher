@@ -32,6 +32,13 @@ object IconPackManager {
     private val packageIndex = java.util.concurrent.ConcurrentHashMap<String, Map<String, String>>()
 
     /**
+     * Resolved resource-id cache: "pack|appPackage|activity" -> resId (0 = known miss).
+     * getIdentifier() walks the pack's resource table; without this every drawer
+     * row bind pays that cost again on each scroll.
+     */
+    private val resIdCache = java.util.concurrent.ConcurrentHashMap<String, Int>()
+
+    /**
      * Returns a list of installed icon packs as (packageName, appLabel) pairs.
      */
     fun getAvailableIconPacks(context: Context): List<Pair<String, String>> {
@@ -61,25 +68,27 @@ object IconPackManager {
         activityClassName: String?
     ): Drawable? {
         return try {
-            val map = loadIconPack(context, iconPackPackage)
-
-            // Try exact component match first: "ComponentInfo{pkg/activity}"
-            val componentKey = if (activityClassName != null) {
-                "ComponentInfo{$appPackage/$activityClassName}"
-            } else null
-
-            val drawableName = (componentKey?.let { map[it] }
-                // Some packs use a shorter form without ComponentInfo wrapper
-                ?: componentKey?.let { map["$appPackage/$activityClassName"] }
-                // Fallback: O(1) lookup by package name via secondary index
-                ?: packageIndex[iconPackPackage]?.get(appPackage))
-                ?: return null
-
             val packResources = context.packageManager
                 .getResourcesForApplication(iconPackPackage)
-            val resId = packResources.getIdentifier(
-                drawableName, "drawable", iconPackPackage
-            )
+
+            val cacheKey = "$iconPackPackage|$appPackage|${activityClassName.orEmpty()}"
+            val resId = resIdCache.getOrPut(cacheKey) {
+                val map = loadIconPack(context, iconPackPackage)
+
+                // Try exact component match first: "ComponentInfo{pkg/activity}"
+                val componentKey = if (activityClassName != null) {
+                    "ComponentInfo{$appPackage/$activityClassName}"
+                } else null
+
+                val drawableName = (componentKey?.let { map[it] }
+                    // Some packs use a shorter form without ComponentInfo wrapper
+                    ?: componentKey?.let { map["$appPackage/$activityClassName"] }
+                    // Fallback: O(1) lookup by package name via secondary index
+                    ?: packageIndex[iconPackPackage]?.get(appPackage))
+
+                if (drawableName == null) 0
+                else packResources.getIdentifier(drawableName, "drawable", iconPackPackage)
+            }
             if (resId == 0) return null
 
             @Suppress("DEPRECATION")
@@ -202,5 +211,6 @@ object IconPackManager {
     fun clearCache() {
         cache.clear()
         packageIndex.clear()
+        resIdCache.clear()
     }
 }

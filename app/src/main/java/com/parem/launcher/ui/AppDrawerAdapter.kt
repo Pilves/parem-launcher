@@ -260,7 +260,6 @@ class AppDrawerAdapter(
                         appTitle.visibility = View.INVISIBLE
                         appHideLayout.visibility = View.VISIBLE
                         appRename.isVisible = flag != Constants.FLAG_HIDDEN_APPS
-                        appHabit.isVisible = false
                         appBadHabit.isVisible = flag != Constants.FLAG_HIDDEN_APPS
                         if (appBadHabit.isVisible) {
                             appBadHabit.text = if (AppLimitManager.hasLimit(root.context, appModel.appPackage))
