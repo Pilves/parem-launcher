@@ -52,6 +52,9 @@ class AppDrawerAdapter(
 
     @Volatile private var autoLaunch = true
     @Volatile private var isBangSearch = false
+
+    /** Extra veto for auto-launch, checked on the main thread right before firing. */
+    var autoLaunchGuard: () -> Boolean = { true }
     private val appFilter = createAppFilter()
     private val myUserHandle = android.os.Process.myUserHandle()
 
@@ -139,6 +142,7 @@ class AppDrawerAdapter(
                 && isBangSearch.not()
                 && flag == Constants.FLAG_LAUNCH_APP
                 && filteredSnapshot.isNotEmpty()
+                && autoLaunchGuard()
             ) {
                 Handler(Looper.getMainLooper()).post {
                     try { appClickListener(filteredSnapshot[0]) } catch (_: Exception) {}

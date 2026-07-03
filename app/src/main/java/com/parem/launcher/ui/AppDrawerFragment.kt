@@ -54,6 +54,8 @@ class AppDrawerFragment : Fragment() {
     private var scrollListener: RecyclerView.OnScrollListener? = null
     private val searchHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private var searchRunnable: Runnable? = null
+    private var searchTextView: TextView? = null
+    private var cachedIsCjkKeyboard: Boolean? = null
 
     // Omnibox state: non-null when the query is an arithmetic expression or a
     // dialable number, true when a leading space marks the query as a web search
@@ -100,11 +102,44 @@ class AppDrawerFragment : Fragment() {
         else if (flag in Constants.FLAG_SET_HOME_APP_1..Constants.FLAG_SET_CALENDAR_APP)
             binding.search.queryHint = "Please select an app"
         try {
-            val searchTextView = binding.search.findViewById<TextView>(R.id.search_src_text)
-            if (searchTextView != null) searchTextView.gravity = prefs.appLabelAlignment
+            searchTextView = binding.search.findViewById(R.id.search_src_text)
+            searchTextView?.gravity = prefs.appLabelAlignment
         } catch (e: Exception) {
             Log.e("AppDrawerFragment", "Failed to set search text alignment", e)
         }
+    }
+
+    /**
+     * While a CJK IME is composing (e.g. typing pinyin before selecting a character),
+     * the search field holds a composing region and the letters are not a final query —
+     * don't auto-launch then. Gated to CJK keyboards because some Latin keyboards
+     * (SwiftKey) keep a composing region for ordinary typing. (Upstream fixes #629/#694.)
+     */
+    private fun isSearchComposing(): Boolean {
+        val text = searchTextView?.text
+        if (text !is android.text.Spannable) return false
+        val start = android.view.inputmethod.BaseInputConnection.getComposingSpanStart(text)
+        val end = android.view.inputmethod.BaseInputConnection.getComposingSpanEnd(text)
+        if (start !in 0 until end) return false
+        return isCjkKeyboard()
+    }
+
+    private fun isCjkKeyboard(): Boolean {
+        cachedIsCjkKeyboard?.let { return it }
+        val result = try {
+            val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+            val subtype = imm.currentInputMethodSubtype
+            val language = when {
+                subtype == null -> ""
+                subtype.languageTag.isNotEmpty() -> subtype.languageTag
+                else -> @Suppress("DEPRECATION") subtype.locale
+            }
+            language.startsWith("zh") || language.startsWith("ja") || language.startsWith("ko")
+        } catch (e: Exception) {
+            false
+        }
+        cachedIsCjkKeyboard = result
+        return result
     }
 
     private fun initSearch() {
@@ -230,11 +265,14 @@ class AppDrawerFragment : Fragment() {
             },
             appDeleteListener = {
                 val ctx = context ?: return@AppDrawerAdapter
-                ctx.apply {
-                    if (isSystemApp(it.appPackage))
-                        showToast(getString(R.string.system_app_cannot_delete))
-                    else
-                        uninstall(it.appPackage)
+                when {
+                    // ACTION_DELETE can't target another profile; app info can
+                    // uninstall from there (upstream fix #446)
+                    it.user != android.os.Process.myUserHandle() ->
+                        openAppInfo(ctx, it.user, it.appPackage)
+                    ctx.isSystemApp(it.appPackage) ->
+                        ctx.showToast(getString(R.string.system_app_cannot_delete))
+                    else -> ctx.uninstall(it.appPackage)
                 }
             },
             appHideListener = { appModel, position ->
@@ -269,6 +307,7 @@ class AppDrawerFragment : Fragment() {
         adapter.showIcons = prefs.showIcons
         adapter.iconPackPackage = prefs.iconPackPackage
         adapter.openCounts = AppOpenCounter.getCounts(requireContext())
+        adapter.autoLaunchGuard = { !isSearchComposing() }
 
         linearLayoutManager = object : LinearLayoutManager(requireContext()) {
             override fun scrollVerticallyBy(
@@ -432,6 +471,7 @@ class AppDrawerFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
+        cachedIsCjkKeyboard = null
         binding.search.showKeyboard(prefs.autoShowKeyboard)
     }
 
@@ -444,6 +484,7 @@ class AppDrawerFragment : Fragment() {
         searchRunnable?.let { searchHandler.removeCallbacks(it) }
         scrollListener?.let { binding.recyclerView.removeOnScrollListener(it) }
         scrollListener = null
+        searchTextView = null
         super.onDestroyView()
         _binding = null
     }
