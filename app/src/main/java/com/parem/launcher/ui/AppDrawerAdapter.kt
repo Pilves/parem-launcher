@@ -112,8 +112,15 @@ class AppDrawerAdapter(
                     appLabelMatches(app.appLabel, searchText)
                 }).toMutableList()
 
-                if (sortByUsage && statsSnapshot.isNotEmpty()) {
-                    appFilteredList = appFilteredList.sortedByDescending { statsSnapshot[it.appPackage] ?: 0L }.toMutableList()
+                if (sortByUsage) {
+                    // Usage stats need the usage-access permission; open counts are
+                    // the launcher's own data and always available as a fallback
+                    val counts = openCounts
+                    if (statsSnapshot.isNotEmpty()) {
+                        appFilteredList = appFilteredList.sortedByDescending { statsSnapshot[it.appPackage] ?: 0L }.toMutableList()
+                    } else if (counts.isNotEmpty()) {
+                        appFilteredList = appFilteredList.sortedByDescending { counts[it.appPackage] ?: 0 }.toMutableList()
+                    }
                 }
 
                 val filterResults = FilterResults()
@@ -168,7 +175,7 @@ class AppDrawerAdapter(
             newKeys[app.appLabel] = SearchMatcher.key(app.appLabel)
         }
         labelKeys = newKeys
-        if (sortByUsage && usageStats.isNotEmpty()) {
+        if (sortByUsage && (usageStats.isNotEmpty() || openCounts.isNotEmpty())) {
             filter.filter("")
         } else {
             this.appFilteredList = list.toMutableList()

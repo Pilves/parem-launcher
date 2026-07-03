@@ -109,6 +109,11 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         deviceManager = context?.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
 
         widgetController = HomeWidgetController(this, binding, prefs)
+        // Widgets are restored asynchronously; re-fit the app rows once their
+        // heights are real, otherwise apps overflow behind the widgets
+        widgetController?.onWidgetsChanged = {
+            if (isAdded && _binding != null) populateHomeScreen(false)
+        }
 
         // Track the real torch state so toggleFlashlight() can't desync when
         // another app (or quick settings) switches the torch
@@ -132,8 +137,8 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             widgetController?.restoreWidgets()
         }
 
-        if (!prefs.onboardingComplete) {
-            prefs.onboardingComplete = true
+        if (prefs.onboardingVersionSeen < Constants.ONBOARDING_VERSION) {
+            prefs.onboardingVersionSeen = Constants.ONBOARDING_VERSION
             findNavController().navigate(R.id.action_mainFragment_to_onboardingFragment)
         }
     }

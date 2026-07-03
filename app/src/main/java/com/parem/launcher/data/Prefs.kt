@@ -64,7 +64,7 @@ class Prefs(context: Context) {
     private val SWIPE_RIGHT_ACTION = "SWIPE_RIGHT_ACTION"
     private val SHOW_ICONS = "SHOW_ICONS"
     private val ICON_PACK_PACKAGE = "ICON_PACK_PACKAGE"
-    private val ONBOARDING_COMPLETE = "ONBOARDING_COMPLETE"
+    private val ONBOARDING_VERSION_SEEN = "ONBOARDING_VERSION_SEEN"
 
     private val APP_NAME_SWIPE_LEFT = "APP_NAME_SWIPE_LEFT"
     private val APP_NAME_SWIPE_RIGHT = "APP_NAME_SWIPE_RIGHT"
@@ -103,9 +103,11 @@ class Prefs(context: Context) {
         get() = prefs.getBoolean(LOCK_MODE, false)
         set(value) = prefs.edit { putBoolean(LOCK_MODE, value) }
 
-    var onboardingComplete: Boolean
-        get() = prefs.getBoolean(ONBOARDING_COMPLETE, false)
-        set(value) = prefs.edit { putBoolean(ONBOARDING_COMPLETE, value) }
+    // Versioned so updates that add major features re-show onboarding once;
+    // also immune to auto-backup restoring the old boolean flag
+    var onboardingVersionSeen: Int
+        get() = prefs.getInt(ONBOARDING_VERSION_SEEN, 0)
+        set(value) = prefs.edit { putInt(ONBOARDING_VERSION_SEEN, value) }
 
     var autoShowKeyboard: Boolean
         get() = prefs.getBoolean(AUTO_SHOW_KEYBOARD, true)
@@ -465,7 +467,7 @@ class Prefs(context: Context) {
         "OPEN_COUNTS", "OPEN_COUNTS_DAY",
         "WEATHER_CACHED_TEMP", "WEATHER_LAST_FETCHED",
         "FOCUS_MODE_ENABLED", "FOCUS_MODE_END_TIME",
-        ONBOARDING_COMPLETE
+        "ONBOARDING_COMPLETE", ONBOARDING_VERSION_SEEN
     )
 
     fun exportToJson(): JSONObject {

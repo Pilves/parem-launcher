@@ -1,5 +1,17 @@
 # Changelog
 
+## v5.5.1
+
+- Fixed: swipe up opens the drawer again while gesture letters are enabled
+  (the overlay now only captures strokes that change direction — straight
+  strokes stay swipes)
+- Fixed: home screen re-fits its app rows after widgets load, so pinned
+  apps no longer overflow behind widgets
+- Fixed: onboarding now shows once per onboarding version — a fresh
+  install restored via Android backup skipped it entirely
+- Sort-by-usage falls back to the launcher's own open counts when the
+  usage-access permission isn't granted
+
 ## v5.5.0
 
 ### New

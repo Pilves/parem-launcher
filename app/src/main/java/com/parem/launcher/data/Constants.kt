@@ -102,6 +102,9 @@ object Constants {
 
     const val APPWIDGET_HOST_ID = 1024
 
+    // Bump to re-show onboarding after major feature additions
+    const val ONBOARDING_VERSION = 2
+
     const val LONG_PRESS_DELAY_MS = 500L
     const val ONE_DAY_IN_MILLIS = 86400000L
     const val ONE_HOUR_IN_MILLIS = 3600000L

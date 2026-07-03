@@ -1,0 +1,1 @@
+Fixes: swipe up works with gesture letters enabled; home screen fits apps around widgets; onboarding shows after updates; sort-by-usage falls back to open counts without the usage permission.

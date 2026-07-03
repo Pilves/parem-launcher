@@ -43,12 +43,17 @@ class GestureLetterOverlayView @JvmOverloads constructor(
      * otherwise a letter draw also fires a swipe action.
      */
     val isCapturing: Boolean
-        get() = isTracking && hasExceededThreshold
+        get() = isTracking && isLetterCandidate
 
     private val points = mutableListOf<PointF>()
     private val drawPath = Path()
     private var isTracking = false
     private var hasExceededThreshold = false
+    // Letters always contain a direction change; straight strokes are swipes and
+    // must stay visible to the swipe detector. Only capture once the path turns.
+    private var isLetterCandidate = false
+    private var anchorX = 0f
+    private var anchorY = 0f
     private var startX = 0f
     private var startY = 0f
 
@@ -103,8 +108,26 @@ class GestureLetterOverlayView @JvmOverloads constructor(
                     val dy = event.y - startY
                     if (hypot(dx, dy) >= dragThreshold) {
                         hasExceededThreshold = true
+                        anchorX = event.x
+                        anchorY = event.y
                         // Request that parent not intercept further events
                         parent?.requestDisallowInterceptTouchEvent(true)
+                    }
+                } else if (!isLetterCandidate) {
+                    val ax = anchorX - startX
+                    val ay = anchorY - startY
+                    val bx = event.x - anchorX
+                    val by = event.y - anchorY
+                    val lenB = hypot(bx, by)
+                    if (lenB >= dragThreshold * 0.7f) {
+                        val lenA = hypot(ax, ay)
+                        val cos = (ax * bx + ay * by) / (lenA * lenB)
+                        if (cos < 0.707f) {
+                            isLetterCandidate = true  // path turned >45° — this is a letter
+                        } else {
+                            anchorX = event.x  // still straight; slide the anchor forward
+                            anchorY = event.y
+                        }
                     }
                 }
 
@@ -131,6 +154,7 @@ class GestureLetterOverlayView @JvmOverloads constructor(
                 points.clear()
                 drawPath.reset()
                 hasExceededThreshold = false
+                isLetterCandidate = false
                 invalidate()
                 return wasExceeded
             }
@@ -138,6 +162,7 @@ class GestureLetterOverlayView @JvmOverloads constructor(
             MotionEvent.ACTION_CANCEL -> {
                 isTracking = false
                 hasExceededThreshold = false
+                isLetterCandidate = false
                 points.clear()
                 drawPath.reset()
                 invalidate()

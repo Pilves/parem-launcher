@@ -45,6 +45,9 @@ class HomeWidgetController(
     private val mainActivity: MainActivity?
         get() = fragment.activity as? MainActivity
 
+    /** Invoked whenever widget views change so the home screen can re-fit its app rows. */
+    var onWidgetsChanged: (() -> Unit)? = null
+
     private val widgetGestureDetectors = mutableListOf<android.view.GestureDetector>()
     private var released = false
 
@@ -397,6 +400,7 @@ class HomeWidgetController(
         }
 
         resizeWidgetWrappers()
+        onWidgetsChanged?.invoke()
     }
 
     private fun resizeWidgetWrappers() {

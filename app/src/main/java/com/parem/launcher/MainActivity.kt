@@ -137,11 +137,6 @@ class MainActivity : AppCompatActivity() {
         }
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
 
-        // Existing users already have firstOpenTime set — skip onboarding for them
-        if (prefs.firstOpenTime > 0L && !prefs.onboardingComplete) {
-            prefs.onboardingComplete = true
-        }
-
         if (prefs.firstOpen) {
             viewModel.firstOpen(true)
             prefs.firstOpen = false
