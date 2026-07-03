@@ -535,105 +535,9 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         usageMinutes: Long, limitMinutes: Int
     ) {
         val ctx = context ?: return
-        val appName = name.ifEmpty { pkg }
-        val hours = usageMinutes / 60
-        val mins = usageMinutes % 60
-        val usageText = if (hours > 0) "${hours}h ${mins}m" else "${mins}m"
-        val limitText = if (limitMinutes >= 60) "${limitMinutes / 60}h ${limitMinutes % 60}m" else "${limitMinutes}m"
-
-        val dialog = BottomSheetDialog(ctx)
-        val container = android.widget.LinearLayout(ctx).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setBackgroundColor(ctx.getColorFromAttr(R.attr.primaryInverseColor))
-            setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
+        BadHabitDialogs.showLimitWarning(ctx, name.ifEmpty { pkg }, usageMinutes, limitMinutes) {
+            launchApp(name, pkg, activity, user)
         }
-
-        val handle = View(ctx).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-                bottomMargin = 16.dpToPx()
-            }
-            setBackgroundColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
-        }
-        container.addView(handle)
-
-        val message = TextView(ctx).apply {
-            text = ctx.getString(R.string.app_limit_warning, appName, usageText, limitText)
-            textSize = 16f
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColor))
-            setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 16.dpToPx())
-        }
-        container.addView(message)
-
-        val openAnyway = TextView(ctx).apply {
-            text = ctx.getString(R.string.open_anyway)
-            textSize = 16f
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColor))
-            setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-            setOnClickListener {
-                dialog.dismiss()
-                launchApp(name, pkg, activity, user)
-            }
-        }
-        container.addView(openAnyway)
-
-        val goBack = TextView(ctx).apply {
-            text = ctx.getString(R.string.go_back)
-            textSize = 16f
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
-            setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-            setOnClickListener { dialog.dismiss() }
-        }
-        container.addView(goBack)
-
-        dialog.setContentView(container)
-        dialog.show()
-    }
-
-    private fun showBadHabitTimePicker(pkg: String) {
-        val ctx = context ?: return
-        val dialog = BottomSheetDialog(ctx)
-        val container = android.widget.LinearLayout(ctx).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setBackgroundColor(ctx.getColorFromAttr(R.attr.primaryInverseColor))
-            setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
-        }
-
-        val handle = View(ctx).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-                bottomMargin = 16.dpToPx()
-            }
-            setBackgroundColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
-        }
-        container.addView(handle)
-
-        val title = TextView(ctx).apply {
-            text = ctx.getString(R.string.select_time_limit)
-            textSize = 16f
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColor))
-            setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 12.dpToPx())
-        }
-        container.addView(title)
-
-        val options = listOf(15 to "15 minutes", 30 to "30 minutes", 60 to "1 hour", 120 to "2 hours")
-        for ((minutes, label) in options) {
-            val tv = TextView(ctx).apply {
-                text = label
-                textSize = 16f
-                setTextColor(ctx.getColorFromAttr(R.attr.primaryColor))
-                setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-                setOnClickListener {
-                    AppLimitManager.setLimit(ctx, pkg, minutes)
-                    dialog.dismiss()
-                    populateHomeScreen(false)
-                }
-            }
-            container.addView(tv)
-        }
-
-        dialog.setContentView(container)
-        dialog.show()
     }
 
     private fun showAppList(flag: Int, rename: Boolean = false, includeHiddenApps: Boolean = false) {
@@ -778,49 +682,13 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         val folder = folderManager.getFolderGroup(slot) ?: return
         if (folder.apps.isEmpty()) return
 
-        val dialog = BottomSheetDialog(requireContext())
-        val container = android.widget.LinearLayout(requireContext()).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryInverseColor))
-            setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
-        }
-
-        // Drag handle
-        val handle = View(requireContext()).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-                bottomMargin = 8.dpToPx()
-            }
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-        }
-        container.addView(handle)
-
-        // Folder title
-        val title = TextView(requireContext()).apply {
-            text = folder.name
-            textSize = 14f
-            setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 8.dpToPx())
-        }
-        container.addView(title)
-
+        val menu = BottomSheetMenu(requireContext()).title(folder.name)
         for (app in folder.apps) {
-            val tv = TextView(requireContext()).apply {
-                text = app.appName
-                textSize = 16f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-                setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-                setOnClickListener {
-                    dialog.dismiss()
-                    launchApp(app.appName, app.packageName, app.activityClassName, app.userString)
-                }
+            menu.option(app.appName) {
+                launchApp(app.appName, app.packageName, app.activityClassName, app.userString)
             }
-            container.addView(tv)
         }
-
-        dialog.setContentView(container)
-        dialog.show()
+        menu.show()
     }
 
     private fun showHomeSlotMenu(slot: Int) {
@@ -828,40 +696,15 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         val isFolder = folderManager.isFolderSlot(slot)
         val isNote = effectiveNoteSlot > 0 && slot == effectiveNoteSlot
 
-        val dialog = BottomSheetDialog(requireContext())
-        val container = android.widget.LinearLayout(requireContext()).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryInverseColor))
-            setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
-        }
-
-        val handle = View(requireContext()).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-                bottomMargin = 16.dpToPx()
-            }
-            setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-        }
-        container.addView(handle)
-
-        fun addOption(text: String, onClick: () -> Unit) {
-            val tv = TextView(requireContext()).apply {
-                this.text = text
-                textSize = 16f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-                setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-                setOnClickListener { dialog.dismiss(); onClick() }
-            }
-            container.addView(tv)
-        }
+        val menu = BottomSheetMenu(requireContext())
 
         // Set / change app
-        addOption(if (hasApp) getString(R.string.rename) else getString(R.string.open_app)) {
+        menu.option(if (hasApp) getString(R.string.rename) else getString(R.string.open_app)) {
             showAppList(slot, hasApp, true)
         }
 
         // Create folder
-        addOption(getString(R.string.create_folder)) {
+        menu.option(getString(R.string.create_folder)) {
             showCreateFolderDialog(slot)
         }
 
@@ -870,11 +713,12 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             val pkg = prefs.getHomeAppPackage(slot)
             if (pkg.isNotEmpty()) {
                 val hasLimit = AppLimitManager.hasLimit(requireContext(), pkg)
-                addOption(if (hasLimit) getString(R.string.remove_time_limit) else getString(R.string.set_time_limit)) {
+                menu.option(if (hasLimit) getString(R.string.remove_time_limit) else getString(R.string.set_time_limit)) {
                     if (hasLimit) {
                         AppLimitManager.removeLimit(requireContext(), pkg)
                     } else {
-                        showBadHabitTimePicker(pkg)
+                        val ctx = context ?: return@option
+                        BadHabitDialogs.showTimeLimitPicker(ctx, pkg) { populateHomeScreen(false) }
                     }
                 }
             }
@@ -882,7 +726,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
         // Remove (if occupied)
         if (hasApp || isFolder || isNote) {
-            addOption(getString(R.string.delete)) {
+            menu.option(getString(R.string.delete)) {
                 if (isFolder) folderManager.removeFolder(slot)
                 if (isNote) QuickNoteManager.setEnabled(requireContext(), false)
                 prefs.setHomeAppName(slot, "")
@@ -893,8 +737,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             }
         }
 
-        dialog.setContentView(container)
-        dialog.show()
+        menu.show()
     }
 
     private fun showCreateFolderDialog(slot: Int) {
@@ -1550,32 +1393,17 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         val ids = prefs.getWidgetIdList()
         val index = ids.indexOf(widgetId)
 
-        val dialog = BottomSheetDialog(requireContext())
-        val view = layoutInflater.inflate(R.layout.dialog_widget_options, null)
-        val container = view.findViewById<android.widget.LinearLayout>(R.id.widgetOptionsContainer)
-
-        fun addMenuItem(text: String, action: () -> Unit) {
-            val tv = TextView(requireContext()).apply {
-                this.text = text
-                textSize = 16f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-                setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-                setOnClickListener { dialog.dismiss(); action() }
-            }
-            container.addView(tv)
-        }
-
-        addMenuItem(getString(R.string.swap_widget)) {
+        val menu = BottomSheetMenu(requireContext())
+            .title(getString(R.string.widget_options))
+        menu.option(getString(R.string.swap_widget)) {
             showWidgetPicker { providerInfo -> bindWidget(providerInfo, replaceIndex = index) }
         }
-        addMenuItem(getString(R.string.remove_widget)) { removeWidget(widgetId) }
+        menu.option(getString(R.string.remove_widget)) { removeWidget(widgetId) }
         if (ids.size > 1 && index > 0)
-            addMenuItem(getString(R.string.move_up)) { moveWidget(index, index - 1) }
+            menu.option(getString(R.string.move_up)) { moveWidget(index, index - 1) }
         if (ids.size > 1 && index < ids.size - 1)
-            addMenuItem(getString(R.string.move_down)) { moveWidget(index, index + 1) }
-
-        dialog.setContentView(view)
-        dialog.show()
+            menu.option(getString(R.string.move_down)) { moveWidget(index, index + 1) }
+        menu.show()
     }
 
     private fun moveWidget(fromIndex: Int, toIndex: Int) {

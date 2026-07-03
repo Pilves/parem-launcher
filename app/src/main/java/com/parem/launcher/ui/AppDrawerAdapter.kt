@@ -23,8 +23,6 @@ import com.parem.launcher.data.Constants
 import com.parem.launcher.databinding.AdapterAppDrawerBinding
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.IconPackManager
-import com.parem.launcher.helper.getColorFromAttr
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.hideKeyboard
@@ -356,7 +354,7 @@ class AppDrawerAdapter(
                             appHideLayout.visibility = View.GONE
                             appTitle.visibility = View.VISIBLE
                         } else {
-                            showTimeLimitPicker(root.context, appModel.appPackage) {
+                            BadHabitDialogs.showTimeLimitPicker(root.context, appModel.appPackage) {
                                 appHideLayout.visibility = View.GONE
                                 appTitle.visibility = View.VISIBLE
                             }
@@ -386,49 +384,5 @@ class AppDrawerAdapter(
             }
         }
 
-        private fun showTimeLimitPicker(context: Context, packageName: String, onDone: () -> Unit) {
-            val dialog = BottomSheetDialog(context)
-            val container = android.widget.LinearLayout(context).apply {
-                orientation = android.widget.LinearLayout.VERTICAL
-                setBackgroundColor(context.getColorFromAttr(R.attr.primaryInverseColor))
-                setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
-            }
-
-            val handle = View(context).apply {
-                layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                    gravity = android.view.Gravity.CENTER_HORIZONTAL
-                    bottomMargin = 16.dpToPx()
-                }
-                setBackgroundColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
-            }
-            container.addView(handle)
-
-            val title = android.widget.TextView(context).apply {
-                text = context.getString(R.string.select_time_limit)
-                textSize = 16f
-                setTextColor(context.getColorFromAttr(R.attr.primaryColor))
-                setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 12.dpToPx())
-            }
-            container.addView(title)
-
-            val options = listOf(15 to "15 minutes", 30 to "30 minutes", 60 to "1 hour", 120 to "2 hours")
-            for ((minutes, label) in options) {
-                val tv = android.widget.TextView(context).apply {
-                    text = label
-                    textSize = 16f
-                    setTextColor(context.getColorFromAttr(R.attr.primaryColor))
-                    setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-                    setOnClickListener {
-                        AppLimitManager.setLimit(context, packageName, minutes)
-                        dialog.dismiss()
-                        onDone()
-                    }
-                }
-                container.addView(tv)
-            }
-
-            dialog.setContentView(container)
-            dialog.show()
-        }
     }
 }

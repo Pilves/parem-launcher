@@ -34,7 +34,6 @@ import com.parem.launcher.helper.openUrl
 import com.parem.launcher.helper.showKeyboard
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.helper.uninstall
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -347,60 +346,11 @@ class AppDrawerFragment : Fragment() {
     private fun showBadHabitWarningDialog(appModel: AppModel, usageMinutes: Long, limitMinutes: Int) {
         val ctx = context ?: return
         val appName = appModel.appLabel.ifEmpty { appModel.appPackage }
-        val hours = usageMinutes / 60
-        val mins = usageMinutes % 60
-        val usageText = if (hours > 0) "${hours}h ${mins}m" else "${mins}m"
-        val limitText = if (limitMinutes >= 60) "${limitMinutes / 60}h ${limitMinutes % 60}m" else "${limitMinutes}m"
-
-        val dialog = BottomSheetDialog(ctx)
-        val container = android.widget.LinearLayout(ctx).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setBackgroundColor(ctx.getColorFromAttr(R.attr.primaryInverseColor))
-            setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
+        BadHabitDialogs.showLimitWarning(ctx, appName, usageMinutes, limitMinutes) {
+            if (!isAdded) return@showLimitWarning
+            viewModel.selectedApp(appModel, flag)
+            findNavController().popBackStack(R.id.mainFragment, false)
         }
-
-        val handle = android.view.View(ctx).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = android.view.Gravity.CENTER_HORIZONTAL
-                bottomMargin = 16.dpToPx()
-            }
-            setBackgroundColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
-        }
-        container.addView(handle)
-
-        val message = android.widget.TextView(ctx).apply {
-            text = ctx.getString(R.string.app_limit_warning, appName, usageText, limitText)
-            textSize = 16f
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColor))
-            setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 16.dpToPx())
-        }
-        container.addView(message)
-
-        val openAnyway = android.widget.TextView(ctx).apply {
-            text = ctx.getString(R.string.open_anyway)
-            textSize = 16f
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColor))
-            setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-            setOnClickListener {
-                dialog.dismiss()
-                if (!isAdded) return@setOnClickListener
-                viewModel.selectedApp(appModel, flag)
-                findNavController().popBackStack(R.id.mainFragment, false)
-            }
-        }
-        container.addView(openAnyway)
-
-        val goBack = android.widget.TextView(ctx).apply {
-            text = ctx.getString(R.string.go_back)
-            textSize = 16f
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
-            setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-            setOnClickListener { dialog.dismiss() }
-        }
-        container.addView(goBack)
-
-        dialog.setContentView(container)
-        dialog.show()
     }
 
     override fun onStart() {
