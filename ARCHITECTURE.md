@@ -65,6 +65,7 @@ listener/
 ## Build & release
 
 - Debug: `./gradlew assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk` (package id gets a `.debug` suffix so it installs alongside release). CI: `.github/workflows/debug-build.yml` runs tests + build on every master push (or manually via workflow_dispatch) and uploads the APK as an artifact. Note the CI debug keystore differs per run — updating a CI-built debug install usually needs an uninstall first.
+- Every behavior-changing PR adds an entry under `## [Unreleased]` in CHANGELOG.md; at release time, rename that section to the version and prepend a fresh `## [Unreleased]`.
 - Release: bump `versionCode`/`versionName` in `app/build.gradle`, add `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` and a CHANGELOG.md entry, then push a tag matching `v*` → `.github/workflows/release.yml` builds a signed APK (keystore comes from repo secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) and attaches it to a GitHub release.
 - Dependency versions live in `gradle/libs.versions.toml`. AGP 8.9.1 / Gradle 8.11.1 / Kotlin 2.1.20; JDK 17+ (21 works).
 

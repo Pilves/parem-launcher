@@ -1,5 +1,7 @@
 # Changelog
 
+## [Unreleased]
+
 ## v5.5.1
 
 - Fixed: swipe up opens the drawer again while gesture letters are enabled
