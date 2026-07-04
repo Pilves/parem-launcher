@@ -8,7 +8,7 @@ lives in ARCHITECTURE.md.
 
 ## Next up
 
-### [ ] PAREM-101 — Folder creation only shows first 50 apps, main profile only
+### [x] PAREM-101 — Folder creation only shows first 50 apps, main profile only
 
 **Priority:** P2 · **Estimate:** ~half a day · **Type:** Bug/limitation
 **Branch:** `fix/folder-picker-limits` · **Order:** do this first (warm-up)

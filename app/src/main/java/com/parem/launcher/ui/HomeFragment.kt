@@ -35,6 +35,7 @@ import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.expandNotificationDrawer
+import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.getUserHandleFromString
 import com.parem.launcher.helper.isPackageInstalled
 import com.parem.launcher.helper.openAlarmApp
@@ -716,17 +717,9 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     }
 
     private fun showCreateFolderDialog(slot: Int) {
-        val pm = requireContext().packageManager
-        val intent = android.content.Intent(android.content.Intent.ACTION_MAIN).apply {
-            addCategory(android.content.Intent.CATEGORY_LAUNCHER)
-        }
-
         viewLifecycleOwner.lifecycleScope.launch {
-            val resolveInfos = withContext(Dispatchers.IO) {
-                pm.queryIntentActivities(intent, 0)
-                    .sortedBy { it.loadLabel(pm).toString().lowercase() }
-                    .take(50)
-            }
+            // Same source as the app drawer: all user profiles, non-hidden apps, no cap.
+            val apps = getAppsList(requireContext(), prefs, includeRegularApps = true, includeHiddenApps = false)
 
             if (!isAdded || _binding == null) return@launch
 
@@ -786,22 +779,23 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 orientation = android.widget.LinearLayout.VERTICAL
             }
 
-            for (ri in resolveInfos) {
-                val appLabel = ri.loadLabel(pm).toString()
-                val pkg = ri.activityInfo.packageName
-                val activity = ri.activityInfo.name
+            for (appModel in apps) {
+                val appLabel = appModel.appLabel
+                val pkg = appModel.appPackage
+                val activity = appModel.activityClassName ?: ""
+                val userString = appModel.user.toString()
                 val cb = android.widget.CheckBox(requireContext()).apply {
                     text = appLabel
                     textSize = 14f
                     setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
                     setPadding(8.dpToPx(), 2.dpToPx(), 0, 2.dpToPx())
                     setOnCheckedChangeListener { _, isChecked ->
-                        val app = FolderApp(appLabel, pkg, activity, android.os.Process.myUserHandle().toString())
+                        val app = FolderApp(appLabel, pkg, activity, userString)
                         if (isChecked) {
                             if (selectedApps.size < 4) selectedApps.add(app)
                             else this.isChecked = false
                         } else {
-                            selectedApps.removeAll { it.packageName == pkg }
+                            selectedApps.removeAll { it.packageName == pkg && it.userString == userString }
                         }
                     }
                 }
