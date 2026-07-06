@@ -46,6 +46,7 @@ import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.animateAlpha
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.dpToPx
+import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.isDarkThemeOn
@@ -1007,15 +1008,17 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
 
 
     private fun showFocusModeFromSettings() {
-        val topApps = viewModel.perAppScreenTime.value?.entries
-            ?.sortedByDescending { it.value }
-            ?.take(10)
-            ?.map { it.key to (requireContext().packageManager.let { pm ->
-                try { pm.getApplicationLabel(pm.getApplicationInfo(it.key, 0)).toString() } catch (_: Exception) { it.key }
-            }) } ?: emptyList()
-        val dialog = FocusModeDialog(requireContext(), topApps)
-        dialog.setOnDismissListener { populateWellbeingSection() }
-        dialog.show()
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Same source as the app drawer and folder picker: all user profiles, non-hidden apps, no cap.
+            val apps = getAppsList(requireContext(), prefs, includeRegularApps = true, includeHiddenApps = false)
+
+            if (!isAdded || _binding == null) return@launch
+
+            val allApps = apps.map { it.appPackage to it.appLabel }
+            val dialog = FocusModeDialog(requireContext(), allApps)
+            dialog.setOnDismissListener { populateWellbeingSection() }
+            dialog.show()
+        }
     }
 
     private fun showScreenTimeLimitsDialog() {

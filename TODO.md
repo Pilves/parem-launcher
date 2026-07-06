@@ -123,7 +123,7 @@ denied state handled gracefully.
 
 ## Smaller fixes
 
-### [ ] PAREM-105 — Focus-mode whitelist picker capped at 10 most-used apps
+### [x] PAREM-105 — Focus-mode whitelist picker capped at 10 most-used apps
 
 **Priority:** P3 · **Estimate:** ~half a day · **Type:** Bug/limitation
 
