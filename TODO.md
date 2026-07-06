@@ -227,6 +227,9 @@ ported at bec09c7), shortlist anything worth cherry-picking, one ticket
 per pick. No blind merges — this fork has diverged.
 
 **Log:** last reviewed 2026-07-03 (3 fixes ported for v5.5.0).
+Reviewed 2026-07-06: nothing to pick — upstream HEAD (2026-07-01) predates
+the last port (bec09c7); remaining upstream commits touch features this
+fork removed (home-button recents, upstream regex search, region branding).
 
 ## Process / housekeeping
 
