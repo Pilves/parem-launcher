@@ -230,7 +230,7 @@ per pick. No blind merges — this fork has diverged.
 
 ## Process / housekeeping
 
-### [ ] PAREM-110 — Delete merged refactor/maintainability branch
+### [x] PAREM-110 — Delete merged refactor/maintainability branch
 
 **Priority:** P4 · **Estimate:** 5 min
 
