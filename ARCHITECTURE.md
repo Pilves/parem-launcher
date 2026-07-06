@@ -20,7 +20,16 @@ ui/
                            HomeFragment.onViewCreated, released in onDestroyView.
   AppDrawerFragment.kt     App list + omnibox search (apps / calculator / web).
   AppDrawerAdapter.kt      Drawer rows, long-press menu, rename, auto-launch logic.
-  SettingsFragment.kt      All settings rows and pickers.
+  SettingsFragment.kt      Binding lifecycle, constructs/wires the settings/ cards,
+                           and the cross-section bits (resetOpenPickers,
+                           populateWellbeingSection, the import ActivityResultLauncher).
+  settings/                One class per settings card, mirroring HomeWidgetController's
+                           shape (fragment/binding/prefs[/viewModel] in the constructor,
+                           a bind() that populates + wires clicks + observers):
+                           AppInfoSettingsCard, HomeScreenSettingsCard,
+                           AppearanceSettingsCard, GesturesSettingsCard,
+                           WellbeingSettingsCard. Plus two extracted dialogs:
+                           WeatherSettingsDialog, GestureLetterConfigDialog.
   BottomSheetMenu.kt       THE way to build bottom sheets (handle + title + rows).
   BadHabitDialogs.kt       Shared "limit reached" warning + time-limit picker.
   FocusModeDialog.kt, ScreenTimeGraphDialog.kt, ScreenTimeLimitDialog.kt,
@@ -84,7 +93,6 @@ After an AGP upgrade, re-copy the new aapt2 binary — the override pins a speci
 
 ## Known issues / debt
 
-- `SettingsFragment` (~1.2k lines) is still a monolith of rows and pickers; splitting it by section is the next obvious refactor.
 - Weather has no per-fetch failure UI; a stale cached temperature is shown silently.
 - `Constants.URL_ABOUT_PAREM` / `URL_PAREM_PRIVACY` / `URL_DOUBLE_TAP` are empty; their settings rows are hidden until filled in.
 - Folder creation's app picker has no search; scrolling to a specific app in a large list is tedious now that all apps (all profiles) are shown.

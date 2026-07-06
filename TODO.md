@@ -40,7 +40,7 @@ git blame) before deleting it; report findings in the PR description.
 
 ---
 
-### [ ] PAREM-102 — Split SettingsFragment into per-section components
+### [x] PAREM-102 — Split SettingsFragment into per-section components
 
 **Priority:** P1 · **Estimate:** 2–3 days · **Type:** Refactor
 **Branch:** `refactor/settings-split` · **Order:** after PAREM-101
