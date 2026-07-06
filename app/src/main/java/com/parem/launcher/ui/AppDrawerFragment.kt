@@ -26,6 +26,7 @@ import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
 import com.parem.launcher.helper.ExpressionEvaluator
+import com.parem.launcher.helper.UnitConverter
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.hideKeyboard
@@ -55,9 +56,11 @@ class AppDrawerFragment : Fragment() {
     private var searchTextView: TextView? = null
     private var cachedIsCjkKeyboard: Boolean? = null
 
-    // Omnibox state: non-null when the query is an arithmetic expression or a
-    // dialable number, true when a leading space marks the query as a web search
+    // Omnibox state: non-null when the query is an arithmetic expression, a
+    // unit conversion, or a dialable number, true when a leading space marks
+    // the query as a web search
     private var calcResult: String? = null
+    private var conversionResult: String? = null
     private var dialNumber: String? = null
     private var webSearchMode = false
 
@@ -150,6 +153,10 @@ class AppDrawerFragment : Fragment() {
                         ctx.copyToClipboard(calcResult!!)
                         ctx.showToast(getString(R.string.copied))
                     }
+                    conversionResult != null -> {
+                        ctx.copyToClipboard(conversionResult!!)
+                        ctx.showToast(getString(R.string.copied))
+                    }
                     dialNumber != null -> {
                         try {
                             startActivity(
@@ -180,7 +187,7 @@ class AppDrawerFragment : Fragment() {
                 try {
                     adapter.filter.filter(newText) {
                         _binding?.let { b ->
-                            if (calcResult != null || dialNumber != null || webSearchMode) return@let
+                            if (calcResult != null || conversionResult != null || dialNumber != null || webSearchMode) return@let
                             if (adapter.itemCount == 0 && newText.isNotBlank()) {
                                 b.appDrawerTip.text = getString(R.string.no_apps_found)
                                 b.appDrawerTip.visibility = View.VISIBLE
@@ -198,13 +205,14 @@ class AppDrawerFragment : Fragment() {
     }
 
     /**
-     * The search field doubles as an omnibox: arithmetic shows a live result
-     * (tap or submit to copy), and a leading space turns the query into a
-     * Google search on submit.
+     * The search field doubles as an omnibox: arithmetic and unit conversions
+     * show a live result (tap or submit to copy), and a leading space turns
+     * the query into a Google search on submit.
      */
     private fun updateOmniboxState(newText: String) {
         val b = _binding ?: return
         calcResult = null
+        conversionResult = null
         dialNumber = null
         webSearchMode = false
         // Omnibox modes only make sense when the drawer is a launcher, not when
@@ -216,6 +224,17 @@ class AppDrawerFragment : Fragment() {
             ExpressionEvaluator.evaluate(trimmed)?.let { value ->
                 calcResult = ExpressionEvaluator.format(value)
                 b.appDrawerTip.text = "= $calcResult"
+                b.appDrawerTip.visibility = View.VISIBLE
+                return
+            }
+        }
+        // Letters-only unit tokens keep this disjoint from both the calculator
+        // (digits/operators only) and the dial matcher below (digits/spaces
+        // only), so there's no ordering conflict between the three.
+        if (UnitConverter.looksLikeConversion(trimmed)) {
+            UnitConverter.convert(trimmed)?.let { result ->
+                conversionResult = result.format()
+                b.appDrawerTip.text = "= $conversionResult"
                 b.appDrawerTip.visibility = View.VISIBLE
                 return
             }

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Omnibox: unit conversion mode ("5 km in mi", "100 f to c") alongside the
+  existing calculator, dial, and web search modes — length, mass,
+  temperature, volume, speed, and data size
+
 ## v5.5.1
 
 - Fixed: swipe up opens the drawer again while gesture letters are enabled

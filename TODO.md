@@ -72,7 +72,7 @@ tickets), renaming prefs, redesigning any picker.
 
 ## Features
 
-### [ ] PAREM-103 — Omnibox unit conversion
+### [x] PAREM-103 — Omnibox unit conversion
 
 **Priority:** P2 · **Estimate:** 1–2 days · **Type:** Feature
 **Branch:** `feat/omnibox-unit-conversion` · **Blocked by:** PAREM-102 if
