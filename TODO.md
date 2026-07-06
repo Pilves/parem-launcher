@@ -240,7 +240,7 @@ Fully merged (master is ahead; branch has nothing unique — verified
 
 ---
 
-### [ ] PAREM-111 — CHANGELOG "unreleased" section flow
+### [x] PAREM-111 — CHANGELOG "unreleased" section flow
 
 **Priority:** P4 · **Estimate:** 15 min
 
