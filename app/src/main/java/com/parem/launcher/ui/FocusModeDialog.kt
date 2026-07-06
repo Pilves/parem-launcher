@@ -25,11 +25,13 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
  * When inactive, shows duration options, app whitelist checkboxes, and an enable button.
  *
  * @param context The activity context.
- * @param topApps List of (packageName, appLabel) pairs for whitelist selection. Up to 10 shown.
+ * @param allApps List of (packageName, appLabel) pairs for whitelist selection. All installed
+ * apps (all profiles) are offered; only [FocusModeManager]'s selection cap limits how many can
+ * be checked at once.
  */
 class FocusModeDialog(
     context: Context,
-    private val topApps: List<Pair<String, String>> = emptyList()
+    private val allApps: List<Pair<String, String>> = emptyList()
 ) : BottomSheetDialog(context) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -163,7 +165,7 @@ class FocusModeDialog(
         // Allowed apps section
         val whitelistCheckboxes = mutableListOf<Pair<CheckBox, String>>()
 
-        if (topApps.isNotEmpty()) {
+        if (allApps.isNotEmpty()) {
             val appsLabel = TextView(ctx).apply {
                 text = "Allowed apps (max 5)"
                 setTextColor(primaryColor)
@@ -173,9 +175,8 @@ class FocusModeDialog(
             container.addView(appsLabel)
 
             val currentWhitelist = FocusModeManager.getWhitelist(ctx)
-            val displayApps = topApps.take(10)
 
-            displayApps.forEach { (packageName, appLabel) ->
+            allApps.forEach { (packageName, appLabel) ->
                 val checkBox = CheckBox(ctx).apply {
                     text = appLabel
                     setTextColor(primaryColor)

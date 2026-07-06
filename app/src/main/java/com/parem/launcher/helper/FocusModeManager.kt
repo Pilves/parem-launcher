@@ -68,8 +68,8 @@ object FocusModeManager {
         if (!p.getBoolean(KEY_ENABLED, false)) return true
         val endTime = p.getLong(KEY_END_TIME, END_TIME_UNLIMITED)
         if (endTime != END_TIME_UNLIMITED && System.currentTimeMillis() > endTime) return true
-        // Never block the phone app: the whitelist only offers the most-used apps,
-        // and being unable to place a call is worse than a broken focus session
+        // Never block the phone app, whitelisted or not: being unable to place a call
+        // is worse than a broken focus session
         try {
             val telecom = context.getSystemService(Context.TELECOM_SERVICE) as? android.telecom.TelecomManager
             if (telecom?.defaultDialerPackage == packageName) return true
