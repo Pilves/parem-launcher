@@ -85,7 +85,12 @@ After an AGP upgrade, re-copy the new aapt2 binary — the override pins a speci
 ## Known issues / debt
 
 - `SettingsFragment` (~1.2k lines) is still a monolith of rows and pickers; splitting it by section is the next obvious refactor.
-- Weather has no per-fetch failure UI; a stale cached temperature is shown silently.
+- Weather staleness (PAREM-106): cache age is tracked via a success-only
+  `WEATHER_LAST_SUCCESS_MS` key (separate from `WEATHER_LAST_FETCHED`, which
+  a failed fetch also rewrites for retry-backoff). `HomeFragment` dims the
+  temperature at 3-24h old and hides it past 24h old; classification lives
+  in `helper/WeatherStaleness`. Still no per-fetch failure toast/indicator
+  beyond that (by design — the home screen stays quiet).
 - `Constants.URL_ABOUT_PAREM` / `URL_PAREM_PRIVACY` / `URL_DOUBLE_TAP` are empty; their settings rows are hidden until filled in.
 - Folder creation's app picker has no search; scrolling to a specific app in a large list is tedious now that all apps (all profiles) are shown.
 - Focus mode's whitelist picker has no search; scrolling to a specific app in a large list is tedious now that all installed apps (all profiles) are shown (the default dialer is always allowed regardless).

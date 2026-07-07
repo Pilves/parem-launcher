@@ -6,6 +6,9 @@ import android.content.Intent
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -16,6 +19,7 @@ import android.view.WindowInsets
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.graphics.ColorUtils
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.view.setPadding
@@ -56,6 +60,7 @@ import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.SwipeUpAppManager
 import com.parem.launcher.helper.WeatherManager
+import com.parem.launcher.helper.WeatherStaleness
 import com.parem.launcher.ui.ScreenTimeGraphDialog
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.Dispatchers
@@ -310,7 +315,11 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         binding.clock.isVisible = Constants.DateTime.isTimeVisible(prefs.dateTimeVisibility)
         binding.date.isVisible = Constants.DateTime.isDateVisible(prefs.dateTimeVisibility)
 
-        val weatherTemp = WeatherManager.getDisplayString(requireContext())
+        val rawWeatherTemp = WeatherManager.getDisplayString(requireContext())
+        val staleness = WeatherManager.getStaleness(requireContext())
+        // Older than 24h: hide entirely rather than show a silently stale reading.
+        val weatherTemp = if (staleness == WeatherStaleness.Level.EXPIRED) "" else rawWeatherTemp
+
         var dateText = LocalDate.now().format(getDateFormatter())
         if (weatherTemp.isNotEmpty()) dateText = "$weatherTemp  $dateText"
 
@@ -322,7 +331,22 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 dateText = getString(R.string.day_battery, dateText, battery)
         }
         val displayDate = dateText.replace(".,", ",")
-        binding.date.text = displayDate
+
+        // 3h-24h old: dim just the temperature portion (~50% alpha) so it
+        // reads as visibly untrusted without a toast or layout change.
+        if (weatherTemp.isNotEmpty() && staleness == WeatherStaleness.Level.STALE) {
+            val dimmedColor = ColorUtils.setAlphaComponent(binding.date.currentTextColor, 128)
+            val spannable = SpannableString(displayDate)
+            spannable.setSpan(
+                ForegroundColorSpan(dimmedColor),
+                0,
+                weatherTemp.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            binding.date.text = spannable
+        } else {
+            binding.date.text = displayDate
+        }
         binding.date.contentDescription = displayDate
         binding.clock.contentDescription = binding.clock.text
     }

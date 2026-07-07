@@ -159,7 +159,7 @@ always-allowed dialer behavior.
 
 ---
 
-### [ ] PAREM-106 — Weather: stale cached temperature shown silently on fetch failure
+### [x] PAREM-106 — Weather: stale cached temperature shown silently on fetch failure
 
 **Priority:** P3 · **Estimate:** ~half a day · **Type:** UX bug
 

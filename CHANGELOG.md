@@ -8,6 +8,9 @@
 - The 4-hour self-recreate + cacheDir wipe is now gated behind a hidden pref
   (default ON, unchanged behavior) — phase 1 of PAREM-108, no user-visible
   change yet
+- Fixed: a stale cached temperature after a failed weather fetch is no
+  longer shown as if it were current — dimmed once it's 3-24h old, hidden
+  once it's over 24h old (PAREM-106)
 
 ## v5.5.1
 

@@ -32,6 +32,10 @@ object WeatherManager {
     private const val WEATHER_LNG = "WEATHER_LNG"
     private const val WEATHER_CACHED_TEMP = "WEATHER_CACHED_TEMP"
     private const val WEATHER_LAST_FETCHED = "WEATHER_LAST_FETCHED"
+    // Success-only timestamp: unlike WEATHER_LAST_FETCHED (which a failed
+    // fetch rewrites for retry-backoff), this only moves forward when a
+    // fetch actually succeeded. It's what cache age/staleness is computed from.
+    private const val WEATHER_LAST_SUCCESS = "WEATHER_LAST_SUCCESS_MS"
     private const val WEATHER_CITY_NAME = "WEATHER_CITY_NAME"
 
     private const val FETCH_INTERVAL_MS = 60 * 60 * 1000L // 1 hour
@@ -72,6 +76,21 @@ object WeatherManager {
         prefs(context).getString(WEATHER_CACHED_TEMP, "") ?: ""
 
     fun getDisplayString(context: Context): String = getCachedTemp(context)
+
+    /**
+     * Staleness of the cached reading, per PAREM-106. A cache with no
+     * WEATHER_LAST_SUCCESS yet (pre-upgrade installs) is treated as STALE
+     * rather than FRESH or EXPIRED: it self-heals silently on the next
+     * successful fetch (throttled to roughly hourly) instead of either
+     * flashing an unverified reading as trustworthy or disappearing outright.
+     */
+    fun getStaleness(context: Context): WeatherStaleness.Level {
+        val p = prefs(context)
+        if (!p.contains(WEATHER_LAST_SUCCESS)) return WeatherStaleness.classify(null)
+        val lastSuccess = p.getLong(WEATHER_LAST_SUCCESS, 0L)
+        val age = System.currentTimeMillis() - lastSuccess
+        return WeatherStaleness.classify(age)
+    }
 
     suspend fun searchCities(query: String): List<CityResult> = withContext(Dispatchers.IO) {
         if (query.isBlank() || query.length < 2) return@withContext emptyList()
@@ -156,6 +175,7 @@ object WeatherManager {
             p.edit()
                 .putString(WEATHER_CACHED_TEMP, formatted)
                 .putLong(WEATHER_LAST_FETCHED, now)
+                .putLong(WEATHER_LAST_SUCCESS, now)
                 .apply()
 
             formatted
