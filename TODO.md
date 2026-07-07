@@ -206,6 +206,43 @@ ticket notes below; no code changes unless approved.
 
 **Notes:** _(fill in findings here)_
 
+---
+
+### [ ] PAREM-113 — Remove dead removeActiveAdmin() from GesturesSettingsCard
+
+**Priority:** P4 · **Estimate:** ~1h · **Type:** Code health
+**Branch:** `chore/remove-dead-admin-code` · **Good first ticket.**
+
+**Background.** The 2026-07-07 code review of the settings split confirmed
+`GesturesSettingsCard.removeActiveAdmin()` (around line 179) is never called
+— it was already dead in the pre-split SettingsFragment and was carried over
+verbatim. It wraps `DevicePolicyManager.removeActiveAdmin()` with a
+"backward compatibility" comment, suggesting it once backed a lock-method
+migration that no longer exists.
+
+**Scope.**
+- Confirm it's dead yourself (don't trust the ticket): find all references
+  to the function. Then check git history for when its last caller vanished.
+- Delete the function. Do NOT delete the `deviceManager` / `componentName`
+  fields — they have a live caller (`isAdminActive`, ~line 303).
+- Check what the deletion orphans: an import, a string resource, the
+  `Log.e` tag — remove only what the deletion itself made unused.
+- Note the stale `"SettingsFragment"` log tag elsewhere in this card is NOT
+  in scope; leave it.
+
+**Out of scope.** Any change to the accessibility-service lock path,
+DeviceAdmin itself, or other dead-looking code you find along the way
+(file a ticket instead — remember Trap #1: some "dead" code is load-bearing).
+
+**Acceptance criteria.**
+1. `rg removeActiveAdmin` returns no hits under app/src (the
+   DevicePolicyManager API call inside the deleted body doesn't count —
+   it goes with the function).
+2. Nothing else removed beyond what the deletion orphaned.
+3. Full build green: `compileDebugKotlin`, `testDebugUnitTest`,
+   `assembleDebug`.
+4. PR description states when the last caller was removed (git archaeology).
+
 ## Long-running / observation
 
 ### [ ] PAREM-108 — Put the 4-hour self-recreate behind a pref, observe, then remove
