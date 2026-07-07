@@ -18,9 +18,19 @@ ui/
   HomeWidgetController.kt  The entire multi-widget system (pick/bind/configure/
                            restore/resize/reorder/remove). Created in
                            HomeFragment.onViewCreated, released in onDestroyView.
-  AppDrawerFragment.kt     App list + omnibox search (apps / calculator / web).
+  AppDrawerFragment.kt     App list + omnibox search (apps / calculator / unit
+                           conversion / dial / web).
   AppDrawerAdapter.kt      Drawer rows, long-press menu, rename, auto-launch logic.
-  SettingsFragment.kt      All settings rows and pickers.
+  SettingsFragment.kt      Binding lifecycle, constructs/wires the settings/ cards,
+                           and the cross-section bits (resetOpenPickers,
+                           populateWellbeingSection, the import ActivityResultLauncher).
+  settings/                One class per settings card, mirroring HomeWidgetController's
+                           shape (fragment/binding/prefs[/viewModel] in the constructor,
+                           a bind() that populates + wires clicks + observers):
+                           AppInfoSettingsCard, HomeScreenSettingsCard,
+                           AppearanceSettingsCard, GesturesSettingsCard,
+                           WellbeingSettingsCard. Plus two extracted dialogs:
+                           WeatherSettingsDialog, GestureLetterConfigDialog.
   BottomSheetMenu.kt       THE way to build bottom sheets (handle + title + rows).
   BadHabitDialogs.kt       Shared "limit reached" warning + time-limit picker.
   FocusModeDialog.kt, ScreenTimeGraphDialog.kt, ScreenTimeLimitDialog.kt,
@@ -84,7 +94,6 @@ After an AGP upgrade, re-copy the new aapt2 binary — the override pins a speci
 
 ## Known issues / debt
 
-- `SettingsFragment` (~1.2k lines) is still a monolith of rows and pickers; splitting it by section is the next obvious refactor.
 - Weather staleness (PAREM-106): cache age is tracked via a success-only
   `WEATHER_LAST_SUCCESS_MS` key (separate from `WEATHER_LAST_FETCHED`, which
   a failed fetch also rewrites for retry-backoff). `HomeFragment` dims the
