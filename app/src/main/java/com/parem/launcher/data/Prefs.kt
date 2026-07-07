@@ -53,6 +53,7 @@ class Prefs(context: Context) {
     private val HIDE_SET_DEFAULT_LAUNCHER = "HIDE_SET_DEFAULT_LAUNCHER"
     private val SCREEN_TIME_LAST_UPDATED = "SCREEN_TIME_LAST_UPDATED"
     private val LAUNCHER_RESTART_TIMESTAMP = KEY_LAUNCHER_RECREATE_TIMESTAMP
+    private val PERIODIC_SELF_RECREATE_ENABLED = "PERIODIC_SELF_RECREATE_ENABLED"
     private val WIDGET_ID = "WIDGET_ID"
     private val WIDGET_IDS = "WIDGET_IDS"
     private val WIDGET_PLACEMENT = "WIDGET_PLACEMENT"
@@ -176,6 +177,17 @@ class Prefs(context: Context) {
     var launcherRestartTimestamp: Long
         get() = prefs.getLong(LAUNCHER_RESTART_TIMESTAMP, 0L)
         set(value) = prefs.edit { putLong(LAUNCHER_RESTART_TIMESTAMP, value) }
+
+    // Hidden/debug pref for PAREM-108: gates the 4-hour self-recreate + cacheDir
+    // wipe in MainActivity.restartLauncherOrCheckTheme (see ARCHITECTURE.md trap
+    // #2). Default ON (unchanged behavior). No settings UI yet (see PAREM-108
+    // phase 1 report); to flip it for phase 2 observation on a debug build, set
+    // it false via `adb shell run-as com.parem.launcher.debug` editing
+    // shared_prefs/com.parem.launcher.xml (add the key if absent — it's only
+    // written once something calls the setter), then restart the launcher.
+    var periodicSelfRecreateEnabled: Boolean
+        get() = prefs.getBoolean(PERIODIC_SELF_RECREATE_ENABLED, true)
+        set(value) = prefs.edit { putBoolean(PERIODIC_SELF_RECREATE_ENABLED, value) }
 
     var widgetId: Int
         get() = prefs.getInt(WIDGET_ID, -1)
@@ -467,7 +479,8 @@ class Prefs(context: Context) {
         "OPEN_COUNTS", "OPEN_COUNTS_DAY",
         "WEATHER_CACHED_TEMP", "WEATHER_LAST_FETCHED",
         "FOCUS_MODE_ENABLED", "FOCUS_MODE_END_TIME",
-        "ONBOARDING_COMPLETE", ONBOARDING_VERSION_SEEN
+        "ONBOARDING_COMPLETE", ONBOARDING_VERSION_SEEN,
+        PERIODIC_SELF_RECREATE_ENABLED
     )
 
     fun exportToJson(): JSONObject {
