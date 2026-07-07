@@ -16,7 +16,15 @@ object UnitConverter {
     enum class Category { LENGTH, MASS, TEMPERATURE, VOLUME, SPEED, DATA_SIZE }
 
     data class Result(val value: Double, val symbol: String) {
-        fun format(): String = "${ExpressionEvaluator.format(value)} $symbol"
+        // ExpressionEvaluator.format's %.6f rounds anything below 1e-6 to a flat
+        // "0", which would show e.g. "1 b to gb" as exactly 0 — use scientific
+        // notation for tiny nonzero results instead.
+        fun format(): String {
+            val number =
+                if (value != 0.0 && kotlin.math.abs(value) < 1e-6) String.format("%.3e", value)
+                else ExpressionEvaluator.format(value)
+            return "$number $symbol"
+        }
     }
 
     // number, source-unit word, optional "to"/"in" connector, target-unit word.
@@ -32,8 +40,10 @@ object UnitConverter {
 
     // Every linear unit's factor is relative to its category's base unit
     // (meter, gram, milliliter, m/s, byte). Temperature is non-linear and
-    // handled separately below. Bare "in" is deliberately not an inch alias —
-    // it collides with the "to"/"in" connector word.
+    // handled separately below. Bare "in" works as an inch alias despite also
+    // being a connector word: the regex consumes a connector only between two
+    // unit tokens, so "5 km in mi" still reads "in" as the connector while
+    // "5 in to cm" / "5 m to in" / "5 in cm" resolve it as inches.
     private val linearUnits: Map<String, LinearUnit> = buildMap {
         fun unit(category: Category, symbol: String, perBase: Double, vararg aliases: String) {
             aliases.forEach { put(it, LinearUnit(category, symbol, perBase)) }
@@ -47,7 +57,7 @@ object UnitConverter {
         unit(Category.LENGTH, "mi", 1609.344, "mi", "mile", "miles")
         unit(Category.LENGTH, "yd", 0.9144, "yd", "yard", "yards")
         unit(Category.LENGTH, "ft", 0.3048, "ft", "foot", "feet")
-        unit(Category.LENGTH, "in", 0.0254, "inch", "inches")
+        unit(Category.LENGTH, "in", 0.0254, "in", "inch", "inches")
 
         // Mass (base: gram)
         unit(Category.MASS, "g", 1.0, "g", "gram", "grams", "gramme", "grammes")

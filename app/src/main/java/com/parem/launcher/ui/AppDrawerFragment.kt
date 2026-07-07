@@ -397,7 +397,7 @@ class AppDrawerFragment : Fragment() {
 
     private fun initClickListeners() {
         binding.appDrawerTip.setOnClickListener {
-            calcResult?.let { result ->
+            (calcResult ?: conversionResult)?.let { result ->
                 requireContext().copyToClipboard(result)
                 requireContext().showToast(getString(R.string.copied))
                 return@setOnClickListener

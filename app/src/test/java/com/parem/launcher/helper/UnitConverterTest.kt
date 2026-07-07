@@ -43,6 +43,38 @@ class UnitConverterTest {
         assertEquals(5.08, result!!.value, 0.0001)
     }
 
+    @Test
+    fun convert_bareIn_asSourceUnit() {
+        val result = UnitConverter.convert("5 in to cm")
+        assertNotNull(result)
+        assertEquals(12.7, result!!.value, 0.0001)
+        assertEquals("cm", result.symbol)
+    }
+
+    @Test
+    fun convert_bareIn_asTargetUnit() {
+        val result = UnitConverter.convert("5 m to in")
+        assertNotNull(result)
+        assertEquals(196.8504, result!!.value, 0.001)
+        assertEquals("in", result.symbol)
+    }
+
+    @Test
+    fun convert_bareIn_noConnector() {
+        val result = UnitConverter.convert("5 in cm")
+        assertNotNull(result)
+        assertEquals(12.7, result!!.value, 0.0001)
+    }
+
+    @Test
+    fun convert_bareIn_doesNotStealConnectorRole() {
+        // "in" between two other units must still read as the connector.
+        val result = UnitConverter.convert("5 km in mi")
+        assertNotNull(result)
+        assertEquals("mi", result!!.symbol)
+        assertEquals(3.106856, result.value, 0.0001)
+    }
+
     // --- mass ---
 
     @Test
@@ -148,6 +180,16 @@ class UnitConverterTest {
         val result = UnitConverter.convert("2 gb to mb")
         assertNotNull(result)
         assertEquals(2048.0, result!!.value, 0.0001)
+    }
+
+    @Test
+    fun format_tinyResult_usesScientificNotationInsteadOfZero() {
+        // 1 byte ≈ 9.31e-10 GB; %.6f would render it as a flat "0 GB".
+        val result = UnitConverter.convert("1 b to gb")
+        assertNotNull(result)
+        val formatted = result!!.format()
+        assertTrue("expected scientific notation, got: $formatted", formatted.contains("e-10"))
+        assertFalse("nonzero result must not render as 0: $formatted", formatted.startsWith("0 "))
     }
 
     // --- commutativity / decimal separator ---
