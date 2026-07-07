@@ -268,7 +268,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun restartLauncherOrCheckTheme(forceRestart: Boolean = false) {
-        if (forceRestart || prefs.launcherRestartTimestamp.hasBeenHours(4)) {
+        // PAREM-108 phase 1: the periodic 4-hour recreate + cacheDir wipe is gated
+        // behind prefs.periodicSelfRecreateEnabled (default ON, unchanged behavior).
+        // checkTheme()'s forced recreate on wrong colors is a separate mechanism and
+        // always runs regardless of this pref.
+        if (forceRestart || (prefs.periodicSelfRecreateEnabled && prefs.launcherRestartTimestamp.hasBeenHours(4))) {
             prefs.launcherRestartTimestamp = System.currentTimeMillis()
             lifecycleScope.launch(Dispatchers.IO) {
                 try { cacheDir.deleteRecursively() } catch (_: Exception) {}

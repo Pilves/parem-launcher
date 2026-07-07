@@ -5,6 +5,9 @@
 - Omnibox: unit conversion mode ("5 km in mi", "100 f to c") alongside the
   existing calculator, dial, and web search modes — length, mass,
   temperature, volume, speed, and data size
+- The 4-hour self-recreate + cacheDir wipe is now gated behind a hidden pref
+  (default ON, unchanged behavior) — phase 1 of PAREM-108, no user-visible
+  change yet
 
 ## v5.5.1
 

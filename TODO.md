@@ -214,7 +214,7 @@ stability hack, unproven, and a listed trap in ARCHITECTURE.md.
    (it's a separate mechanism).
 3. Full build green.
 
-**Observation log:** _(start date, device, anything weird)_
+**Observation log:** phase 1 landed 2026-07-07, pref default ON.
 
 ---
 
