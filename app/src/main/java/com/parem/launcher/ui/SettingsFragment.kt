@@ -1014,7 +1014,10 @@ class SettingsFragment : Fragment(), View.OnClickListener, View.OnLongClickListe
 
             if (!isAdded || _binding == null) return@launch
 
-            val allApps = apps.map { it.appPackage to it.appLabel }
+            // The whitelist is keyed by package name only, so collapse per-profile
+            // duplicates — otherwise a work-profile app renders twice and one
+            // visible app burns two of the five whitelist slots.
+            val allApps = apps.map { it.appPackage to it.appLabel }.distinctBy { it.first }
             val dialog = FocusModeDialog(requireContext(), allApps)
             dialog.setOnDismissListener { populateWellbeingSection() }
             dialog.show()
