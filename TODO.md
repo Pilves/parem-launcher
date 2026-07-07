@@ -103,23 +103,40 @@ wanted), timezone math, a settings toggle unless design says it's needed.
 
 ---
 
-### [ ] PAREM-104 — Contact search in omnibox (DECISION NEEDED FIRST)
+### [ ] PAREM-104 — Contact search in omnibox
 
-**Priority:** P3 · **Estimate:** 2 days after decision · **Type:** Feature
-**Status:** PARKED — do not start.
+**Priority:** P3 · **Estimate:** 2 days · **Type:** Feature
+**Branch:** `feat/omnibox-contact-search` · **Status:** UNPARKED 2026-07-07
+(approved by Patric). **Blocked by:** merge of `refactor/settings-split` —
+the opt-in toggle goes in the post-split settings cards.
 
 **Background.** Searching contacts from the omnibox needs `READ_CONTACTS`,
 which changes the app's privacy story (currently no sensitive permissions
-beyond usage stats). Product decision required before any code.
+beyond usage stats). Approved on the condition below.
 
-**Decision to make.** Is the permission worth it? If yes: runtime-request
-only when the user enables the feature, never at install/onboarding.
+**Decision (made 2026-07-07).** Build it. Runtime-request only when the
+user enables the feature toggle, never at install/onboarding.
 
-**Scope (once unparked).** Contact provider query behind a helper, results
-in omnibox dispatch, opt-in toggle in settings (post-split), permission
-denied state handled gracefully.
+**Scope.** Contact provider query behind a helper, results in omnibox
+dispatch, opt-in toggle in settings (post-split), permission denied state
+handled gracefully.
 
-**Acceptance criteria.** Written when unparked.
+**Acceptance criteria.**
+1. Settings has an off-by-default contact-search toggle; flipping it on
+   triggers the READ_CONTACTS runtime request. Denial leaves the toggle
+   off, no crash, no repeated nagging.
+2. READ_CONTACTS is never requested at install, onboarding, or any path
+   other than enabling the toggle.
+3. Toggle off → zero contact-provider queries (verify the code path, not
+   just the UI).
+4. Toggle on + permission granted: omnibox search surfaces matching
+   contacts without displacing app results (apps rank first).
+5. Permission revoked in system settings while the toggle is on degrades
+   gracefully (no crash; feature silently off or toggle reset).
+6. Matching/ranking logic lives Android-free in helper/ with JVM unit
+   tests, including strings that must NOT surface contacts.
+7. Full build green: `compileDebugKotlin`, `testDebugUnitTest`,
+   `assembleDebug`.
 
 ## Smaller fixes
 
