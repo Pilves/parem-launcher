@@ -277,6 +277,19 @@ changing the always-allowed-dialer rule.
    tested matcher counts as covered.
 5. Full build green; both ARCHITECTURE.md known-issues entries removed.
 
+---
+
+### [x] PAREM-115 — Redundant usage-stats scans unified behind one cache
+
+**Priority:** P3 · **Estimate:** ~half a day · **Type:** Performance
+**Branch:** `perf/usage-stats-cache`
+
+Implemented same-cycle from the 2026-07-08 performance review. Today's
+per-app scan is now `UsageStatsHelper.getPerAppUsageToday()` with the
+existing 60s TTL — shared by the home total, the drawer list (previously
+unthrottled), and app-limit checks — and the 7-day graph caches
+completed days in memory, re-scanning only today.
+
 ## Long-running / observation
 
 ### [ ] PAREM-108 — Put the 4-hour self-recreate behind a pref, observe, then remove
