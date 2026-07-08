@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+- The folder-creation and focus-whitelist app pickers have a search field:
+  typing filters the list live (same matching as the drawer omnibox),
+  clearing it shows all apps again — PAREM-114
+- App icons (drawer rows, home-screen slots) are now decoded once and
+  reused instead of being re-decoded on every list bind and every return
+  to home — PAREM-116, no user-visible change
+- Today's usage-stats scans (home-screen total, drawer per-app times,
+  app-limit checks) now share one short-lived cache instead of running
+  three separate event-log scans — PAREM-115, no user-visible change
+- The 7-day screen-time graph now caches completed days for the session
+  and re-scans only today on open (PAREM-115, no user-visible change)
 - Omnibox: unit conversion mode ("5 km in mi", "100 f to c") alongside the
   existing calculator, dial, and web search modes — length, mass,
   temperature, volume, speed, and data size

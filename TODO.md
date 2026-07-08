@@ -243,7 +243,7 @@ DeviceAdmin itself, or other dead-looking code you find along the way
    `assembleDebug`.
 4. PR description states when the last caller was removed (git archaeology).
 
-### [ ] PAREM-114 — Search in the folder-creation and focus-whitelist app pickers
+### [x] PAREM-114 — Search in the folder-creation and focus-whitelist app pickers
 
 **Priority:** P3 · **Estimate:** ~1 day · **Type:** UX improvement
 **Branch:** `feat/picker-search` · **Order:** after PAREM-104 (build-slot
@@ -276,6 +276,28 @@ changing the always-allowed-dialer rule.
 4. New matching logic (if any) has JVM unit tests; reusing the existing
    tested matcher counts as covered.
 5. Full build green; both ARCHITECTURE.md known-issues entries removed.
+
+---
+
+### [x] PAREM-115 — Redundant usage-stats scans unified behind one cache
+
+**Priority:** P3 · **Estimate:** ~half a day · **Type:** Performance
+**Branch:** `perf/usage-stats-cache`
+
+Implemented same-cycle from the 2026-07-08 performance review. Today's
+per-app scan is now `UsageStatsHelper.getPerAppUsageToday()` with the
+existing 60s TTL — shared by the home total, the drawer list (previously
+unthrottled), and app-limit checks — and the 7-day graph caches
+completed days in memory, re-scanning only today.
+
+---
+
+### [x] PAREM-116 — Icons re-decoded on every bind/resume
+
+**Priority:** P3 · **Estimate:** ~half a day · **Type:** Performance
+**Branch:** `perf/icon-cache`
+
+Implemented same-cycle from the 2026-07-08 performance review.
 
 ## Long-running / observation
 

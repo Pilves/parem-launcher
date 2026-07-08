@@ -21,12 +21,23 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A BottomSheetDialog that displays a 7-day screen time graph.
  * Fetches usage data via EventLogWrapper on a background thread.
  */
 class ScreenTimeGraphDialog(context: Context) : BottomSheetDialog(context) {
+
+    companion object {
+        // Completed days' totals can never change, so each historical day is
+        // scanned once per process life and only today is re-scanned on open
+        // (previously every open ran seven full-day scans). Keyed by the day's
+        // start-of-day millis, not its offset, so entries stay correct across
+        // midnight. Deliberately not persisted: prefs would leak into the
+        // settings export.
+        private val completedDayTotals = ConcurrentHashMap<Long, Long>()
+    }
 
     private var loadJob: Job? = null
     private lateinit var graphView: ScreenTimeGraphView
@@ -78,17 +89,35 @@ class ScreenTimeGraphDialog(context: Context) : BottomSheetDialog(context) {
                 val calendar = Calendar.getInstance()
                 val now = System.currentTimeMillis()
 
+                fun scanDay(dayStart: Long, dayEnd: Long): Long {
+                    val foregroundStats = wrapper.getForegroundStatsByTimestamps(dayStart, dayEnd)
+                    val aggregated = wrapper.aggregateForegroundStats(foregroundStats)
+                    return wrapper.aggregateSimpleUsageStats(aggregated)
+                }
+
                 val result = mutableListOf<Pair<String, Long>>()
 
                 for (offset in 6 downTo 0) {
-                    val foregroundStats = wrapper.getForegroundStatsByRelativeDay(offset)
-                    val aggregated = wrapper.aggregateForegroundStats(foregroundStats)
-                    val totalMs = wrapper.aggregateSimpleUsageStats(aggregated)
-
                     // Get the day abbreviation
                     calendar.timeInMillis = now
                     calendar.add(Calendar.DAY_OF_YEAR, -offset)
                     val dayLabel = dayFormat.format(calendar.time)
+
+                    // Scan by explicit day bounds so the cache key and the
+                    // scanned range can't disagree if midnight passes mid-loop
+                    calendar.set(Calendar.HOUR_OF_DAY, 0)
+                    calendar.set(Calendar.MINUTE, 0)
+                    calendar.set(Calendar.SECOND, 0)
+                    calendar.set(Calendar.MILLISECOND, 0)
+                    val dayStart = calendar.timeInMillis
+                    calendar.add(Calendar.DAY_OF_YEAR, 1)
+                    val dayEnd = calendar.timeInMillis
+
+                    val totalMs = if (offset == 0) {
+                        scanDay(dayStart, dayEnd)
+                    } else {
+                        completedDayTotals.getOrPut(dayStart) { scanDay(dayStart, dayEnd) }
+                    }
 
                     result.add(Pair(dayLabel, totalMs))
                 }

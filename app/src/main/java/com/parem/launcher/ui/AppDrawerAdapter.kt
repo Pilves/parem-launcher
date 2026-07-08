@@ -21,6 +21,7 @@ import com.parem.launcher.R
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
 import com.parem.launcher.databinding.AdapterAppDrawerBinding
+import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.dpToPx
@@ -240,9 +241,7 @@ class AppDrawerAdapter(
                     val icon = if (iconPackPackage.isNotEmpty()) {
                         IconPackManager.getIconForApp(root.context, iconPackPackage, appModel.appPackage, appModel.activityClassName)
                     } else null
-                    val drawable = icon ?: try {
-                        root.context.packageManager.getApplicationIcon(appModel.appPackage)
-                    } catch (_: Exception) { null }
+                    val drawable = icon ?: AppIconCache.get(root.context, appModel.appPackage)
                     drawable?.setBounds(0, 0, iconSize, iconSize)
                     appTitle.setCompoundDrawablesRelative(drawable, null, null, null)
                     appTitle.compoundDrawablePadding = 8.dpToPx()
