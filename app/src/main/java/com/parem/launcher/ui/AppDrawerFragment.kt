@@ -22,6 +22,8 @@ import com.parem.launcher.databinding.FragmentAppDrawerBinding
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.AppOpenCounter
+import com.parem.launcher.helper.ContactMatcher
+import com.parem.launcher.helper.ContactSearchManager
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
@@ -61,6 +63,10 @@ class AppDrawerFragment : Fragment() {
     // search (leading space) — or None for ordinary app search.
     private var omniboxMode: OmniboxMode = OmniboxMode.None
 
+    // Loaded once per drawer session, only when contact search is enabled and
+    // permitted (see loadContactsIfEnabled). Empty otherwise → no matching runs.
+    private var contacts: List<ContactMatcher.Contact> = emptyList()
+
     companion object {
         // Digits with optional leading + and spaces, at least 4 digits total.
         // Hyphenated numbers lose to the calculator (they parse as subtraction).
@@ -92,6 +98,24 @@ class AppDrawerFragment : Fragment() {
         initAdapter()
         initObservers()
         initClickListeners()
+        loadContactsIfEnabled()
+    }
+
+    /**
+     * Loads contacts into memory once, but only when the drawer is a launcher and
+     * the opt-in feature is active (enabled + permission granted). This is the
+     * only entry point to contact loading, so a disabled toggle means the
+     * provider is never queried.
+     */
+    private fun loadContactsIfEnabled() {
+        if (flag != Constants.FLAG_LAUNCH_APP) return
+        if (!ContactSearchManager.isActive(requireContext())) return
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val loaded = withContext(Dispatchers.IO) { ContactSearchManager.loadContacts(appContext) }
+            if (!isAdded || _binding == null) return@launch
+            contacts = loaded
+        }
     }
 
     private fun initViews() {
@@ -155,6 +179,7 @@ class AppDrawerFragment : Fragment() {
                         ctx.showToast(getString(R.string.copied))
                     }
                     is OmniboxMode.Dial -> dial(ctx, mode.number)
+                    is OmniboxMode.Contact -> dial(ctx, mode.number)
                     OmniboxMode.WebSearch ->
                         ctx.openUrl(Constants.URL_GOOGLE_SEARCH + java.net.URLEncoder.encode(q.trim(), "UTF-8"))
                     OmniboxMode.None -> when {
@@ -237,6 +262,16 @@ class AppDrawerFragment : Fragment() {
             b.appDrawerTip.text = getString(R.string.google_search_hint, trimmed)
             b.appDrawerTip.visibility = View.VISIBLE
             return
+        }
+        // Contacts rank below every other mode and below the app list (which the
+        // filter still populates): the matching contact only fills the tip line.
+        if (contacts.isNotEmpty() && ContactMatcher.looksLikeContactQuery(trimmed)) {
+            ContactMatcher.match(trimmed, contacts).firstOrNull()?.let { top ->
+                omniboxMode = OmniboxMode.Contact(top.name, top.number)
+                b.appDrawerTip.text = getString(R.string.contact_hint, top.name, top.number)
+                b.appDrawerTip.visibility = View.VISIBLE
+                return
+            }
         }
         b.appDrawerTip.visibility = View.GONE
     }
@@ -384,15 +419,22 @@ class AppDrawerFragment : Fragment() {
 
     private fun initClickListeners() {
         binding.appDrawerTip.setOnClickListener {
-            val copyable = when (val mode = omniboxMode) {
-                is OmniboxMode.Calc -> mode.result
-                is OmniboxMode.Conversion -> mode.result
-                else -> null
-            }
-            if (copyable != null) {
-                requireContext().copyToClipboard(copyable)
-                requireContext().showToast(getString(R.string.copied))
-                return@setOnClickListener
+            when (val mode = omniboxMode) {
+                is OmniboxMode.Calc -> {
+                    requireContext().copyToClipboard(mode.result)
+                    requireContext().showToast(getString(R.string.copied))
+                    return@setOnClickListener
+                }
+                is OmniboxMode.Conversion -> {
+                    requireContext().copyToClipboard(mode.result)
+                    requireContext().showToast(getString(R.string.copied))
+                    return@setOnClickListener
+                }
+                is OmniboxMode.Contact -> {
+                    dial(requireContext(), mode.number)
+                    return@setOnClickListener
+                }
+                else -> {}
             }
             binding.appDrawerTip.isSelected = false
             binding.appDrawerTip.isSelected = true
@@ -522,4 +564,5 @@ sealed interface OmniboxMode {
     data class Conversion(val result: String) : OmniboxMode
     data class Dial(val number: String) : OmniboxMode
     object WebSearch : OmniboxMode
+    data class Contact(val name: String, val number: String) : OmniboxMode
 }

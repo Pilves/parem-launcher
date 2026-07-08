@@ -1,15 +1,18 @@
 package com.parem.launcher.ui.settings
 
+import android.Manifest
 import android.os.Build
 import android.view.Gravity
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.navigation.fragment.findNavController
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
+import com.parem.launcher.helper.ContactSearchManager
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.showToast
@@ -27,6 +30,7 @@ class HomeScreenSettingsCard(
     private val binding: FragmentSettingsBinding,
     private val prefs: Prefs,
     private val viewModel: MainViewModel,
+    private val requestContactsPermissionLauncher: ActivityResultLauncher<String>,
 ) : View.OnClickListener, View.OnLongClickListener {
 
     private val context get() = binding.root.context
@@ -36,6 +40,7 @@ class HomeScreenSettingsCard(
         populateSortByUsage()
         populateWidgetPlacement()
         populateShowIcons()
+        populateContactSearch()
         populateAlignment()
         populateDateTime()
 
@@ -48,6 +53,7 @@ class HomeScreenSettingsCard(
         binding.sortByUsage?.setOnClickListener(this)
         binding.widgetPlacement?.setOnClickListener(this)
         binding.showIconsToggle?.setOnClickListener(this)
+        binding.contactSearchToggle?.setOnClickListener(this)
         binding.alignment.setOnClickListener(this)
         binding.alignmentLeft.setOnClickListener(this)
         binding.alignmentCenter.setOnClickListener(this)
@@ -104,6 +110,7 @@ class HomeScreenSettingsCard(
             R.id.widgetPlacement -> toggleWidgetPlacement()
             R.id.showIconsToggle -> toggleShowIcons()
             R.id.sortByUsage -> toggleSortByUsage()
+            R.id.contactSearchToggle -> toggleContactSearch()
         }
     }
 
@@ -214,6 +221,39 @@ class HomeScreenSettingsCard(
     private fun toggleSortByUsage() {
         prefs.appDrawerSortByUsage = !prefs.appDrawerSortByUsage
         populateSortByUsage()
+    }
+
+    // Contact search is the only place READ_CONTACTS is ever requested: turning
+    // the toggle on prompts for the permission; every other path (launch,
+    // onboarding, the drawer itself) leaves it untouched.
+    private fun toggleContactSearch() {
+        if (ContactSearchManager.isEnabled(context)) {
+            ContactSearchManager.setEnabled(context, false)
+            populateContactSearch()
+        } else if (ContactSearchManager.hasPermission(context)) {
+            ContactSearchManager.setEnabled(context, true)
+            populateContactSearch()
+        } else {
+            requestContactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+        }
+    }
+
+    /** Called by the fragment when the READ_CONTACTS prompt returns. */
+    fun onContactsPermissionResult(granted: Boolean) {
+        // Denial leaves the feature off with no further nagging.
+        if (granted) ContactSearchManager.setEnabled(context, true)
+        populateContactSearch()
+    }
+
+    private fun populateContactSearch() {
+        // If the permission was revoked in system settings while enabled, reset
+        // the pref so the shown state matches reality (graceful degradation).
+        if (ContactSearchManager.isEnabled(context) && !ContactSearchManager.hasPermission(context)) {
+            ContactSearchManager.setEnabled(context, false)
+        }
+        binding.contactSearchToggle?.text =
+            if (ContactSearchManager.isEnabled(context)) context.getString(R.string.on)
+            else context.getString(R.string.off)
     }
 
     private fun toggleWidgetPlacement() {
