@@ -101,8 +101,6 @@ After an AGP upgrade, re-copy the new aapt2 binary — the override pins a speci
   in `helper/WeatherStaleness`. Still no per-fetch failure toast/indicator
   beyond that (by design — the home screen stays quiet).
 - `Constants.URL_ABOUT_PAREM` / `URL_PAREM_PRIVACY` / `URL_DOUBLE_TAP` are empty; their settings rows are hidden until filled in.
-- Folder creation's app picker has no search; scrolling to a specific app in a large list is tedious now that all apps (all profiles) are shown.
-- Focus mode's whitelist picker has no search; scrolling to a specific app in a large list is tedious now that all installed apps (all profiles) are shown (the default dialer is always allowed regardless).
 - Gesture-letter drawing and swipe gestures both see the same touch stream; a fast letter draw can also register as a swipe.
 - The 4-hour self-recreate + cacheDir wipe in MainActivity is inherited from Olauncher and unproven; candidates for removal after long on-device observation.
 - Onboarding pager rebuilds its views on every bind (one-time screen, cosmetic).

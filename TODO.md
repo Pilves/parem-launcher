@@ -243,7 +243,7 @@ DeviceAdmin itself, or other dead-looking code you find along the way
    `assembleDebug`.
 4. PR description states when the last caller was removed (git archaeology).
 
-### [ ] PAREM-114 — Search in the folder-creation and focus-whitelist app pickers
+### [x] PAREM-114 — Search in the folder-creation and focus-whitelist app pickers
 
 **Priority:** P3 · **Estimate:** ~1 day · **Type:** UX improvement
 **Branch:** `feat/picker-search` · **Order:** after PAREM-104 (build-slot

@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- The folder-creation and focus-whitelist app pickers have a search field:
+  typing filters the list live (same matching as the drawer omnibox),
+  clearing it shows all apps again — PAREM-114
 - App icons (drawer rows, home-screen slots) are now decoded once and
   reused instead of being re-decoded on every list bind and every return
   to home — PAREM-116, no user-visible change

@@ -790,43 +790,43 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             }
             container.addView(appsLabel)
 
-            val selectedApps = mutableListOf<FolderApp>()
-            val checkboxes = mutableListOf<android.widget.CheckBox>()
+            // Selection is keyed per row and lives in the adapter's data, so it
+            // survives filtering and row recycling; click order is preserved.
+            fun rowId(app: AppModel) = "${app.appPackage}|${app.activityClassName ?: ""}|${app.user}"
+            val appsById = apps.associateBy(::rowId)
+            val pickerAdapter = AppPickerAdapter(
+                textColor = requireContext().getColorFromAttr(R.attr.primaryColor),
+                maxSelected = 4,
+                entries = apps.map { AppPickerAdapter.Entry(rowId(it), it.appLabel) }
+            )
 
-            val scrollView = android.widget.ScrollView(requireContext()).apply {
+            val searchInput = android.widget.EditText(requireContext()).apply {
+                hint = getString(R.string.search_apps)
+                textSize = 16f
+                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
+                setHintTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
+                background = null
+                inputType = android.text.InputType.TYPE_CLASS_TEXT
+                isSingleLine = true
+                setPadding(0, 8.dpToPx(), 0, 8.dpToPx())
+                addTextChangedListener(object : android.text.TextWatcher {
+                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                    override fun afterTextChanged(s: android.text.Editable?) {
+                        pickerAdapter.filter(s?.toString() ?: "")
+                    }
+                })
+            }
+            container.addView(searchInput)
+
+            val appsList = androidx.recyclerview.widget.RecyclerView(requireContext()).apply {
                 layoutParams = android.widget.LinearLayout.LayoutParams(
                     android.view.ViewGroup.LayoutParams.MATCH_PARENT, 300.dpToPx()
                 )
+                layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
+                adapter = pickerAdapter
             }
-            val appsContainer = android.widget.LinearLayout(requireContext()).apply {
-                orientation = android.widget.LinearLayout.VERTICAL
-            }
-
-            for (appModel in apps) {
-                val appLabel = appModel.appLabel
-                val pkg = appModel.appPackage
-                val activity = appModel.activityClassName ?: ""
-                val userString = appModel.user.toString()
-                val cb = android.widget.CheckBox(requireContext()).apply {
-                    text = appLabel
-                    textSize = 14f
-                    setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-                    setPadding(8.dpToPx(), 2.dpToPx(), 0, 2.dpToPx())
-                    setOnCheckedChangeListener { _, isChecked ->
-                        val app = FolderApp(appLabel, pkg, activity, userString)
-                        if (isChecked) {
-                            if (selectedApps.size < 4) selectedApps.add(app)
-                            else this.isChecked = false
-                        } else {
-                            selectedApps.removeAll { it.packageName == pkg && it.userString == userString }
-                        }
-                    }
-                }
-                checkboxes.add(cb)
-                appsContainer.addView(cb)
-            }
-            scrollView.addView(appsContainer)
-            container.addView(scrollView)
+            container.addView(appsList)
 
             // Save button
             val saveButton = TextView(requireContext()).apply {
@@ -837,6 +837,9 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 setPadding(0, 16.dpToPx(), 0, 0)
                 setOnClickListener {
                     val folderName = nameInput.text.toString().trim()
+                    val selectedApps = pickerAdapter.selectedIds.mapNotNull { appsById[it] }.map {
+                        FolderApp(it.appLabel, it.appPackage, it.activityClassName ?: "", it.user.toString())
+                    }
                     if (folderName.isEmpty() || selectedApps.isEmpty()) {
                         requireContext().showToast("Enter a name and select at least one app")
                         return@setOnClickListener
@@ -852,6 +855,8 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             container.addView(saveButton)
 
             dialog.setContentView(container)
+            // Keep the filtered list visible above the keyboard, as the widget picker does
+            dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
             dialog.show()
         }
     }
