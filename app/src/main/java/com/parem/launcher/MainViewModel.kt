@@ -23,6 +23,7 @@ import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.SingleLiveEvent
 import com.parem.launcher.helper.ThemeScheduleManager
+import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.WallpaperWorker
 import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.formattedTimeSpent
@@ -31,11 +32,9 @@ import com.parem.launcher.helper.hasBeenMinutes
 import com.parem.launcher.helper.isParemDefault
 import com.parem.launcher.helper.isPackageInstalled
 import com.parem.launcher.helper.showToast
-import com.parem.launcher.helper.usageStats.EventLogWrapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 
@@ -45,7 +44,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val launcherApps by lazy {
         appContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
     }
-    private val eventLogWrapper by lazy { EventLogWrapper(appContext) }
 
     val firstOpen = MutableLiveData<Boolean>()
     val refreshHome = MutableLiveData<Boolean>()
@@ -284,20 +282,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (prefs.screenTimeLastUpdated.hasBeenMinutes(1).not()) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            val calendar = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }
-            val startTime = calendar.timeInMillis
             val endTime = System.currentTimeMillis()
-
-            val timeSpent = eventLogWrapper.aggregateSimpleUsageStats(
-                eventLogWrapper.aggregateForegroundStats(
-                    eventLogWrapper.getForegroundStatsByTimestamps(startTime, endTime)
-                )
-            )
+            // Total = sum of the shared per-app map, so the home screen, drawer
+            // and limit checks all reuse one cached event-log scan (PAREM-115).
+            val timeSpent = UsageStatsHelper.getPerAppUsageToday(appContext).values.sum()
             val viewTimeSpent = appContext.formattedTimeSpent(timeSpent)
             screenTimeValue.postValue(viewTimeSpent)
             prefs.screenTimeLastUpdated = endTime
@@ -308,23 +296,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            val calendar = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }
-            val startTime = calendar.timeInMillis
-            val endTime = System.currentTimeMillis()
-
-            val usageStats = eventLogWrapper.aggregateForegroundStats(
-                eventLogWrapper.getForegroundStatsByTimestamps(startTime, endTime)
-            )
-            val map = mutableMapOf<String, Long>()
-            for (stat in usageStats) {
-                map[stat.applicationId] = (map[stat.applicationId] ?: 0L) + stat.timeUsed
-            }
-            perAppScreenTime.postValue(map)
+            // The helper's 60s TTL throttles this path (it used to re-scan on
+            // every drawer open).
+            perAppScreenTime.postValue(UsageStatsHelper.getPerAppUsageToday(appContext))
         }
     }
 

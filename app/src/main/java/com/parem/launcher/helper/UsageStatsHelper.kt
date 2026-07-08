@@ -22,12 +22,14 @@ object UsageStatsHelper {
     private var cachedUsage: Map<String, Long> = emptyMap()
 
     /**
-     * Returns today's total foreground usage for the given app in milliseconds.
+     * Returns today's foreground usage per package in milliseconds. Single
+     * cached access point for today's scan — the home-screen total, the
+     * drawer's per-app times, and limit checks all share this one map.
      * Must be called off the main thread.
      */
-    fun getUsageForApp(context: Context, packageName: String): Long {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return 0L
-        if (!context.appUsagePermissionGranted()) return 0L
+    fun getPerAppUsageToday(context: Context): Map<String, Long> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return emptyMap()
+        if (!context.appUsagePermissionGranted()) return emptyMap()
 
         val now = System.currentTimeMillis()
         if (now - cachedAt > CACHE_TTL_MS) {
@@ -42,6 +44,14 @@ object UsageStatsHelper {
             }
             cachedAt = now
         }
-        return cachedUsage[packageName] ?: 0L
+        return cachedUsage
+    }
+
+    /**
+     * Returns today's total foreground usage for the given app in milliseconds.
+     * Must be called off the main thread.
+     */
+    fun getUsageForApp(context: Context, packageName: String): Long {
+        return getPerAppUsageToday(context)[packageName] ?: 0L
     }
 }
