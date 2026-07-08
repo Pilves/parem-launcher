@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- App icons (drawer rows, home-screen slots) are now decoded once and
+  reused instead of being re-decoded on every list bind and every return
+  to home — PAREM-116, no user-visible change
 - Today's usage-stats scans (home-screen total, drawer per-app times,
   app-limit checks) now share one short-lived cache instead of running
   three separate event-log scans — PAREM-115, no user-visible change

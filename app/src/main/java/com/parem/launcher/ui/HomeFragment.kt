@@ -56,6 +56,7 @@ import com.parem.launcher.helper.FolderManager
 import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.isAccessServiceEnabled
+import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.SwipeUpAppManager
@@ -453,9 +454,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 val icon = if (prefs.iconPackPackage.isNotEmpty()) {
                     IconPackManager.getIconForApp(requireContext(), prefs.iconPackPackage, packageName, null)
                 } else null
-                val drawable = icon ?: try {
-                    requireContext().packageManager.getApplicationIcon(packageName)
-                } catch (_: Exception) { null }
+                val drawable = icon ?: AppIconCache.get(requireContext(), packageName)
                 drawable?.setBounds(0, 0, iconSize, iconSize)
                 textView.setCompoundDrawablesRelative(drawable, null, null, null)
                 textView.compoundDrawablePadding = 8.dpToPx()

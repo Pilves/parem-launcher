@@ -39,6 +39,19 @@ object IconPackManager {
     private val resIdCache = java.util.concurrent.ConcurrentHashMap<String, Int>()
 
     /**
+     * Icon-pack Resources cache: getResourcesForApplication() does a
+     * PackageManager round-trip, previously paid on every getIconForApp call.
+     */
+    private val packResourcesCache = java.util.concurrent.ConcurrentHashMap<String, Resources>()
+
+    /**
+     * Decoded-icon cache, keyed like resIdCache. Stores ConstantState, never
+     * a Drawable: bounds/callbacks are per-instance, so sharing one instance
+     * across views would corrupt rendering — each hit gets newDrawable().
+     */
+    private val iconStateCache = java.util.concurrent.ConcurrentHashMap<String, Drawable.ConstantState>()
+
+    /**
      * Returns a list of installed icon packs as (packageName, appLabel) pairs.
      */
     fun getAvailableIconPacks(context: Context): List<Pair<String, String>> {
@@ -68,10 +81,13 @@ object IconPackManager {
         activityClassName: String?
     ): Drawable? {
         return try {
-            val packResources = context.packageManager
-                .getResourcesForApplication(iconPackPackage)
+            val packResources = packResourcesCache.getOrPut(iconPackPackage) {
+                context.packageManager.getResourcesForApplication(iconPackPackage)
+            }
 
             val cacheKey = "$iconPackPackage|$appPackage|${activityClassName.orEmpty()}"
+            iconStateCache[cacheKey]?.let { return it.newDrawable(packResources) }
+
             val resId = resIdCache.getOrPut(cacheKey) {
                 val map = loadIconPack(context, iconPackPackage)
 
@@ -92,7 +108,9 @@ object IconPackManager {
             if (resId == 0) return null
 
             @Suppress("DEPRECATION")
-            packResources.getDrawable(resId, null)
+            val drawable = packResources.getDrawable(resId, null)
+            drawable?.constantState?.let { iconStateCache[cacheKey] = it }
+            drawable
         } catch (_: PackageManager.NameNotFoundException) {
             null
         } catch (_: Resources.NotFoundException) {
@@ -212,5 +230,7 @@ object IconPackManager {
         cache.clear()
         packageIndex.clear()
         resIdCache.clear()
+        packResourcesCache.clear()
+        iconStateCache.clear()
     }
 }
