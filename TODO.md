@@ -243,6 +243,40 @@ DeviceAdmin itself, or other dead-looking code you find along the way
    `assembleDebug`.
 4. PR description states when the last caller was removed (git archaeology).
 
+### [ ] PAREM-114 — Search in the folder-creation and focus-whitelist app pickers
+
+**Priority:** P3 · **Estimate:** ~1 day · **Type:** UX improvement
+**Branch:** `feat/picker-search` · **Order:** after PAREM-104 (build-slot
+only, no code dependency)
+
+**Background.** Since PAREM-101/105 both pickers show every app across all
+profiles; both known-issues entries in ARCHITECTURE.md note that scrolling
+to a specific app is now tedious. Search was explicitly deferred out of
+both tickets ("if the uncapped list is unusable without search — flag it,
+don't build it"). It's needed.
+
+**Scope.**
+- Add a text filter to both the folder-creation picker and the focus-mode
+  whitelist picker — one shared affordance, consistent behavior in both.
+- Reuse the drawer's existing fuzzy matcher from helper/ if it lifts
+  cleanly; otherwise a case/diacritics-insensitive substring match is fine.
+  Any new pure logic goes in helper/ with JVM tests.
+- Do NOT reuse `viewModel.appList` (parameter-inconsistent —
+  `getAppList(true)` callers overwrite it; no package-change receiver).
+  Load the picker lists the way PAREM-101/105 landed them.
+
+**Out of scope.** Picker visual redesign, drawer changes, folder sorting,
+changing the always-allowed-dialer rule.
+
+**Acceptance criteria.**
+1. Typing filters both pickers live; clearing the query shows the full list.
+2. Focus whitelist: always-allowed dialer unchanged; existing whitelists
+   still load and enforce. Existing folders unaffected.
+3. Work-profile apps remain included and filterable.
+4. New matching logic (if any) has JVM unit tests; reusing the existing
+   tested matcher counts as covered.
+5. Full build green; both ARCHITECTURE.md known-issues entries removed.
+
 ## Long-running / observation
 
 ### [ ] PAREM-108 — Put the 4-hour self-recreate behind a pref, observe, then remove
