@@ -43,6 +43,7 @@ helper/
   DoubleTapActionManager, ThemeScheduleManager (+ Worker), IconPackManager,
   AppIconCache (bounded ConstantState cache for default app icons),
   WallpaperWorker, ExpressionEvaluator (omnibox calculator),
+  UnitConverter (omnibox unit conversion),
   PackageChangeTracker (LauncherApps callback → cache-invalidation stamp),
   AppListRebuilder (Android-free filter/sort over the cached raw app query),
   Utils.kt / Extensions.kt (free functions), usageStats/ (UsageEvents parsing).
