@@ -185,6 +185,25 @@ error toasts (home screen must stay quiet).
 
 ---
 
+### [ ] PAREM-120 — Gesture-letter overlay missing from the landscape home layout
+
+**Priority:** P3 · **Estimate:** ~2h · **Type:** Bug (pre-existing)
+
+**Background.** Found during PAREM-118: `layout-land/fragment_home.xml` (a
+drifted Olauncher-era variant) has no `gestureLetterOverlay` view, so gesture
+letters silently do nothing in tablet landscape and never have. HomeFragment
+already null-guards the overlay, so adding the view is likely sufficient.
+
+**Scope.** Add the overlay to the land variant mirroring portrait's
+placement/z-order; verify letter draw + the swipe-vs-letter capture rule
+behaves in landscape. Out of scope: any recognizer changes.
+
+**Acceptance criteria.**
+1. Drawing a mapped letter in tablet landscape launches the app.
+2. Portrait behavior unchanged. Full build green.
+
+---
+
 ### [ ] PAREM-107 — Residual gesture-letter vs swipe conflicts
 
 **Priority:** P3 · **Estimate:** investigation first · **Type:** Bug watch
@@ -403,6 +422,10 @@ per pick. No blind merges — this fork has diverged.
 Reviewed 2026-07-06: nothing to pick — upstream HEAD (2026-07-01) predates
 the last port (bec09c7); remaining upstream commits touch features this
 fork removed (home-button recents, upstream regex search, region branding).
+Reviewed 2026-07-09: 4 new commits, all skipped — d13bd81/c1a144a/2f50846
+are the upstream ViewPager+MainFragment restructure (architecturally
+incompatible with this fork's gesture overlay / widgets / nav flows);
+7eded8b (drawer item-animation removal) is already covered here.
 
 ## Process / housekeeping
 
