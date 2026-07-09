@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- On tablets in landscape, widgets now sit in their own column to the right
+  of the home apps instead of stacking above/below them; portrait and phone
+  layouts are unchanged
 - Removed the inherited 4-hour self-recreate + cache wipe (PAREM-108
   phase 3) — the launcher no longer restarts itself periodically; the
   theme-mismatch recreate stays

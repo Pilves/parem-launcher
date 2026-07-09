@@ -76,6 +76,9 @@ class HomeWidgetController(
         binding.widgetContainerBelow?.removeAllViews()
     }
 
+    // No landscape branch needed here: layout-land/fragment_home.xml places both
+    // above/below scroll views inside the single right-hand widget column, so
+    // either placement pref value resolves to that column beside the apps.
     private fun getActiveContainer(): android.widget.LinearLayout? {
         return if (prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE)
             binding.widgetContainerAbove

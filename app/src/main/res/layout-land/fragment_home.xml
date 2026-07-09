@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    android:orientation="vertical"
     tools:context=".ui.HomeFragment">
 
     <!-- Placeholder layout for locking screen-->
@@ -65,139 +64,160 @@
         tools:text="2h 11m"
         tools:visibility="visible" />
 
-    <!-- Home apps-->
+    <!-- Two columns in landscape: home apps left, widgets right -->
     <LinearLayout
-        android:id="@+id/homeAppsLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginHorizontal="74dp"
-        android:gravity="center_vertical"
-        android:orientation="vertical"
-        android:paddingVertical="@dimen/home_app_padding_vertical">
+        android:baselineAligned="false"
+        android:orientation="horizontal">
 
-        <!-- Widget container above apps -->
-        <ScrollView
-            android:id="@+id/widgetScrollViewAbove"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:fillViewport="true"
-            android:scrollbars="none"
-            android:visibility="gone"
-            tools:visibility="gone">
+        <!-- Home apps-->
+        <LinearLayout
+            android:id="@+id/homeAppsLayout"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingVertical="@dimen/home_app_padding_vertical">
 
-            <LinearLayout
-                android:id="@+id/widgetContainerAbove"
+            <TextView
+                android:id="@+id/homeApp1"
+                style="@style/TextLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="@string/app"
+                android:paddingVertical="@dimen/home_app_padding_vertical"
+                android:tag="@string/tag_1"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/homeApp2"
+                style="@style/TextLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="@string/app"
+                android:paddingVertical="@dimen/home_app_padding_vertical"
+                android:tag="@string/tag_2"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/homeApp3"
+                style="@style/TextLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="@string/app"
+                android:paddingVertical="@dimen/home_app_padding_vertical"
+                android:tag="@string/tag_3"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/homeApp4"
+                style="@style/TextLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="@string/app"
+                android:paddingVertical="@dimen/home_app_padding_vertical"
+                android:tag="@string/tag_4"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/homeApp5"
+                style="@style/TextLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="@string/app"
+                android:paddingVertical="@dimen/home_app_padding_vertical"
+                android:tag="@string/tag_5"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/homeApp6"
+                style="@style/TextLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="@string/app"
+                android:paddingVertical="@dimen/home_app_padding_vertical"
+                android:tag="@string/tag_6"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/homeApp7"
+                style="@style/TextLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="@string/app"
+                android:paddingVertical="@dimen/home_app_padding_vertical"
+                android:tag="@string/tag_7"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/homeApp8"
+                style="@style/TextLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="@string/app"
+                android:paddingVertical="@dimen/home_app_padding_vertical"
+                android:tag="@string/tag_8"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <!-- Widget column: both placement variants (above/below) live here so
+             the placement pref maps to the same side column in landscape and
+             HomeWidgetController's active-container logic works unchanged.
+             Static top/bottom padding keeps widgets clear of the clock row
+             (portrait solves this dynamically for the app column only). -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="24dp"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingTop="112dp"
+            android:paddingBottom="48dp">
+
+            <ScrollView
+                android:id="@+id/widgetScrollViewAbove"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" />
-        </ScrollView>
+                android:fillViewport="true"
+                android:scrollbars="none"
+                android:visibility="gone"
+                tools:visibility="gone">
 
-        <TextView
-            android:id="@+id/homeApp1"
-            style="@style/TextLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="@string/app"
-            android:paddingVertical="@dimen/home_app_padding_vertical"
-            android:tag="@string/tag_1"
-            android:visibility="gone"
-            tools:visibility="visible" />
+                <LinearLayout
+                    android:id="@+id/widgetContainerAbove"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </ScrollView>
 
-        <TextView
-            android:id="@+id/homeApp2"
-            style="@style/TextLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="@string/app"
-            android:paddingVertical="@dimen/home_app_padding_vertical"
-            android:tag="@string/tag_2"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
-        <TextView
-            android:id="@+id/homeApp3"
-            style="@style/TextLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="@string/app"
-            android:paddingVertical="@dimen/home_app_padding_vertical"
-            android:tag="@string/tag_3"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
-        <TextView
-            android:id="@+id/homeApp4"
-            style="@style/TextLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="@string/app"
-            android:paddingVertical="@dimen/home_app_padding_vertical"
-            android:tag="@string/tag_4"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
-        <TextView
-            android:id="@+id/homeApp5"
-            style="@style/TextLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="@string/app"
-            android:paddingVertical="@dimen/home_app_padding_vertical"
-            android:tag="@string/tag_5"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
-        <TextView
-            android:id="@+id/homeApp6"
-            style="@style/TextLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="@string/app"
-            android:paddingVertical="@dimen/home_app_padding_vertical"
-            android:tag="@string/tag_6"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
-        <TextView
-            android:id="@+id/homeApp7"
-            style="@style/TextLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="@string/app"
-            android:paddingVertical="@dimen/home_app_padding_vertical"
-            android:tag="@string/tag_7"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
-        <TextView
-            android:id="@+id/homeApp8"
-            style="@style/TextLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="@string/app"
-            android:paddingVertical="@dimen/home_app_padding_vertical"
-            android:tag="@string/tag_8"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
-        <!-- Widget container below apps -->
-        <ScrollView
-            android:id="@+id/widgetScrollViewBelow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:fillViewport="true"
-            android:scrollbars="none"
-            android:visibility="gone"
-            tools:visibility="gone">
-
-            <LinearLayout
-                android:id="@+id/widgetContainerBelow"
+            <ScrollView
+                android:id="@+id/widgetScrollViewBelow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" />
-        </ScrollView>
+                android:fillViewport="true"
+                android:scrollbars="none"
+                android:visibility="gone"
+                tools:visibility="gone">
+
+                <LinearLayout
+                    android:id="@+id/widgetContainerBelow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </ScrollView>
+        </LinearLayout>
 
     </LinearLayout>
 

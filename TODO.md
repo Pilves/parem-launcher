@@ -327,7 +327,7 @@ ARCHITECTURE.md rule that sheets go through BottomSheetMenu.
 
 ---
 
-### [ ] PAREM-118 — Tablet landscape: widgets beside the app column
+### [x] PAREM-118 — Tablet landscape: widgets beside the app column
 
 **Priority:** P3 · **Estimate:** ~a day · **Type:** UX improvement
 **Branch:** `feat/tablet-landscape-widgets`
