@@ -19,7 +19,8 @@ ui/
                            restore/resize/reorder/remove). Created in
                            HomeFragment.onViewCreated, released in onDestroyView.
   AppDrawerFragment.kt     App list + omnibox search (apps / calculator / unit
-                           conversion / dial / web).
+                           conversion / dial / web / contact). The active mode
+                           is a single OmniboxMode (sealed, declared here).
   AppDrawerAdapter.kt      Drawer rows, long-press menu, rename, auto-launch logic.
   SettingsFragment.kt      Binding lifecycle, constructs/wires the settings/ cards,
                            and the cross-section bits (resetOpenPickers,
@@ -44,6 +45,8 @@ helper/
   AppIconCache (bounded ConstantState cache for default app icons),
   WallpaperWorker, ExpressionEvaluator (omnibox calculator),
   UnitConverter (omnibox unit conversion),
+  ContactMatcher (Android-free contact match/rank) + ContactSearchManager
+  (the sole ContactsContract query, opt-in behind READ_CONTACTS),
   PackageChangeTracker (LauncherApps callback → cache-invalidation stamp),
   AppListRebuilder (Android-free filter/sort over the cached raw app query),
   Utils.kt / Extensions.kt (free functions), usageStats/ (UsageEvents parsing).

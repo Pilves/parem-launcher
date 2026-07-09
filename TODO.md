@@ -103,7 +103,7 @@ wanted), timezone math, a settings toggle unless design says it's needed.
 
 ---
 
-### [ ] PAREM-104 — Contact search in omnibox
+### [x] PAREM-104 — Contact search in omnibox
 
 **Priority:** P3 · **Estimate:** 2 days · **Type:** Feature
 **Branch:** `feat/omnibox-contact-search` · **Status:** UNPARKED 2026-07-07

@@ -51,7 +51,9 @@ class SettingsFragment : Fragment() {
     internal fun isBindingAlive() = _binding != null
 
     private lateinit var importSettingsLauncher: ActivityResultLauncher<Intent>
+    private lateinit var requestContactsPermissionLauncher: ActivityResultLauncher<String>
     private lateinit var appInfoCard: AppInfoSettingsCard
+    private lateinit var homeScreenCard: HomeScreenSettingsCard
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +63,13 @@ class SettingsFragment : Fragment() {
             if (result.resultCode == android.app.Activity.RESULT_OK) {
                 result.data?.data?.let { uri -> appInfoCard.importSettings(uri) }
             }
+        }
+        // Registered here (ActivityResult contracts must register before RESUMED);
+        // only ever launched by the contact-search toggle in HomeScreenSettingsCard.
+        requestContactsPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            if (_binding != null) homeScreenCard.onContactsPermissionResult(granted)
         }
     }
 
@@ -82,7 +91,8 @@ class SettingsFragment : Fragment() {
 
         appInfoCard = AppInfoSettingsCard(this, binding, prefs, viewModel, importSettingsLauncher)
         appInfoCard.bind()
-        HomeScreenSettingsCard(this, binding, prefs, viewModel).bind()
+        homeScreenCard = HomeScreenSettingsCard(this, binding, prefs, viewModel, requestContactsPermissionLauncher)
+        homeScreenCard.bind()
         AppearanceSettingsCard(this, binding, prefs, viewModel, onWellbeingChanged = ::populateWellbeingSection).bind()
         GesturesSettingsCard(this, binding, prefs, viewModel, onWellbeingChanged = ::populateWellbeingSection).bind()
         WellbeingSettingsCard(this, binding, prefs, viewModel, onWellbeingChanged = ::populateWellbeingSection).bind()

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Omnibox: opt-in contact search. Turn on "Contact search" under Home Screen
+  settings (grants Contacts access when you enable it) and the drawer surfaces
+  a matching contact to call — apps still list first. Off by default; the
+  toggle is the only thing that ever asks for the permission (PAREM-104)
 - On tablets in landscape, widgets now sit in their own column to the right
   of the home apps instead of stacking above/below them; portrait and phone
   layouts are unchanged

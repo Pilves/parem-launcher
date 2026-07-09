@@ -22,6 +22,8 @@ import com.parem.launcher.databinding.FragmentAppDrawerBinding
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.AppOpenCounter
+import com.parem.launcher.helper.ContactMatcher
+import com.parem.launcher.helper.ContactSearchManager
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
@@ -56,13 +58,14 @@ class AppDrawerFragment : Fragment() {
     private var searchTextView: TextView? = null
     private var cachedIsCjkKeyboard: Boolean? = null
 
-    // Omnibox state: non-null when the query is an arithmetic expression, a
-    // unit conversion, or a dialable number, true when a leading space marks
-    // the query as a web search
-    private var calcResult: String? = null
-    private var conversionResult: String? = null
-    private var dialNumber: String? = null
-    private var webSearchMode = false
+    // Omnibox state: the search field doubles as an omnibox. Exactly one mode is
+    // active at a time — arithmetic, unit conversion, dialable number, or web
+    // search (leading space) — or None for ordinary app search.
+    private var omniboxMode: OmniboxMode = OmniboxMode.None
+
+    // Loaded once per drawer session, only when contact search is enabled and
+    // permitted (see loadContactsIfEnabled). Empty otherwise → no matching runs.
+    private var contacts: List<ContactMatcher.Contact> = emptyList()
 
     companion object {
         // Digits with optional leading + and spaces, at least 4 digits total.
@@ -95,6 +98,24 @@ class AppDrawerFragment : Fragment() {
         initAdapter()
         initObservers()
         initClickListeners()
+        loadContactsIfEnabled()
+    }
+
+    /**
+     * Loads contacts into memory once, but only when the drawer is a launcher and
+     * the opt-in feature is active (enabled + permission granted). This is the
+     * only entry point to contact loading, so a disabled toggle means the
+     * provider is never queried.
+     */
+    private fun loadContactsIfEnabled() {
+        if (flag != Constants.FLAG_LAUNCH_APP) return
+        if (!ContactSearchManager.isActive(requireContext())) return
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val loaded = withContext(Dispatchers.IO) { ContactSearchManager.loadContacts(appContext) }
+            if (!isAdded || _binding == null) return@launch
+            contacts = loaded
+        }
     }
 
     private fun initViews() {
@@ -148,33 +169,25 @@ class AppDrawerFragment : Fragment() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 val ctx = context ?: return true
                 val q = query ?: ""
-                when {
-                    calcResult != null -> {
-                        ctx.copyToClipboard(calcResult!!)
+                when (val mode = omniboxMode) {
+                    is OmniboxMode.Calc -> {
+                        ctx.copyToClipboard(mode.result)
                         ctx.showToast(getString(R.string.copied))
                     }
-                    conversionResult != null -> {
-                        ctx.copyToClipboard(conversionResult!!)
+                    is OmniboxMode.Conversion -> {
+                        ctx.copyToClipboard(mode.result)
                         ctx.showToast(getString(R.string.copied))
                     }
-                    dialNumber != null -> {
-                        try {
-                            startActivity(
-                                android.content.Intent(
-                                    android.content.Intent.ACTION_DIAL,
-                                    android.net.Uri.parse("tel:" + dialNumber!!.replace(" ", ""))
-                                )
-                            )
-                        } catch (e: Exception) {
-                            ctx.showToast(getString(R.string.unable_to_open_app))
-                        }
-                    }
-                    webSearchMode ->
+                    is OmniboxMode.Dial -> dial(ctx, mode.number)
+                    is OmniboxMode.Contact -> dial(ctx, mode.number)
+                    OmniboxMode.WebSearch ->
                         ctx.openUrl(Constants.URL_GOOGLE_SEARCH + java.net.URLEncoder.encode(q.trim(), "UTF-8"))
-                    q.startsWith("!") ->
-                        ctx.openUrl(Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(q, "UTF-8"))
-                    adapter.itemCount == 0 -> ctx.openSearch(q.trim())
-                    else -> adapter.launchFirstInList()
+                    OmniboxMode.None -> when {
+                        q.startsWith("!") ->
+                            ctx.openUrl(Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(q, "UTF-8"))
+                        adapter.itemCount == 0 -> ctx.openSearch(q.trim())
+                        else -> adapter.launchFirstInList()
+                    }
                 }
                 return true
             }
@@ -187,7 +200,7 @@ class AppDrawerFragment : Fragment() {
                 try {
                     adapter.filter.filter(newText) {
                         _binding?.let { b ->
-                            if (calcResult != null || conversionResult != null || dialNumber != null || webSearchMode) return@let
+                            if (omniboxMode != OmniboxMode.None) return@let
                             if (adapter.itemCount == 0 && newText.isNotBlank()) {
                                 b.appDrawerTip.text = getString(R.string.no_apps_found)
                                 b.appDrawerTip.visibility = View.VISIBLE
@@ -211,10 +224,7 @@ class AppDrawerFragment : Fragment() {
      */
     private fun updateOmniboxState(newText: String) {
         val b = _binding ?: return
-        calcResult = null
-        conversionResult = null
-        dialNumber = null
-        webSearchMode = false
+        omniboxMode = OmniboxMode.None
         // Omnibox modes only make sense when the drawer is a launcher, not when
         // it is open as an app picker (set home app / swipe app / etc.)
         if (flag != Constants.FLAG_LAUNCH_APP) return
@@ -222,8 +232,9 @@ class AppDrawerFragment : Fragment() {
 
         if (ExpressionEvaluator.looksLikeExpression(trimmed)) {
             ExpressionEvaluator.evaluate(trimmed)?.let { value ->
-                calcResult = ExpressionEvaluator.format(value)
-                b.appDrawerTip.text = "= $calcResult"
+                val result = ExpressionEvaluator.format(value)
+                omniboxMode = OmniboxMode.Calc(result)
+                b.appDrawerTip.text = "= $result"
                 b.appDrawerTip.visibility = View.VISIBLE
                 return
             }
@@ -233,23 +244,34 @@ class AppDrawerFragment : Fragment() {
         // only), so there's no ordering conflict between the three.
         if (UnitConverter.looksLikeConversion(trimmed)) {
             UnitConverter.convert(trimmed)?.let { result ->
-                conversionResult = result.format()
-                b.appDrawerTip.text = "= $conversionResult"
+                val formatted = result.format()
+                omniboxMode = OmniboxMode.Conversion(formatted)
+                b.appDrawerTip.text = "= $formatted"
                 b.appDrawerTip.visibility = View.VISIBLE
                 return
             }
         }
         if (DIAL_REGEX.matches(trimmed) && trimmed.count { it.isDigit() } >= 4) {
-            dialNumber = trimmed
+            omniboxMode = OmniboxMode.Dial(trimmed)
             b.appDrawerTip.text = getString(R.string.call_hint, trimmed)
             b.appDrawerTip.visibility = View.VISIBLE
             return
         }
         if (newText.startsWith(" ") && trimmed.isNotEmpty()) {
-            webSearchMode = true
+            omniboxMode = OmniboxMode.WebSearch
             b.appDrawerTip.text = getString(R.string.google_search_hint, trimmed)
             b.appDrawerTip.visibility = View.VISIBLE
             return
+        }
+        // Contacts rank below every other mode and below the app list (which the
+        // filter still populates): the matching contact only fills the tip line.
+        if (contacts.isNotEmpty() && ContactMatcher.looksLikeContactQuery(trimmed)) {
+            ContactMatcher.match(trimmed, contacts).firstOrNull()?.let { top ->
+                omniboxMode = OmniboxMode.Contact(top.name, top.number)
+                b.appDrawerTip.text = getString(R.string.contact_hint, top.name, top.number)
+                b.appDrawerTip.visibility = View.VISIBLE
+                return
+            }
         }
         b.appDrawerTip.visibility = View.GONE
     }
@@ -397,10 +419,22 @@ class AppDrawerFragment : Fragment() {
 
     private fun initClickListeners() {
         binding.appDrawerTip.setOnClickListener {
-            (calcResult ?: conversionResult)?.let { result ->
-                requireContext().copyToClipboard(result)
-                requireContext().showToast(getString(R.string.copied))
-                return@setOnClickListener
+            when (val mode = omniboxMode) {
+                is OmniboxMode.Calc -> {
+                    requireContext().copyToClipboard(mode.result)
+                    requireContext().showToast(getString(R.string.copied))
+                    return@setOnClickListener
+                }
+                is OmniboxMode.Conversion -> {
+                    requireContext().copyToClipboard(mode.result)
+                    requireContext().showToast(getString(R.string.copied))
+                    return@setOnClickListener
+                }
+                is OmniboxMode.Contact -> {
+                    dial(requireContext(), mode.number)
+                    return@setOnClickListener
+                }
+                else -> {}
             }
             binding.appDrawerTip.isSelected = false
             binding.appDrawerTip.isSelected = true
@@ -450,6 +484,19 @@ class AppDrawerFragment : Fragment() {
     private fun checkMessageAndExit() {
         if (!isAdded) return
         findNavController().popBackStack()
+    }
+
+    private fun dial(ctx: android.content.Context, number: String) {
+        try {
+            startActivity(
+                android.content.Intent(
+                    android.content.Intent.ACTION_DIAL,
+                    android.net.Uri.parse("tel:" + number.replace(" ", ""))
+                )
+            )
+        } catch (e: Exception) {
+            ctx.showToast(getString(R.string.unable_to_open_app))
+        }
     }
 
     /**
@@ -505,4 +552,17 @@ class AppDrawerFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+}
+
+/**
+ * The omnibox can be in exactly one mode at a time. [None] is ordinary app
+ * search; the others each drive the tip line and the submit action.
+ */
+sealed interface OmniboxMode {
+    object None : OmniboxMode
+    data class Calc(val result: String) : OmniboxMode
+    data class Conversion(val result: String) : OmniboxMode
+    data class Dial(val number: String) : OmniboxMode
+    object WebSearch : OmniboxMode
+    data class Contact(val name: String, val number: String) : OmniboxMode
 }
