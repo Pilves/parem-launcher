@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
-import android.widget.PopupMenu
 import android.widget.ScrollView
 import android.widget.TextView
 import com.parem.launcher.R
@@ -41,23 +40,30 @@ class ScreenTimeLimitDialog(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val bgColor = context.getColorFromAttr(R.attr.primaryInverseColor)
         val textColor = context.getColorFromAttr(R.attr.primaryColor)
         val secondaryTextColor = context.getColorFromAttr(R.attr.primaryColorTrans50)
 
         val rootLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(16.dpToPx(), 16.dpToPx(), 16.dpToPx(), 16.dpToPx())
-            setBackgroundColor(bgColor)
+            setPadding(16.dpToPx(), 12.dpToPx(), 16.dpToPx(), 16.dpToPx())
+            setBackgroundResource(R.drawable.bg_bottom_sheet)
         }
+
+        rootLayout.addView(View(context).apply {
+            layoutParams = LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+                bottomMargin = 16.dpToPx()
+            }
+            setBackgroundColor(secondaryTextColor)
+        })
 
         // Title
         val titleView = TextView(context).apply {
             text = context.getString(R.string.app_limits)
-            textSize = 18f
-            setTextColor(textColor)
+            textSize = 14f
+            setTextColor(secondaryTextColor)
             setTypeface(null, android.graphics.Typeface.BOLD)
-            setPadding(0, 0, 0, 16.dpToPx())
+            setPadding(0, 0, 0, 8.dpToPx())
         }
         rootLayout.addView(titleView)
 
@@ -141,10 +147,11 @@ class ScreenTimeLimitDialog(
                 setPadding(8.dpToPx(), 4.dpToPx(), 8.dpToPx(), 4.dpToPx())
                 gravity = Gravity.CENTER
                 minWidth = 72.dpToPx()
+                setBackgroundResource(context.selectableBackgroundRes())
             }
 
-            limitView.setOnClickListener { anchor ->
-                showLimitPopup(anchor, packageName, limitView)
+            limitView.setOnClickListener {
+                showLimitPicker(packageName, limitView)
             }
 
             row.addView(limitView)
@@ -155,27 +162,26 @@ class ScreenTimeLimitDialog(
         rootLayout.addView(scrollView)
 
         setContentView(rootLayout)
+        transparentSheetFrame()
     }
 
-    private fun showLimitPopup(anchor: View, packageName: String, limitView: TextView) {
-        val popup = PopupMenu(context, anchor)
-        limitOptions.forEachIndexed { index, option ->
-            popup.menu.add(0, index, index, option.label)
-        }
-
-        popup.setOnMenuItemClickListener { menuItem ->
-            val selected = limitOptions[menuItem.itemId]
-            if (selected.minutes < 0) {
-                // "Unlimited" means remove the limit
-                AppLimitManager.removeLimit(context, packageName)
-                limitView.text = "Unlimited"
-            } else {
-                AppLimitManager.setLimit(context, packageName, selected.minutes)
-                limitView.text = selected.label
+    // A themed sheet instead of the system PopupMenu, whose Material styling
+    // clashed with the launcher's mono look
+    private fun showLimitPicker(packageName: String, limitView: TextView) {
+        val menu = BottomSheetMenu(context)
+            .title(context.getString(R.string.select_time_limit))
+        for (option in limitOptions) {
+            menu.option(option.label, dimmed = option.minutes < 0) {
+                if (option.minutes < 0) {
+                    // "Unlimited" means remove the limit
+                    AppLimitManager.removeLimit(context, packageName)
+                    limitView.text = "Unlimited"
+                } else {
+                    AppLimitManager.setLimit(context, packageName, option.minutes)
+                    limitView.text = option.label
+                }
             }
-            true
         }
-
-        popup.show()
+        menu.show()
     }
 }

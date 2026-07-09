@@ -1,6 +1,7 @@
 package com.parem.launcher.ui
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
@@ -8,7 +9,6 @@ import android.text.TextWatcher
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.RadioButton
@@ -42,17 +42,17 @@ class FocusModeDialog(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.dialog_focus_mode)
+        transparentSheetFrame()
 
         val container = findViewById<LinearLayout>(R.id.focusModeContainer) ?: return
         val ctx = container.context
 
         val primaryColor = ctx.getColorFromAttr(R.attr.primaryColor)
-        val inversePrimaryColor = ctx.getColorFromAttr(R.attr.primaryInverseColor)
 
         if (FocusModeManager.isActive(ctx)) {
             buildActiveView(container, ctx, primaryColor)
         } else {
-            buildInactiveView(container, ctx, primaryColor, inversePrimaryColor)
+            buildInactiveView(container, ctx, primaryColor)
         }
     }
 
@@ -65,12 +65,11 @@ class FocusModeDialog(
         ctx: Context,
         primaryColor: Int
     ) {
-        // Title
-        container.addView(createTitle(ctx, "Focus Mode", primaryColor))
+        container.addView(createTitle(ctx, ctx.getString(R.string.focus_mode)))
 
         // Status text
         val statusText = TextView(ctx).apply {
-            text = "Focus mode is ON"
+            text = ctx.getString(R.string.focus_mode_on)
             setTextColor(primaryColor)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             setPadding(0, 8.dpToPx(), 0, 4.dpToPx())
@@ -79,42 +78,19 @@ class FocusModeDialog(
 
         // Remaining time
         val remaining = FocusModeManager.getRemainingTimeFormatted(ctx)
-        if (remaining != null) {
-            val timeText = TextView(ctx).apply {
-                text = "Time remaining: $remaining"
-                setTextColor(primaryColor)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-                setPadding(0, 0, 0, 16.dpToPx())
-            }
-            container.addView(timeText)
-        } else {
-            val timeText = TextView(ctx).apply {
-                text = "Until manually disabled"
-                setTextColor(primaryColor)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-                setPadding(0, 0, 0, 16.dpToPx())
-            }
-            container.addView(timeText)
+        val timeText = TextView(ctx).apply {
+            text = if (remaining != null) ctx.getString(R.string.focus_remaining, remaining)
+            else ctx.getString(R.string.focus_until_disabled_status)
+            setTextColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            setPadding(0, 0, 0, 16.dpToPx())
         }
+        container.addView(timeText)
 
-        // Disable button
-        val disableButton = Button(ctx).apply {
-            text = "Disable"
-            setTextColor(primaryColor)
-            setBackgroundColor(android.graphics.Color.TRANSPARENT)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = 8.dpToPx()
-            }
-            setOnClickListener {
-                FocusModeManager.disable(ctx)
-                dismiss()
-            }
-        }
-        container.addView(disableButton)
+        container.addView(createActionRow(ctx, ctx.getString(R.string.disable_focus)) {
+            FocusModeManager.disable(ctx)
+            dismiss()
+        })
     }
 
     /**
@@ -124,20 +100,10 @@ class FocusModeDialog(
     private fun buildInactiveView(
         container: LinearLayout,
         ctx: Context,
-        primaryColor: Int,
-        inversePrimaryColor: Int
+        primaryColor: Int
     ) {
-        // Title
-        container.addView(createTitle(ctx, "Focus Mode", primaryColor))
-
-        // Duration section label
-        val durationLabel = TextView(ctx).apply {
-            text = "Duration"
-            setTextColor(primaryColor)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-            setPadding(0, 8.dpToPx(), 0, 4.dpToPx())
-        }
-        container.addView(durationLabel)
+        container.addView(createTitle(ctx, ctx.getString(R.string.focus_mode)))
+        container.addView(createSectionLabel(ctx, ctx.getString(R.string.focus_duration)))
 
         // Radio group for timer options
         val radioGroup = RadioGroup(ctx).apply {
@@ -148,10 +114,10 @@ class FocusModeDialog(
         data class DurationOption(val label: String, val minutes: Int)
 
         val options = listOf(
-            DurationOption("25 minutes", 25),
-            DurationOption("1 hour", 60),
-            DurationOption("2 hours", 120),
-            DurationOption("Until I disable", -1)
+            DurationOption(ctx.getString(R.string.focus_25_min), 25),
+            DurationOption(ctx.getString(R.string.focus_1_hour), 60),
+            DurationOption(ctx.getString(R.string.focus_2_hours), 120),
+            DurationOption(ctx.getString(R.string.focus_until_disable), -1)
         )
 
         options.forEachIndexed { index, option ->
@@ -159,6 +125,9 @@ class FocusModeDialog(
                 id = index + 1
                 text = option.label
                 setTextColor(primaryColor)
+                // Default widget tint is the Material accent, which clashes
+                // with the launcher's mono palette
+                buttonTintList = ColorStateList.valueOf(primaryColor)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
                 setPadding(8.dpToPx(), 4.dpToPx(), 0, 4.dpToPx())
             }
@@ -171,13 +140,7 @@ class FocusModeDialog(
         var pickerAdapter: AppPickerAdapter? = null
 
         if (allApps.isNotEmpty()) {
-            val appsLabel = TextView(ctx).apply {
-                text = "Allowed apps (max 5)"
-                setTextColor(primaryColor)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-                setPadding(0, 8.dpToPx(), 0, 4.dpToPx())
-            }
-            container.addView(appsLabel)
+            container.addView(createSectionLabel(ctx, ctx.getString(R.string.focus_allowed_apps)))
 
             val currentWhitelist = FocusModeManager.getWhitelist(ctx)
             // Whitelist entries for apps no longer offered are dropped on enable,
@@ -229,44 +192,56 @@ class FocusModeDialog(
             window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         }
 
-        // Enable button
-        val enableButton = Button(ctx).apply {
-            text = "Enable"
-            setTextColor(primaryColor)
-            setBackgroundColor(android.graphics.Color.TRANSPARENT)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = 12.dpToPx()
+        container.addView(createActionRow(ctx, ctx.getString(R.string.enable_focus)) {
+            val selectedId = radioGroup.checkedRadioButtonId
+            val durationMinutes = if (selectedId in 1..options.size) {
+                options[selectedId - 1].minutes
+            } else {
+                25
             }
-            setOnClickListener {
-                val selectedId = radioGroup.checkedRadioButtonId
-                val durationMinutes = if (selectedId in 1..options.size) {
-                    options[selectedId - 1].minutes
-                } else {
-                    25
-                }
 
-                val selectedPackages = pickerAdapter?.selectedIds?.toSet() ?: emptySet()
+            val selectedPackages = pickerAdapter?.selectedIds?.toSet() ?: emptySet()
 
-                FocusModeManager.setWhitelist(ctx, selectedPackages)
-                FocusModeManager.enable(ctx, durationMinutes)
-                dismiss()
-            }
-        }
-        container.addView(enableButton)
+            FocusModeManager.setWhitelist(ctx, selectedPackages)
+            FocusModeManager.enable(ctx, durationMinutes)
+            dismiss()
+        })
     }
 
-    private fun createTitle(ctx: Context, text: String, color: Int): TextView {
+    private fun createTitle(ctx: Context, text: String): TextView {
         return TextView(ctx).apply {
             this.text = text
-            setTextColor(color)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+            setTextColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             setTypeface(typeface, android.graphics.Typeface.BOLD)
             gravity = Gravity.START
             setPadding(0, 0, 0, 8.dpToPx())
+        }
+    }
+
+    private fun createSectionLabel(ctx: Context, text: String): TextView {
+        return TextView(ctx).apply {
+            this.text = text
+            setTextColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            setPadding(0, 8.dpToPx(), 0, 4.dpToPx())
+        }
+    }
+
+    /** Text-button row, replacing the stock Button widgets the sheet used to mix in. */
+    private fun createActionRow(ctx: Context, text: String, onClick: () -> Unit): TextView {
+        return TextView(ctx).apply {
+            this.text = text
+            setTextColor(ctx.getColorFromAttr(R.attr.primaryColor))
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = 8.dpToPx() }
+            setPadding(0, 14.dpToPx(), 0, 14.dpToPx())
+            setBackgroundResource(ctx.selectableBackgroundRes())
+            setOnClickListener { onClick() }
         }
     }
 }

@@ -309,6 +309,53 @@ Implemented same-cycle from the 2026-07-08 performance review.
 Implemented same-cycle from the 2026-07-08 performance review. This branch
 requires on-device soak before merge — app-list freshness is core launcher UX.
 
+---
+
+### [x] PAREM-119 — Bottom-sheet redesign + weekly top apps in screen time
+
+**Priority:** P3 · **Estimate:** ~a day · **Type:** UX improvement
+**Branch:** `ui/dialog-redesign`
+
+Requested by Patric 2026-07-08 ("weekly usage looks hideous; pop-ups can be
+cleaner"). One sheet language via BottomSheetMenu (rounded corners, drag
+handle, ripple rows); graph gets visual hierarchy (today emphasized, past
+days dimmed, baseline, zero-day stubs); screen-time sheet gains the week's
+top apps with icons (weekly per-app chosen over today-only by Patric);
+focus/app-limit/folder/widget sheets restyled to match, mono-tinted
+radios/checkboxes, system PopupMenu replaced. Also enforces the
+ARCHITECTURE.md rule that sheets go through BottomSheetMenu.
+
+---
+
+### [ ] PAREM-118 — Tablet landscape: widgets beside the app column
+
+**Priority:** P3 · **Estimate:** ~a day · **Type:** UX improvement
+**Branch:** `feat/tablet-landscape-widgets`
+
+**Background.** Requested by Patric 2026-07-08: on tablets in landscape the
+widget stack sits above/below the app list and wastes the wide screen —
+widgets should sit to the RIGHT of the app column. Tablets are not
+orientation-locked (`MainActivity.setupOrientation` skips them).
+
+**Scope.**
+- A `land`-qualified `fragment_home.xml` variant placing the widget scroll
+  container in a right-hand column beside the apps.
+- `HomeFragment`'s dynamic app-row fitting subtracts widget height from the
+  available height — wrong in side-by-side layout (apps would shrink for no
+  reason); gate that subtraction on the layout actually stacking vertically.
+- `HomeWidgetController.getActiveContainer()/getActiveScrollView()` above/
+  below mapping needs a landscape story (both placements map to the side
+  column in landscape).
+- Mind ARCHITECTURE.md trap #3 (widget ID bookkeeping) — no ID logic changes.
+
+**Acceptance criteria.**
+1. Tablet landscape: widgets render right of the app column; portrait and
+   phones unchanged.
+2. App-row fitting unaffected by widget heights in side-by-side mode.
+3. Widget add/remove/resize/reorder still works in both orientations.
+4. Full build green: `compileDebugKotlin`, `testDebugUnitTest`,
+   `assembleDebug`.
+
 ## Long-running / observation
 
 ### [ ] PAREM-108 — Put the 4-hour self-recreate behind a pref, observe, then remove

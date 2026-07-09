@@ -551,11 +551,18 @@ class HomeWidgetController(
             }
 
             val dialog = BottomSheetDialog(context)
-            val bgColor = context.getColorFromAttr(R.attr.primaryInverseColor)
             val container = android.widget.LinearLayout(context).apply {
                 orientation = android.widget.LinearLayout.VERTICAL
-                setBackgroundColor(bgColor)
+                setBackgroundResource(R.drawable.bg_bottom_sheet)
+                setPadding(0, 12.dpToPx(), 0, 0)
             }
+            container.addView(View(context).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
+                    gravity = Gravity.CENTER_HORIZONTAL
+                    bottomMargin = 12.dpToPx()
+                }
+                setBackgroundColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            })
             val searchField = android.widget.EditText(context).apply {
                 hint = context.getString(R.string.search_widgets)
                 setPadding(16.dpToPx(), 12.dpToPx(), 16.dpToPx(), 12.dpToPx())
@@ -627,6 +634,7 @@ class HomeWidgetController(
                 1f
             ))
             dialog.setContentView(container)
+            dialog.transparentSheetFrame()
             dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
             dialog.show()
 

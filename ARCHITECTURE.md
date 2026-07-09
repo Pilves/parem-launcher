@@ -41,6 +41,7 @@ helper/
   FocusModeManager, AppLimitManager, FolderManager (class),
   GestureLetterManager, SwipeUpAppManager, WeatherManager (Open-Meteo),
   DoubleTapActionManager, ThemeScheduleManager (+ Worker), IconPackManager,
+  AppIconCache (bounded ConstantState cache for default app icons),
   WallpaperWorker, ExpressionEvaluator (omnibox calculator),
   PackageChangeTracker (LauncherApps callback → cache-invalidation stamp),
   AppListRebuilder (Android-free filter/sort over the cached raw app query),

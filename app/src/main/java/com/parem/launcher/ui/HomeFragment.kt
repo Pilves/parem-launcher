@@ -750,15 +750,22 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             val dialog = BottomSheetDialog(requireContext())
             val container = android.widget.LinearLayout(requireContext()).apply {
                 orientation = android.widget.LinearLayout.VERTICAL
-                setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryInverseColor))
-                setPadding(24.dpToPx(), 16.dpToPx(), 24.dpToPx(), 24.dpToPx())
+                setBackgroundResource(R.drawable.bg_bottom_sheet)
+                setPadding(24.dpToPx(), 12.dpToPx(), 24.dpToPx(), 24.dpToPx())
             }
+            container.addView(View(requireContext()).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
+                    gravity = Gravity.CENTER_HORIZONTAL
+                    bottomMargin = 16.dpToPx()
+                }
+                setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
+            })
 
             // Title
             val title = TextView(requireContext()).apply {
                 text = getString(R.string.create_folder)
-                textSize = 18f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
+                textSize = 14f
+                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
                 setTypeface(null, android.graphics.Typeface.BOLD)
                 setPadding(0, 0, 0, 12.dpToPx())
             }
@@ -856,6 +863,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             container.addView(saveButton)
 
             dialog.setContentView(container)
+            dialog.transparentSheetFrame()
             // Keep the filtered list visible above the keyboard, as the widget picker does
             dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
             dialog.show()
@@ -1033,6 +1041,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             viewModel.firstOpen(false)
         }
         dialog.setContentView(view)
+        dialog.transparentSheetFrame()
         dialog.show()
     }
 

@@ -225,6 +225,9 @@
     <string name="focus_1_hour" translatable="false">1 hour</string>
     <string name="focus_2_hours" translatable="false">2 hours</string>
     <string name="focus_until_disable" translatable="false">Until I disable</string>
+    <string name="focus_until_disabled_status" translatable="false">Until manually disabled</string>
+    <string name="focus_duration" translatable="false">Duration</string>
+    <string name="focus_allowed_apps" translatable="false">Allowed apps (max 5)</string>
     <string name="allowed_apps" translatable="false">Allowed apps</string>
     <string name="app_blocked_focus" translatable="false">Blocked by Focus Mode</string>
 

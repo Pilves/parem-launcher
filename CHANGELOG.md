@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+- Redesigned bottom sheets: rounded corners, drag handles, tap ripple, and
+  one consistent style across the screen-time, focus-mode, app-limit,
+  folder, and widget dialogs (checkboxes/radios now match the mono theme)
+- The screen-time sheet now shows the week's most-used apps (icon, name,
+  weekly total) under a cleaner 7-day graph that highlights today and
+  keeps zero-usage days visible, plus a daily average
 - The app list is now re-queried from the system only after a package
   change (install/uninstall/update/profile toggle) instead of on every
   drawer open, and returning to the home screen no longer runs per-slot

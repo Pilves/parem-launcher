@@ -1,5 +1,6 @@
 package com.parem.launcher.ui
 
+import android.content.res.ColorStateList
 import android.view.ViewGroup
 import android.widget.CheckBox
 import androidx.recyclerview.widget.RecyclerView
@@ -49,6 +50,9 @@ class AppPickerAdapter(
         val checkBox = CheckBox(parent.context).apply {
             textSize = 14f
             setTextColor(textColor)
+            // Default widget tint is the Material accent, which clashes with
+            // the launcher's mono palette
+            buttonTintList = ColorStateList.valueOf(textColor)
             setPadding(8.dpToPx(), 2.dpToPx(), 0, 2.dpToPx())
             layoutParams = RecyclerView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
