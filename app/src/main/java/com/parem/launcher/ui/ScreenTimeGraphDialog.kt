@@ -92,6 +92,7 @@ class ScreenTimeGraphDialog(private val context: Context) {
             data class WeekData(
                 val days: List<Pair<String, Long>>,
                 val topApps: List<Triple<String, String, Long>>, // pkg, label, ms
+                val perDayTop: List<List<Triple<String, String, Long>>>,
                 val weekTotalMs: Long,
             )
 
@@ -109,6 +110,7 @@ class ScreenTimeGraphDialog(private val context: Context) {
                         .mapValues { (_, stats) -> stats.sumOf { it.timeUsed } }
 
                 val days = mutableListOf<Pair<String, Long>>()
+                val dayMaps = mutableListOf<Map<String, Long>>()
                 val weekly = mutableMapOf<String, Long>()
 
                 for (offset in 6 downTo 0) {
@@ -135,29 +137,33 @@ class ScreenTimeGraphDialog(private val context: Context) {
                     }
 
                     days.add(Pair(dayLabel, perApp.values.sum()))
+                    dayMaps.add(perApp)
                     for ((pkg, ms) in perApp) {
                         weekly[pkg] = (weekly[pkg] ?: 0L) + ms
                     }
                 }
 
                 val pm = appContext.packageManager
-                val topApps = weekly.entries
-                    .sortedByDescending { it.value }
-                    .asSequence()
-                    .mapNotNull { (pkg, ms) ->
-                        // Uninstalled apps drop out of the list rather than
-                        // showing a bare package name with no icon
-                        try {
-                            val label = pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
-                            Triple(pkg, label, ms)
-                        } catch (_: Exception) {
-                            null
+                fun resolveTop(usage: Map<String, Long>): List<Triple<String, String, Long>> =
+                    usage.entries
+                        .sortedByDescending { it.value }
+                        .asSequence()
+                        .mapNotNull { (pkg, ms) ->
+                            // Uninstalled apps drop out of the list rather than
+                            // showing a bare package name with no icon
+                            try {
+                                val label = pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
+                                Triple(pkg, label, ms)
+                            } catch (_: Exception) {
+                                null
+                            }
                         }
-                    }
-                    .take(TOP_APPS_COUNT)
-                    .toList()
+                        .take(TOP_APPS_COUNT)
+                        .toList()
 
-                WeekData(days, topApps, days.sumOf { it.second })
+                // Per-day lists are resolved up front so a bar tap swaps the
+                // list synchronously instead of doing PackageManager IPC on tap
+                WeekData(days, resolveTop(weekly), dayMaps.map(::resolveTop), days.sumOf { it.second })
             }
 
             graphView.setData(week.days)
@@ -165,16 +171,31 @@ class ScreenTimeGraphDialog(private val context: Context) {
                 R.string.daily_average,
                 context.formattedTimeSpent(week.weekTotalMs / 7)
             )
-            populateTopApps(topAppsColumn, week.topApps)
+            populateTopApps(topAppsColumn, week.topApps, context.getString(R.string.top_apps_week))
+            graphView.onDaySelected = { index ->
+                if (index == null) {
+                    populateTopApps(topAppsColumn, week.topApps, context.getString(R.string.top_apps_week))
+                } else {
+                    populateTopApps(
+                        topAppsColumn,
+                        week.perDayTop[index],
+                        context.getString(R.string.top_apps_day, week.days[index].first)
+                    )
+                }
+            }
         }
     }
 
-    private fun populateTopApps(column: LinearLayout, topApps: List<Triple<String, String, Long>>) {
+    private fun populateTopApps(
+        column: LinearLayout,
+        topApps: List<Triple<String, String, Long>>,
+        headerText: String,
+    ) {
         column.removeAllViews()
-        if (topApps.isEmpty()) return
 
+        // Header stays even for an empty day so a bar tap visibly lands
         val header = TextView(context).apply {
-            text = context.getString(R.string.top_apps_week)
+            text = headerText
             textSize = 14f
             setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
             setTypeface(null, Typeface.BOLD)

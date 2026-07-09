@@ -6,7 +6,10 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
+import kotlin.math.abs
 import com.parem.launcher.R
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
@@ -27,6 +30,17 @@ class ScreenTimeGraphView @JvmOverloads constructor(
 
     private var data: List<Pair<String, Long>> = emptyList()
     private var precomputedLabels: List<String> = emptyList()
+
+    /**
+     * Tapping a day's column selects it (tapping it again deselects). Null
+     * means no selection, in which case today carries the visual emphasis.
+     */
+    var onDaySelected: ((Int?) -> Unit)? = null
+    private var selectedIndex: Int? = null
+
+    private var downX = 0f
+    private var downY = 0f
+    private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
 
     private val primaryColor = context.getColorFromAttr(R.attr.primaryColor)
 
@@ -96,6 +110,7 @@ class ScreenTimeGraphView @JvmOverloads constructor(
      */
     fun setData(data: List<Pair<String, Long>>) {
         this.data = data
+        selectedIndex = null
         precomputedLabels = data.map { (_, millis) ->
             val hours = millis / 3_600_000.0
             if (hours >= 1.0) {
@@ -106,6 +121,42 @@ class ScreenTimeGraphView @JvmOverloads constructor(
             }
         }
         invalidate()
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (data.isEmpty()) return super.onTouchEvent(event)
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                downX = event.x
+                downY = event.y
+                return true
+            }
+            MotionEvent.ACTION_UP -> {
+                if (abs(event.x - downX) <= touchSlop && abs(event.y - downY) <= touchSlop) {
+                    tappedIndex(event.x)?.let { index ->
+                        selectedIndex = if (selectedIndex == index) null else index
+                        onDaySelected?.invoke(selectedIndex)
+                        invalidate()
+                        performClick()
+                    }
+                }
+                return true
+            }
+        }
+        return super.onTouchEvent(event)
+    }
+
+    override fun performClick(): Boolean {
+        super.performClick()
+        return true
+    }
+
+    /** Hit-tests the whole day column, not just the bar — bars are thin. */
+    private fun tappedIndex(x: Float): Int? {
+        val slotWidth = (width - sidePadding * 2) / data.size
+        if (slotWidth <= 0f) return null
+        val index = ((x - sidePadding) / slotWidth).toInt()
+        return index.takeIf { x >= sidePadding && it in data.indices }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -138,9 +189,12 @@ class ScreenTimeGraphView @JvmOverloads constructor(
 
         canvas.drawLine(sidePadding, baselineY, width - sidePadding, baselineY, baselinePaint)
 
+        // Emphasis follows the selection; with nothing selected it sits on today
+        val emphasizedIndex = selectedIndex ?: data.lastIndex
+
         for (i in data.indices) {
             val (label, millis) = data[i]
-            val isToday = i == data.lastIndex
+            val isToday = i == emphasizedIndex
             val centerX = sidePadding + slotWidth * i + slotWidth / 2f
 
             // Minimum stub height so zero-usage days stay visible on the axis
