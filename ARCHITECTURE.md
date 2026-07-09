@@ -42,6 +42,8 @@ helper/
   GestureLetterManager, SwipeUpAppManager, WeatherManager (Open-Meteo),
   DoubleTapActionManager, ThemeScheduleManager (+ Worker), IconPackManager,
   WallpaperWorker, ExpressionEvaluator (omnibox calculator),
+  PackageChangeTracker (LauncherApps callback → cache-invalidation stamp),
+  AppListRebuilder (Android-free filter/sort over the cached raw app query),
   Utils.kt / Extensions.kt (free functions), usageStats/ (UsageEvents parsing).
   MyAccessibilityService.kt  Locks the screen (see "Traps" below).
   FakeHomeActivity.kt        Default-launcher switching trick.
@@ -71,6 +73,7 @@ listener/
 3. **Widget IDs are stateful three ways**: the AppWidgetHost allocation, `prefs.widgetIds` (CSV), and `prefs.widgetProviders` (id:component map used to re-bind widgets that the OS invalidated). `HomeWidgetController.restoreWidgets()` reconciles them; keep all three in sync when touching widget code.
 4. **`FLAG_SET_HOME_APP_1..8` are the literal ints 1..8**, and the app-drawer "rename" path writes `prefs.setHomeAppName(flag, …)` using the flag as the slot number.
 5. **Screen-time numbers come from `helper/usageStats/`**, a hand-rolled UsageEvents aggregator (see `UnmatchedCloseEventGuardian`), not `queryUsageStats` — Android's summary API is wildly inaccurate.
+6. **The app list is cached against a package-change stamp** (`helper/PackageChangeTracker`); any new cache of package-derived data must check that stamp too — bypassing the tracker will serve stale data after installs/uninstalls/updates.
 
 ## Build & release
 

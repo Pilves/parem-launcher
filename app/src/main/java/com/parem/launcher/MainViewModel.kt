@@ -31,6 +31,7 @@ import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.hasBeenMinutes
 import com.parem.launcher.helper.isParemDefault
 import com.parem.launcher.helper.isPackageInstalled
+import com.parem.launcher.helper.PackageChangeTracker
 import com.parem.launcher.helper.showToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -63,6 +64,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val showDialog = SingleLiveEvent<String>()
     val resetLauncherLiveData = SingleLiveEvent<Unit?>()
+
+    init {
+        // The raw app-list and icon caches are trusted only while this
+        // tracker's stamp is unchanged; the activity-scoped ViewModel is the
+        // longest-lived owner available, so it holds the registration.
+        PackageChangeTracker.register(appContext)
+    }
+
+    override fun onCleared() {
+        PackageChangeTracker.unregister()
+        super.onCleared()
+    }
 
     fun selectedApp(appModel: AppModel, flag: Int) {
         when (flag) {
@@ -222,7 +235,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun isParemDefault() {
-        isParemDefault.postValue(isParemDefault(appContext))
+        viewModelScope.launch(Dispatchers.IO) {
+            // resolveActivity is a binder IPC; it ran on the main thread on
+            // every home resume before PAREM-117
+            isParemDefault.postValue(isParemDefault(appContext))
+        }
     }
 
     fun setWallpaperWorker() {

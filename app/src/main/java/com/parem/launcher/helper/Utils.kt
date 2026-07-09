@@ -60,6 +60,16 @@ fun Context.showToast(stringResource: Int, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, getString(stringResource), duration).show()
 }
 
+/**
+ * Snapshot of the raw LauncherApps query, valid only while [stamp] still
+ * equals PackageChangeTracker's current stamp (PAREM-117). Immutable and
+ * swapped whole, so concurrent IO readers see a complete snapshot or none.
+ */
+private class RawAppSnapshot(val stamp: Long, val apps: List<AppListRebuilder.RawApp<UserHandle>>)
+
+@Volatile
+private var rawAppSnapshot: RawAppSnapshot? = null
+
 suspend fun getAppsList(
     context: Context,
     prefs: Prefs,
@@ -67,50 +77,72 @@ suspend fun getAppsList(
     includeHiddenApps: Boolean = false,
 ): MutableList<AppModel> {
     return withContext(Dispatchers.IO) {
-        val appList: MutableList<AppModel> = mutableListOf()
-
         try {
             if (!prefs.hiddenAppsUpdated) upgradeHiddenApps(prefs)
-            val hiddenApps = prefs.hiddenApps
 
-            val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
-            val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+            // Read the stamp before the live query: a package change landing
+            // mid-query then invalidates this snapshot instead of hiding under it.
+            val stamp = PackageChangeTracker.stamp()
+            val snapshot = rawAppSnapshot
+            val rawApps = if (snapshot != null && snapshot.stamp == stamp) {
+                snapshot.apps
+            } else {
+                val (fresh, complete) = queryRawApps(context)
+                // Never cache a failed/partial query — the next call must retry live.
+                if (complete) rawAppSnapshot = RawAppSnapshot(stamp, fresh)
+                fresh
+            }
 
-            for (profile in userManager.userProfiles) {
-                for (app in launcherApps.getActivityList(null, profile)) {
+            // Renames, hidden-apps filtering and the isNew window are re-applied
+            // per call so prefs changes never need cache invalidation.
+            AppListRebuilder.rebuild(
+                rawApps,
+                ownPackageName = BuildConfig.APPLICATION_ID,
+                hiddenApps = prefs.hiddenApps,
+                includeRegularApps = includeRegularApps,
+                includeHiddenApps = includeHiddenApps,
+                renameLabel = { prefs.getAppRenameLabel(it) },
+                now = System.currentTimeMillis(),
+                newAppWindowMillis = Constants.ONE_HOUR_IN_MILLIS,
+            ).mapTo(mutableListOf()) {
+                AppModel(it.shownLabel, it.app.key, it.app.packageName, it.app.activityClassName, it.isNew, it.app.user)
+            }
+        } catch (e: Exception) {
+            Log.e("Utils", "Failed to get apps list", e)
+            mutableListOf()
+        }
+    }
+}
 
-                    val appLabelShown = prefs.getAppRenameLabel(app.applicationInfo.packageName).ifBlank { app.label.toString() }
-                    val appModel = AppModel(
-                        appLabelShown,
+/**
+ * The expensive part: one getActivityList binder IPC per profile. Returns
+ * whatever was gathered plus whether the query completed — a partial result
+ * is still shown (matching the old behavior) but must not be cached.
+ */
+private fun queryRawApps(context: Context): Pair<List<AppListRebuilder.RawApp<UserHandle>>, Boolean> {
+    val rawApps = mutableListOf<AppListRebuilder.RawApp<UserHandle>>()
+    return try {
+        val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
+        val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+        for (profile in userManager.userProfiles) {
+            for (app in launcherApps.getActivityList(null, profile)) {
+                rawApps.add(
+                    AppListRebuilder.RawApp(
+                        app.label.toString(),
                         collator.getCollationKey(app.label.toString()),
                         app.applicationInfo.packageName,
                         app.componentName.className,
-                        (System.currentTimeMillis() - app.firstInstallTime) < Constants.ONE_HOUR_IN_MILLIS,
-                        profile
+                        app.firstInstallTime,
+                        profile,
+                        profile.toString(),
                     )
-
-                    // if the current app is not Parem Launcher
-                    if (app.applicationInfo.packageName != BuildConfig.APPLICATION_ID) {
-                        // is this a hidden app?
-                        if (hiddenApps.contains(app.applicationInfo.packageName + "|" + profile.toString())) {
-                            if (includeHiddenApps) {
-                                appList.add(appModel)
-                            }
-                        } else {
-                            // this is a regular app
-                            if (includeRegularApps) {
-                                appList.add(appModel)
-                            }
-                        }
-                    }
-                }
+                )
             }
-            appList.sortWith(compareBy { it.key })
-
-        } catch (e: Exception) {
-            Log.e("Utils", "Failed to get apps list", e)
         }
-        appList
+        Pair(rawApps, true)
+    } catch (e: Exception) {
+        Log.e("Utils", "Failed to query apps list", e)
+        Pair(rawApps, false)
     }
 }
 
@@ -132,6 +164,21 @@ fun isPackageInstalled(context: Context, packageName: String, userString: String
     val activityInfo = launcher.getActivityList(packageName, getUserHandleFromString(context, userString))
     if (activityInfo.size > 0) return true
     return false
+}
+
+/**
+ * Cache-aware [isPackageInstalled] for the home-resume hot path (PAREM-117).
+ * A hit in a still-valid raw snapshot answers true with zero binder IPCs;
+ * everything else (no snapshot, stale stamp, package absent, odd user string)
+ * falls through to the live check, so a home slot is only ever cleared on a
+ * live system answer.
+ */
+fun isPackageInstalledCached(context: Context, packageName: String, userString: String): Boolean {
+    val snapshot = rawAppSnapshot
+    if (snapshot != null && snapshot.stamp == PackageChangeTracker.stamp() &&
+        snapshot.apps.any { it.packageName == packageName && it.userString == userString }
+    ) return true
+    return isPackageInstalled(context, packageName, userString)
 }
 
 fun getUserHandleFromString(context: Context, userHandleString: String): UserHandle {

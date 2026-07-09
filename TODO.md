@@ -299,6 +299,16 @@ completed days in memory, re-scanning only today.
 
 Implemented same-cycle from the 2026-07-08 performance review.
 
+---
+
+### [x] PAREM-117 — Home resume IPC + app list re-query on every drawer open
+
+**Priority:** P3 · **Estimate:** ~a day · **Type:** Performance
+**Branch:** `perf/package-change-invalidation`
+
+Implemented same-cycle from the 2026-07-08 performance review. This branch
+requires on-device soak before merge — app-list freshness is core launcher UX.
+
 ## Long-running / observation
 
 ### [ ] PAREM-108 — Put the 4-hour self-recreate behind a pref, observe, then remove

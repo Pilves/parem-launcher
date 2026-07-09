@@ -41,7 +41,7 @@ import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.expandNotificationDrawer
 import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.getUserHandleFromString
-import com.parem.launcher.helper.isPackageInstalled
+import com.parem.launcher.helper.isPackageInstalledCached
 import com.parem.launcher.helper.openAlarmApp
 import com.parem.launcher.helper.openCalendar
 import com.parem.launcher.helper.openCameraApp
@@ -447,7 +447,8 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     }
 
     private fun setHomeAppText(textView: TextView, appName: String, packageName: String, userString: String): Boolean {
-        if (isPackageInstalled(requireContext(), packageName, userString)) {
+        // Cached check: up to 8 per-slot getActivityList IPCs per resume before PAREM-117
+        if (isPackageInstalledCached(requireContext(), packageName, userString)) {
             textView.text = appName
             if (prefs.showIcons && packageName.isNotEmpty()) {
                 val iconSize = 20.dpToPx()

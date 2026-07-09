@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- The app list is now re-queried from the system only after a package
+  change (install/uninstall/update/profile toggle) instead of on every
+  drawer open, and returning to the home screen no longer runs per-slot
+  installed-app system calls — PAREM-117, no user-visible change
 - The folder-creation and focus-whitelist app pickers have a search field:
   typing filters the list live (same matching as the drawer omnibox),
   clearing it shows all apps again — PAREM-114

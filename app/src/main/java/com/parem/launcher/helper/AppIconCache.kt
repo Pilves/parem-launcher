@@ -14,8 +14,8 @@ import android.util.LruCache
  * would corrupt rendering; each caller gets its own via `newDrawable()`.
  *
  * Uses the main-profile icon for all profiles, same as the call sites it
- * replaced. An app updating its icon mid-process keeps the stale icon until
- * [clear] or process death; PAREM-117 wires package-change invalidation.
+ * replaced. An app updating its icon mid-process would go stale here, so
+ * PackageChangeTracker calls [clear] on every package change (PAREM-117).
  */
 object AppIconCache {
 
