@@ -416,13 +416,18 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                     val availableHeight = layout.height - layout.paddingTop - layout.paddingBottom
                     if (availableHeight <= 0) return@fitApps
 
-                    // Subtract widget container height
-                    val widgetHeight = when {
-                        prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE ->
-                            binding.widgetScrollViewAbove?.let { if (it.isVisible) it.height else 0 } ?: 0
-                        else ->
-                            binding.widgetScrollViewBelow?.let { if (it.isVisible) it.height else 0 } ?: 0
-                    }
+                    // Subtract widget container height — but only when the widgets
+                    // actually share this vertical column (portrait). The landscape
+                    // layout puts them in their own column beside the apps, where
+                    // their height must not shrink the app rows.
+                    val activeWidgetScroll =
+                        if (prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE)
+                            binding.widgetScrollViewAbove
+                        else
+                            binding.widgetScrollViewBelow
+                    val widgetHeight = activeWidgetScroll
+                        ?.takeIf { it.isVisible && it.parent === layout }
+                        ?.height ?: 0
 
                     val usableHeight = availableHeight - widgetHeight
                     if (usableHeight <= 0) return@fitApps
