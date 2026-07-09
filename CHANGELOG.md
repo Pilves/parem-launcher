@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Removed the inherited 4-hour self-recreate + cache wipe (PAREM-108
+  phase 3) — the launcher no longer restarts itself periodically; the
+  theme-mismatch recreate stays
 - Redesigned bottom sheets: rounded corners, drag handles, tap ripple, and
   one consistent style across the screen-time, focus-mode, app-limit,
   folder, and widget dialogs (checkboxes/radios now match the mono theme)

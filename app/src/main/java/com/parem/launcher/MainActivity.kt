@@ -29,7 +29,6 @@ import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.ActivityMainBinding
 import com.parem.launcher.helper.getColorFromAttr
-import com.parem.launcher.helper.hasBeenHours
 import com.parem.launcher.helper.isDarkThemeOn
 import com.parem.launcher.helper.isDefaultLauncher
 import com.parem.launcher.helper.isEinkDisplay
@@ -38,12 +37,9 @@ import com.parem.launcher.helper.resetLauncherViaFakeActivity
 import com.parem.launcher.helper.setPlainWallpaper
 import com.parem.launcher.helper.showLauncherSelector
 import com.parem.launcher.helper.showToast
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -141,7 +137,6 @@ class MainActivity : AppCompatActivity() {
             viewModel.firstOpen(true)
             prefs.firstOpen = false
             prefs.firstOpenTime = System.currentTimeMillis()
-            prefs.launcherRestartTimestamp = System.currentTimeMillis()
             viewModel.setDefaultClockApp()
             viewModel.resetLauncherLiveData.call()
         }
@@ -168,7 +163,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         try { appWidgetHost.startListening() } catch (e: Exception) { Log.e("MainActivity", "Widget host error", e) }
-        restartLauncherOrCheckTheme()
+        checkTheme()
     }
 
     override fun onStop() {
@@ -267,23 +262,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun restartLauncherOrCheckTheme(forceRestart: Boolean = false) {
-        // PAREM-108 phase 1: the periodic 4-hour recreate + cacheDir wipe is gated
-        // behind prefs.periodicSelfRecreateEnabled (default ON, unchanged behavior).
-        // checkTheme()'s forced recreate on wrong colors is a separate mechanism and
-        // always runs regardless of this pref.
-        if (forceRestart || (prefs.periodicSelfRecreateEnabled && prefs.launcherRestartTimestamp.hasBeenHours(4))) {
-            prefs.launcherRestartTimestamp = System.currentTimeMillis()
-            lifecycleScope.launch(Dispatchers.IO) {
-                try { cacheDir.deleteRecursively() } catch (_: Exception) {}
-                withContext(Dispatchers.Main + NonCancellable) {
-                    recreate()
-                }
-            }
-        } else
-            checkTheme()
-    }
-
+    // PAREM-108 phase 3: the inherited Olauncher 4-hour self-recreate +
+    // cacheDir wipe is gone. This force-recreate on wrong resolved theme
+    // colors is a separate mechanism and stays.
     private fun checkTheme() {
         timerJob?.cancel()
         timerJob = lifecycleScope.launch {
@@ -292,7 +273,7 @@ class MainActivity : AppCompatActivity() {
                 || (prefs.appTheme == AppCompatDelegate.MODE_NIGHT_NO && getColorFromAttr(R.attr.primaryColor) != getColor(R.color.black))
             ) {
                 if (themeCheckRetries++ < 2)
-                    restartLauncherOrCheckTheme(true)
+                    recreate()
             } else {
                 themeCheckRetries = 0
             }

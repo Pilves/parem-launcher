@@ -70,11 +70,10 @@ listener/
 ## Traps a new maintainer should know
 
 1. **The invisible `lock` view is load-bearing.** `HomeFragment`'s `R.id.lock -> {}` click handler looks dead but isn't: clicking that FrameLayout emits an accessibility event which `MyAccessibilityService` matches *by contentDescription* to run `GLOBAL_ACTION_LOCK_SCREEN`. Renaming `lock_layout_description` or removing the view breaks double-tap-to-lock on Android 9+.
-2. **The launcher recreates itself every 4 hours** (`MainActivity.restartLauncherOrCheckTheme`) and deletes `cacheDir` when it does — an inherited Olauncher stability hack. `checkTheme()` also force-recreates if resolved theme colors look wrong (unaffected by the pref below). If you see mysterious recreates, look here. As of PAREM-108 phase 1, the 4-hour path is gated behind `prefs.periodicSelfRecreateEnabled` (default ON, hidden/code-settable only).
-3. **Widget IDs are stateful three ways**: the AppWidgetHost allocation, `prefs.widgetIds` (CSV), and `prefs.widgetProviders` (id:component map used to re-bind widgets that the OS invalidated). `HomeWidgetController.restoreWidgets()` reconciles them; keep all three in sync when touching widget code.
-4. **`FLAG_SET_HOME_APP_1..8` are the literal ints 1..8**, and the app-drawer "rename" path writes `prefs.setHomeAppName(flag, …)` using the flag as the slot number.
-5. **Screen-time numbers come from `helper/usageStats/`**, a hand-rolled UsageEvents aggregator (see `UnmatchedCloseEventGuardian`), not `queryUsageStats` — Android's summary API is wildly inaccurate.
-6. **The app list is cached against a package-change stamp** (`helper/PackageChangeTracker`); any new cache of package-derived data must check that stamp too — bypassing the tracker will serve stale data after installs/uninstalls/updates.
+2. **Widget IDs are stateful three ways**: the AppWidgetHost allocation, `prefs.widgetIds` (CSV), and `prefs.widgetProviders` (id:component map used to re-bind widgets that the OS invalidated). `HomeWidgetController.restoreWidgets()` reconciles them; keep all three in sync when touching widget code.
+3. **`FLAG_SET_HOME_APP_1..8` are the literal ints 1..8**, and the app-drawer "rename" path writes `prefs.setHomeAppName(flag, …)` using the flag as the slot number.
+4. **Screen-time numbers come from `helper/usageStats/`**, a hand-rolled UsageEvents aggregator (see `UnmatchedCloseEventGuardian`), not `queryUsageStats` — Android's summary API is wildly inaccurate.
+5. **The app list is cached against a package-change stamp** (`helper/PackageChangeTracker`); any new cache of package-derived data must check that stamp too — bypassing the tracker will serve stale data after installs/uninstalls/updates.
 
 ## Build & release
 
@@ -106,7 +105,6 @@ After an AGP upgrade, re-copy the new aapt2 binary — the override pins a speci
   beyond that (by design — the home screen stays quiet).
 - `Constants.URL_ABOUT_PAREM` / `URL_PAREM_PRIVACY` / `URL_DOUBLE_TAP` are empty; their settings rows are hidden until filled in.
 - Gesture-letter drawing and swipe gestures both see the same touch stream; a fast letter draw can also register as a swipe.
-- The 4-hour self-recreate + cacheDir wipe in MainActivity is inherited from Olauncher and unproven; candidates for removal after long on-device observation.
 - Onboarding pager rebuilds its views on every bind (one-time screen, cosmetic).
 - JVM unit tests exist only for pure logic (`app/src/test`: evaluator, search
   matcher, sunrise calculator — `./gradlew testDebugUnitTest`); everything

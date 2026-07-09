@@ -358,7 +358,7 @@ orientation-locked (`MainActivity.setupOrientation` skips them).
 
 ## Long-running / observation
 
-### [ ] PAREM-108 — Put the 4-hour self-recreate behind a pref, observe, then remove
+### [x] PAREM-108 — Put the 4-hour self-recreate behind a pref, observe, then remove
 
 **Priority:** P3 · **Estimate:** small code change + weeks of observation
 **Type:** Experiment
@@ -382,6 +382,12 @@ stability hack, unproven, and a listed trap in ARCHITECTURE.md.
 3. Full build green.
 
 **Observation log:** phase 1 landed 2026-07-07, pref default ON.
+2026-07-09: Patric opted to skip the observation window and remove the hack
+directly (phase 3); validation happens through normal daily use of the
+debug build. The two pref keys stay registered in Prefs for old-export
+import compatibility. Trap #2 removed from ARCHITECTURE.md (traps renumbered).
+NOTE: the unmerged feat/omnibox-contact-search branch adds a hidden settings
+row for the now-dead pref — drop that row when that branch is picked up.
 
 ---
 
