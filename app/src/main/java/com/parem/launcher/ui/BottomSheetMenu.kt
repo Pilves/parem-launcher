@@ -1,7 +1,9 @@
 package com.parem.launcher.ui
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
@@ -10,6 +12,22 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.R
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
+
+/**
+ * The sheet frame behind a rounded-corner content view must be transparent,
+ * or the frame's own background fills the corners back in as square.
+ */
+fun BottomSheetDialog.transparentSheetFrame() {
+    findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+        ?.setBackgroundColor(Color.TRANSPARENT)
+}
+
+/** Resolves the theme's selectableItemBackground for tap ripple on sheet rows. */
+internal fun Context.selectableBackgroundRes(): Int {
+    val tv = TypedValue()
+    theme.resolveAttribute(android.R.attr.selectableItemBackground, tv, true)
+    return tv.resourceId
+}
 
 /**
  * Builder for the app's standard bottom-sheet menus: drag handle, optional
@@ -21,7 +39,7 @@ class BottomSheetMenu(private val context: Context) {
     private val dialog = BottomSheetDialog(context)
     private val container = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
-        setBackgroundColor(context.getColorFromAttr(R.attr.primaryInverseColor))
+        setBackgroundResource(R.drawable.bg_bottom_sheet)
         setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
         addView(View(context).apply {
             layoutParams = LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
@@ -62,6 +80,7 @@ class BottomSheetMenu(private val context: Context) {
                 context.getColorFromAttr(if (dimmed) R.attr.primaryColorTrans50 else R.attr.primaryColor)
             )
             setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
+            setBackgroundResource(context.selectableBackgroundRes())
             setOnClickListener {
                 dialog.dismiss()
                 onClick()
@@ -82,6 +101,7 @@ class BottomSheetMenu(private val context: Context) {
 
     fun show(): BottomSheetDialog {
         dialog.setContentView(container)
+        dialog.transparentSheetFrame()
         dialog.show()
         return dialog
     }
