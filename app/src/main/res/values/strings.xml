@@ -305,4 +305,8 @@
 
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_get_started">Get Started</string>
+
+    <string name="screen_time_week_title" translatable="false">Screen time \u2014 last 7 days</string>
+    <string name="top_apps_week" translatable="false">Top apps this week</string>
+    <string name="daily_average" translatable="false">%1$s/day average</string>
 </resources>

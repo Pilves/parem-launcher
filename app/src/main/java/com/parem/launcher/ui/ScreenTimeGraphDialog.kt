@@ -1,18 +1,19 @@
 package com.parem.launcher.ui
 
 import android.content.Context
+import android.graphics.Typeface
 import android.os.Build
-import android.os.Bundle
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.parem.launcher.R
+import com.parem.launcher.helper.AppIconCache
+import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.dpToPx
+import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.usageStats.EventLogWrapper
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import android.content.DialogInterface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,81 +25,93 @@ import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * A BottomSheetDialog that displays a 7-day screen time graph.
- * Fetches usage data via EventLogWrapper on a background thread.
+ * Bottom sheet showing a 7-day screen time graph plus the week's most-used
+ * apps (icon, name, weekly total). Usage data loads via EventLogWrapper on a
+ * background thread after the sheet is visible.
  */
-class ScreenTimeGraphDialog(context: Context) : BottomSheetDialog(context) {
+class ScreenTimeGraphDialog(private val context: Context) {
 
     companion object {
-        // Completed days' totals can never change, so each historical day is
-        // scanned once per process life and only today is re-scanned on open
-        // (previously every open ran seven full-day scans). Keyed by the day's
-        // start-of-day millis, not its offset, so entries stay correct across
-        // midnight. Deliberately not persisted: prefs would leak into the
-        // settings export.
-        private val completedDayTotals = ConcurrentHashMap<Long, Long>()
+        // Completed days can never change, so each historical day's per-app
+        // map is scanned once per process life and only today is re-scanned
+        // on open. Per-app maps (not bare totals) so the weekly top-apps list
+        // costs nothing extra: a day's total is just the map's value sum.
+        // Keyed by the day's start-of-day millis, not its offset, so entries
+        // stay correct across midnight. Deliberately not persisted: prefs
+        // would leak into the settings export.
+        private val completedDayStats = ConcurrentHashMap<Long, Map<String, Long>>()
+
+        private const val TOP_APPS_COUNT = 7
     }
 
     private var loadJob: Job? = null
-    private lateinit var graphView: ScreenTimeGraphView
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        val bgColor = context.getColorFromAttr(R.attr.primaryInverseColor)
-        val textColor = context.getColorFromAttr(R.attr.primaryColor)
-
-        val container = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(16.dpToPx(), 16.dpToPx(), 16.dpToPx(), 16.dpToPx())
-            setBackgroundColor(bgColor)
-        }
-
-        val titleView = TextView(context).apply {
-            text = "Screen Time - Last 7 Days"
-            textSize = 18f
-            setTextColor(textColor)
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            gravity = Gravity.START
-            setPadding(0, 0, 0, 16.dpToPx())
-        }
-        container.addView(titleView)
-
-        graphView = ScreenTimeGraphView(context).apply {
+    fun show() {
+        val graphView = ScreenTimeGraphView(context).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 200.dpToPx()
-            )
+            ).apply {
+                marginStart = 12.dpToPx()
+                marginEnd = 12.dpToPx()
+            }
         }
-        container.addView(graphView)
+        val averageView = TextView(context).apply {
+            textSize = 12f
+            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            gravity = Gravity.END
+            setPadding(24.dpToPx(), 2.dpToPx(), 24.dpToPx(), 4.dpToPx())
+        }
+        // Header + rows are added here only once data lands, so a missing
+        // usage permission shows a plain graph sheet, not a dangling header
+        val topAppsColumn = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+        }
 
-        setContentView(container)
+        BottomSheetMenu(context)
+            .title(context.getString(R.string.screen_time_week_title))
+            .customView(graphView)
+            .customView(averageView)
+            .customView(topAppsColumn)
+            .onDismiss { loadJob?.cancel() }
+            .show()
 
-        loadData()
+        loadData(graphView, averageView, topAppsColumn)
     }
 
-    private fun loadData() {
+    private fun loadData(
+        graphView: ScreenTimeGraphView,
+        averageView: TextView,
+        topAppsColumn: LinearLayout,
+    ) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
         if (!context.appUsagePermissionGranted()) return
 
         val appContext = context.applicationContext
         loadJob = CoroutineScope(Dispatchers.Main + Job()).launch {
-            val data = withContext(Dispatchers.IO) {
+            data class WeekData(
+                val days: List<Pair<String, Long>>,
+                val topApps: List<Triple<String, String, Long>>, // pkg, label, ms
+                val weekTotalMs: Long,
+            )
+
+            val week = withContext(Dispatchers.IO) {
                 val wrapper = EventLogWrapper(appContext)
                 val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
                 val calendar = Calendar.getInstance()
                 val now = System.currentTimeMillis()
 
-                fun scanDay(dayStart: Long, dayEnd: Long): Long {
-                    val foregroundStats = wrapper.getForegroundStatsByTimestamps(dayStart, dayEnd)
-                    val aggregated = wrapper.aggregateForegroundStats(foregroundStats)
-                    return wrapper.aggregateSimpleUsageStats(aggregated)
-                }
+                fun scanDayPerApp(dayStart: Long, dayEnd: Long): Map<String, Long> =
+                    wrapper.aggregateForegroundStats(
+                        wrapper.getForegroundStatsByTimestamps(dayStart, dayEnd)
+                    )
+                        .groupBy { it.applicationId }
+                        .mapValues { (_, stats) -> stats.sumOf { it.timeUsed } }
 
-                val result = mutableListOf<Pair<String, Long>>()
+                val days = mutableListOf<Pair<String, Long>>()
+                val weekly = mutableMapOf<String, Long>()
 
                 for (offset in 6 downTo 0) {
-                    // Get the day abbreviation
                     calendar.timeInMillis = now
                     calendar.add(Calendar.DAY_OF_YEAR, -offset)
                     val dayLabel = dayFormat.format(calendar.time)
@@ -113,29 +126,89 @@ class ScreenTimeGraphDialog(context: Context) : BottomSheetDialog(context) {
                     calendar.add(Calendar.DAY_OF_YEAR, 1)
                     val dayEnd = calendar.timeInMillis
 
-                    val totalMs = if (offset == 0) {
-                        scanDay(dayStart, dayEnd)
+                    val perApp = if (offset == 0) {
+                        // Today rides the shared 60s cache all other screen-time
+                        // consumers use instead of running its own scan
+                        UsageStatsHelper.getPerAppUsageToday(appContext)
                     } else {
-                        completedDayTotals.getOrPut(dayStart) { scanDay(dayStart, dayEnd) }
+                        completedDayStats.getOrPut(dayStart) { scanDayPerApp(dayStart, dayEnd) }
                     }
 
-                    result.add(Pair(dayLabel, totalMs))
+                    days.add(Pair(dayLabel, perApp.values.sum()))
+                    for ((pkg, ms) in perApp) {
+                        weekly[pkg] = (weekly[pkg] ?: 0L) + ms
+                    }
                 }
 
-                result
+                val pm = appContext.packageManager
+                val topApps = weekly.entries
+                    .sortedByDescending { it.value }
+                    .asSequence()
+                    .mapNotNull { (pkg, ms) ->
+                        // Uninstalled apps drop out of the list rather than
+                        // showing a bare package name with no icon
+                        try {
+                            val label = pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
+                            Triple(pkg, label, ms)
+                        } catch (_: Exception) {
+                            null
+                        }
+                    }
+                    .take(TOP_APPS_COUNT)
+                    .toList()
+
+                WeekData(days, topApps, days.sumOf { it.second })
             }
 
-            graphView.setData(data)
+            graphView.setData(week.days)
+            averageView.text = context.getString(
+                R.string.daily_average,
+                context.formattedTimeSpent(week.weekTotalMs / 7)
+            )
+            populateTopApps(topAppsColumn, week.topApps)
         }
     }
 
-    override fun onStop() {
-        loadJob?.cancel()
-        super.onStop()
-    }
+    private fun populateTopApps(column: LinearLayout, topApps: List<Triple<String, String, Long>>) {
+        column.removeAllViews()
+        if (topApps.isEmpty()) return
 
-    override fun dismiss() {
-        loadJob?.cancel()
-        super.dismiss()
+        val header = TextView(context).apply {
+            text = context.getString(R.string.top_apps_week)
+            textSize = 14f
+            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTypeface(null, Typeface.BOLD)
+            setPadding(24.dpToPx(), 12.dpToPx(), 24.dpToPx(), 8.dpToPx())
+        }
+        column.addView(header)
+
+        val iconSize = 20.dpToPx()
+        for ((pkg, label, ms) in topApps) {
+            val row = LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 8.dpToPx())
+            }
+            val nameView = TextView(context).apply {
+                text = label
+                textSize = 16f
+                setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+                isSingleLine = true
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                AppIconCache.get(context, pkg)?.let { icon ->
+                    icon.setBounds(0, 0, iconSize, iconSize)
+                    setCompoundDrawablesRelative(icon, null, null, null)
+                    compoundDrawablePadding = 12.dpToPx()
+                }
+            }
+            row.addView(nameView)
+            val timeView = TextView(context).apply {
+                text = context.formattedTimeSpent(ms)
+                textSize = 14f
+                setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            }
+            row.addView(timeView)
+            column.addView(row)
+        }
     }
 }
