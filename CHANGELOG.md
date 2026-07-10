@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Fixed: importing exported settings did nothing — leaving the launcher for
+  the file picker (or any settings-launched dialog) popped the settings
+  screen behind it, so the picked file's result had nowhere to return to.
+  Pressing home still resets to the home screen
 - Omnibox: opt-in contact search. Turn on "Contact search" under Home Screen
   settings (grants Contacts access when you enable it) and the drawer surfaces
   a matching contact to call — apps still list first. Off by default; the

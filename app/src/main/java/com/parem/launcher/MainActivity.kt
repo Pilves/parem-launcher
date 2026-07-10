@@ -171,11 +171,12 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
     }
 
-    override fun onUserLeaveHint() {
-        backToHomeScreen()
-        super.onUserLeaveHint()
-    }
-
+    // Deliberately NOT popping to home in onUserLeaveHint: that hint also fires
+    // when a settings row launches an activity for a result (settings import's
+    // document picker, the contact-permission prompt), and popping destroys the
+    // fragment whose ActivityResult callback the result must come back to — the
+    // result then vanishes silently. Pressing home always lands in onNewIntent
+    // (singleTask HOME activity), which covers the "reset to home screen" intent.
     override fun onNewIntent(intent: Intent?) {
         backToHomeScreen()
         super.onNewIntent(intent)
