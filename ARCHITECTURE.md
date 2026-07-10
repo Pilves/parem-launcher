@@ -13,11 +13,21 @@ MainViewModel.kt           Shared across all fragments (activity-scoped). App li
                            WorkManager scheduling, and selectedApp(flag) dispatch.
 
 ui/
-  HomeFragment.kt          Home screen: pinned apps, clock/date, gestures, folders,
-                           dynamic fitting of app rows.
+  HomeFragment.kt          Home screen shell: lifecycle, observers, click/long-press
+                           dispatch, navigation, status bar. Constructs and wires
+                           the home/ controllers and HomeWidgetController.
   HomeWidgetController.kt  The entire multi-widget system (pick/bind/configure/
                            restore/resize/reorder/remove). Created in
                            HomeFragment.onViewCreated, released in onDestroyView.
+  home/                    One class per home-screen concern, mirroring
+                           HomeWidgetController's shape (fragment/binding/prefs/
+                           viewModel in the constructor, isActive()-guarded async):
+                           HomeSlotsController (the 8 app slots, dynamic fitting +
+                           homeAppsCapacity publishing, slot menus, folders,
+                           launch/limit-check flows), HomeGesturesController
+                           (swipe/touch listeners, gesture-letter overlay, gesture
+                           actions, torch, lock), HomeClockController (date/time/
+                           weather rendering, clock/calendar taps, screen-time row).
   AppDrawerFragment.kt     App list + omnibox search (apps / calculator / unit
                            conversion / dial / web / contact). The active mode
                            is a single OmniboxMode (sealed, declared here).
@@ -80,7 +90,7 @@ listener/
 
 ## Traps a new maintainer should know
 
-1. **The invisible `lock` view is load-bearing.** `HomeFragment`'s `R.id.lock -> {}` click handler looks dead but isn't: clicking that FrameLayout emits an accessibility event which `MyAccessibilityService` matches *by contentDescription* to run `GLOBAL_ACTION_LOCK_SCREEN`. Renaming `lock_layout_description` or removing the view breaks double-tap-to-lock on Android 9+.
+1. **The invisible `lock` view is load-bearing.** `HomeFragment`'s `R.id.lock -> {}` click handler looks dead but isn't: `HomeGesturesController.lockPhone()` calls `binding.lock.performClick()`, and clicking that FrameLayout emits an accessibility event which `MyAccessibilityService` matches *by contentDescription* to run `GLOBAL_ACTION_LOCK_SCREEN`. Renaming `lock_layout_description` or removing the view (or its no-op handler) breaks double-tap-to-lock on Android 9+.
 2. **Widget IDs are stateful three ways**: the AppWidgetHost allocation, `prefs.widgetIds` (CSV), and `prefs.widgetProviders` (id:component map used to re-bind widgets that the OS invalidated). `HomeWidgetController.restoreWidgets()` reconciles them; keep all three in sync when touching widget code.
 3. **`FLAG_SET_HOME_APP_1..8` are the literal ints 1..8**, and the app-drawer "rename" path writes `prefs.setHomeAppName(flag, …)` using the flag as the slot number.
 4. **Screen-time numbers come from `helper/usageStats/`**, a hand-rolled UsageEvents aggregator (see `UnmatchedCloseEventGuardian`), not `queryUsageStats` — Android's summary API is wildly inaccurate.

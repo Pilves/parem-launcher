@@ -1,108 +1,46 @@
 package com.parem.launcher.ui
 
-import android.app.admin.DevicePolicyManager
-import android.content.Context
-import android.content.Intent
-import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
-import android.text.Spannable
-import android.text.SpannableString
-import android.text.style.ForegroundColorSpan
 import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
-import android.widget.TextView
-import android.widget.Toast
-import androidx.annotation.RequiresApi
-import androidx.core.graphics.ColorUtils
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.parem.launcher.MainActivity
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
-import com.parem.launcher.data.AppModel
-import com.parem.launcher.data.FolderApp
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
-import com.parem.launcher.helper.appUsagePermissionGranted
-import com.parem.launcher.helper.dpToPx
-import com.parem.launcher.helper.getColorFromAttr
-import com.parem.launcher.helper.expandNotificationDrawer
-import com.parem.launcher.helper.getAppsList
-import com.parem.launcher.helper.getUserHandleFromString
-import com.parem.launcher.helper.isPackageInstalledCached
-import com.parem.launcher.helper.openAlarmApp
-import com.parem.launcher.helper.openCalendar
-import com.parem.launcher.helper.openCameraApp
-import com.parem.launcher.helper.openDialerApp
-import com.parem.launcher.helper.openSearch
-import com.parem.launcher.helper.showToast
-import com.parem.launcher.listener.OnSwipeTouchListener
-import com.parem.launcher.listener.ViewSwipeTouchListener
-import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.FocusModeManager
-import com.parem.launcher.helper.FolderManager
-import com.parem.launcher.helper.GestureLetterManager
-import com.parem.launcher.helper.IconPackManager
-import com.parem.launcher.helper.isAccessServiceEnabled
-import com.parem.launcher.helper.AppIconCache
-import com.parem.launcher.helper.AppLimitManager
-import com.parem.launcher.helper.UsageStatsHelper
-import com.parem.launcher.helper.SwipeUpAppManager
-import com.parem.launcher.helper.WeatherManager
-import com.parem.launcher.helper.WeatherStaleness
-import com.parem.launcher.ui.ScreenTimeGraphDialog
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.coroutines.Dispatchers
+import com.parem.launcher.helper.showToast
+import com.parem.launcher.ui.home.HomeClockController
+import com.parem.launcher.ui.home.HomeGesturesController
+import com.parem.launcher.ui.home.HomeSlotsController
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener {
 
     private lateinit var prefs: Prefs
     private lateinit var viewModel: MainViewModel
-    private lateinit var deviceManager: DevicePolicyManager
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
-    private var screenTouchListener: OnSwipeTouchListener? = null
-    private val viewTouchListeners = mutableListOf<ViewSwipeTouchListener>()
-    private lateinit var folderManager: FolderManager
-    private var flashlightOn: Boolean = false
-    private var torchCallback: android.hardware.camera2.CameraManager.TorchCallback? = null
 
-    private var widgetController: HomeWidgetController? = null
-
-    // The 8 slot views, gathered once per view lifecycle so slot logic loops
-    // instead of repeating per-view lines eight times
-    private var homeAppViews: List<TextView> = emptyList()
-
-    companion object {
-        private var cachedLocale: Locale? = null
-        private var dateFormatter: DateTimeFormatter? = null
-        fun getDateFormatter(): DateTimeFormatter {
-            val current = Locale.getDefault()
-            if (current != cachedLocale || dateFormatter == null) {
-                cachedLocale = current
-                dateFormatter = DateTimeFormatter.ofPattern("EEE, d MMM", current)
-            }
-            return dateFormatter!!
-        }
-    }
+    internal var widgetController: HomeWidgetController? = null
+        private set
+    internal var slotsController: HomeSlotsController? = null
+        private set
+    internal var gesturesController: HomeGesturesController? = null
+        private set
+    internal var clockController: HomeClockController? = null
+        private set
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
@@ -112,42 +50,28 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         prefs = Prefs(requireContext())
-        folderManager = FolderManager(requireContext())
         viewModel = activity?.run {
             ViewModelProvider(this)[MainViewModel::class.java]
         } ?: throw Exception("Invalid Activity")
 
-        deviceManager = context?.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-        homeAppViews = listOf(
-            binding.homeApp1, binding.homeApp2, binding.homeApp3, binding.homeApp4,
-            binding.homeApp5, binding.homeApp6, binding.homeApp7, binding.homeApp8
-        )
+        slotsController = HomeSlotsController(this, binding, prefs, viewModel)
+        gesturesController = HomeGesturesController(this, binding, prefs, viewModel)
+        clockController = HomeClockController(this, binding, prefs, viewModel)
 
         widgetController = HomeWidgetController(this, binding, prefs)
         // Widgets are restored asynchronously; re-fit the app rows once their
         // heights are real, otherwise apps overflow behind the widgets
         widgetController?.onWidgetsChanged = {
-            if (isAdded && _binding != null) populateHomeScreen(false)
+            if (isAdded && _binding != null) slotsController?.populateHomeScreen(false)
         }
 
-        // Track the real torch state so toggleFlashlight() can't desync when
-        // another app (or quick settings) switches the torch
-        try {
-            val cameraManager = requireContext().getSystemService(Context.CAMERA_SERVICE) as android.hardware.camera2.CameraManager
-            torchCallback = object : android.hardware.camera2.CameraManager.TorchCallback() {
-                override fun onTorchModeChanged(cameraId: String, enabled: Boolean) {
-                    flashlightOn = enabled
-                }
-            }.also { cameraManager.registerTorchCallback(it, null) }
-        } catch (e: Exception) {
-            Log.e("HomeFragment", "Failed to register torch callback", e)
-        }
+        gesturesController?.registerTorchCallback()
 
         initObservers()
-        setHomeAlignment(prefs.homeAlignment)
-        initSwipeTouchListener()
+        slotsController?.setHomeAlignment(prefs.homeAlignment)
+        gesturesController?.initSwipeTouchListener()
         initClickListeners()
-        initGestureLetterOverlay()
+        gesturesController?.initGestureLetterOverlay()
         viewLifecycleOwner.lifecycleScope.launch {
             widgetController?.restoreWidgets()
         }
@@ -162,30 +86,30 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         super.onResume()
         // Cancel any pending long-press timers from before the app was backgrounded
         widgetController?.cancelPendingLongPresses()
-        populateHomeScreen(false)
+        slotsController?.populateHomeScreen(false)
         viewModel.isParemDefault()
         if (prefs.showStatusBar) showStatusBar()
         else hideStatusBar()
         FocusModeManager.checkAndExpire(requireContext())
         viewModel.getWeather()
-        updateGestureLetterOverlay()
+        gesturesController?.updateGestureLetterOverlay()
     }
 
     override fun onClick(view: View) {
         when (view.id) {
             // The lock view must stay clickable but do nothing here: clicking it emits the
             // accessibility event MyAccessibilityService matches (by contentDescription) to
-            // perform GLOBAL_ACTION_LOCK_SCREEN. See lockPhone().
+            // perform GLOBAL_ACTION_LOCK_SCREEN. See HomeGesturesController.lockPhone().
             R.id.lock -> {}
-            R.id.clock -> openClockApp()
-            R.id.date -> openCalendarApp()
+            R.id.clock -> clockController?.openClockApp()
+            R.id.date -> clockController?.openCalendarApp()
             R.id.setDefaultLauncher -> viewModel.resetLauncherLiveData.call()
-            R.id.tvScreenTime -> openScreenTimeDigitalWellbeing()
+            R.id.tvScreenTime -> clockController?.openScreenTimeDigitalWellbeing()
 
             else -> {
                 try { // Launch app
                     val appLocation = view.tag.toString().toInt()
-                    homeAppClicked(appLocation)
+                    slotsController?.homeAppClicked(appLocation)
                 } catch (e: Exception) {
                     Log.e("HomeFragment", "Failed to launch app", e)
                 }
@@ -193,34 +117,11 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         }
     }
 
-    private fun openClockApp() {
-        if (prefs.clockAppPackage.isBlank())
-            openAlarmApp(requireContext())
-        else
-            launchApp(
-                "Clock",
-                prefs.clockAppPackage,
-                prefs.clockAppClassName,
-                prefs.clockAppUser
-            )
-    }
-
-    private fun openCalendarApp() {
-        if (prefs.calendarAppPackage.isBlank())
-            openCalendar(requireContext())
-        else
-            launchApp(
-                "Calendar",
-                prefs.calendarAppPackage,
-                prefs.calendarAppClassName,
-                prefs.calendarAppUser
-            )
-    }
-
     override fun onLongClick(view: View): Boolean {
+        val homeAppViews = slotsController?.homeAppViews.orEmpty()
         val slot = homeAppViews.indexOf(view) + 1
         if (slot in 1..homeAppViews.size) {
-            showHomeSlotMenu(slot)
+            slotsController?.showHomeSlotMenu(slot)
             return true
         }
         when (view.id) {
@@ -244,7 +145,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
     private fun initObservers() {
         viewModel.refreshHome.observe(viewLifecycleOwner) {
-            populateHomeScreen(it)
+            slotsController?.populateHomeScreen(it)
             if (widgetController?.needsRestore() == true) {
                 viewLifecycleOwner.lifecycleScope.launch { widgetController?.restoreWidgets() }
             }
@@ -256,31 +157,22 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                     viewModel.cancelWallpaperWorker()
                 }
                 prefs.homeBottomAlignment = false
-                setHomeAlignment()
+                slotsController?.setHomeAlignment()
             }
             binding.setDefaultLauncher.isVisible = it.not() && prefs.hideSetDefaultLauncher.not()
         }
         viewModel.homeAppAlignment.observe(viewLifecycleOwner) {
-            setHomeAlignment(it)
+            slotsController?.setHomeAlignment(it)
         }
         viewModel.toggleDateTime.observe(viewLifecycleOwner) {
-            populateDateTime()
+            clockController?.populateDateTime()
         }
         viewModel.screenTimeValue.observe(viewLifecycleOwner) {
             it?.let { binding.tvScreenTime.text = it }
         }
         viewModel.weatherValue.observe(viewLifecycleOwner) {
-            populateDateTime()
+            clockController?.populateDateTime()
         }
-    }
-
-    private fun initSwipeTouchListener() {
-        val context = requireContext()
-        viewTouchListeners.forEach { it.cleanup() }
-        viewTouchListeners.clear()
-        screenTouchListener = getSwipeGestureListener(context)
-        binding.mainLayout.setOnTouchListener(screenTouchListener)
-        homeAppViews.forEach { it.setOnTouchListener(getViewSwipeTouchListener(context, it)) }
     }
 
     private fun initClickListeners() {
@@ -294,251 +186,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         binding.tvScreenTime.setOnClickListener(this)
     }
 
-    private fun setHomeAlignment(horizontalGravity: Int = prefs.homeAlignment) {
-        val verticalGravity = if (prefs.homeBottomAlignment) Gravity.BOTTOM else Gravity.CENTER_VERTICAL
-        binding.homeAppsLayout.gravity = horizontalGravity or verticalGravity
-        binding.dateTimeLayout.gravity = horizontalGravity
-        homeAppViews.forEach { it.gravity = horizontalGravity }
-    }
-
-    private fun populateDateTime() {
-        binding.dateTimeLayout.isVisible = prefs.dateTimeVisibility != Constants.DateTime.OFF
-        binding.clock.isVisible = Constants.DateTime.isTimeVisible(prefs.dateTimeVisibility)
-        binding.date.isVisible = Constants.DateTime.isDateVisible(prefs.dateTimeVisibility)
-
-        val rawWeatherTemp = WeatherManager.getDisplayString(requireContext())
-        val staleness = WeatherManager.getStaleness(requireContext())
-        // Older than 24h: hide entirely rather than show a silently stale reading.
-        val weatherTemp = if (staleness == WeatherStaleness.Level.EXPIRED) "" else rawWeatherTemp
-
-        var dateText = LocalDate.now().format(getDateFormatter())
-        if (weatherTemp.isNotEmpty()) dateText = "$weatherTemp  $dateText"
-
-        if (!prefs.showStatusBar) {
-            val ctx = requireContext()
-            val batteryIntent = ctx.registerReceiver(null, android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-            val battery = batteryIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
-            if (battery > 0)
-                dateText = getString(R.string.day_battery, dateText, battery)
-        }
-        val displayDate = dateText.replace(".,", ",")
-
-        // 3h-24h old: dim just the temperature portion (~50% alpha) so it
-        // reads as visibly untrusted without a toast or layout change.
-        if (weatherTemp.isNotEmpty() && staleness == WeatherStaleness.Level.STALE) {
-            val dimmedColor = ColorUtils.setAlphaComponent(binding.date.currentTextColor, 128)
-            val spannable = SpannableString(displayDate)
-            spannable.setSpan(
-                ForegroundColorSpan(dimmedColor),
-                0,
-                weatherTemp.length,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-            binding.date.text = spannable
-        } else {
-            binding.date.text = displayDate
-        }
-        binding.date.contentDescription = displayDate
-        binding.clock.contentDescription = binding.clock.text
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun populateScreenTime() {
-        if (requireContext().appUsagePermissionGranted().not()) return
-
-        viewModel.getTodaysScreenTime()
-        binding.tvScreenTime.visibility = View.VISIBLE
-    }
-
-    private fun populateHomeScreen(appCountUpdated: Boolean) {
-        if (appCountUpdated) hideHomeApps()
-        populateDateTime()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-            populateScreenTime()
-
-        val homeAppsNum = prefs.homeAppsNum.coerceAtMost(homeAppViews.size)
-
-        for (i in 0 until homeAppsNum) {
-            val slot = i + 1
-            val view = homeAppViews[i]
-            view.visibility = View.VISIBLE
-
-            if (folderManager.isFolderSlot(slot)) {
-                val folder = folderManager.getFolderGroup(slot)
-                view.text = folder?.name ?: ""
-                view.contentDescription = folder?.name ?: getString(R.string.long_press_to_select_app)
-            } else {
-                val appName = prefs.getHomeAppName(slot)
-                if (!setHomeAppText(view, appName, prefs.getHomeAppPackage(slot), prefs.getHomeAppUser(slot))) {
-                    prefs.setHomeAppName(slot, "")
-                    prefs.setHomeAppPackage(slot, "")
-                }
-                view.contentDescription = appName.ifEmpty { getString(R.string.long_press_to_select_app) }
-            }
-        }
-
-        // Dynamic fitting: adjust padding to clear date/time, then hide overflow apps
-        if (homeAppsNum > 0) {
-            binding.homeAppsLayout.post {
-                if (!isAdded || _binding == null) return@post
-                val layout = binding.homeAppsLayout
-
-                // Adjust top padding to clear the dateTimeLayout
-                val dtLayout = binding.dateTimeLayout
-                val minTopPadding = if (dtLayout.isVisible) {
-                    (dtLayout.top + dtLayout.height + (8 * resources.displayMetrics.density).toInt())
-                } else {
-                    (56 * resources.displayMetrics.density).toInt()
-                }
-                if (layout.paddingTop != minTopPadding) {
-                    layout.setPadding(layout.paddingLeft, minTopPadding, layout.paddingRight, layout.paddingBottom)
-                }
-
-                // Landscape: the widget column clears the clock dynamically too,
-                // so widgets start straight below it instead of at a fixed guess.
-                // In portrait the scroll views live inside homeAppsLayout and the
-                // guard skips this.
-                (binding.widgetScrollViewAbove?.parent as? ViewGroup)
-                    ?.takeIf { it !== layout }
-                    ?.let { column ->
-                        if (column.paddingTop != minTopPadding)
-                            column.setPadding(column.paddingLeft, minTopPadding, column.paddingRight, column.paddingBottom)
-                    }
-
-                // Run fitting after the padding change has been laid out
-                layout.post fitApps@{
-                    if (!isAdded || _binding == null) return@fitApps
-
-                    val availableHeight = layout.height - layout.paddingTop - layout.paddingBottom
-                    if (availableHeight <= 0) return@fitApps
-
-                    // Subtract widget container height — but only when the widgets
-                    // actually share this vertical column (portrait). The landscape
-                    // layout puts them in their own column beside the apps, where
-                    // their height must not shrink the app rows.
-                    val activeWidgetScroll =
-                        if (prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE)
-                            binding.widgetScrollViewAbove
-                        else
-                            binding.widgetScrollViewBelow
-                    val widgetHeight = activeWidgetScroll
-                        ?.takeIf { it.isVisible && it.parent === layout }
-                        ?.height ?: 0
-
-                    val usableHeight = availableHeight - widgetHeight
-                    if (usableHeight <= 0) return@fitApps
-
-                    // Measure height of a single app view
-                    val firstVisible = homeAppViews.firstOrNull { it.isVisible }
-                    val singleAppHeight = firstVisible?.height ?: return@fitApps
-                    if (singleAppHeight <= 0) return@fitApps
-
-                    val maxFitting = usableHeight / singleAppHeight
-                    viewModel.homeAppsCapacity = maxFitting.coerceIn(1, 8)
-                    if (maxFitting < homeAppsNum) {
-                        // Hide excess apps from the bottom
-                        for (j in homeAppViews.indices.reversed()) {
-                            if (j >= maxFitting && homeAppViews[j].isVisible) {
-                                homeAppViews[j].visibility = View.GONE
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun setHomeAppText(textView: TextView, appName: String, packageName: String, userString: String): Boolean {
-        // Cached check: up to 8 per-slot getActivityList IPCs per resume before PAREM-117
-        if (isPackageInstalledCached(requireContext(), packageName, userString)) {
-            textView.text = appName
-            if (prefs.showIcons && packageName.isNotEmpty()) {
-                val iconSize = 20.dpToPx()
-                val icon = if (prefs.iconPackPackage.isNotEmpty()) {
-                    IconPackManager.getIconForApp(requireContext(), prefs.iconPackPackage, packageName, null)
-                } else null
-                val drawable = icon ?: AppIconCache.get(requireContext(), packageName)
-                drawable?.setBounds(0, 0, iconSize, iconSize)
-                textView.setCompoundDrawablesRelative(drawable, null, null, null)
-                textView.compoundDrawablePadding = 8.dpToPx()
-            } else {
-                textView.setCompoundDrawablesRelative(null, null, null, null)
-            }
-            return true
-        }
-        textView.text = ""
-        textView.setCompoundDrawablesRelative(null, null, null, null)
-        return false
-    }
-
-    private fun hideHomeApps() {
-        homeAppViews.forEach { it.visibility = View.GONE }
-    }
-
-    private fun homeAppClicked(location: Int) {
-        if (folderManager.isFolderSlot(location)) {
-            toggleFolderExpansion(location)
-            return
-        }
-        if (prefs.getHomeAppName(location).isEmpty()) showLongPressToast()
-        else checkBadHabitAndLaunch(
-            prefs.getHomeAppName(location),
-            prefs.getHomeAppPackage(location),
-            prefs.getHomeAppActivityClassName(location),
-            prefs.getHomeAppUser(location)
-        )
-    }
-
-    private fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String) {
-        viewModel.selectedApp(
-            AppModel(
-                appName,
-                null,
-                packageName,
-                activityClassName,
-                false,
-                getUserHandleFromString(requireContext(), userString)
-            ),
-            Constants.FLAG_LAUNCH_APP
-        )
-    }
-
-    private fun checkBadHabitAndLaunch(name: String, pkg: String, activity: String?, user: String) {
-        val ctx = context ?: return
-        if (!AppLimitManager.hasLimit(ctx, pkg)) {
-            launchApp(name, pkg, activity, user)
-            return
-        }
-        val limitMinutes = AppLimitManager.getLimit(ctx, pkg) ?: run {
-            launchApp(name, pkg, activity, user)
-            return
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            val usageMs = withContext(Dispatchers.IO) {
-                UsageStatsHelper.getUsageForApp(ctx, pkg)
-            }
-            if (!isAdded) return@launch
-            val usageMinutes = usageMs / 60_000
-            if (usageMinutes >= limitMinutes) {
-                showBadHabitWarningDialog(name, pkg, activity, user, usageMinutes, limitMinutes)
-            } else {
-                launchApp(name, pkg, activity, user)
-            }
-        }
-    }
-
-    private fun showBadHabitWarningDialog(
-        name: String, pkg: String, activity: String?, user: String,
-        usageMinutes: Long, limitMinutes: Int
-    ) {
-        val ctx = context ?: return
-        BadHabitDialogs.showLimitWarning(ctx, name.ifEmpty { pkg }, usageMinutes, limitMinutes) {
-            launchApp(name, pkg, activity, user)
-        }
-    }
-
-    private fun showAppList(flag: Int, rename: Boolean = false, includeHiddenApps: Boolean = false) {
+    internal fun showAppList(flag: Int, rename: Boolean = false, includeHiddenApps: Boolean = false) {
         viewModel.getAppList(includeHiddenApps)
         try {
             findNavController().navigate(
@@ -557,82 +205,6 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 )
             )
             Log.e("HomeFragment", "Navigation to app list failed, using fallback", e)
-        }
-    }
-
-    private fun swipeDownAction() {
-        when (prefs.swipeDownAction) {
-            Constants.SwipeDownAction.SEARCH -> requireContext().openSearch()
-            else -> expandNotificationDrawer(requireContext())
-        }
-    }
-
-    private fun openSwipeRightApp() {
-        if (!prefs.swipeRightEnabled) return
-        executeGestureAction(prefs.getEffectiveSwipeRightAction()) {
-            // Fallback for OPEN_APP action
-            if (prefs.appPackageSwipeRight.isNotEmpty())
-                launchApp(
-                    prefs.appNameSwipeRight,
-                    prefs.appPackageSwipeRight,
-                    prefs.appActivityClassNameSwipeRight,
-                    prefs.appUserSwipeRight
-                )
-            else openDialerApp(requireContext())
-        }
-    }
-
-    private fun openSwipeLeftApp() {
-        if (!prefs.swipeLeftEnabled) return
-        executeGestureAction(prefs.getEffectiveSwipeLeftAction()) {
-            // Fallback for OPEN_APP action
-            if (prefs.appPackageSwipeLeft.isNotEmpty())
-                launchApp(
-                    prefs.appNameSwipeLeft,
-                    prefs.appPackageSwipeLeft,
-                    prefs.appActivityClassNameSwipeLeft,
-                    prefs.appUserSwipeLeft
-                )
-            else openCameraApp(requireContext())
-        }
-    }
-
-    private fun executeGestureAction(action: Int, openAppFallback: () -> Unit) {
-        when (action) {
-            Constants.GestureAction.OPEN_APP -> openAppFallback()
-            Constants.GestureAction.OPEN_NOTIFICATIONS -> expandNotificationDrawer(requireContext())
-            Constants.GestureAction.OPEN_SEARCH -> requireContext().openSearch()
-            Constants.GestureAction.LOCK_SCREEN -> lockPhone()
-            Constants.GestureAction.OPEN_CAMERA -> openCameraApp(requireContext())
-            Constants.GestureAction.TOGGLE_FLASHLIGHT -> toggleFlashlight()
-            Constants.GestureAction.NONE -> { /* do nothing */ }
-        }
-    }
-
-    private fun toggleFlashlight() {
-        try {
-            val cameraManager = requireContext().getSystemService(Context.CAMERA_SERVICE) as android.hardware.camera2.CameraManager
-            val cameraId = cameraManager.cameraIdList.firstOrNull() ?: return
-            flashlightOn = !flashlightOn
-            cameraManager.setTorchMode(cameraId, flashlightOn)
-        } catch (e: Exception) {
-            Log.e("HomeFragment", "Failed to toggle flashlight", e)
-        }
-    }
-
-    private fun lockPhone() {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isAccessServiceEnabled(requireContext())) {
-                binding.lock.performClick()
-            } else {
-                deviceManager.lockNow()
-            }
-        } catch (e: SecurityException) {
-            prefs.lockModeOn = false
-            requireContext().showToast(getString(R.string.please_turn_on_double_tap_to_unlock), Toast.LENGTH_LONG)
-            findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
-        } catch (e: Exception) {
-            requireContext().showToast(getString(R.string.launcher_failed_to_lock_device), Toast.LENGTH_LONG)
         }
     }
 
@@ -657,293 +229,15 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         }
     }
 
-    private fun openScreenTimeDigitalWellbeing() {
-        try {
-            ScreenTimeGraphDialog(requireContext()).show()
-        } catch (e: Exception) {
-            Log.e("HomeFragment", "Failed to show screen time graph", e)
-            // Fallback to Digital Wellbeing
-            val intent = Intent()
-            try {
-                intent.setClassName(
-                    Constants.DIGITAL_WELLBEING_PACKAGE_NAME,
-                    Constants.DIGITAL_WELLBEING_ACTIVITY
-                )
-                startActivity(intent)
-            } catch (e2: Exception) {
-                Log.e("HomeFragment", "Failed to open Digital Wellbeing", e2)
-            }
-        }
-    }
-
-    private fun toggleFolderExpansion(slot: Int) {
-        val folder = folderManager.getFolderGroup(slot) ?: return
-        if (folder.apps.isEmpty()) return
-
-        val menu = BottomSheetMenu(requireContext()).title(folder.name)
-        for (app in folder.apps) {
-            menu.option(app.appName) {
-                launchApp(app.appName, app.packageName, app.activityClassName, app.userString)
-            }
-        }
-        menu.show()
-    }
-
-    private fun showHomeSlotMenu(slot: Int) {
-        val hasApp = prefs.getHomeAppName(slot).isNotEmpty()
-        val isFolder = folderManager.isFolderSlot(slot)
-
-        val menu = BottomSheetMenu(requireContext())
-
-        // Set / change app
-        menu.option(if (hasApp) getString(R.string.change_app) else getString(R.string.select_app)) {
-            showAppList(slot, hasApp, true)
-        }
-
-        // Create folder
-        menu.option(getString(R.string.create_folder)) {
-            showCreateFolderDialog(slot)
-        }
-
-        // App limit toggle (only for regular apps, not folders)
-        if (hasApp && !isFolder) {
-            val pkg = prefs.getHomeAppPackage(slot)
-            if (pkg.isNotEmpty()) {
-                val hasLimit = AppLimitManager.hasLimit(requireContext(), pkg)
-                menu.option(if (hasLimit) getString(R.string.remove_time_limit) else getString(R.string.set_time_limit)) {
-                    if (hasLimit) {
-                        AppLimitManager.removeLimit(requireContext(), pkg)
-                    } else {
-                        val ctx = context ?: return@option
-                        BadHabitDialogs.showTimeLimitPicker(ctx, pkg) { populateHomeScreen(false) }
-                    }
-                }
-            }
-        }
-
-        // Remove (if occupied)
-        if (hasApp || isFolder) {
-            menu.option(getString(R.string.delete)) {
-                if (isFolder) folderManager.removeFolder(slot)
-                prefs.setHomeAppName(slot, "")
-                prefs.setHomeAppPackage(slot, "")
-                prefs.setHomeAppActivityClassName(slot, "")
-                prefs.setHomeAppUser(slot, "")
-                populateHomeScreen(false)
-            }
-        }
-
-        menu.show()
-    }
-
-    private fun showCreateFolderDialog(slot: Int) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            // Same source as the app drawer: all user profiles, non-hidden apps, no cap.
-            val apps = getAppsList(requireContext(), prefs, includeRegularApps = true, includeHiddenApps = false)
-
-            if (!isAdded || _binding == null) return@launch
-
-            CreateFolderDialog(requireContext(), apps) { folderName, selectedApps ->
-                // Clear any existing app at this slot
-                prefs.setHomeAppName(slot, "")
-                prefs.setHomeAppPackage(slot, "")
-                folderManager.createFolder(slot, folderName, selectedApps)
-                populateHomeScreen(false)
-            }.show()
-        }
-    }
-
-    private fun initGestureLetterOverlay() {
-        binding.gestureLetterOverlay?.onLetterDetected = { letter ->
-            val mapping = GestureLetterManager.getMapping(requireContext(), letter)
-            if (mapping != null) {
-                // Recognition tick: confirms the letter registered before the app appears
-                binding.gestureLetterOverlay?.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
-                launchApp("", mapping.first, mapping.second, mapping.third)
-            } else {
-                requireContext().showToast(getString(R.string.no_app_for_letter, letter.toString()))
-            }
-        }
-    }
-
-    private fun updateGestureLetterOverlay() {
-        val enabled = GestureLetterManager.isEnabled(requireContext())
-        binding.gestureLetterOverlay?.isGestureLettersEnabled = enabled
-        binding.gestureLetterOverlay?.visibility = if (enabled) View.VISIBLE else View.GONE
-    }
-
-    private fun showLongPressToast() = requireContext().showToast(getString(R.string.long_press_to_select_app))
-
-    private fun textOnClick(view: View) = onClick(view)
-
-    private fun textOnLongClick(view: View) = onLongClick(view)
-
-    /**
-     * Forwards a touch event to the gesture-letter overlay, translating from
-     * [sourceView]'s local coordinates when needed. Returns true while the
-     * overlay is capturing a letter — the caller must then swallow the event
-     * so swipe/click detection doesn't run on the same stroke.
-     */
-    private fun forwardToLetterOverlay(sourceView: View?, motionEvent: MotionEvent): Boolean {
-        val overlay = binding.gestureLetterOverlay ?: return false
-        if (!overlay.isGestureLettersEnabled) return false
-        val wasCapturing = overlay.isCapturing
-        if (sourceView == null || sourceView === binding.mainLayout) {
-            overlay.forwardTouchEvent(motionEvent)
-        } else {
-            // Per-view listeners deliver view-local coordinates; shift into the
-            // overlay's frame so strokes starting on an app label track correctly
-            val src = IntArray(2).also { sourceView.getLocationInWindow(it) }
-            val dst = IntArray(2).also { overlay.getLocationInWindow(it) }
-            val copy = MotionEvent.obtain(motionEvent)
-            copy.offsetLocation((src[0] - dst[0]).toFloat(), (src[1] - dst[1]).toFloat())
-            overlay.forwardTouchEvent(copy)
-            copy.recycle()
-        }
-        return wasCapturing || overlay.isCapturing
-    }
-
-    private fun getSwipeGestureListener(context: Context): OnSwipeTouchListener {
-        return object : OnSwipeTouchListener(context) {
-            override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
-                if (forwardToLetterOverlay(null, motionEvent)) return true
-                return super.onTouch(view, motionEvent)
-            }
-
-            override fun onSwipeLeft() {
-                super.onSwipeLeft()
-                openSwipeLeftApp()
-            }
-
-            override fun onSwipeRight() {
-                super.onSwipeRight()
-                openSwipeRightApp()
-            }
-
-            override fun onSwipeUp() {
-                super.onSwipeUp()
-                showAppList(Constants.FLAG_LAUNCH_APP)
-            }
-
-            override fun onSwipeDown() {
-                super.onSwipeDown()
-                swipeDownAction()
-            }
-
-            override fun onLongClick() {
-                super.onLongClick()
-                try {
-                    // GestureDetector callbacks bypass the framework's long-press
-                    // haptic, so fire it ourselves — silence here feels broken
-                    binding.mainLayout.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
-                    showHomeLongPressMenu()
-                } catch (e: Exception) {
-                    Log.e("HomeFragment", "Failed to show home long press menu", e)
-                }
-            }
-
-            override fun onDoubleClick() {
-                super.onDoubleClick()
-                DoubleTapActionManager.execute(
-                    requireContext(),
-                    lockPhone = { lockPhone() },
-                    toggleFlashlight = { toggleFlashlight() }
-                )
-            }
-
-            override fun onClick() {
-                super.onClick()
-            }
-        }
-    }
-
-    private fun getViewSwipeTouchListener(context: Context, view: View): ViewSwipeTouchListener {
-        val listener = object : ViewSwipeTouchListener(context, view) {
-            override fun onTouch(v: View, motionEvent: MotionEvent): Boolean {
-                if (forwardToLetterOverlay(v, motionEvent)) {
-                    v.isPressed = false
-                    return true
-                }
-                return super.onTouch(v, motionEvent)
-            }
-
-            override fun onSwipeLeft() {
-                super.onSwipeLeft()
-                openSwipeLeftApp()
-            }
-
-            override fun onSwipeRight() {
-                super.onSwipeRight()
-                openSwipeRightApp()
-            }
-
-            override fun onSwipeUp() {
-                super.onSwipeUp()
-                val slot = try { view.tag.toString().toInt() } catch (_: Exception) { 0 }
-                if (slot in 1..8 && SwipeUpAppManager.hasSwipeUpApp(requireContext(), slot)) {
-                    launchApp(
-                        SwipeUpAppManager.getSwipeUpAppName(requireContext(), slot),
-                        SwipeUpAppManager.getSwipeUpAppPackage(requireContext(), slot),
-                        SwipeUpAppManager.getSwipeUpAppActivity(requireContext(), slot),
-                        SwipeUpAppManager.getSwipeUpAppUser(requireContext(), slot)
-                    )
-                } else {
-                    showAppList(Constants.FLAG_LAUNCH_APP)
-                }
-            }
-
-            override fun onSwipeDown() {
-                super.onSwipeDown()
-                swipeDownAction()
-            }
-
-            override fun onLongClick(view: View) {
-                super.onLongClick(view)
-                textOnLongClick(view)
-            }
-
-            override fun onClick(view: View) {
-                super.onClick(view)
-                textOnClick(view)
-            }
-        }
-        viewTouchListeners.add(listener)
-        return listener
-    }
-
-    private fun showHomeLongPressMenu() {
-        val dialog = BottomSheetDialog(requireContext())
-        val view = layoutInflater.inflate(R.layout.dialog_home_menu, null)
-        view.findViewById<TextView>(R.id.menuAddWidget).setOnClickListener {
-            dialog.dismiss()
-            widgetController?.showWidgetPicker()
-        }
-        view.findViewById<TextView>(R.id.menuSettings).setOnClickListener {
-            dialog.dismiss()
-            findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
-            viewModel.firstOpen(false)
-        }
-        dialog.setContentView(view)
-        dialog.transparentSheetFrame()
-        dialog.show()
-    }
-
-
     override fun onDestroyView() {
-        torchCallback?.let {
-            try {
-                val cameraManager = requireContext().getSystemService(Context.CAMERA_SERVICE) as android.hardware.camera2.CameraManager
-                cameraManager.unregisterTorchCallback(it)
-            } catch (_: Exception) {}
-        }
-        torchCallback = null
+        gesturesController?.unregisterTorchCallback()
         widgetController?.cleanup()
         widgetController = null
-        screenTouchListener?.cleanup()
-        screenTouchListener = null
-        viewTouchListeners.forEach { it.cleanup() }
-        viewTouchListeners.clear()
-        homeAppViews = emptyList()
+        gesturesController?.cleanupListeners()
+        gesturesController = null
+        slotsController?.cleanup()
+        slotsController = null
+        clockController = null
         super.onDestroyView()
         _binding = null
     }

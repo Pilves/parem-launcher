@@ -375,7 +375,7 @@ orientation-locked (`MainActivity.setupOrientation` skips them).
 4. Full build green: `compileDebugKotlin`, `testDebugUnitTest`,
    `assembleDebug`.
 
-### [ ] PAREM-121 — Split HomeFragment (god file, ~1000 lines)
+### [x] PAREM-121 — Split HomeFragment (god file, ~1000 lines)
 
 **Priority:** P2 · **Estimate:** 1-2 days · **Type:** Refactor
 **Branch:** `refactor/home-split` · **Order:** after PAREM-122 (stacked)
