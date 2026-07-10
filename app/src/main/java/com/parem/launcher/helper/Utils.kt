@@ -126,10 +126,15 @@ private fun queryRawApps(context: Context): Pair<List<AppListRebuilder.RawApp<Us
         val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
         for (profile in userManager.userProfiles) {
             for (app in launcherApps.getActivityList(null, profile)) {
+                val label = app.label.toString()
+                // RuleBasedCollator is not thread-safe, and two callers (e.g. the
+                // hide flow's getAppList + getHiddenApps coroutines) can both miss
+                // the snapshot and run this query concurrently
+                val key = synchronized(collator) { collator.getCollationKey(label) }
                 rawApps.add(
                     AppListRebuilder.RawApp(
-                        app.label.toString(),
-                        collator.getCollationKey(app.label.toString()),
+                        label,
+                        key,
                         app.applicationInfo.packageName,
                         app.componentName.className,
                         app.firstInstallTime,
