@@ -375,6 +375,57 @@ orientation-locked (`MainActivity.setupOrientation` skips them).
 4. Full build green: `compileDebugKotlin`, `testDebugUnitTest`,
    `assembleDebug`.
 
+### [ ] PAREM-121 — Split HomeFragment (god file, ~1000 lines)
+
+**Priority:** P2 · **Estimate:** 1-2 days · **Type:** Refactor
+**Branch:** `refactor/home-split` · **Order:** after PAREM-122 (stacked)
+
+**Background.** HomeFragment handles clicks/swipes/gesture letters, torch,
+lock, date+weather rendering, bad-habit dialogs, widget lifecycle, 8-slot
+management, navigation, status bar, and dynamic fitting. CreateFolderDialog
+is already extracted; the rest mirrors the PAREM-102 settings split.
+
+**Approved boundaries (PM sign-off given; deviations need flagging):**
+- `ui/home/HomeSlotsController` — slot populate/fitting/menus/limit-check-launch,
+  capacity publishing.
+- `ui/home/HomeGesturesController` — swipe/touch listeners, letter-overlay
+  wiring/forwarding, gesture actions, torch, lock.
+- `ui/home/HomeClockController` — date/time/weather-staleness rendering,
+  clock/calendar taps, screen-time row.
+- Fragment keeps: lifecycle, observers, navigation, status bar, widget
+  controller wiring. Controllers take (fragment, binding, prefs[, viewModel]),
+  same shape as HomeWidgetController/settings cards.
+
+**Hard constraints.** Zero behavior change. Trap #1 (invisible lock view) and
+the double-post fitting flow move VERBATIM. Every async callback keeps its
+isAdded/_binding guard. No new files outside ui/home/.
+
+**Acceptance criteria.** No file over ~400 lines; full build green;
+ARCHITECTURE.md code map updated.
+
+---
+
+### [ ] PAREM-122 — Split helper/Utils.kt (catch-all, ~560 lines)
+
+**Priority:** P3 · **Estimate:** ~half a day · **Type:** Refactor
+**Branch:** `refactor/utils-split` · **Order:** before PAREM-121
+
+**Background.** Utils.kt mixes the app-list cache machinery, bitmap/wallpaper
+ops, HTTP fetching, system intents, and misc extensions.
+
+**Approved boundaries (top-level functions, same package — call sites are
+untouched by moves):**
+- `helper/AppListSource.kt` — getAppsList, RawAppSnapshot, queryRawApps,
+  upgradeHiddenApps, isPackageInstalled(+Cached), getUserHandleFromString,
+  the collator.
+- `helper/WallpaperUtils.kt` — all wallpaper/bitmap/HTTP wallpaper fetching.
+- `helper/SystemActions.kt` — notification drawer, dialer/camera/alarm/
+  calendar/app-info intents, uninstall, accessibility check.
+- Utils.kt keeps the small leftovers (toasts, theme/color, isTablet, etc.).
+
+**Acceptance criteria.** Pure moves, zero signature/behavior changes; full
+build green; ARCHITECTURE.md code map updated.
+
 ## Long-running / observation
 
 ### [x] PAREM-108 — Put the 4-hour self-recreate behind a pref, observe, then remove

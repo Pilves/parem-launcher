@@ -381,7 +381,7 @@ class Prefs(context: Context) {
         get() = prefs.getString(APP_PACKAGE_SWIPE_RIGHT, "").toString()
         set(value) = prefs.edit { putString(APP_PACKAGE_SWIPE_RIGHT, value) }
 
-    var appActivityClassNameRight: String?
+    var appActivityClassNameSwipeRight: String?
         get() = prefs.getString(APP_ACTIVITY_CLASS_NAME_SWIPE_RIGHT, null)
         set(value) = prefs.edit { putString(APP_ACTIVITY_CLASS_NAME_SWIPE_RIGHT, value) }
 

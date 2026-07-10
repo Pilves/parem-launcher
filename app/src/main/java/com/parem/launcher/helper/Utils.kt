@@ -494,7 +494,7 @@ fun Context.openUrl(url: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
         startActivity(intent)
     } catch (e: Exception) {
-        showToast("Unable to open link")
+        showToast(getString(R.string.unable_to_open_link))
     }
 }
 
