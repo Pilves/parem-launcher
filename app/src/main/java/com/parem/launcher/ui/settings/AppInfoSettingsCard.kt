@@ -19,6 +19,7 @@ import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
+import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.openUrl
 import com.parem.launcher.helper.showToast
@@ -164,6 +165,9 @@ class AppInfoSettingsCard(
                     withContext(Dispatchers.IO) {
                         prefs.importFromJson(json)
                     }
+                    // recreate() keeps the process, so static caches over
+                    // imported keys must be dropped by hand
+                    AppLimitManager.clearCache()
                     ctx.showToast(ctx.getString(R.string.settings_imported))
                     activity.recreate()
                 }

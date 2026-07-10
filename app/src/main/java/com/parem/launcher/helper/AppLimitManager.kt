@@ -51,6 +51,16 @@ object AppLimitManager {
         }
     }
 
+    /**
+     * Statics survive activity recreation, so settings import must drop the
+     * cached map or the pre-import limits keep enforcing until process death.
+     */
+    fun clearCache() {
+        synchronized(lock) {
+            cachedLimits = null
+        }
+    }
+
     private fun getAllLimitsInternal(context: Context): Map<String, Int> {
         cachedLimits?.let { return it }
 
