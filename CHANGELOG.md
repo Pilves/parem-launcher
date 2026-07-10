@@ -4,6 +4,8 @@
 
 ## v5.7.0
 
+- Landscape widgets now start straight below the clock (cleared dynamically
+  from the clock's real height) instead of centering beside the app list
 - Fixed: tall bottom sheets (screen time, app limits, folder creation) now
   scroll and open fully expanded on landscape/short screens instead of
   clipping or peeking half-hidden

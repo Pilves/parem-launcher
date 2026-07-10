@@ -409,6 +409,17 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                     layout.setPadding(layout.paddingLeft, minTopPadding, layout.paddingRight, layout.paddingBottom)
                 }
 
+                // Landscape: the widget column clears the clock dynamically too,
+                // so widgets start straight below it instead of at a fixed guess.
+                // In portrait the scroll views live inside homeAppsLayout and the
+                // guard skips this.
+                (binding.widgetScrollViewAbove?.parent as? ViewGroup)
+                    ?.takeIf { it !== layout }
+                    ?.let { column ->
+                        if (column.paddingTop != minTopPadding)
+                            column.setPadding(column.paddingLeft, minTopPadding, column.paddingRight, column.paddingBottom)
+                    }
+
                 // Run fitting after the padding change has been laid out
                 layout.post fitApps@{
                     if (!isAdded || _binding == null) return@fitApps

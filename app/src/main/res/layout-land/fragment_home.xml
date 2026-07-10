@@ -174,14 +174,15 @@
         <!-- Widget column: both placement variants (above/below) live here so
              the placement pref maps to the same side column in landscape and
              HomeWidgetController's active-container logic works unchanged.
-             Static top/bottom padding keeps widgets clear of the clock row
-             (portrait solves this dynamically for the app column only). -->
+             Top-aligned; the initial paddingTop is a first-frame placeholder —
+             HomeFragment re-derives it from the clock's real bounds so widgets
+             start straight below the clock, not centered with the apps. -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:layout_marginStart="24dp"
-            android:gravity="center_vertical"
+            android:gravity="top"
             android:orientation="vertical"
             android:paddingTop="112dp"
             android:paddingBottom="48dp">
