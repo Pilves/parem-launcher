@@ -87,6 +87,10 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
     private var widgetController: HomeWidgetController? = null
 
+    // The 8 slot views, gathered once per view lifecycle so slot logic loops
+    // instead of repeating per-view lines eight times
+    private var homeAppViews: List<TextView> = emptyList()
+
     companion object {
         private var cachedLocale: Locale? = null
         private var dateFormatter: DateTimeFormatter? = null
@@ -114,6 +118,10 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         } ?: throw Exception("Invalid Activity")
 
         deviceManager = context?.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        homeAppViews = listOf(
+            binding.homeApp1, binding.homeApp2, binding.homeApp3, binding.homeApp4,
+            binding.homeApp5, binding.homeApp6, binding.homeApp7, binding.homeApp8
+        )
 
         widgetController = HomeWidgetController(this, binding, prefs)
         // Widgets are restored asynchronously; re-fit the app rows once their
@@ -210,12 +218,8 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     }
 
     override fun onLongClick(view: View): Boolean {
-        val homeAppIds = mapOf(
-            R.id.homeApp1 to 1, R.id.homeApp2 to 2, R.id.homeApp3 to 3, R.id.homeApp4 to 4,
-            R.id.homeApp5 to 5, R.id.homeApp6 to 6, R.id.homeApp7 to 7, R.id.homeApp8 to 8
-        )
-        val slot = homeAppIds[view.id]
-        if (slot != null) {
+        val slot = homeAppViews.indexOf(view) + 1
+        if (slot in 1..homeAppViews.size) {
             showHomeSlotMenu(slot)
             return true
         }
@@ -276,14 +280,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         viewTouchListeners.clear()
         screenTouchListener = getSwipeGestureListener(context)
         binding.mainLayout.setOnTouchListener(screenTouchListener)
-        binding.homeApp1.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp1))
-        binding.homeApp2.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp2))
-        binding.homeApp3.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp3))
-        binding.homeApp4.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp4))
-        binding.homeApp5.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp5))
-        binding.homeApp6.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp6))
-        binding.homeApp7.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp7))
-        binding.homeApp8.setOnTouchListener(getViewSwipeTouchListener(context, binding.homeApp8))
+        homeAppViews.forEach { it.setOnTouchListener(getViewSwipeTouchListener(context, it)) }
     }
 
     private fun initClickListeners() {
@@ -301,14 +298,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         val verticalGravity = if (prefs.homeBottomAlignment) Gravity.BOTTOM else Gravity.CENTER_VERTICAL
         binding.homeAppsLayout.gravity = horizontalGravity or verticalGravity
         binding.dateTimeLayout.gravity = horizontalGravity
-        binding.homeApp1.gravity = horizontalGravity
-        binding.homeApp2.gravity = horizontalGravity
-        binding.homeApp3.gravity = horizontalGravity
-        binding.homeApp4.gravity = horizontalGravity
-        binding.homeApp5.gravity = horizontalGravity
-        binding.homeApp6.gravity = horizontalGravity
-        binding.homeApp7.gravity = horizontalGravity
-        binding.homeApp8.gravity = horizontalGravity
+        homeAppViews.forEach { it.gravity = horizontalGravity }
     }
 
     private fun populateDateTime() {
@@ -367,10 +357,6 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
             populateScreenTime()
 
-        val homeAppViews = listOf(
-            binding.homeApp1, binding.homeApp2, binding.homeApp3, binding.homeApp4,
-            binding.homeApp5, binding.homeApp6, binding.homeApp7, binding.homeApp8
-        )
         val homeAppsNum = prefs.homeAppsNum.coerceAtMost(homeAppViews.size)
 
         for (i in 0 until homeAppsNum) {
@@ -449,6 +435,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                     if (singleAppHeight <= 0) return@fitApps
 
                     val maxFitting = usableHeight / singleAppHeight
+                    viewModel.homeAppsCapacity = maxFitting.coerceIn(1, 8)
                     if (maxFitting < homeAppsNum) {
                         // Hide excess apps from the bottom
                         for (j in homeAppViews.indices.reversed()) {
@@ -486,14 +473,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     }
 
     private fun hideHomeApps() {
-        binding.homeApp1.visibility = View.GONE
-        binding.homeApp2.visibility = View.GONE
-        binding.homeApp3.visibility = View.GONE
-        binding.homeApp4.visibility = View.GONE
-        binding.homeApp5.visibility = View.GONE
-        binding.homeApp6.visibility = View.GONE
-        binding.homeApp7.visibility = View.GONE
-        binding.homeApp8.visibility = View.GONE
+        homeAppViews.forEach { it.visibility = View.GONE }
     }
 
     private fun homeAppClicked(location: Int) {
@@ -595,7 +575,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 launchApp(
                     prefs.appNameSwipeRight,
                     prefs.appPackageSwipeRight,
-                    prefs.appActivityClassNameRight,
+                    prefs.appActivityClassNameSwipeRight,
                     prefs.appUserSwipeRight
                 )
             else openDialerApp(requireContext())
@@ -763,132 +743,13 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
             if (!isAdded || _binding == null) return@launch
 
-            val dialog = BottomSheetDialog(requireContext())
-            val container = android.widget.LinearLayout(requireContext()).apply {
-                orientation = android.widget.LinearLayout.VERTICAL
-                setBackgroundResource(R.drawable.bg_bottom_sheet)
-                setPadding(24.dpToPx(), 12.dpToPx(), 24.dpToPx(), 24.dpToPx())
-            }
-            container.addView(View(requireContext()).apply {
-                layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                    gravity = Gravity.CENTER_HORIZONTAL
-                    bottomMargin = 16.dpToPx()
-                }
-                setBackgroundColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-            })
-
-            // Title
-            val title = TextView(requireContext()).apply {
-                text = getString(R.string.create_folder)
-                textSize = 14f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-                setTypeface(null, android.graphics.Typeface.BOLD)
-                setPadding(0, 0, 0, 12.dpToPx())
-            }
-            container.addView(title)
-
-            // Folder name input
-            val nameLabel = TextView(requireContext()).apply {
-                text = getString(R.string.folder_name)
-                textSize = 14f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-            }
-            container.addView(nameLabel)
-
-            val nameInput = android.widget.EditText(requireContext()).apply {
-                textSize = 16f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-                setHintTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-                hint = "Social, Work, etc."
-                background = null
-                setPadding(0, 8.dpToPx(), 0, 16.dpToPx())
-            }
-            container.addView(nameInput)
-
-            // App selection label
-            val appsLabel = TextView(requireContext()).apply {
-                text = getString(R.string.select_apps)
-                textSize = 14f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-                setPadding(0, 8.dpToPx(), 0, 4.dpToPx())
-            }
-            container.addView(appsLabel)
-
-            // Selection is keyed per row and lives in the adapter's data, so it
-            // survives filtering and row recycling; click order is preserved.
-            fun rowId(app: AppModel) = "${app.appPackage}|${app.activityClassName ?: ""}|${app.user}"
-            val appsById = apps.associateBy(::rowId)
-            val pickerAdapter = AppPickerAdapter(
-                textColor = requireContext().getColorFromAttr(R.attr.primaryColor),
-                maxSelected = 4,
-                entries = apps.map { AppPickerAdapter.Entry(rowId(it), it.appLabel) }
-            )
-
-            val searchInput = android.widget.EditText(requireContext()).apply {
-                hint = getString(R.string.search_apps)
-                textSize = 16f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-                setHintTextColor(requireContext().getColorFromAttr(R.attr.primaryColorTrans50))
-                background = null
-                inputType = android.text.InputType.TYPE_CLASS_TEXT
-                isSingleLine = true
-                setPadding(0, 8.dpToPx(), 0, 8.dpToPx())
-                addTextChangedListener(object : android.text.TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-                    override fun afterTextChanged(s: android.text.Editable?) {
-                        pickerAdapter.filter(s?.toString() ?: "")
-                    }
-                })
-            }
-            container.addView(searchInput)
-
-            val appsList = androidx.recyclerview.widget.RecyclerView(requireContext()).apply {
-                layoutParams = android.widget.LinearLayout.LayoutParams(
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT, 300.dpToPx()
-                )
-                layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
-                adapter = pickerAdapter
-            }
-            container.addView(appsList)
-
-            // Save button
-            val saveButton = TextView(requireContext()).apply {
-                text = getString(R.string.save)
-                textSize = 16f
-                setTextColor(requireContext().getColorFromAttr(R.attr.primaryColor))
-                setTypeface(null, android.graphics.Typeface.BOLD)
-                setPadding(0, 16.dpToPx(), 0, 0)
-                setOnClickListener {
-                    val folderName = nameInput.text.toString().trim()
-                    val selectedApps = pickerAdapter.selectedIds.mapNotNull { appsById[it] }.map {
-                        FolderApp(it.appLabel, it.appPackage, it.activityClassName ?: "", it.user.toString())
-                    }
-                    if (folderName.isEmpty() || selectedApps.isEmpty()) {
-                        requireContext().showToast("Enter a name and select at least one app")
-                        return@setOnClickListener
-                    }
-                    // Clear any existing app at this slot
-                    prefs.setHomeAppName(slot, "")
-                    prefs.setHomeAppPackage(slot, "")
-                    folderManager.createFolder(slot, folderName, selectedApps)
-                    populateHomeScreen(false)
-                    dialog.dismiss()
-                }
-            }
-            container.addView(saveButton)
-
-            // Nested-scroll wrapper + expanded: on landscape heights the sheet
-            // exceeds the screen and the save row must stay reachable
-            dialog.setContentView(androidx.core.widget.NestedScrollView(requireContext()).apply {
-                addView(container)
-            })
-            dialog.transparentSheetFrame()
-            dialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
-            dialog.behavior.skipCollapsed = true
-            // Keep the filtered list visible above the keyboard, as the widget picker does
-            dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-            dialog.show()
+            CreateFolderDialog(requireContext(), apps) { folderName, selectedApps ->
+                // Clear any existing app at this slot
+                prefs.setHomeAppName(slot, "")
+                prefs.setHomeAppPackage(slot, "")
+                folderManager.createFolder(slot, folderName, selectedApps)
+                populateHomeScreen(false)
+            }.show()
         }
     }
 
@@ -1082,6 +943,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         screenTouchListener = null
         viewTouchListeners.forEach { it.cleanup() }
         viewTouchListeners.clear()
+        homeAppViews = emptyList()
         super.onDestroyView()
         _binding = null
     }
