@@ -315,4 +315,9 @@
     <string name="top_apps_week" translatable="false">Top apps this week</string>
     <string name="top_apps_day" translatable="false">Top apps \u2014 %1$s</string>
     <string name="daily_average" translatable="false">%1$s/day average</string>
+    <string name="apps_dont_fit" translatable="false">Only %1$d apps fit — resize or remove widgets first</string>
+    <string name="folder_name_hint" translatable="false">Social, Work, etc.</string>
+    <string name="folder_needs_name_and_app" translatable="false">Enter a name and select at least one app</string>
+    <string name="unable_to_open_link" translatable="false">Unable to open link</string>
+    <string name="select_an_app" translatable="false">Please select an app</string>
 </resources>

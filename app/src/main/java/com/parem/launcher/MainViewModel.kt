@@ -72,6 +72,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         PackageChangeTracker.register(appContext)
     }
 
+    /**
+     * How many home-app slots actually fit the current home layout, measured
+     * by HomeFragment's fitting pass (widgets and the clock eat vertical
+     * space). Stays 8 until first measured. The settings picker caps the
+     * number-of-apps selection with it so a chosen count is never silently
+     * hidden behind a widget.
+     */
+    @Volatile var homeAppsCapacity: Int = 8
+
     override fun onCleared() {
         PackageChangeTracker.unregister()
         super.onCleared()
@@ -107,7 +116,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 prefs.appNameSwipeRight = appModel.appLabel
                 prefs.appPackageSwipeRight = appModel.appPackage
                 prefs.appUserSwipeRight = appModel.user.toString()
-                prefs.appActivityClassNameRight = appModel.activityClassName
+                prefs.appActivityClassNameSwipeRight = appModel.activityClassName
                 updateSwipeApps()
             }
 

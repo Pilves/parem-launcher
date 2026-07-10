@@ -4,6 +4,9 @@
 
 ## v5.7.0
 
+- The number-of-apps picker now knows how much room the home screen actually
+  has: counts that don't fit next to your widgets are dimmed and rejected
+  with a hint, instead of apps silently disappearing behind a widget
 - Landscape widgets now start straight below the clock (cleared dynamically
   from the clock's real height) instead of centering beside the app list
 - Fixed: tall bottom sheets (screen time, app limits, folder creation) now

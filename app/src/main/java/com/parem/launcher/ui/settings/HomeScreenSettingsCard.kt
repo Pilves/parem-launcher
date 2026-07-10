@@ -86,7 +86,10 @@ class HomeScreenSettingsCard(
     override fun onClick(view: View) {
         fragment.resetOpenPickers(view.id)
         when (view.id) {
-            R.id.homeAppsNum -> binding.appsNumSelectLayout.visibility = View.VISIBLE
+            R.id.homeAppsNum -> {
+                populateAppsNumOptions()
+                binding.appsNumSelectLayout.visibility = View.VISIBLE
+            }
             R.id.alignment -> binding.alignmentSelectLayout.visibility = View.VISIBLE
             R.id.alignmentLeft -> viewModel.updateHomeAlignment(Gravity.START)
             R.id.alignmentCenter -> viewModel.updateHomeAlignment(Gravity.CENTER)
@@ -125,7 +128,28 @@ class HomeScreenSettingsCard(
         return true
     }
 
+    private val maxAppsOptions
+        get() = listOf(
+            binding.maxApps0, binding.maxApps1, binding.maxApps2, binding.maxApps3,
+            binding.maxApps4, binding.maxApps5, binding.maxApps6, binding.maxApps7,
+            binding.maxApps8
+        )
+
+    /** Dims the counts that don't fit the measured home layout. */
+    private fun populateAppsNumOptions() {
+        val capacity = viewModel.homeAppsCapacity
+        maxAppsOptions.forEachIndexed { count, option ->
+            option.alpha = if (count <= capacity) 1f else 0.4f
+        }
+    }
+
     private fun updateHomeAppsNum(num: Int) {
+        // Widgets/clock currently leave room for fewer slots; rejecting here
+        // replaces the old behavior of silently hiding the overflow apps
+        if (num > viewModel.homeAppsCapacity) {
+            context.showToast(context.getString(R.string.apps_dont_fit, viewModel.homeAppsCapacity))
+            return
+        }
         binding.homeAppsNum.text = num.toString()
         binding.appsNumSelectLayout.visibility = View.GONE
         prefs.homeAppsNum = num
