@@ -49,7 +49,14 @@ helper/
   (the sole ContactsContract query, opt-in behind READ_CONTACTS),
   PackageChangeTracker (LauncherApps callback → cache-invalidation stamp),
   AppListRebuilder (Android-free filter/sort over the cached raw app query),
-  Utils.kt / Extensions.kt (free functions), usageStats/ (UsageEvents parsing).
+  AppListSource.kt (the raw LauncherApps query + stamp-keyed snapshot cache,
+  installed-package/user-handle lookups), WallpaperUtils.kt (wallpaper/bitmap
+  ops + daily-wallpaper HTTP fetch), SystemActions.kt (system intents:
+  notification drawer, dialer/camera/alarm/calendar, app info, uninstall,
+  accessibility check),
+  Utils.kt (small leftovers: toasts, theme/color helpers, isTablet, clipboard,
+  openUrl, default-launcher checks) / Extensions.kt (free functions),
+  usageStats/ (UsageEvents parsing).
   MyAccessibilityService.kt  Locks the screen (see "Traps" below).
   FakeHomeActivity.kt        Default-launcher switching trick.
 

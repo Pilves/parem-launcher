@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * Caches of package-derived data record the stamp at fill time and are only
  * trusted while it still equals [stamp] — see the raw app-list snapshot in
- * Utils.kt. Nothing rebuilds eagerly; a stale cache is simply skipped on the
- * next read.
+ * AppListSource.kt. Nothing rebuilds eagerly; a stale cache is simply skipped
+ * on the next read.
  *
  * Registered from the activity-scoped MainViewModel (init/onCleared) with the
  * app context, so it lives exactly as long as anything consuming the caches.

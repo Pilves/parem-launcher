@@ -8,7 +8,7 @@ import java.text.CollationKey
  * Prefs-driven state — rename labels and the hidden-apps set — is re-applied
  * on every call, so hide/unhide and rename stay correct without any cache
  * invalidation; only the raw LauncherApps query result is cached (in
- * Utils.kt), keyed by PackageChangeTracker's stamp.
+ * AppListSource.kt), keyed by PackageChangeTracker's stamp.
  *
  * Android-free on purpose: [U] stands in for UserHandle so this is testable
  * on the JVM.

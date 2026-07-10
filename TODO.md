@@ -405,7 +405,7 @@ ARCHITECTURE.md code map updated.
 
 ---
 
-### [ ] PAREM-122 — Split helper/Utils.kt (catch-all, ~560 lines)
+### [x] PAREM-122 — Split helper/Utils.kt (catch-all, ~560 lines)
 
 **Priority:** P3 · **Estimate:** ~half a day · **Type:** Refactor
 **Branch:** `refactor/utils-split` · **Order:** before PAREM-121
