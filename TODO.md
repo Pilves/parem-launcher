@@ -185,7 +185,7 @@ error toasts (home screen must stay quiet).
 
 ---
 
-### [ ] PAREM-120 — Gesture-letter overlay missing from the landscape home layout
+### [x] PAREM-120 — Gesture-letter overlay missing from the landscape home layout
 
 **Priority:** P3 · **Estimate:** ~2h · **Type:** Bug (pre-existing)
 
@@ -450,7 +450,7 @@ rule in ARCHITECTURE.md's release steps.
 
 ---
 
-### [ ] PAREM-112 — Onboarding pager rebuilds views on every bind
+### [x] PAREM-112 — Onboarding pager rebuilds views on every bind
 
 **Priority:** P5 · **Estimate:** ~1h · **Type:** Cosmetic
 

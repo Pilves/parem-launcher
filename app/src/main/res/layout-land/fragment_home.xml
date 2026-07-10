@@ -221,6 +221,12 @@
 
     </LinearLayout>
 
+    <com.parem.launcher.ui.GestureLetterOverlayView
+        android:id="@+id/gestureLetterOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/firstRunTips"
         style="@style/TextSmall"
