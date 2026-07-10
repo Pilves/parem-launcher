@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## v5.7.0
+
 - Fixed: gesture letters now work in tablet landscape — the landscape home
   layout never had the drawing overlay (PAREM-120)
 - Removing an app limit now shows "No limit" immediately, matching the
