@@ -4,6 +4,9 @@
 
 ## v5.7.0
 
+- Fixed: tall bottom sheets (screen time, app limits, folder creation) now
+  scroll and open fully expanded on landscape/short screens instead of
+  clipping or peeking half-hidden
 - Fixed: gesture letters now work in tablet landscape — the landscape home
   layout never had the drawing overlay (PAREM-120)
 - Removing an app limit now shows "No limit" immediately, matching the

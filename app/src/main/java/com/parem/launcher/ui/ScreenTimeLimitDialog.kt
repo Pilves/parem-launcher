@@ -67,16 +67,6 @@ class ScreenTimeLimitDialog(
         }
         rootLayout.addView(titleView)
 
-        // Scrollable app list
-        val scrollView = ScrollView(context).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                height = LinearLayout.LayoutParams.WRAP_CONTENT
-            }
-        }
-
         val listLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
         }
@@ -158,11 +148,15 @@ class ScreenTimeLimitDialog(
             listLayout.addView(row)
         }
 
-        scrollView.addView(listLayout)
-        rootLayout.addView(scrollView)
+        rootLayout.addView(listLayout)
 
-        setContentView(rootLayout)
+        // Whole sheet scrolls (the old inner wrap-content ScrollView never
+        // actually scrolled); expanded so landscape's short peek doesn't
+        // open it half-hidden
+        setContentView(ScrollView(context).apply { addView(rootLayout) })
         transparentSheetFrame()
+        behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+        behavior.skipCollapsed = true
     }
 
     // A themed sheet instead of the system PopupMenu, whose Material styling

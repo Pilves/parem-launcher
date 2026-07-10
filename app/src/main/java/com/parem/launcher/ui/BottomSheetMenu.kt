@@ -100,8 +100,17 @@ class BottomSheetMenu(private val context: Context) {
     }
 
     fun show(): BottomSheetDialog {
-        dialog.setContentView(container)
+        // Nested-scroll wrapper + expanded state: on landscape heights the
+        // taller sheets (screen-time graph + top apps) exceed the screen, and
+        // the default landscape peek opens sheets half-hidden. Short menus are
+        // unaffected — they still open at content height.
+        val scroller = androidx.core.widget.NestedScrollView(context).apply {
+            addView(container)
+        }
+        dialog.setContentView(scroller)
         dialog.transparentSheetFrame()
+        dialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+        dialog.behavior.skipCollapsed = true
         dialog.show()
         return dialog
     }

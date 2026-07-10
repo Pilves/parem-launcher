@@ -867,8 +867,14 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             }
             container.addView(saveButton)
 
-            dialog.setContentView(container)
+            // Nested-scroll wrapper + expanded: on landscape heights the sheet
+            // exceeds the screen and the save row must stay reachable
+            dialog.setContentView(androidx.core.widget.NestedScrollView(requireContext()).apply {
+                addView(container)
+            })
             dialog.transparentSheetFrame()
+            dialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+            dialog.behavior.skipCollapsed = true
             // Keep the filtered list visible above the keyboard, as the widget picker does
             dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
             dialog.show()
