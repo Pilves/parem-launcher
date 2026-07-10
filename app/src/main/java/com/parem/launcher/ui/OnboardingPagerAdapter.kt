@@ -91,15 +91,19 @@ class OnboardingPagerAdapter : RecyclerView.Adapter<OnboardingPagerAdapter.PageV
             title.text = ctx.getString(page.titleRes)
             subtitle.text = ctx.getString(page.subtitleRes)
 
-            featuresContainer.removeAllViews()
-            for (featureRes in page.featureRes) {
-                val tv = TextView(ctx).apply {
-                    text = ctx.getString(featureRes)
+            // Recycled pages differ only in row count and text, so adjust and
+            // retext the existing rows instead of rebuilding the container
+            while (featuresContainer.childCount > page.featureRes.size)
+                featuresContainer.removeViewAt(featuresContainer.childCount - 1)
+            while (featuresContainer.childCount < page.featureRes.size) {
+                featuresContainer.addView(TextView(ctx).apply {
                     textSize = 16f
                     setTextColor(ctx.getColorFromAttr(R.attr.primaryColor))
                     setPadding(0, 10.dpToPx(), 0, 10.dpToPx())
-                }
-                featuresContainer.addView(tv)
+                })
+            }
+            page.featureRes.forEachIndexed { index, featureRes ->
+                (featuresContainer.getChildAt(index) as TextView).text = ctx.getString(featureRes)
             }
         }
     }
