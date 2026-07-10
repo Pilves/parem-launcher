@@ -14,7 +14,12 @@ import java.text.Normalizer
  */
 object ContactMatcher {
 
-    data class Contact(val name: String, val number: String, val lookupKey: String? = null)
+    data class Contact(val name: String, val number: String, val lookupKey: String? = null) {
+        // Computed eagerly so the cost lands at load time (Dispatchers.IO in
+        // ContactSearchManager) — match() runs per keystroke on the main
+        // thread and must not re-normalize every contact's name there.
+        val searchKey: SearchMatcher.LabelKey = SearchMatcher.key(name)
+    }
 
     private val LETTER = Regex("\\p{L}")
     private val DIACRITICS = Regex("\\p{InCombiningDiacriticalMarks}+")
@@ -36,7 +41,7 @@ object ContactMatcher {
         val q = query.trim()
         return contacts
             .mapNotNull { contact ->
-                val key = SearchMatcher.key(contact.name)
+                val key = contact.searchKey
                 if (!SearchMatcher.matches(contact.name, key, q)) return@mapNotNull null
                 contact to rank(key, q)
             }
