@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+- Fixed: imported app limits now apply immediately — a stale in-memory cache
+  survived the post-import restart and kept enforcing the old limits
+- Fixed: typing in the drawer could stutter with contact search enabled on
+  large address books (contact match keys are now computed once at load)
+- Fixed: a rare mis-sort or crash when the app list was loaded from two
+  places at once (shared collator was not thread-safe)
+- Fixed: the app-limits dialog no longer opens empty when tapped right
+  after opening settings
 - Fixed: importing exported settings did nothing — leaving the launcher for
   the file picker (or any settings-launched dialog) popped the settings
   screen behind it, so the picked file's result had nowhere to return to.
