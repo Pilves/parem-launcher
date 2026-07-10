@@ -173,9 +173,10 @@ class ScreenTimeLimitDialog(
         for (option in limitOptions) {
             menu.option(option.label, dimmed = option.minutes < 0) {
                 if (option.minutes < 0) {
-                    // "Unlimited" means remove the limit
+                    // "Unlimited" removes the limit; the row shows "No limit",
+                    // matching what a reopened dialog would display
                     AppLimitManager.removeLimit(context, packageName)
-                    limitView.text = "Unlimited"
+                    limitView.text = "No limit"
                 } else {
                     AppLimitManager.setLimit(context, packageName, option.minutes)
                     limitView.text = option.label
