@@ -18,7 +18,8 @@ class PrefsRegistrationTest {
     private class Source(val name: String, val text: String)
 
     private val constRegex = Regex("""\bval\s+(\w+)\s*(?::\s*String\s*)?=\s*"([^"$]*)"""")
-    private val readRegex = Regex("""\.get(Long|Float)\(\s*([^,)]+?)\s*,""")
+    // Settings.Global/Secure/System reads are system settings, not launcher prefs.
+    private val readRegex = Regex("""(?<!Settings\.Global|Settings\.Secure|Settings\.System)\.get(Long|Float)\(\s*([^,)]+?)\s*,""")
 
     private fun mainDir(): File =
         listOf(File("src/main"), File("app/src/main")).firstOrNull { it.isDirectory }
