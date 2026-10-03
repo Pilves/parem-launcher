@@ -2,15 +2,21 @@ package com.parem.launcher.ui
 
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
+import android.content.Context
 import android.content.Intent
+import android.content.pm.LauncherApps
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
+import android.os.Process
+import android.os.UserManager
 import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.RemoteViews
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
@@ -516,17 +522,46 @@ class HomeWidgetController(
         val pm = context.packageManager
 
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            data class WidgetEntry(val appName: String, val widgetLabel: String, val provider: AppWidgetProviderInfo)
+            data class WidgetEntry(
+                val appName: String,
+                val isOtherProfile: Boolean,
+                val header: String,
+                val widgetLabel: String,
+                val provider: AppWidgetProviderInfo,
+                val preview: RemoteViews?,
+            )
             val allEntries = withContext(Dispatchers.IO) {
-                val installedProviders = mainActivity.appWidgetManager.installedProviders
-                installedProviders.map { provider ->
-                    val appName = try {
-                        pm.getApplicationLabel(pm.getApplicationInfo(provider.provider.packageName, 0)).toString()
+                val myUser = Process.myUserHandle()
+                val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
+                val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+                // installedProviders covers only this user; work-profile providers must be asked for per profile
+                val installedProviders = userManager.userProfiles.flatMap { profile ->
+                    try {
+                        mainActivity.appWidgetManager.getInstalledProvidersForProfile(profile)
                     } catch (e: Exception) {
-                        provider.provider.packageName
+                        Log.w("HomeWidgetController", "providers for $profile unavailable", e)
+                        emptyList()
                     }
-                    WidgetEntry(appName, provider.loadLabel(pm), provider)
-                }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.appName })
+                }
+                installedProviders.map { provider ->
+                    val pkg = provider.provider.packageName
+                    val appName = try {
+                        // A work-only app has no ApplicationInfo in this user's PackageManager
+                        val appInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                            launcherApps.getApplicationInfo(pkg, 0, provider.profile)
+                        else pm.getApplicationInfo(pkg, 0)
+                        pm.getApplicationLabel(appInfo).toString()
+                    } catch (e: Exception) {
+                        pkg
+                    }
+                    val isOtherProfile = provider.profile != myUser
+                    val header = if (isOtherProfile) pm.getUserBadgedLabel(appName, provider.profile).toString()
+                    else appName
+                    WidgetEntry(appName, isOtherProfile, header, provider.loadLabel(pm), provider, loadGeneratedPreview(provider))
+                }.sortedWith(
+                    compareBy<WidgetEntry, String>(String.CASE_INSENSITIVE_ORDER) { it.appName }
+                        .thenBy { it.isOtherProfile }
+                )
             }
 
             if (!isActive()) return@launch
@@ -536,19 +571,19 @@ class HomeWidgetController(
                 return@launch
             }
 
-            fun buildItems(query: String): MutableList<Pair<String, AppWidgetProviderInfo?>> {
-                val items = mutableListOf<Pair<String, AppWidgetProviderInfo?>>()
+            fun buildItems(query: String): MutableList<Pair<String, WidgetEntry?>> {
+                val items = mutableListOf<Pair<String, WidgetEntry?>>()
                 val filtered = if (query.isBlank()) allEntries
                 else allEntries.filter {
-                    it.appName.contains(query, true) || it.widgetLabel.contains(query, true)
+                    it.header.contains(query, true) || it.widgetLabel.contains(query, true)
                 }
                 var lastApp = ""
                 for (entry in filtered) {
-                    if (entry.appName != lastApp) {
-                        items.add(Pair(entry.appName, null))
-                        lastApp = entry.appName
+                    if (entry.header != lastApp) {
+                        items.add(Pair(entry.header, null))
+                        lastApp = entry.header
                     }
-                    items.add(Pair(entry.widgetLabel, entry.provider))
+                    items.add(Pair(entry.widgetLabel, entry))
                 }
                 return items
             }
@@ -581,6 +616,8 @@ class HomeWidgetController(
             val textColor = context.getColorFromAttr(R.attr.primaryColor)
             val headerColor = textColor
             var currentItems = buildItems("")
+            // RemoteViews inflation is not free; keep each applied preview for the dialog's lifetime
+            val previewViews = HashMap<AppWidgetProviderInfo, View?>()
 
             val adapter = object : android.widget.BaseAdapter() {
                 override fun getCount() = currentItems.size
@@ -592,25 +629,60 @@ class HomeWidgetController(
 
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                     val item = currentItems[position]
-                    val isHeader = item.second == null
-                    val textView = (convertView as? TextView) ?: TextView(context)
-
-                    if (isHeader) {
+                    val entry = item.second
+                    if (entry == null) {
+                        val textView = (convertView as? TextView) ?: TextView(context)
                         textView.text = item.first
                         textView.textSize = 14f
                         textView.setTypeface(null, android.graphics.Typeface.BOLD)
                         textView.setTextColor(headerColor)
                         textView.alpha = 0.6f
                         textView.setPadding(16.dpToPx(), 12.dpToPx(), 16.dpToPx(), 4.dpToPx())
-                    } else {
-                        textView.text = item.first
-                        textView.textSize = 16f
-                        textView.setTypeface(null, android.graphics.Typeface.NORMAL)
-                        textView.setTextColor(textColor)
-                        textView.alpha = 1.0f
-                        textView.setPadding(24.dpToPx(), 8.dpToPx(), 16.dpToPx(), 8.dpToPx())
+                        return textView
                     }
-                    return textView
+
+                    val row = (convertView as? android.widget.LinearLayout)
+                        ?: android.widget.LinearLayout(context).apply {
+                            orientation = android.widget.LinearLayout.VERTICAL
+                            addView(TextView(context))
+                            // Swallow touches so a preview's own click intents never fire; the row click still lands
+                            addView(object : FrameLayout(context) {
+                                override fun onInterceptTouchEvent(ev: MotionEvent?) = true
+                            }.apply {
+                                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+                                setPadding(24.dpToPx(), 0, 16.dpToPx(), 8.dpToPx())
+                            })
+                        }
+                    val textView = row.getChildAt(0) as TextView
+                    textView.text = item.first
+                    textView.textSize = 16f
+                    textView.setTextColor(textColor)
+                    textView.setPadding(24.dpToPx(), 8.dpToPx(), 16.dpToPx(), 8.dpToPx())
+
+                    val previewFrame = row.getChildAt(1) as FrameLayout
+                    previewFrame.removeAllViews()
+                    val previewView = entry.preview?.let { preview ->
+                        previewViews.getOrPut(entry.provider) {
+                            try {
+                                preview.apply(context, previewFrame)
+                            } catch (e: Exception) {
+                                Log.w("HomeWidgetController", "preview apply failed", e)
+                                null
+                            }
+                        }
+                    }
+                    if (previewView != null) {
+                        (previewView.parent as? ViewGroup)?.removeView(previewView)
+                        // minHeight is the provider's px size; clamp so one tall widget can't flood the list
+                        val height = entry.provider.minHeight.coerceIn(48.dpToPx(), 160.dpToPx())
+                        previewFrame.addView(previewView, FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT, height
+                        ))
+                        previewFrame.visibility = View.VISIBLE
+                    } else {
+                        previewFrame.visibility = View.GONE
+                    }
+                    return row
                 }
             }
             listView.adapter = adapter
@@ -625,9 +697,9 @@ class HomeWidgetController(
             })
 
             listView.setOnItemClickListener { _, _, position, _ ->
-                val providerInfo = currentItems[position].second ?: return@setOnItemClickListener
+                val entry = currentItems[position].second ?: return@setOnItemClickListener
                 dialog.dismiss()
-                onSelected(providerInfo)
+                onSelected(entry.provider)
             }
 
             container.addView(searchField)
@@ -647,6 +719,19 @@ class HomeWidgetController(
         }
     }
 
+    /** Android 15+ generated preview for the home-screen category, or null when the provider has none. */
+    private fun loadGeneratedPreview(provider: AppWidgetProviderInfo): RemoteViews? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return null
+        val category = AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN
+        if (provider.generatedPreviewCategories and category == 0) return null
+        return try {
+            mainActivity?.appWidgetManager?.getWidgetPreview(provider.provider, provider.profile, category)
+        } catch (e: Exception) {
+            Log.w("HomeWidgetController", "generated preview unavailable for ${provider.provider}", e)
+            null
+        }
+    }
+
     private fun bindWidget(providerInfo: AppWidgetProviderInfo, replaceIndex: Int = -1) {
         if (replaceIndex == -1 && prefs.getWidgetIdList().size >= 6) {
             context.showToast(context.getString(R.string.max_widgets_reached), Toast.LENGTH_SHORT)
@@ -659,7 +744,7 @@ class HomeWidgetController(
             mainActivity.pendingWidgetInfo = providerInfo
 
             val allowed = mainActivity.appWidgetManager.bindAppWidgetIdIfAllowed(
-                widgetId, providerInfo.provider
+                widgetId, providerInfo.profile, providerInfo.provider, null
             )
 
             if (allowed) {
@@ -680,6 +765,7 @@ class HomeWidgetController(
                 val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
                     putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
                     putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, providerInfo.provider)
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER_PROFILE, providerInfo.profile)
                 }
                 mainActivity.bindWidgetLauncher.launch(intent)
             }
@@ -707,6 +793,14 @@ class HomeWidgetController(
                             mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
                         }
                     }
+                }
+                if (providerInfo.profile != Process.myUserHandle()) {
+                    // A configure activity in another profile can't be started by component from this
+                    // user; the host routes it and the result comes back through onActivityResult
+                    mainActivity.appWidgetHost.startAppWidgetConfigureActivityForResult(
+                        mainActivity, widgetId, 0, MainActivity.REQUEST_CONFIGURE_PROFILE_WIDGET, null
+                    )
+                    return
                 }
                 val configIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE).apply {
                     component = providerInfo.configure

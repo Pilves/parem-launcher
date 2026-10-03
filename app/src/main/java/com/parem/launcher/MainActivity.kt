@@ -158,6 +158,18 @@ class MainActivity : AppCompatActivity() {
         outState.putString("pendingWidgetProvider", pendingWidgetInfo?.provider?.flattenToString())
     }
 
+    // AppWidgetHost.startAppWidgetConfigureActivityForResult (the only way to configure a
+    // work-profile widget) reports here, not through an ActivityResultLauncher
+    @Deprecated("Needed for AppWidgetHost's configure flow")
+    @Suppress("DEPRECATION")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CONFIGURE_PROFILE_WIDGET) {
+            onWidgetConfigureResult?.invoke(resultCode == Activity.RESULT_OK)
+            onWidgetConfigureResult = null
+        }
+    }
+
     override fun onDestroy() {
         onWidgetBindResult = null
         onWidgetConfigureResult = null
@@ -304,4 +316,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    companion object {
+        const val REQUEST_CONFIGURE_PROFILE_WIDGET = 0x5701
+    }
 }

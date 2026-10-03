@@ -6,6 +6,8 @@
   it declares only the app kinds it uses: launchable apps, launchers, icon
   packs and widget providers
 - Target Android 16 (API 36).
+- The widget picker lists work-profile widgets (under the badged app name) and,
+  on Android 15+, shows a live preview for widgets that publish one
 - Lock screen gestures (double tap, swipe) now show a clear disclosure of what
   the accessibility service sees and ask for consent before opening
   Accessibility settings, from Settings and from the home screen; declining
