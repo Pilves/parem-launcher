@@ -47,3 +47,7 @@ Recorded 2026-10-03 after the design/manager review round. These override the
   pointer. The fastlane admin sentence waits for Patric's wording.
 - **Owner review list (Patric):** Estonian quick-action keywords and all
   Estonian strings; fastlane admin sentence; crash-report destination address.
+- **UX round (2026-10-04).** DESIGN.md is the design system for 6.0. UX-1/UX-2/UX-5
+  are the specs for M4-WP34/WP32/WP35; UX-9 is M4-WP43 (blocks 6.0); the rest are
+  M4-WP44..55 with tiers. Decision 5 (DESIGN §14): no 250 ms commit beat — UX-4
+  ships only the setting plus the TalkBack/touch-exploration gate.
