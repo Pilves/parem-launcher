@@ -59,7 +59,7 @@ object GrayscalePairing {
     private fun post(context: Context, text: String, withReply: Boolean, timeoutMs: Long = 0) {
         if (!canNotify(context)) return
         val nm = context.getSystemService(NotificationManager::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && nm.getNotificationChannel(CHANNEL_ID) == null) {
+        if (nm.getNotificationChannel(CHANNEL_ID) == null) {
             // Default importance, not high: a heads-up would cover the code it asks for
             nm.createNotificationChannel(
                 NotificationChannel(CHANNEL_ID, context.getString(R.string.grayscale), NotificationManager.IMPORTANCE_DEFAULT)

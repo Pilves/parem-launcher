@@ -1,7 +1,6 @@
 package com.parem.launcher.ui
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -112,7 +111,7 @@ class SettingsFragment : BaseFragment() {
 
         // Focus mode / screen-time dialogs rank apps by today's usage; without this
         // the list is empty unless the app drawer happened to load first
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && requireContext().appUsagePermissionGranted())
+        if (requireContext().appUsagePermissionGranted())
             viewModel.getPerAppScreenTime()
     }
 

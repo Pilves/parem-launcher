@@ -1,6 +1,5 @@
 package com.parem.launcher.ui.home
 
-import android.os.Build
 import android.os.Process
 import android.view.Gravity
 import android.view.View
@@ -78,8 +77,7 @@ class HomeSlotsController(
         if (appCountUpdated) hideHomeApps()
         fragment.clockController?.populateDateTime()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-            fragment.clockController?.populateScreenTime()
+        fragment.clockController?.populateScreenTime()
 
         val homeAppsNum = prefs.homeAppsNum.coerceAtMost(homeAppViews.size)
 

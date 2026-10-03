@@ -2,13 +2,14 @@
 
 ## [Unreleased]
 
+- Parem now needs Android 10 or newer (was Android 7.0)
 - Grayscale (Settings > Digital Wellbeing): turn the screen grey now, during
   focus, or after opening an app past its limit until you come back to Parem.
   Needs a one-time permission: on Android 11+ Parem pairs with Wireless
   debugging on the phone itself (type the code into its notification); with a
   computer, a WebUSB page or one adb command does it. Parem restores your own
   color-correction setting exactly and backs off if you change it yourself
-- Hide from shade, keep for later (Android 8+, off by default): pick the apps
+- Hide from shade, keep for later (off by default): pick the apps
   allowed to alert; notifications from every other app leave the shade and wait
   in a quiet list you open with a swipe gesture. Calls, alarms, media,
   navigation and emergency alerts are never hidden, and hidden items come back

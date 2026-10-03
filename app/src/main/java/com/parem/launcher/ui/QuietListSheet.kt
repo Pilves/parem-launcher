@@ -38,10 +38,6 @@ object QuietListSheet {
     /** The QUIET_LIST gesture: what opens depends on the derived state. */
     fun openFromGesture(fragment: Fragment, prefs: Prefs, isAlive: () -> Boolean) {
         val context = fragment.context ?: return
-        if (!QuietNotificationsManager.isSupported()) {
-            context.showToast(R.string.quiet_not_supported)
-            return
-        }
         when (QuietNotificationsManager.state(context)) {
             State.OFF -> startTurnOn(fragment, prefs, isAlive, onChanged = {})
             State.NEEDS_ACCESS -> showNeedsAccess(context, starting = false, onChanged = {})

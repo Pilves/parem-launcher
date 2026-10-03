@@ -35,9 +35,6 @@ object QuietNotificationsManager {
     private const val KEYS_PREFS_NAME = "com.parem.launcher.quiet_keys"
     private const val KEY_SNOOZED = "SNOOZED_KEYS"
 
-    /** Snooze needs API 26; below that the feature is hidden. */
-    fun isSupported(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-
     private fun component(context: Context) =
         ComponentName(context, QuietNotificationListener::class.java)
 
@@ -49,7 +46,7 @@ object QuietNotificationsManager {
         context.packageName in NotificationManagerCompat.getEnabledListenerPackages(context)
 
     fun state(context: Context): State = when {
-        !isSupported() || !isEnabled(context) -> State.OFF
+        !isEnabled(context) -> State.OFF
         !hasAccess(context) -> State.NEEDS_ACCESS
         else -> State.ON
     }
@@ -71,12 +68,10 @@ object QuietNotificationsManager {
     fun turnOff(context: Context, dismissWaiting: Boolean) {
         val listener = QuietNotificationListener.instance
         if (dismissWaiting) listener?.dismissAll()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            try {
-                listener?.requestUnbind()
-            } catch (e: Exception) {
-                Log.e("QuietNotifications", "requestUnbind failed", e)
-            }
+        try {
+            listener?.requestUnbind()
+        } catch (e: Exception) {
+            Log.e("QuietNotifications", "requestUnbind failed", e)
         }
         setEnabled(context, false)
     }
@@ -157,7 +152,6 @@ object QuietNotificationsManager {
 
     /** Per-app notification settings, where the user can make an app silent. */
     fun openAppNotificationSettings(context: Context, pkg: String) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         try {
             context.startActivity(
                 Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)

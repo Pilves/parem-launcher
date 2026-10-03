@@ -1,7 +1,6 @@
 package com.parem.launcher.ui.settings
 
 import android.Manifest
-import android.os.Build
 import android.view.Gravity
 import android.view.View
 import android.widget.Toast
@@ -249,7 +248,7 @@ class HomeScreenSettingsCard(
     }
 
     private fun populateSortByUsage() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && context.appUsagePermissionGranted()) {
+        if (context.appUsagePermissionGranted()) {
             binding.sortByUsageLayout?.visibility = View.VISIBLE
             binding.sortByUsage?.text = if (prefs.appDrawerSortByUsage) context.getString(R.string.on) else context.getString(R.string.off)
         } else {

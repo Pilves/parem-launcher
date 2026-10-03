@@ -19,7 +19,6 @@ import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.result.ActivityResultLauncher
-import androidx.annotation.RequiresApi
 import com.parem.launcher.BuildConfig
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -43,7 +42,6 @@ fun View.showKeyboard(show: Boolean = true) {
 }
 
 
-@RequiresApi(Build.VERSION_CODES.Q)
 fun Activity.showLauncherSelector(launcher: ActivityResultLauncher<Intent>) {
     val roleManager = getSystemService(Context.ROLE_SERVICE) as RoleManager
     if (roleManager.isRoleAvailable(RoleManager.ROLE_HOME)) {
@@ -156,7 +154,6 @@ fun Context.isPackageInstalled(packageName: String, userHandle: UserHandle = and
     return activityInfo.isNotEmpty()
 }
 
-@RequiresApi(Build.VERSION_CODES.Q)
 fun Context.appUsagePermissionGranted(): Boolean {
     val appOpsManager = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
     return appOpsManager.unsafeCheckOpNoThrow(

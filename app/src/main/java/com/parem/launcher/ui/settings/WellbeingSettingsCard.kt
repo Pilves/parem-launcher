@@ -124,11 +124,7 @@ class WellbeingSettingsCard(
     }
 
     private fun populateQuietNotif() {
-        val layout = binding.quietNotifLayout ?: return
-        if (!QuietNotificationsManager.isSupported()) {
-            layout.visibility = View.GONE
-            return
-        }
+        binding.quietNotifLayout ?: return
         val state = QuietNotificationsManager.state(context)
         binding.quietNotifToggle?.text = context.getString(
             when (state) {
@@ -157,10 +153,8 @@ class WellbeingSettingsCard(
     }
 
     private fun populateScreenTimeOnOff() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (context.appUsagePermissionGranted()) binding.screenTimeOnOff.text = context.getString(R.string.on)
-            else binding.screenTimeOnOff.text = context.getString(R.string.off)
-        } else binding.screenTimeLayout.visibility = View.GONE
+        if (context.appUsagePermissionGranted()) binding.screenTimeOnOff.text = context.getString(R.string.on)
+        else binding.screenTimeOnOff.text = context.getString(R.string.off)
     }
 
     private fun showFocusModeFromSettings() {
@@ -181,7 +175,7 @@ class WellbeingSettingsCard(
     }
 
     private fun showScreenTimeLimitsDialog() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || !context.appUsagePermissionGranted()) {
+        if (!context.appUsagePermissionGranted()) {
             viewModel.showDialog.postValue(Constants.Dialog.DIGITAL_WELLBEING)
             return
         }

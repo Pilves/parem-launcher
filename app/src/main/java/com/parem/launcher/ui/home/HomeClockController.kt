@@ -2,13 +2,11 @@ package com.parem.launcher.ui.home
 
 import android.content.Intent
 import android.os.BatteryManager
-import android.os.Build
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.View
-import androidx.annotation.RequiresApi
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import com.parem.launcher.MainViewModel
@@ -98,7 +96,6 @@ class HomeClockController(
         binding.clock.contentDescription = binding.clock.text
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     fun populateScreenTime() {
         if (context.appUsagePermissionGranted().not()) return
 

@@ -1,9 +1,7 @@
 package com.parem.launcher.ui.home
 
-import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.view.MotionEvent
@@ -55,8 +53,6 @@ class HomeGesturesController(
 ) {
 
     private val context get() = binding.root.context
-    private val deviceManager =
-        context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
 
     private var screenTouchListener: OnSwipeTouchListener? = null
     private val viewTouchListeners = mutableListOf<ViewSwipeTouchListener>()
@@ -335,52 +331,46 @@ class HomeGesturesController(
 
     /** [onDecline] turns the triggering gesture off so a declined consent doesn't nag on every tap. */
     private fun lockPhone(onDecline: () -> Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val outcome = LockServiceCheck.decide(
-                enabled = isAccessServiceEnabled(context),
-                bound = isAccessServiceBound(context),
-                connectedBefore = prefs.lockServiceConnected,
-                offExplained = prefs.lockServiceOffExplained,
-            )
-            when (outcome) {
-                LockServiceCheck.Outcome.LOCK -> Unit
-                LockServiceCheck.Outcome.CONSENT -> {
-                    if (!fragment.isAdded) return
-                    showLockConsent(
-                        context,
-                        onAccept = {
-                            if (fragment.isAdded)
-                                fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                        },
-                        onDecline = onDecline,
-                    )
-                    return
-                }
-                LockServiceCheck.Outcome.EXPLAIN_OFF -> {
-                    if (!fragment.isAdded) return
-                    prefs.lockServiceOffExplained = true
-                    showLockServiceOff(context) {
+        val outcome = LockServiceCheck.decide(
+            enabled = isAccessServiceEnabled(context),
+            bound = isAccessServiceBound(context),
+            connectedBefore = prefs.lockServiceConnected,
+            offExplained = prefs.lockServiceOffExplained,
+        )
+        when (outcome) {
+            LockServiceCheck.Outcome.LOCK -> Unit
+            LockServiceCheck.Outcome.CONSENT -> {
+                if (!fragment.isAdded) return
+                showLockConsent(
+                    context,
+                    onAccept = {
                         if (fragment.isAdded)
                             fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                    }
-                    return
+                    },
+                    onDecline = onDecline,
+                )
+                return
+            }
+            LockServiceCheck.Outcome.EXPLAIN_OFF -> {
+                if (!fragment.isAdded) return
+                prefs.lockServiceOffExplained = true
+                showLockServiceOff(context) {
+                    if (fragment.isAdded)
+                        fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
                 }
-                LockServiceCheck.Outcome.OFF_EXPLAINED -> {
-                    context.showToast(context.getString(R.string.lock_service_off_toast))
-                    return
-                }
+                return
+            }
+            LockServiceCheck.Outcome.OFF_EXPLAINED -> {
+                context.showToast(context.getString(R.string.lock_service_off_toast))
+                return
             }
         }
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                // Trap #1 (ARCHITECTURE.md): clicking the invisible lock view emits the
-                // accessibility event MyAccessibilityService matches (by contentDescription)
-                // to perform GLOBAL_ACTION_LOCK_SCREEN. The no-op click handler lives in
-                // HomeFragment.onClick (R.id.lock).
-                binding.lock.performClick()
-            } else {
-                deviceManager.lockNow()
-            }
+            // Trap #1 (ARCHITECTURE.md): clicking the invisible lock view emits the
+            // accessibility event MyAccessibilityService matches (by contentDescription)
+            // to perform GLOBAL_ACTION_LOCK_SCREEN. The no-op click handler lives in
+            // HomeFragment.onClick (R.id.lock).
+            binding.lock.performClick()
         } catch (e: SecurityException) {
             prefs.lockModeOn = false
             context.showToast(context.getString(R.string.please_turn_on_double_tap_to_unlock), Toast.LENGTH_LONG)

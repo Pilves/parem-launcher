@@ -58,7 +58,7 @@ The app drawer search bar is a single point of truth:
 ## Building
 
 ```
-# Requires Android SDK (min SDK 24, target 35), JDK 17+
+# Requires Android SDK (min SDK 29, target 35), JDK 17+
 ./gradlew assembleDebug
 ```
 

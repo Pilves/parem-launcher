@@ -408,8 +408,7 @@ class AppDrawerFragment : BaseFragment() {
                 binding.appDrawerTip.isSelected = true
             }
         }
-        val wantSortByUsage = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
-                && requireContext().appUsagePermissionGranted()
+        val wantSortByUsage = requireContext().appUsagePermissionGranted()
                 && prefs.appDrawerSortByUsage
         adapter.sortByUsage = wantSortByUsage
 
@@ -440,9 +439,7 @@ class AppDrawerFragment : BaseFragment() {
                 }
             }
         }
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
-            && requireContext().appUsagePermissionGranted()
-        ) {
+        if (requireContext().appUsagePermissionGranted()) {
             viewModel.perAppScreenTime.observe(viewLifecycleOwner) { stats ->
                 adapter.usageStats = stats
                 prefs.setCachedUsageStats(stats)

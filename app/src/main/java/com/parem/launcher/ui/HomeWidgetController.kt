@@ -547,9 +547,7 @@ class HomeWidgetController(
                     val pkg = provider.provider.packageName
                     val appName = try {
                         // A work-only app has no ApplicationInfo in this user's PackageManager
-                        val appInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                            launcherApps.getApplicationInfo(pkg, 0, provider.profile)
-                        else pm.getApplicationInfo(pkg, 0)
+                        val appInfo = launcherApps.getApplicationInfo(pkg, 0, provider.profile)
                         pm.getApplicationLabel(appInfo).toString()
                     } catch (e: Exception) {
                         pkg

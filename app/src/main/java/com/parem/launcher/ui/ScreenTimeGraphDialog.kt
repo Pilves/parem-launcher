@@ -2,7 +2,6 @@ package com.parem.launcher.ui
 
 import android.content.Context
 import android.graphics.Typeface
-import android.os.Build
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -92,7 +91,6 @@ class ScreenTimeGraphDialog(private val context: Context) {
         reviewColumn: LinearLayout,
         topAppsColumn: LinearLayout,
     ) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
         if (!context.appUsagePermissionGranted()) return
 
         val appContext = context.applicationContext

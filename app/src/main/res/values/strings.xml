@@ -388,7 +388,6 @@
     <string name="quiet_dismiss" translatable="false">Dismiss</string>
     <string name="quiet_keep" translatable="false">Keep</string>
     <string name="quiet_keep_info" translatable="false">Hidden notifications will come back to the shade within 8 h.</string>
-    <string name="quiet_not_supported" translatable="false">Not available on this Android version</string>
     <string name="grayscale" translatable="false">Grayscale</string>
     <string name="grayscale_set_up" translatable="false">Set up</string>
     <string name="grayscale_now" translatable="false">Now</string>

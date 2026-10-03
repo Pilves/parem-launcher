@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import androidx.annotation.RequiresApi
 
 /**
  * Moves notifications from apps the user did not allow out of the shade by
@@ -35,7 +34,7 @@ class QuietNotificationListener : NotificationListenerService() {
     override fun onListenerConnected() {
         super.onListenerConnected()
         instance = this
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) snoozedKeys()?.let {
+        snoozedKeys()?.let {
             QuietNotificationsManager.pruneKeys(this, it)
         }
     }
@@ -51,7 +50,6 @@ class QuietNotificationListener : NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification, rankingMap: RankingMap?) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         // API 31+ filters silent notifications out through the manifest's
         // default_filter_types; older versions deliver them, so drop them here
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S && rankingMap != null) {
@@ -101,7 +99,6 @@ class QuietNotificationListener : NotificationListenerService() {
         false
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun snoozed(): List<StatusBarNotification>? = try {
         snoozedNotifications?.toList()
     } catch (e: Exception) {
@@ -110,7 +107,6 @@ class QuietNotificationListener : NotificationListenerService() {
         null
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun snoozedKeys(): Set<String>? = snoozed()?.mapTo(HashSet()) { it.key }
 
     /**
@@ -118,7 +114,6 @@ class QuietNotificationListener : NotificationListenerService() {
      * from the shade are never included: only keys we snoozed count.
      */
     fun waiting(): List<StatusBarNotification> {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return emptyList()
         val snoozed = snoozed() ?: return emptyList()
         val ours = QuietNotificationsManager.pruneKeys(this, snoozed.mapTo(HashSet()) { it.key })
         return snoozed.filter { it.key in ours }.sortedByDescending { it.postTime }

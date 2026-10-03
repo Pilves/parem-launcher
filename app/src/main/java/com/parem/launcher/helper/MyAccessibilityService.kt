@@ -2,7 +2,6 @@ package com.parem.launcher.helper
 
 import android.accessibilityservice.AccessibilityService
 import android.util.Log
-import android.os.Build
 import android.view.accessibility.AccessibilityEvent
 import com.parem.launcher.R
 import com.parem.launcher.data.Prefs
@@ -29,9 +28,7 @@ class MyAccessibilityService : AccessibilityService() {
             if ((event.className == "android.widget.FrameLayout") &&
                 (event.contentDescription == lockDescription)
             ) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
-                }
+                performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
             }
         } catch (e: Exception) {
             Log.e("AccessibilityService", "Error handling accessibility event", e)

@@ -424,8 +424,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getPerAppScreenTime() {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) return
-
         viewModelScope.launch(Dispatchers.IO) {
             // The helper's 60s TTL throttles this path (it used to re-scan on
             // every drawer open).

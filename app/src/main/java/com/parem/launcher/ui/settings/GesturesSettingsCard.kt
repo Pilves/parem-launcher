@@ -4,13 +4,11 @@ import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.view.View
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.findNavController
-import com.parem.launcher.MainActivity
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -242,8 +240,7 @@ class GesturesSettingsCard(
         context.getString(R.string.flashlight) to Constants.GestureAction.TOGGLE_FLASHLIGHT,
         // Offered only once the filter has been turned on; the gesture itself still handles Off
         (context.getString(R.string.quiet_list) to Constants.GestureAction.QUIET_LIST).takeIf {
-            QuietNotificationsManager.isSupported() &&
-                QuietNotificationsManager.state(context) != QuietNotificationsManager.State.OFF
+            QuietNotificationsManager.state(context) != QuietNotificationsManager.State.OFF
         },
         context.getString(R.string.none) to Constants.GestureAction.NONE,
     )
@@ -299,29 +296,16 @@ class GesturesSettingsCard(
     private fun revertedLockAction(previous: Int): Int =
         if (previous == Constants.GestureAction.LOCK_SCREEN) Constants.GestureAction.NONE else previous
 
-    /** [onDecline] runs only on the P+ consent route; pre-P keeps the device-admin prompt. */
     private fun ensureLockPermission(onDecline: () -> Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            if (!isAccessServiceEnabled(context)) {
-                showLockConsent(
-                    context,
-                    onAccept = {
-                        if (fragment.isAdded)
-                            fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                    },
-                    onDecline = onDecline,
-                )
-            }
-        } else {
-            if (!deviceManager.isAdminActive(componentName)) {
-                val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
-                intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName)
-                intent.putExtra(
-                    DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                    context.getString(R.string.admin_permission_message)
-                )
-                (fragment.requireActivity() as MainActivity).enableAdminLauncher.launch(intent)
-            }
+        if (!isAccessServiceEnabled(context)) {
+            showLockConsent(
+                context,
+                onAccept = {
+                    if (fragment.isAdded)
+                        fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                },
+                onDecline = onDecline,
+            )
         }
     }
 

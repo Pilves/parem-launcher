@@ -1,7 +1,6 @@
 package com.parem.launcher.helper
 
 import android.content.Context
-import android.os.Build
 import com.parem.launcher.helper.usageStats.EventLogWrapper
 
 /**
@@ -28,7 +27,6 @@ object UsageStatsHelper {
      * Must be called off the main thread.
      */
     fun getPerAppUsageToday(context: Context): Map<String, Long> {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return emptyMap()
         if (!context.appUsagePermissionGranted()) return emptyMap()
 
         val now = System.currentTimeMillis()
