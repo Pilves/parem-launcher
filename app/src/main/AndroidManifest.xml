@@ -4,9 +4,6 @@
 
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
-    <uses-permission
-        android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
     <!--Used only for downloading wallpapers-->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -20,6 +17,29 @@
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
+
+    <!--Package visibility (Android 11+) in place of QUERY_ALL_PACKAGES: only the
+        packages these intents match are visible to PackageManager and LauncherApps-->
+    <queries>
+        <!--App list, labels, icons, usage-stat names, launch fallbacks-->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <!--Default-launcher check resolves MAIN/HOME, which may be a launcher without a LAUNCHER entry-->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
+        <!--Icon packs (IconPackManager)-->
+        <intent>
+            <action android:name="org.adw.launcher.THEMES" />
+        </intent>
+        <!--Widget providers, including apps whose only component is a widget-->
+        <intent>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent>
+    </queries>
 
     <application
         android:allowBackup="true"
