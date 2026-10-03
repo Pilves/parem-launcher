@@ -57,6 +57,22 @@
     <string name="contact_hint" translatable="false">↵  Call %1$s · %2$s</string>
     <string name="setting_hint" translatable="false">Settings › %1$s</string>
     <string name="currency_hint" translatable="false">≈ %1$s · ECB %2$s</string>
+    <string name="alarm_hint" translatable="false">↵  Alarm %1$s</string>
+    <string name="timer_hint" translatable="false">↵  Timer %1$s</string>
+    <string name="event_hint" translatable="false">↵  Event %1$s · %2$s</string>
+    <string name="event_all_day" translatable="false">%1$s, all day</string>
+    <string name="quick_action_sent" translatable="false">Sent to Clock</string>
+    <string name="quick_action_no_app" translatable="false">No app on this phone can do that</string>
+    <!-- Empty-drawer hint, one per drawer open: what the search field can do -->
+    <string-array name="omnibox_hints" translatable="false">
+        <item>2+2</item>
+        <item>alarm 7:30</item>
+        <item>5 km to mi</item>
+        <item>timer 10m</item>
+        <item>!w calm</item>
+        <item>event friday 3pm dentist</item>
+        <item>100 eur in usd</item>
+    </string-array>
     <string name="currency_downloading" translatable="false">Downloading ECB rates…</string>
     <string name="currency_unavailable" translatable="false">ECB rates unavailable offline</string>
     <string name="contact_search" translatable="false">Contact search</string>

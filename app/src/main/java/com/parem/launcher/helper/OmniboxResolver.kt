@@ -1,5 +1,7 @@
 package com.parem.launcher.helper
 
+import java.time.LocalDateTime
+
 /**
  * The omnibox can be in exactly one mode at a time. [None] is ordinary app
  * search; the others each drive the tip line and the submit action.
@@ -13,6 +15,7 @@ sealed interface OmniboxMode {
     object CurrencyNoRates : OmniboxMode
     data class Dial(val number: String) : OmniboxMode
     object WebSearch : OmniboxMode
+    data class QuickAction(val action: com.parem.launcher.helper.QuickAction) : OmniboxMode
     data class Contact(val name: String, val number: String) : OmniboxMode
     data class Setting(val title: String, val anchor: Int) : OmniboxMode
 }
@@ -20,7 +23,7 @@ sealed interface OmniboxMode {
 /**
  * Decides which omnibox mode a drawer query puts the search field in. Pure, no
  * Android deps. Precedence: calc → conversion → currency → dial → web →
- * contact → setting → none.
+ * quick action → contact → setting → none.
  * The first mode that both recognises *and* resolves the query wins, so a
  * query that looks like an expression but fails to evaluate falls through.
  */
@@ -35,6 +38,7 @@ object OmniboxResolver {
         contacts: List<ContactMatcher.Contact>,
         rates: CurrencyConverter.Rates? = null,
         settings: List<SettingsSearch.Row> = emptyList(),
+        now: LocalDateTime = LocalDateTime.now(),
     ): OmniboxMode {
         val trimmed = query.trim()
 
@@ -66,6 +70,9 @@ object OmniboxResolver {
         if (query.startsWith(" ") && trimmed.isNotEmpty()) {
             return OmniboxMode.WebSearch
         }
+        // Keyword first, so disjoint from the modes above; above contacts so a
+        // contact named "Timer" can't take "timer 10m"
+        QuickActionParser.parse(query, now)?.let { return OmniboxMode.QuickAction(it) }
         // Contacts rank below every other mode and below the app list (which the
         // filter still populates): the matching contact only fills the tip line.
         if (contacts.isNotEmpty() && ContactMatcher.looksLikeContactQuery(trimmed)) {
