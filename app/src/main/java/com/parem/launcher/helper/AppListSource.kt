@@ -137,22 +137,29 @@ private var shortcutSnapshot: ShortcutSnapshot? = null
  * caller, so a rename never goes stale here.
  */
 suspend fun getShortcutRaws(context: Context): List<ShortcutMatcher.Raw> = withContext(Dispatchers.IO) {
+    val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+    // Checked before the cache: Parem stays openable after another home app
+    // takes over, and no shortcut callbacks reach it meanwhile, so a snapshot
+    // from the default-launcher days would serve dead rows now and stale ones
+    // when Parem is default again.
+    if (!runCatching { launcherApps.hasShortcutHostPermission() }.getOrDefault(false)) {
+        shortcutSnapshot = null
+        return@withContext emptyList()
+    }
     val stamp = PackageChangeTracker.stamp()
     val shortcutStamp = PackageChangeTracker.shortcutStamp()
     val snapshot = shortcutSnapshot
     if (snapshot != null && snapshot.stamp == stamp && snapshot.shortcutStamp == shortcutStamp) return@withContext snapshot.raws
-    val (fresh, complete) = queryShortcutRaws(context)
+    val (fresh, complete) = queryShortcutRaws(context, launcherApps)
     // A partial or no-permission result is never cached: the next open retries
     if (complete) shortcutSnapshot = ShortcutSnapshot(stamp, shortcutStamp, fresh)
     fresh
 }
 
 /** One getShortcuts IPC per running profile; a stopped profile makes the result partial. */
-private fun queryShortcutRaws(context: Context): Pair<List<ShortcutMatcher.Raw>, Boolean> {
+private fun queryShortcutRaws(context: Context, launcherApps: LauncherApps): Pair<List<ShortcutMatcher.Raw>, Boolean> {
     val raws = mutableListOf<ShortcutMatcher.Raw>()
     return try {
-        val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-        if (!launcherApps.hasShortcutHostPermission()) return Pair(raws, false)
         val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
         val query = LauncherApps.ShortcutQuery().setQueryFlags(
             LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC or
