@@ -18,8 +18,6 @@ import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatDelegate
 import com.parem.launcher.BuildConfig
 import com.parem.launcher.R
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 fun Context.showToast(message: String?, duration: Int = Toast.LENGTH_SHORT) {
     if (message.isNullOrBlank()) return
@@ -56,15 +54,6 @@ fun getChangedAppTheme(context: Context, currentAppTheme: Int): Int {
             else AppCompatDelegate.MODE_NIGHT_YES
         }
     }
-}
-
-fun isTablet(context: Context): Boolean {
-    val metrics = context.resources.displayMetrics
-    val widthInches = metrics.widthPixels / metrics.xdpi
-    val heightInches = metrics.heightPixels / metrics.ydpi
-    val diagonalInches = sqrt(widthInches.toDouble().pow(2.0) + heightInches.toDouble().pow(2.0))
-    if (diagonalInches >= 7.0) return true
-    return false
 }
 
 fun Context.isDarkThemeOn(): Boolean {

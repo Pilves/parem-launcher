@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Tablets, foldables and wide windows: Parem rotates freely from 600dp up
+  (phones stay portrait), the portrait lock is released when a foldable
+  unfolds, and settings and the app drawer keep a readable width instead of
+  stretching edge to edge
 - Lock without accessibility: when Android turns Parem's accessibility service
   off (e.g. Advanced Protection), the lock gesture can fall back to device
   admin. Opt-in from the lock explanation or Settings › Gestures; the tradeoff

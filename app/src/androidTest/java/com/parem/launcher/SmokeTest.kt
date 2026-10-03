@@ -77,6 +77,26 @@ class SmokeTest {
         )
     }
 
+    @Test
+    fun rotatesOnLargeScreenOnly() {
+        try {
+            device.setOrientationLandscape()
+            if (context.resources.configuration.smallestScreenWidthDp >= 600) {
+                assertTrue(
+                    "home layout not shown in landscape",
+                    device.wait(Until.hasObject(By.res(homeId)), TIMEOUT)
+                )
+                openDrawer()
+            } else {
+                // The portrait lock wins below sw600
+                device.waitForIdle()
+                assertEquals(0, device.displayRotation)
+            }
+        } finally {
+            device.setOrientationNatural()
+        }
+    }
+
     private fun openDrawer() {
         val w = device.displayWidth
         val h = device.displayHeight

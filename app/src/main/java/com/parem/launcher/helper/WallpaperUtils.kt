@@ -12,6 +12,7 @@ import android.graphics.Point
 import android.os.Build
 import android.util.Log
 import android.view.WindowManager
+import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -94,7 +95,7 @@ suspend fun getWallpaperBitmap(originalImage: Bitmap, width: Int, height: Int): 
 suspend fun setWallpaper(appContext: Context, url: String): Boolean {
     return withContext(Dispatchers.IO) {
         val originalImageBitmap = getBitmapFromURL(url) ?: return@withContext false
-        if (appContext.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && isTablet(appContext).not()) {
+        if (appContext.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && appContext.resources.getBoolean(R.bool.lock_portrait)) {
             originalImageBitmap.recycle()
             return@withContext false
         }

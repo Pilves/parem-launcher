@@ -35,7 +35,6 @@ import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.isDarkThemeOn
 import com.parem.launcher.helper.isDefaultLauncher
 import com.parem.launcher.helper.isEinkDisplay
-import com.parem.launcher.helper.isTablet
 import com.parem.launcher.helper.resetLauncherViaFakeActivity
 import com.parem.launcher.helper.setPlainWallpaper
 import com.parem.launcher.helper.showLauncherSelector
@@ -286,9 +285,10 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SourceLockedOrientationActivity")
     private fun setupOrientation() {
-        if (isTablet(this))
-            return
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        // Set both ways: a fold/unfold recreate must not keep a stale portrait lock
+        requestedOrientation = if (resources.getBoolean(R.bool.lock_portrait))
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        else ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     }
 
     private fun backToHomeScreen() {

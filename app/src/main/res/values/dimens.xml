@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Caps the reading width of settings and the drawer; w<N>dp outranks land -->
+    <dimen name="content_side_padding">0dp</dimen>
+</resources>

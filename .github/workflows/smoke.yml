@@ -16,6 +16,14 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { profile: pixel_6,      api-level: 34, perf: true }
+          - { profile: pixel_fold,   api-level: 34 }
+          - { profile: pixel_tablet, api-level: 34 }
+          - { profile: pixel_tablet, api-level: 36 }
     steps:
       - uses: actions/checkout@v4
 
@@ -41,31 +49,33 @@ jobs:
       - name: Instrumented tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
+          api-level: ${{ matrix.api-level }}
+          profile: ${{ matrix.profile }}
           target: google_apis
           arch: x86_64
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           # connectedDebugAndroidTest uninstalls the app when done, so reinstall
-          # for the perf run; it fails the job on a > 20% regression
+          # for the perf run; it fails the job on a > 20% regression. Perf runs
+          # on the phone leg only so the baseline stays comparable; each script
+          # line runs on its own, hence the one-line if
           script: |
             ./gradlew connectedDebugAndroidTest
-            ./gradlew installDebug
-            node scripts/perf-budget.mjs --out app/build/perf/result.json
+            if [ "${{ matrix.perf }}" = "true" ]; then ./gradlew installDebug && node scripts/perf-budget.mjs --out app/build/perf/result.json; fi
 
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: smoke-test-reports
+          name: smoke-test-reports-${{ matrix.profile }}-${{ matrix.api-level }}
           path: app/build/reports/androidTests/
           retention-days: 14
 
       - name: Upload perf result
-        if: always()
+        if: always() && matrix.perf
         uses: actions/upload-artifact@v4
         with:
-          name: perf-result
+          name: perf-result-${{ matrix.profile }}-${{ matrix.api-level }}
           path: app/build/perf/
           if-no-files-found: ignore
           retention-days: 30

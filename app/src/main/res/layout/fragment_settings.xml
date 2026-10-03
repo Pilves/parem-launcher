@@ -16,6 +16,7 @@
         android:clipToPadding="false"
         android:fadingEdgeLength="48dp"
         android:overScrollMode="never"
+        android:paddingHorizontal="@dimen/content_side_padding"
         android:requiresFadingEdge="vertical"
         android:scrollbars="none">
 
