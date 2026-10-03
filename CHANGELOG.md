@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Search history (Settings > Home Screen, off by default): when on, the empty
+  drawer lists your last five drawer launches and searches; tap one to open it
+  again. It stays on this phone (not in the settings export or cloud backup),
+  Clear wipes it, and turning it off deletes it
 - Crash reports (Settings, off by default): when on, a crash is saved on the
   phone and offered on the next start; you send it yourself through an app you
   pick, or discard it. Nothing is collected or sent automatically

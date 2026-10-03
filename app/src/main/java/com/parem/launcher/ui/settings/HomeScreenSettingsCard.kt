@@ -41,6 +41,7 @@ class HomeScreenSettingsCard(
         populateShowIcons()
         populateHomeLayoutLock()
         populateContactSearch()
+        populateSearchHistory()
         populateAlignment()
         populateDateTime()
 
@@ -55,6 +56,8 @@ class HomeScreenSettingsCard(
         binding.showIconsToggle?.setOnClickListener(this)
         binding.homeLayoutLockToggle.setOnClickListener(this)
         binding.contactSearchToggle?.setOnClickListener(this)
+        binding.searchHistoryToggle?.setOnClickListener(this)
+        binding.searchHistoryClear?.setOnClickListener(this)
         binding.alignment.setOnClickListener(this)
         binding.alignmentLeft.setOnClickListener(this)
         binding.alignmentCenter.setOnClickListener(this)
@@ -116,6 +119,14 @@ class HomeScreenSettingsCard(
             R.id.homeLayoutLockToggle -> toggleHomeLayoutLock()
             R.id.sortByUsage -> toggleSortByUsage()
             R.id.contactSearchToggle -> toggleContactSearch()
+            R.id.searchHistoryToggle -> {
+                prefs.omniboxHistoryEnabled = !prefs.omniboxHistoryEnabled
+                populateSearchHistory()
+            }
+            R.id.searchHistoryClear -> {
+                prefs.omniboxHistory = ""
+                context.showToast(context.getString(R.string.search_history_cleared))
+            }
         }
     }
 
@@ -292,6 +303,12 @@ class HomeScreenSettingsCard(
         binding.contactSearchToggle?.text =
             if (ContactSearchManager.isEnabled(context)) context.getString(R.string.on)
             else context.getString(R.string.off)
+    }
+
+    private fun populateSearchHistory() {
+        val on = prefs.omniboxHistoryEnabled
+        binding.searchHistoryToggle?.text = context.getString(if (on) R.string.on else R.string.off)
+        binding.searchHistoryClear?.visibility = if (on) View.VISIBLE else View.GONE
     }
 
     private fun toggleWidgetPlacement() {

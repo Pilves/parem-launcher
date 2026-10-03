@@ -4,10 +4,14 @@
         <include domain="sharedpref" path="." />
         <!--Keys of notifications the quiet filter hid; device-only, see QuietNotificationsManager-->
         <exclude domain="sharedpref" path="com.parem.launcher.quiet_keys.xml" />
+        <!--Omnibox history (opt-in); device-only, see Prefs.omniboxHistory-->
+        <exclude domain="sharedpref" path="com.parem.launcher.omnibox_history.xml" />
     </cloud-backup>
     <device-transfer>
         <include domain="sharedpref" path="." />
         <!--Keys of notifications the quiet filter hid; device-only, see QuietNotificationsManager-->
         <exclude domain="sharedpref" path="com.parem.launcher.quiet_keys.xml" />
+        <!--Omnibox history (opt-in); device-only, see Prefs.omniboxHistory-->
+        <exclude domain="sharedpref" path="com.parem.launcher.omnibox_history.xml" />
     </device-transfer>
 </data-extraction-rules>
