@@ -183,16 +183,28 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         binding.setDefaultLauncher.setOnClickListener(this)
         binding.setDefaultLauncher.setOnLongClickListener(this)
         binding.tvScreenTime.setOnClickListener(this)
+        // Slot taps and long-presses arrive through ViewSwipeTouchListener, which
+        // consumes touch; these fire only for d-pad/keyboard (and accessibility) clicks
+        slotsController?.homeAppViews?.forEach {
+            it.setOnClickListener(this)
+            it.setOnLongClickListener(this)
+        }
     }
 
-    internal fun showAppList(flag: Int, rename: Boolean = false, includeHiddenApps: Boolean = false) {
+    internal fun showAppList(
+        flag: Int,
+        rename: Boolean = false,
+        includeHiddenApps: Boolean = false,
+        query: String? = null,
+    ) {
         viewModel.getAppList(includeHiddenApps)
         try {
             findNavController().navigate(
                 R.id.action_mainFragment_to_appListFragment,
                 bundleOf(
                     Constants.Key.FLAG to flag,
-                    Constants.Key.RENAME to rename
+                    Constants.Key.RENAME to rename,
+                    Constants.Key.QUERY to query
                 )
             )
         } catch (e: Exception) {
@@ -200,7 +212,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                 R.id.appListFragment,
                 bundleOf(
                     Constants.Key.FLAG to flag,
-                    Constants.Key.RENAME to rename
+                    Constants.Key.RENAME to rename,
+                    Constants.Key.QUERY to query
                 )
             )
             Log.e("HomeFragment", "Navigation to app list failed, using fallback", e)

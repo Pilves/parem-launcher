@@ -54,6 +54,13 @@ class AppDrawerFragment : BaseFragment() {
 
     private var flag = Constants.FLAG_LAUNCH_APP
     private var canRename = false
+    // Key typed on a hardware keyboard at home; seeds the search once the app
+    // list is in (filtering an empty list would flash "no apps found")
+    private var typedQuery = ""
+    // Opening the drawer also reloads the list, and setAppList shows it whole,
+    // so a seeded query is re-applied when the fresh list lands. Cleared on
+    // hide/rename: their reload could narrow to one match and auto-launch it.
+    private var reapplyQueryOnReload = false
     private var scrollListener: RecyclerView.OnScrollListener? = null
     private var searchTextView: TextView? = null
     private var cachedIsCjkKeyboard: Boolean? = null
@@ -86,6 +93,8 @@ class AppDrawerFragment : BaseFragment() {
         arguments?.let {
             flag = it.getInt(Constants.Key.FLAG, Constants.FLAG_LAUNCH_APP)
             canRename = it.getBoolean(Constants.Key.RENAME, false)
+            if (savedInstanceState == null)
+                typedQuery = it.getString(Constants.Key.QUERY).orEmpty()
         }
         initViews()
         initSearch()
@@ -276,6 +285,7 @@ class AppDrawerFragment : BaseFragment() {
             },
             appHideListener = { appModel, position ->
                 if (!isAdded) return@AppDrawerAdapter
+                reapplyQueryOnReload = false
                 adapter.removeApp(position)
 
                 val newSet = mutableSetOf<String>()
@@ -299,6 +309,7 @@ class AppDrawerFragment : BaseFragment() {
                 viewModel.getHiddenApps()
             },
             appRenameListener = { appModel, renameLabel ->
+                reapplyQueryOnReload = false
                 prefs.setAppRenameLabel(appModel.appPackage, renameLabel)
                 viewModel.getAppList()
             }
@@ -361,6 +372,14 @@ class AppDrawerFragment : BaseFragment() {
             viewModel.appList.observe(viewLifecycleOwner) {
                 it?.let { appModels ->
                     adapter.setAppList(appModels.toMutableList())
+                    if (typedQuery.isNotEmpty()) {
+                        // Keys typed after the drawer took focus follow the first one
+                        binding.search.setQuery(typedQuery + binding.search.query, false)
+                        typedQuery = ""
+                        reapplyQueryOnReload = true
+                    } else if (reapplyQueryOnReload) {
+                        adapter.filter.filter(binding.search.query)
+                    }
                 }
             }
         }
@@ -432,7 +451,8 @@ class AppDrawerFragment : BaseFragment() {
                         if (!recyclerView.canScrollVertically(1))
                             _binding?.search?.hideKeyboard()
                         else if (!recyclerView.canScrollVertically(-1))
-                            if (!onTop && isRemoving.not())
+                            // A d-pad focused row reaching the top keeps its focus
+                            if (!onTop && isRemoving.not() && recyclerView.focusedChild == null)
                                 _binding?.search?.showKeyboard(prefs.autoShowKeyboard)
                     }
                 }
@@ -497,6 +517,8 @@ class AppDrawerFragment : BaseFragment() {
         super.onStart()
         cachedIsCjkKeyboard = null
         binding.search.showKeyboard(prefs.autoShowKeyboard)
+        // Further typing must land in the field even with keyboard auto-show off
+        if (typedQuery.isNotEmpty()) binding.search.requestFocus()
     }
 
     override fun onStop() {

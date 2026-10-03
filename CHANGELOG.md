@@ -20,6 +20,10 @@
 - New "Lock home layout" toggle under Home Screen: while on, long-pressing a
   home app or folder no longer opens the change/folder/limit/delete menu, so
   the layout can't be edited by accident (from Olauncher #726)
+- Keyboard and D-pad: home apps, clock and drawer rows can be reached with the
+  arrow keys and opened with Enter (long-press Enter for the menu); typing a
+  letter or digit on the home screen opens the drawer search with it, and the
+  Menu key opens the drawer (from Olauncher)
 
 ## v5.7.0
 

@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.view.KeyEvent
 import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 import androidx.appcompat.app.AlertDialog
 import androidx.activity.OnBackPressedCallback
@@ -28,6 +29,7 @@ import androidx.navigation.findNavController
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.ActivityMainBinding
+import com.parem.launcher.helper.HomeKeyInput
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.isDarkThemeOn
 import com.parem.launcher.helper.isDefaultLauncher
@@ -37,6 +39,7 @@ import com.parem.launcher.helper.resetLauncherViaFakeActivity
 import com.parem.launcher.helper.setPlainWallpaper
 import com.parem.launcher.helper.showLauncherSelector
 import com.parem.launcher.helper.showToast
+import com.parem.launcher.ui.HomeFragment
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -181,6 +184,25 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent?) {
         backToHomeScreen()
         super.onNewIntent(intent)
+    }
+
+    // Reached only when no focused view consumed the key, so a focused home slot
+    // still gets d-pad/enter and the drawer's search field gets its own typing
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        if (event.repeatCount == 0 && navController.currentDestination?.id == R.id.mainFragment) {
+            val query = HomeKeyInput.drawerQuery(
+                isMenuKey = keyCode == KeyEvent.KEYCODE_MENU,
+                unicodeChar = event.unicodeChar,
+                hasShortcutModifier = event.isCtrlPressed || event.isAltPressed || event.isMetaPressed
+            )
+            val home = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+                ?.childFragmentManager?.primaryNavigationFragment as? HomeFragment
+            if (query != null && home != null && home.isAdded) {
+                home.showAppList(Constants.FLAG_LAUNCH_APP, query = query)
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

@@ -8,10 +8,12 @@
     tools:context=".ui.HomeFragment">
 
     <!-- Placeholder layout for locking screen-->
+    <!-- Not focusable: d-pad Enter on it would lock the phone (ARCHITECTURE trap #1) -->
     <FrameLayout
         android:id="@+id/lock"
         android:layout_width="match_parent"
         android:layout_height="1dp"
+        android:focusable="false"
         android:contentDescription="@string/lock_layout_description" />
 
     <!-- Clock and calendar-->
@@ -29,6 +31,7 @@
         <TextClock
             android:id="@+id/clock"
             style="@style/TextDefault"
+            android:background="@drawable/bg_focus_highlight"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="?attr/mainFontFamily"
@@ -39,6 +42,7 @@
         <TextView
             android:id="@+id/date"
             style="@style/TextDefault"
+            android:background="@drawable/bg_focus_highlight"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:format12Hour="EEE, dd MMM"
@@ -52,6 +56,7 @@
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/tvScreenTime"
         style="@style/TextSmall"
+        android:background="@drawable/bg_focus_highlight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
@@ -85,6 +90,7 @@
             <TextView
                 android:id="@+id/homeApp1"
                 style="@style/TextLarge"
+                android:background="@drawable/bg_focus_highlight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="@string/app"
@@ -96,6 +102,7 @@
             <TextView
                 android:id="@+id/homeApp2"
                 style="@style/TextLarge"
+                android:background="@drawable/bg_focus_highlight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="@string/app"
@@ -107,6 +114,7 @@
             <TextView
                 android:id="@+id/homeApp3"
                 style="@style/TextLarge"
+                android:background="@drawable/bg_focus_highlight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="@string/app"
@@ -118,6 +126,7 @@
             <TextView
                 android:id="@+id/homeApp4"
                 style="@style/TextLarge"
+                android:background="@drawable/bg_focus_highlight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="@string/app"
@@ -129,6 +138,7 @@
             <TextView
                 android:id="@+id/homeApp5"
                 style="@style/TextLarge"
+                android:background="@drawable/bg_focus_highlight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="@string/app"
@@ -140,6 +150,7 @@
             <TextView
                 android:id="@+id/homeApp6"
                 style="@style/TextLarge"
+                android:background="@drawable/bg_focus_highlight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="@string/app"
@@ -151,6 +162,7 @@
             <TextView
                 android:id="@+id/homeApp7"
                 style="@style/TextLarge"
+                android:background="@drawable/bg_focus_highlight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="@string/app"
@@ -162,6 +174,7 @@
             <TextView
                 android:id="@+id/homeApp8"
                 style="@style/TextLarge"
+                android:background="@drawable/bg_focus_highlight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="@string/app"
