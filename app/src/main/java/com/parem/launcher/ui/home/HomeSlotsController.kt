@@ -17,7 +17,6 @@ import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FolderManager
 import com.parem.launcher.helper.IconPackManager
-import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.getUserHandleFromString
@@ -27,9 +26,7 @@ import com.parem.launcher.ui.BadHabitDialogs
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.CreateFolderDialog
 import com.parem.launcher.ui.HomeFragment
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Owns the 8 home app slots: populating them (including the dynamic fitting
@@ -207,7 +204,7 @@ class HomeSlotsController(
             return
         }
         if (prefs.getHomeAppName(location).isEmpty()) showLongPressToast()
-        else checkBadHabitAndLaunch(
+        else launchApp(
             prefs.getHomeAppName(location),
             prefs.getHomeAppPackage(location),
             prefs.getHomeAppActivityClassName(location),
@@ -215,7 +212,21 @@ class HomeSlotsController(
         )
     }
 
+    /**
+     * Every home launch route (slots, folders, gesture letters, swipe apps,
+     * clock/calendar) comes through here so app limits and the mindful pause
+     * apply to all of them.
+     */
     fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String) {
+        val ctx = fragment.context ?: return
+        BadHabitDialogs.gateLaunch(
+            ctx, fragment.viewLifecycleOwner.lifecycleScope, { fragment.isAdded },
+            appName, packageName,
+            open = { openApp(appName, packageName, activityClassName, userString) },
+        )
+    }
+
+    private fun openApp(appName: String, packageName: String, activityClassName: String?, userString: String) {
         viewModel.selectedApp(
             AppModel(
                 appName,
@@ -227,40 +238,6 @@ class HomeSlotsController(
             ),
             Constants.FLAG_LAUNCH_APP
         )
-    }
-
-    private fun checkBadHabitAndLaunch(name: String, pkg: String, activity: String?, user: String) {
-        val ctx = fragment.context ?: return
-        if (!AppLimitManager.hasLimit(ctx, pkg)) {
-            launchApp(name, pkg, activity, user)
-            return
-        }
-        val limitMinutes = AppLimitManager.getLimit(ctx, pkg) ?: run {
-            launchApp(name, pkg, activity, user)
-            return
-        }
-        fragment.viewLifecycleOwner.lifecycleScope.launch {
-            val usageMs = withContext(Dispatchers.IO) {
-                UsageStatsHelper.getUsageForApp(ctx, pkg)
-            }
-            if (!fragment.isAdded) return@launch
-            val usageMinutes = usageMs / 60_000
-            if (usageMinutes >= limitMinutes) {
-                showBadHabitWarningDialog(name, pkg, activity, user, usageMinutes, limitMinutes)
-            } else {
-                launchApp(name, pkg, activity, user)
-            }
-        }
-    }
-
-    private fun showBadHabitWarningDialog(
-        name: String, pkg: String, activity: String?, user: String,
-        usageMinutes: Long, limitMinutes: Int
-    ) {
-        val ctx = fragment.context ?: return
-        BadHabitDialogs.showLimitWarning(ctx, name.ifEmpty { pkg }, usageMinutes, limitMinutes) {
-            launchApp(name, pkg, activity, user)
-        }
     }
 
     private fun toggleFolderExpansion(slot: Int) {
@@ -310,6 +287,7 @@ class HomeSlotsController(
                         BadHabitDialogs.showTimeLimitPicker(ctx, pkg) { populateHomeScreen(false) }
                     }
                 }
+                BadHabitDialogs.addMindfulPauseToggle(menu, context, pkg)
             }
         }
 

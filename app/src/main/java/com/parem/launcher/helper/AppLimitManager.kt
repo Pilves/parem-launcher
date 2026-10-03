@@ -13,11 +13,15 @@ object AppLimitManager {
 
     private const val PREFS_NAME = "com.parem.launcher"
     private const val KEY_APP_LIMITS = "BAD_HABIT_APPS"
+    private const val KEY_MINDFUL_PAUSE = "MINDFUL_PAUSE_APPS"
 
     private val lock = Any()
 
     @Volatile
     private var cachedLimits: Map<String, Int>? = null
+
+    @Volatile
+    private var cachedPause: Set<String>? = null
 
     fun hasLimit(context: Context, packageName: String): Boolean {
         return getAllLimits(context).containsKey(packageName)
@@ -42,6 +46,22 @@ object AppLimitManager {
             limits.remove(packageName)
             save(context, limits)
             cachedLimits = null
+            // The pause hangs off the limit: dropping the limit drops the pause
+            savePause(context, getPauseInternal(context) - packageName)
+        }
+    }
+
+    /** Mindful pause is opt-in per app and only applies while the app has a limit. */
+    fun hasPause(context: Context, packageName: String): Boolean {
+        synchronized(lock) {
+            return packageName in getPauseInternal(context) && getAllLimitsInternal(context).containsKey(packageName)
+        }
+    }
+
+    fun setPause(context: Context, packageName: String, enabled: Boolean) {
+        synchronized(lock) {
+            val current = getPauseInternal(context)
+            savePause(context, if (enabled) current + packageName else current - packageName)
         }
     }
 
@@ -58,7 +78,22 @@ object AppLimitManager {
     fun clearCache() {
         synchronized(lock) {
             cachedLimits = null
+            cachedPause = null
         }
+    }
+
+    private fun getPauseInternal(context: Context): Set<String> {
+        cachedPause?.let { return it }
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return MindfulPause.parse(prefs.getString(KEY_MINDFUL_PAUSE, "")).also { cachedPause = it }
+    }
+
+    private fun savePause(context: Context, packages: Set<String>) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_MINDFUL_PAUSE, MindfulPause.serialize(packages))
+            .apply()
+        cachedPause = packages
     }
 
     private fun getAllLimitsInternal(context: Context): Map<String, Int> {

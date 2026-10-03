@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+- Mindful pause: for an app with a time limit, turn on "mindful pause" (home
+  slot long-press or the App limits sheet) and every launch of it — home slot,
+  folder, drawer, search, gesture letter, swipe app — first asks why you are
+  opening it and waits 5 seconds; going back returns home. App limits now also
+  apply on those routes, not just home slots and the drawer
 - E-ink phones (Boox/Onyx, Hisense A-series, Mudita and other e-ink brands)
   are now recognised and get no screen transitions, drawer or sheet animations;
   light theme is only the first-run default there, so a dark-theme choice sticks.

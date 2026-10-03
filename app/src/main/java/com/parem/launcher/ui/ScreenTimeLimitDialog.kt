@@ -178,6 +178,7 @@ class ScreenTimeLimitDialog(
                 }
             }
         }
+        BadHabitDialogs.addMindfulPauseToggle(menu, context, packageName)
         menu.show()
     }
 }

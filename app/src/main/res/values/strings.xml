@@ -261,6 +261,11 @@
     <string name="open_anyway" translatable="false">Open anyway</string>
     <string name="go_back" translatable="false">Go back</string>
     <string name="select_time_limit" translatable="false">Select daily time limit</string>
+    <string name="mindful_pause_turn_on" translatable="false">Turn on mindful pause</string>
+    <string name="mindful_pause_turn_off" translatable="false">Turn off mindful pause</string>
+    <string name="mindful_pause_question" translatable="false">Why are you opening %1$s?</string>
+    <string name="mindful_pause_wait" translatable="false">Open %1$s in %2$d…</string>
+    <string name="mindful_pause_open" translatable="false">Open %1$s</string>
 
     <!-- Gesture Letters -->
     <string name="gesture_letters" translatable="false">Gesture letters</string>

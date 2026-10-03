@@ -23,7 +23,6 @@ import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.AppOpenCounter
 import com.parem.launcher.helper.ContactMatcher
 import com.parem.launcher.helper.ContactSearchManager
-import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
 import com.parem.launcher.helper.CurrencyRates
@@ -286,7 +285,9 @@ class AppDrawerFragment : BaseFragment() {
             appClickListener = {
                 if (!isAdded || it.appPackage.isEmpty())
                     return@AppDrawerAdapter
-                if (flag == Constants.FLAG_LAUNCH_APP && checkBadHabitAndLaunch(it)) {
+                if ((flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
+                    && checkBadHabitAndLaunch(it)
+                ) {
                     // Bad habit check is handling launch asynchronously
                 } else {
                     viewModel.selectedApp(it, flag)
@@ -522,38 +523,25 @@ class AppDrawerFragment : BaseFragment() {
     }
 
     /**
-     * Returns true if the app is a bad habit and we're handling it (async check),
-     * false if we should proceed with normal launch.
+     * Returns true if the app has a limit and the launch gate (mindful pause /
+     * limit warning) is handling it, false if we should proceed with normal launch.
      */
     private fun checkBadHabitAndLaunch(appModel: AppModel): Boolean {
         val ctx = context ?: return false
         if (!AppLimitManager.hasLimit(ctx, appModel.appPackage)) return false
-        val limitMinutes = AppLimitManager.getLimit(ctx, appModel.appPackage) ?: return false
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            val usageMs = withContext(Dispatchers.IO) {
-                UsageStatsHelper.getUsageForApp(ctx, appModel.appPackage)
-            }
-            if (!isAdded) return@launch
-            val usageMinutes = usageMs / 60_000
-            if (usageMinutes >= limitMinutes) {
-                showBadHabitWarningDialog(appModel, usageMinutes, limitMinutes)
-            } else {
-                viewModel.selectedApp(appModel, flag)
-                findNavController().popBackStack(R.id.mainFragment, false)
-            }
-        }
+        BadHabitDialogs.gateLaunch(
+            ctx, viewLifecycleOwner.lifecycleScope, { isAdded },
+            appModel.appLabel, appModel.appPackage,
+            open = {
+                if (isAdded) {
+                    viewModel.selectedApp(appModel, flag)
+                    findNavController().popBackStack(R.id.mainFragment, false)
+                }
+            },
+            // Backing out of the pause returns home rather than leaving the drawer open
+            onCancel = { if (isAdded) findNavController().popBackStack(R.id.mainFragment, false) },
+        )
         return true
-    }
-
-    private fun showBadHabitWarningDialog(appModel: AppModel, usageMinutes: Long, limitMinutes: Int) {
-        val ctx = context ?: return
-        val appName = appModel.appLabel.ifEmpty { appModel.appPackage }
-        BadHabitDialogs.showLimitWarning(ctx, appName, usageMinutes, limitMinutes) {
-            if (!isAdded) return@showLimitWarning
-            viewModel.selectedApp(appModel, flag)
-            findNavController().popBackStack(R.id.mainFragment, false)
-        }
     }
 
     override fun onStart() {

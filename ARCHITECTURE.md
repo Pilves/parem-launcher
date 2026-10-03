@@ -43,13 +43,17 @@ ui/
                            WellbeingSettingsCard. Plus two extracted dialogs:
                            WeatherSettingsDialog, GestureLetterConfigDialog.
   BottomSheetMenu.kt       THE way to build bottom sheets (handle + title + rows).
-  BadHabitDialogs.kt       Shared "limit reached" warning + time-limit picker.
+  BadHabitDialogs.kt       Launch gate for limited apps (mindful pause, "limit
+                           reached" warning) + time-limit picker; every launch
+                           route calls gateLaunch (home via
+                           HomeSlotsController.launchApp, drawer/omnibox).
   FocusModeDialog.kt, ScreenTimeGraphDialog.kt, ScreenTimeLimitDialog.kt,
   GestureLetterOverlayView.kt, ScreenTimeGraphView.kt, Onboarding*.kt
 
 helper/
   One object per feature, each owning its own SharedPreferences keys:
-  FocusModeManager, AppLimitManager, FolderManager (class),
+  FocusModeManager, AppLimitManager (+ mindful-pause opt-in; logic in
+  MindfulPause), FolderManager (class),
   GestureLetterManager, SwipeUpAppManager, WeatherManager (Open-Meteo),
   DoubleTapActionManager, ThemeScheduleManager (+ Worker), IconPackManager,
   AppIconCache (bounded ConstantState cache for default app icons),
