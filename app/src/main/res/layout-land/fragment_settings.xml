@@ -996,6 +996,19 @@
                         android:padding="10dp"
                         android:text="@string/off" />
                 </FrameLayout>
+
+                <!-- Device-admin lock fallback (M4-WP18); shown by GesturesSettingsCard -->
+                <TextView
+                    android:id="@+id/lockMethod"
+                    style="@style/TextSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
+                    android:paddingVertical="8dp"
+                    android:textColor="?attr/primaryColor"
+                    android:visibility="gone"
+                    tools:text="@string/lock_admin_off_row" />
             </LinearLayout>
 
             <LinearLayout

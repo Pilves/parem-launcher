@@ -51,7 +51,6 @@
     <string name="adapter_hide">Verstecken</string>
     <string name="app_text_color">Textfarbe</string>
     <string name="double_tap_to_lock_screen">Zum Sperren zweimal tippen</string>
-    <string name="admin_permission_message">Parem Launcher verspricht, verantwortungsvoll mit der Sperrbildschirmberechtigung umzugehen. Parem Launcher sammelt oder gibt keine Daten weiter.</string>
     <string name="about">Über</string>
     <string name="off">Aus</string>
     <string name="on">Ein</string>

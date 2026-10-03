@@ -1,5 +1,7 @@
 package com.parem.launcher.ui.home
 
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
@@ -10,6 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.parem.launcher.MainActivity
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -26,10 +29,12 @@ import com.parem.launcher.helper.openCameraApp
 import com.parem.launcher.helper.openDialerApp
 import com.parem.launcher.helper.openSearch
 import com.parem.launcher.helper.showToast
+import com.parem.launcher.listener.DeviceAdmin
 import com.parem.launcher.listener.OnSwipeTouchListener
 import com.parem.launcher.listener.ViewSwipeTouchListener
 import com.parem.launcher.ui.HomeFragment
 import com.parem.launcher.ui.QuietListSheet
+import com.parem.launcher.ui.requestLockAdmin
 import com.parem.launcher.ui.showLockConsent
 import com.parem.launcher.ui.showLockServiceOff
 import com.parem.launcher.ui.disableAnimationsOnEink
@@ -331,14 +336,16 @@ class HomeGesturesController(
 
     /** [onDecline] turns the triggering gesture off so a declined consent doesn't nag on every tap. */
     private fun lockPhone(onDecline: () -> Unit) {
+        val deviceManager = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
         val outcome = LockServiceCheck.decide(
             enabled = isAccessServiceEnabled(context),
             bound = isAccessServiceBound(context),
             connectedBefore = prefs.lockServiceConnected,
             offExplained = prefs.lockServiceOffExplained,
+            adminActive = deviceManager.isAdminActive(ComponentName(context, DeviceAdmin::class.java)),
         )
         when (outcome) {
-            LockServiceCheck.Outcome.LOCK -> Unit
+            LockServiceCheck.Outcome.LOCK, LockServiceCheck.Outcome.LOCK_ADMIN -> Unit
             LockServiceCheck.Outcome.CONSENT -> {
                 if (!fragment.isAdded) return
                 showLockConsent(
@@ -354,10 +361,17 @@ class HomeGesturesController(
             LockServiceCheck.Outcome.EXPLAIN_OFF -> {
                 if (!fragment.isAdded) return
                 prefs.lockServiceOffExplained = true
-                showLockServiceOff(context) {
-                    if (fragment.isAdded)
-                        fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                }
+                // Cancelling the admin activation keeps the gesture, like dismissing this sheet
+                showLockServiceOff(
+                    context,
+                    onAccept = {
+                        if (fragment.isAdded)
+                            fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                    },
+                    onUseAdmin = {
+                        (fragment.activity as? MainActivity)?.let { requestLockAdmin(it) {} }
+                    },
+                )
                 return
             }
             LockServiceCheck.Outcome.OFF_EXPLAINED -> {
@@ -369,8 +383,10 @@ class HomeGesturesController(
             // Trap #1 (ARCHITECTURE.md): clicking the invisible lock view emits the
             // accessibility event MyAccessibilityService matches (by contentDescription)
             // to perform GLOBAL_ACTION_LOCK_SCREEN. The no-op click handler lives in
-            // HomeFragment.onClick (R.id.lock).
-            binding.lock.performClick()
+            // HomeFragment.onClick (R.id.lock). The admin fallback's lockNow() forces
+            // PIN/pattern/password on the next unlock, hence accessibility first.
+            if (outcome == LockServiceCheck.Outcome.LOCK_ADMIN) deviceManager.lockNow()
+            else binding.lock.performClick()
         } catch (e: SecurityException) {
             prefs.lockModeOn = false
             context.showToast(context.getString(R.string.please_turn_on_double_tap_to_unlock), Toast.LENGTH_LONG)

@@ -20,7 +20,7 @@
     <string name="set_as_default_launcher_first">Set Parem Launcher default first</string>
     <string name="app_text_color">Text color</string>
     <string name="double_tap_to_lock_screen">Double tap to lock</string>
-    <string name="admin_permission_message">Parem Launcher promises to use lock screen permission responsibly. Parem Launcher does not collect or share any data.</string>
+    <string name="admin_permission_message" translatable="false">Parem uses this only to lock the screen when its accessibility service can\'t. After each such lock, your next unlock needs your PIN, pattern or password: fingerprint and face unlock won\'t work for it. Parem uses no other device admin power and collects no data. To uninstall Parem, first turn this off in Parem\'s Settings › Gestures.</string>
     <string name="about">About</string>
     <string name="off">Off</string>
     <string name="on">On</string>
@@ -394,7 +394,10 @@
     <string name="lock_consent_restricted" translatable="false">If the switch is greyed out: App info > menu > Allow restricted settings.</string>
     <string name="lock_service_off_title" translatable="false">Lock gesture is off</string>
     <string name="lock_service_off_body" translatable="false">Parem\'s accessibility service is no longer running, so your lock gesture cannot lock the screen. Android can turn it off after an app update, a crash, or when a security setting restricts accessibility services. Turn it back on in Accessibility settings, or pick another gesture action in Parem\'s gesture settings.</string>
-    <string name="lock_service_off_toast" translatable="false">Can\'t lock: Parem\'s accessibility service is off</string>
+    <string name="lock_service_off_toast" translatable="false">Can\'t lock: accessibility is off. Other options in Settings › Gestures</string>
+    <string name="lock_admin_option" translatable="false">Lock with device admin instead (needs PIN after every lock)</string>
+    <string name="lock_admin_off_row" translatable="false">Lock without accessibility (PIN after every lock)</string>
+    <string name="lock_admin_on_row" translatable="false">Lock uses device admin (PIN after each lock): turn off</string>
     <string name="quiet_notif" translatable="false">Hide from shade, keep for later</string>
     <string name="quiet_needs_access" translatable="false">Needs access</string>
     <string name="quiet_allowed_apps" translatable="false">Allowed apps</string>

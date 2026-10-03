@@ -6,7 +6,6 @@
     <string name="set_as_default_launcher_first">Définir comme lanceur par défaut</string>
     <string name="app_text_color">Couleur du texte</string>
     <string name="double_tap_to_lock_screen">Double appui pour verrouiller</string>
-    <string name="admin_permission_message">Parem Launcher promet d\'utiliser l\'autorisation d\'écran de verrouillage de manière responsable. Parem Launcher ne collecte ni ne partage aucune donnée.</string>
     <string name="about">À propos</string>
     <string name="off">Désactivé</string>
     <string name="on">Activé</string>

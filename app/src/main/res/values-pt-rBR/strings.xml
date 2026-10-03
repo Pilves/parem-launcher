@@ -6,7 +6,6 @@
     <string name="set_as_default_launcher_first">Definir como launcher padrão</string>
     <string name="app_text_color">Cor do texto</string>
     <string name="double_tap_to_lock_screen">Toque duplo para bloquear</string>
-    <string name="admin_permission_message">Parem Launcher promete usar a permissão de bloqueio de telemóvel de forma responsável. Parem Launcher não faz coleção ou compartilha quaisquer dados.</string>
     <string name="about">Sobre</string>
     <string name="off">Desligado</string>
     <string name="on">Ligado</string>

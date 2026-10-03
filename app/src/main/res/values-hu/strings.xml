@@ -6,7 +6,6 @@
     <string name="set_as_default_launcher_first">Beállítás alapértelmezett indítóként</string>
     <string name="app_text_color">Szövegszín</string>
     <string name="double_tap_to_lock_screen">Dupla koppintás a képernyő lezárásához</string>
-    <string name="admin_permission_message">Az Parem Launcher vállalja, hogy felelősségteljesen használja a képernyő lezárásához szükséges engedélyt. Az Parem Launcher nem gyűjt vagy oszt meg semmilyen adatot.</string>
     <string name="about">Névjegy</string>
     <string name="off">Ki</string>
     <string name="on">Be</string>
