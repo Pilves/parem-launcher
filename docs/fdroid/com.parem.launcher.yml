@@ -1,0 +1,45 @@
+# Draft for fdroiddata: metadata/com.parem.launcher.yml (see README.md here).
+# Fill the three TODOs at submission time. Summary, description, screenshots
+# and changelogs come from fastlane/metadata/android/ in the repo.
+Categories:
+  - Launcher
+License: GPL-3.0-only
+AuthorName: Pilves # TODO: the name Patric wants shown
+SourceCode: https://github.com/Pilves/parem-launcher
+IssueTracker: https://github.com/Pilves/parem-launcher/issues
+Changelog: https://github.com/Pilves/parem-launcher/blob/HEAD/CHANGELOG.md
+
+AutoName: Parem Launcher
+
+AntiFeatures:
+  NonFreeNet:
+    en-US: |-
+      Daily wallpapers are downloaded from Unsplash, and omnibox currency
+      conversion fetches daily rates from the European Central Bank. Both only
+      run once you turn on daily wallpapers or type a currency conversion.
+      Weather uses Open-Meteo, which is open source.
+
+RepoType: git
+Repo: https://github.com/Pilves/parem-launcher.git
+Binaries: https://github.com/Pilves/parem-launcher/releases/download/%v/ParemLauncher-%v.apk
+
+Builds:
+  - versionName: v6.0.0 # TODO: the first tag submitted
+    versionCode: 103 # TODO: versionCode of that tag
+    commit: v6.0.0
+    subdir: app
+    gradle:
+      - yes
+    # The WebUSB grant page (GitHub Pages only) vendors a prebuilt Tango bundle;
+    # it is not part of the APK.
+    scandelete:
+      - web/grant/vendor
+
+# TODO: SHA-256 of the release signing certificate, lowercase, no colons:
+#   apksigner verify --print-certs ParemLauncher-v6.0.0.apk
+AllowedAPKSigningKeys: 0000000000000000000000000000000000000000000000000000000000000000
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
+CurrentVersion: v6.0.0
+CurrentVersionCode: 103

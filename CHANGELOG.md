@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Release APKs no longer carry Google's encrypted dependency-info block, a
+  step towards F-Droid
+
 - Quiet notifications use less battery: notifications that are never hidden
   (ongoing, calls, media, allowed apps) skip the system lookups
 

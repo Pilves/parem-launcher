@@ -1,0 +1,44 @@
+# F-Droid reproducibility check (scripts/check-reproducible.sh, docs/fdroid/README.md).
+# Run by hand: with no tag it checks the selected commit builds identically
+# twice; with a release tag it also compares the published signed APK against
+# a fresh build of that tag, which is what F-Droid verifies before publishing.
+name: Reproducible build
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to verify against its GitHub release APK (optional)'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Download the release APK
+        if: inputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "${{ inputs.tag }}" --pattern 'ParemLauncher-*.apk' --dir release
+
+      - name: Build twice and compare
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            scripts/check-reproducible.sh "${{ inputs.tag }}" release/ParemLauncher-${{ inputs.tag }}.apk
+          else
+            scripts/check-reproducible.sh HEAD
+          fi

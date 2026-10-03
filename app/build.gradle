@@ -61,6 +61,11 @@ android {
         viewBinding = true
         buildConfig = true
     }
+    // The dependency-info block is a Google-encrypted blob in the APK signing
+    // block that F-Droid and IzzyOnDroid reject. The Play bundle keeps it.
+    dependenciesInfo {
+        includeInApk = false
+    }
     namespace 'com.parem.launcher'
 }
 
