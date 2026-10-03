@@ -16,16 +16,25 @@ object DrawerRows {
         if (isLaunchDrawer) apps else apps.filterNot(isPrivate)
 
     /**
-     * Regular rows, then [header] (if any), then private rows, then [padding]
-     * (if any). The split is a stable partition, so a usage sort applied
-     * before it is kept within each section.
+     * Regular rows, then [header] (if any), then private rows, then shortcut
+     * rows (M4-WP14, private parents included), then [padding] (if any). The
+     * splits are stable partitions, so a usage sort applied before them is
+     * kept within each section, and shortcuts stay under every app row.
      */
-    fun <T> decorate(apps: List<T>, isPrivate: (T) -> Boolean, header: T?, padding: T?): List<T> {
-        val (privateRows, regular) = apps.partition(isPrivate)
+    fun <T> decorate(
+        apps: List<T>,
+        isPrivate: (T) -> Boolean,
+        header: T?,
+        padding: T?,
+        isShortcut: (T) -> Boolean = { false },
+    ): List<T> {
+        val (shortcutRows, appRows) = apps.partition(isShortcut)
+        val (privateRows, regular) = appRows.partition(isPrivate)
         return buildList {
             addAll(regular)
             header?.let { add(it) }
             addAll(privateRows)
+            addAll(shortcutRows)
             padding?.let { add(it) }
         }
     }

@@ -125,6 +125,65 @@ private fun queryRawApps(context: Context): Pair<List<AppListRebuilder.RawApp<Us
     }
 }
 
+/** Raw shortcut query, valid only while both tracker stamps still match (trap #5). */
+private class ShortcutSnapshot(val stamp: Long, val shortcutStamp: Long, val raws: List<ShortcutMatcher.Raw>)
+
+@Volatile
+private var shortcutSnapshot: ShortcutSnapshot? = null
+
+/**
+ * App shortcuts for the omnibox (M4-WP14). Only the default launcher may read
+ * them, so this is empty otherwise. Labels are joined per app list by the
+ * caller, so a rename never goes stale here.
+ */
+suspend fun getShortcutRaws(context: Context): List<ShortcutMatcher.Raw> = withContext(Dispatchers.IO) {
+    val stamp = PackageChangeTracker.stamp()
+    val shortcutStamp = PackageChangeTracker.shortcutStamp()
+    val snapshot = shortcutSnapshot
+    if (snapshot != null && snapshot.stamp == stamp && snapshot.shortcutStamp == shortcutStamp) return@withContext snapshot.raws
+    val (fresh, complete) = queryShortcutRaws(context)
+    // A partial or no-permission result is never cached: the next open retries
+    if (complete) shortcutSnapshot = ShortcutSnapshot(stamp, shortcutStamp, fresh)
+    fresh
+}
+
+/** One getShortcuts IPC per running profile; a stopped profile makes the result partial. */
+private fun queryShortcutRaws(context: Context): Pair<List<ShortcutMatcher.Raw>, Boolean> {
+    val raws = mutableListOf<ShortcutMatcher.Raw>()
+    return try {
+        val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+        if (!launcherApps.hasShortcutHostPermission()) return Pair(raws, false)
+        val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
+        val query = LauncherApps.ShortcutQuery().setQueryFlags(
+            LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC or
+                LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST or
+                LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED
+        )
+        var complete = true
+        for (profile in userManager.userProfiles) {
+            // Paused work profile or locked Private Space: skipped and still
+            // complete; unpausing/unlocking bumps the package stamp.
+            if (userManager.isQuietModeEnabled(profile)) continue
+            try {
+                for (shortcut in launcherApps.getShortcuts(query, profile).orEmpty()) {
+                    if (!shortcut.isEnabled) continue
+                    val label = shortcut.shortLabel?.toString()?.takeIf { it.isNotBlank() } ?: continue
+                    raws.add(ShortcutMatcher.Raw(shortcut.`package`, profile.toString(), shortcut.id, label, shortcut.rank))
+                }
+            } catch (e: IllegalStateException) {
+                complete = false
+            } catch (e: SecurityException) {
+                complete = false
+            }
+        }
+        Log.d("Utils", "Queried ${raws.size} app shortcuts (complete=$complete)")
+        Pair(raws, complete)
+    } catch (e: Exception) {
+        Log.e("Utils", "Failed to query app shortcuts", e)
+        Pair(raws, false)
+    }
+}
+
 // This is to ensure backward compatibility with older app versions
 // which did not support multiple user profiles
 private fun upgradeHiddenApps(prefs: Prefs) {

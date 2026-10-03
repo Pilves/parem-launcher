@@ -132,6 +132,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     showFocusBlocked()
                     return
                 }
+                if (appModel.shortcutId != null) {
+                    launchShortcut(appModel, appModel.shortcutId)
+                    return
+                }
                 launchApp(appModel.appPackage, appModel.activityClassName, appModel.user, appModel.isPrivate)
             }
 
@@ -299,6 +303,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (!startApp(component, userHandle, packageName, isPrivate)) {
                 appContext.showToast(appContext.getString(R.string.unable_to_open_app))
             }
+        }
+    }
+
+    /**
+     * Any failure toasts, including SecurityException when Parem stopped being
+     * the default home after the drawer listed the shortcut.
+     */
+    private fun launchShortcut(appModel: AppModel, shortcutId: String) {
+        try {
+            launcherApps.startShortcut(appModel.appPackage, shortcutId, null, null, appModel.user)
+            if (!appModel.isPrivate) AppOpenCounter.increment(appContext, appModel.appPackage)
+        } catch (e: Exception) {
+            Log.e("MainViewModel", "Failed to start shortcut $shortcutId of ${appModel.appPackage}", e)
+            appContext.showToast(appContext.getString(R.string.unable_to_open_app))
         }
     }
 

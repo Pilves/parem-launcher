@@ -5,7 +5,7 @@ import org.junit.Test
 
 class DrawerRowsTest {
 
-    private data class Row(val name: String, val isPrivate: Boolean = false)
+    private data class Row(val name: String, val isPrivate: Boolean = false, val isShortcut: Boolean = false)
 
     private val regularB = Row("b")
     private val privateA = Row("a", isPrivate = true)
@@ -14,7 +14,7 @@ class DrawerRowsTest {
     private val padding = Row("padding")
 
     private fun decorate(apps: List<Row>, header: Row? = this.header, padding: Row? = this.padding) =
-        DrawerRows.decorate(apps, { it.isPrivate }, header, padding)
+        DrawerRows.decorate(apps, { it.isPrivate }, header, padding) { it.isShortcut }
 
     @Test
     fun decorate_headerBetweenSections_paddingLast() {
@@ -43,6 +43,20 @@ class DrawerRowsTest {
         assertEquals(
             listOf(regularB, privateA),
             decorate(listOf(privateA, regularB), header = null, padding = null)
+        )
+    }
+
+    @Test
+    fun decorate_shortcutsUnderEveryAppRow_privateParentsIncluded() {
+        val shortcutOfRegular = Row("b:liked", isShortcut = true)
+        val shortcutOfPrivate = Row("a:home", isPrivate = true, isShortcut = true)
+        assertEquals(
+            listOf(regularB, regularC, header, privateA, shortcutOfRegular, shortcutOfPrivate, padding),
+            decorate(listOf(shortcutOfRegular, regularB, privateA, shortcutOfPrivate, regularC))
+        )
+        assertEquals(
+            listOf(regularB, privateA, shortcutOfRegular),
+            decorate(listOf(shortcutOfRegular, privateA, regularB), header = null, padding = null)
         )
     }
 

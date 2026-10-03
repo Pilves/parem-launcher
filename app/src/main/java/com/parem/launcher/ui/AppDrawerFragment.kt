@@ -33,6 +33,7 @@ import com.parem.launcher.helper.OmniboxResolver
 import com.parem.launcher.helper.SettingsSearch
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.helper.getShortcutRaws
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isEinkDisplay
 import com.parem.launcher.helper.skipAnimations
@@ -117,6 +118,24 @@ class AppDrawerFragment : BaseFragment() {
         initObservers()
         initClickListeners()
         loadContactsIfEnabled()
+        loadShortcuts()
+    }
+
+    /** App shortcuts (M4-WP14): empty unless Parem is the default home. */
+    private fun loadShortcuts() {
+        if (flag != Constants.FLAG_LAUNCH_APP) return
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val raws = getShortcutRaws(appContext)
+            val b = _binding ?: return@launch
+            if (!isAdded || raws.isEmpty()) return@launch
+            adapter.shortcutRaws = raws
+            // Shortcuts can't change the app-row count, so a one-app result
+            // has already auto-launched; re-filtering it would fire it again
+            val query = b.search.query
+            if (!query.isNullOrBlank() && adapter.currentList.count { it.shortcutId == null } != 1)
+                adapter.filter.filter(query)
+        }
     }
 
     /**

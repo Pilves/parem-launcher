@@ -14,6 +14,9 @@ data class AppModel(
     val url: String? = null,
     // App in the Private Space profile (API 35+), or the drawer's private-space header row
     val isPrivate: Boolean = false,
+    // Non-null for an app-shortcut drawer row; the other fields are its parent app's
+    val shortcutId: String? = null,
+    val shortcutLabel: String? = null,
 ) : Comparable<AppModel> {
     override fun compareTo(other: AppModel): Int = when {
         key != null && other.key != null -> key.compareTo(other.key)

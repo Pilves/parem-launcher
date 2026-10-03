@@ -30,6 +30,7 @@ import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isSystemApp
 import com.parem.launcher.helper.SearchMatcher
+import com.parem.launcher.helper.ShortcutMatcher
 import com.parem.launcher.helper.showKeyboard
 
 class AppDrawerAdapter(
@@ -45,7 +46,8 @@ class AppDrawerAdapter(
     companion object {
         val DIFF_CALLBACK = object : DiffUtil.ItemCallback<AppModel>() {
             override fun areItemsTheSame(oldItem: AppModel, newItem: AppModel): Boolean =
-                oldItem.appPackage == newItem.appPackage && oldItem.user == newItem.user
+                oldItem.appPackage == newItem.appPackage && oldItem.user == newItem.user &&
+                    oldItem.shortcutId == newItem.shortcutId
 
             override fun areContentsTheSame(oldItem: AppModel, newItem: AppModel): Boolean =
                 oldItem == newItem
@@ -54,6 +56,9 @@ class AppDrawerAdapter(
 
     @Volatile private var autoLaunch = true
     @Volatile private var isBangSearch = false
+    // Main thread only. The same query can publish twice (a re-filter for
+    // late usage stats or shortcuts); only the first may auto-launch.
+    private var autoLaunchedQuery: String? = null
 
     /**
      * Builds the private-space header row (empty package, isPrivate, label =
@@ -77,6 +82,15 @@ class AppDrawerAdapter(
     @Volatile var appsList: MutableList<AppModel> = mutableListOf()
     @Volatile var appFilteredList: MutableList<AppModel> = mutableListOf()
     @Volatile private var labelKeys: Map<String, SearchMatcher.LabelKey> = emptyMap()
+
+    /** App shortcuts (M4-WP14); only the launch drawer sets them. */
+    @Volatile var shortcutRaws: List<ShortcutMatcher.Raw> = emptyList()
+        set(value) {
+            field = value
+            rebuildShortcutEntries()
+        }
+    @Volatile private var shortcutEntries: List<ShortcutMatcher.Entry> = emptyList()
+    @Volatile private var shortcutParents: Map<String, AppModel> = emptyMap()
 
     // The header shares the row layout; its own view type keeps recycled
     // header and app rows apart.
@@ -138,6 +152,17 @@ class AppDrawerAdapter(
                     }
                 }
 
+                // After the usage sort: shortcuts keep matcher order, under every app row
+                if (flag == Constants.FLAG_LAUNCH_APP && searchText.isNotBlank()) {
+                    val parents = shortcutParents
+                    ShortcutMatcher.filter(shortcutEntries, searchText).mapNotNullTo(appFilteredList) { e ->
+                        parents[e.raw.appKey]?.copy(
+                            key = null, activityClassName = null, isNew = false,
+                            shortcutId = e.raw.id, shortcutLabel = e.raw.shortLabel,
+                        )
+                    }
+                }
+
                 val filterResults = FilterResults()
                 filterResults.values = appFilteredList
                 return filterResults
@@ -149,25 +174,30 @@ class AppDrawerAdapter(
                     val items = (it as? MutableList<AppModel>) ?: (it as? List<AppModel>)?.toMutableList() ?: return
                     appFilteredList = decorate(items, constraint.isNullOrBlank())
                     val currentFiltered = appFilteredList.toList()
+                    val query = constraint?.toString().orEmpty()
+                    if (query != autoLaunchedQuery) autoLaunchedQuery = null
                     submitList(currentFiltered) {
-                        autoLaunch(currentFiltered)
+                        autoLaunch(currentFiltered, query)
                     }
                 }
             }
         }
     }
 
-    private fun autoLaunch(filteredSnapshot: List<AppModel>) {
+    private fun autoLaunch(filteredSnapshot: List<AppModel>, query: String) {
         try {
-            if (itemCount == 1
+            // App rows only: a shortcut row never starts or stops auto-launch
+            if (filteredSnapshot.count { it.shortcutId == null } == 1
+                && query != autoLaunchedQuery
                 && autoLaunch
                 && isBangSearch.not()
                 && flag == Constants.FLAG_LAUNCH_APP
                 && filteredSnapshot.isNotEmpty()
                 && autoLaunchGuard()
             ) {
+                autoLaunchedQuery = query
                 Handler(Looper.getMainLooper()).post {
-                    try { firstApp(filteredSnapshot)?.let(appClickListener) } catch (_: Exception) {}
+                    try { firstApp(filteredSnapshot, includeShortcuts = false)?.let(appClickListener) } catch (_: Exception) {}
                 }
             }
         } catch (e: Exception) {
@@ -189,12 +219,27 @@ class AppDrawerAdapter(
             newKeys[app.appLabel] = SearchMatcher.key(app.appLabel)
         }
         labelKeys = newKeys
+        rebuildShortcutEntries()
         if (sortByUsage && (usageStats.isNotEmpty() || openCounts.isNotEmpty())) {
             filter.filter("")
         } else {
             this.appFilteredList = decorate(list, searchBlank = true)
             submitList(appFilteredList.toList())
         }
+    }
+
+    /** Joins the raws with the gated list: hidden, locked and other users' apps drop out, renames apply. */
+    private fun rebuildShortcutEntries() {
+        val raws = shortcutRaws
+        if (raws.isEmpty() && shortcutEntries.isEmpty()) return
+        val parents = LinkedHashMap<String, AppModel>()
+        for (app in appsList) {
+            // A package with two launcher activities: the first row is the parent
+            if (app.url == null && app.appPackage.isNotEmpty())
+                parents.putIfAbsent(ShortcutMatcher.appKey(app.appPackage, app.user.toString()), app)
+        }
+        shortcutParents = parents
+        shortcutEntries = ShortcutMatcher.entries(raws, parents.mapValues { it.value.appLabel })
     }
 
     /**
@@ -205,11 +250,12 @@ class AppDrawerAdapter(
     private fun decorate(apps: List<AppModel>, searchBlank: Boolean): MutableList<AppModel> {
         val header = if (searchBlank && flag == Constants.FLAG_LAUNCH_APP) privateSpaceHeader() else null
         val padding = if (searchBlank) AppModel("", null, "", "", false, myUserHandle) else null
-        return DrawerRows.decorate(apps, { it.isPrivate }, header, padding).toMutableList()
+        return DrawerRows.decorate(apps, { it.isPrivate }, header, padding) { it.shortcutId != null }.toMutableList()
     }
 
     // Header and padding rows have no package and are never launched
-    private fun firstApp(rows: List<AppModel>): AppModel? = rows.firstOrNull { it.appPackage.isNotEmpty() }
+    private fun firstApp(rows: List<AppModel>, includeShortcuts: Boolean = true): AppModel? =
+        rows.firstOrNull { it.appPackage.isNotEmpty() && (includeShortcuts || it.shortcutId == null) }
 
     fun launchFirstInList() {
         firstApp(appFilteredList)?.let(appClickListener)
@@ -287,6 +333,16 @@ class AppDrawerAdapter(
                     appTitle.compoundDrawablePadding = 8.dpToPx()
                 } else {
                     appTitle.setCompoundDrawablesRelative(null, null, null, null)
+                }
+
+                // Hide, rename and uninstall would act on the parent app, so no menu
+                if (appModel.shortcutId != null) {
+                    appTitle.text = appModel.shortcutLabel
+                    appUsageTime.text = appModel.appLabel
+                    appUsageTime.visibility = View.VISIBLE
+                    appTitle.setOnClickListener { clickListener(appModel) }
+                    appTitle.setOnLongClickListener(null)
+                    return
                 }
 
                 val timeMs = usageStats[appModel.appPackage] ?: 0L

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- App shortcuts in search: with Parem as the default home app, typing a
+  shortcut's name (e.g. "liked" for Spotify's Liked Songs, "incog" for Chrome's
+  New Incognito tab) lists it under the app results; tap or Enter opens it,
+  through the same limits, pause and focus rules as the app
 - Settings search: type a setting's name in the drawer (e.g. "keyboard") and
   tap the "Settings ›" line to open Settings at that row; Enter opens it too
   when no app matches
