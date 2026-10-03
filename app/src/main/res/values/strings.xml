@@ -238,6 +238,18 @@
     <string name="focus_allowed_apps" translatable="false">Allowed apps (max 5)</string>
     <string name="allowed_apps" translatable="false">Allowed apps</string>
     <string name="app_blocked_focus" translatable="false">Blocked by Focus Mode</string>
+    <string name="app_blocked_focus_scheduled" translatable="false">Focus scheduled until %s. Pause it in Settings › Digital Wellbeing › Focus mode.</string>
+    <string name="app_blocked_focus_scheduled_no_end" translatable="false">Focus is scheduled. Pause it in Settings › Digital Wellbeing › Focus mode.</string>
+    <string name="focus_schedule" translatable="false">Schedule</string>
+    <string name="focus_schedule_add" translatable="false">Add window</string>
+    <string name="focus_schedule_hint" translatable="false">Tap a window to edit it, long-press to remove it</string>
+    <string name="focus_schedule_days" translatable="false">Days</string>
+    <string name="focus_schedule_start" translatable="false">Start</string>
+    <string name="focus_schedule_end" translatable="false">End</string>
+    <string name="focus_schedule_every_day" translatable="false">Every day</string>
+    <string name="focus_schedule_until" translatable="false">Scheduled until %s</string>
+    <string name="focus_schedule_no_end" translatable="false">Scheduled, no end in the next 7 days</string>
+    <string name="focus_schedule_empty_whitelist" translatable="false">No apps allowed: only calls work during scheduled focus.</string>
 
     <!-- Quick Note -->
     <string name="note" translatable="false">Note</string>

@@ -22,7 +22,8 @@ class AppPickerAdapter(
     private val maxSelected: Int,
     entries: List<Entry>,
     initiallySelected: Collection<String> = emptyList(),
-) : RecyclerView.Adapter<AppPickerAdapter.Holder>() {
+    private val onSelectionChanged: () -> Unit = {},
+) :RecyclerView.Adapter<AppPickerAdapter.Holder>() {
 
     /** One checkable row. [id] keys the selection across filtering/recycling. */
     class Entry(val id: String, val label: String) {
@@ -77,6 +78,7 @@ class AppPickerAdapter(
                 } else {
                     selectedIds.remove(entry.id)
                 }
+                onSelectionChanged()
             }
         }
     }

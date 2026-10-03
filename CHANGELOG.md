@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Scheduled focus: the Focus mode sheet can now turn focus on by itself in
+  weekly windows (for example work 09:00–17:00 Mon–Fri, sleep 22:00–07:00),
+  with the same allowed apps. Disable pauses it until the current window ends;
+  a blocked app's message says when the schedule ends and where to pause it
 - When Android turns off Parem's lock service after it has worked (an update,
   a crash or a security setting), the lock gesture now explains that once
   instead of doing nothing; later taps show a short note until it is back on

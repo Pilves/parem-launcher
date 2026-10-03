@@ -90,7 +90,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         when (flag) {
             Constants.FLAG_LAUNCH_APP, Constants.FLAG_HIDDEN_APPS -> {
                 if (!FocusModeManager.isAppAllowed(appContext, appModel.appPackage)) {
-                    appContext.showToast(appContext.getString(R.string.app_blocked_focus))
+                    // A schedule block names its end and where the override is,
+                    // since nothing the user did started it
+                    val message = when (val label = FocusModeManager.getActiveLabel(appContext)) {
+                        is FocusModeManager.ActiveLabel.ScheduledUntil -> appContext.getString(
+                            R.string.app_blocked_focus_scheduled,
+                            FocusModeManager.formatScheduledEnd(appContext, label.epochMs)
+                        )
+                        FocusModeManager.ActiveLabel.ScheduledNoEnd ->
+                            appContext.getString(R.string.app_blocked_focus_scheduled_no_end)
+                        else -> null
+                    }
+                    if (message != null) appContext.showToast(message, android.widget.Toast.LENGTH_LONG)
+                    else appContext.showToast(appContext.getString(R.string.app_blocked_focus))
                     return
                 }
                 launchApp(appModel.appPackage, appModel.activityClassName, appModel.user)
