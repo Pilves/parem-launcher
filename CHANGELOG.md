@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+- Quick actions in search: type "alarm 7:30", "timer 10m", "event friday 3pm
+  dentist" or "remind me 5pm call mum" (Estonian too: "äratus", "taimer",
+  "kohtumine", "tuleta meelde") and press Enter or tap the line to set it in your
+  clock app or open your calendar prefilled. No new permission. While you type
+  one, an app whose name starts the same way doesn't auto-launch; the empty
+  search field now shows a different example of what it can do each time
 - App shortcuts in search: with Parem as the default home app, typing a
   shortcut's name (e.g. "liked" for Spotify's Liked Songs, "incog" for Chrome's
   New Incognito tab) lists it under the app results; tap or Enter opens it,

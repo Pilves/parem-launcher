@@ -125,6 +125,38 @@ class OmniboxResolverTest {
         assertEquals(OmniboxMode.None, resolve("john", emptyList()))
     }
 
+    // --- quick actions: after web, above contacts and settings ---
+
+    private val saturday = java.time.LocalDateTime.of(2026, 10, 3, 10, 0)
+
+    private fun quick(query: String, contacts: List<Contact> = this.contacts) =
+        OmniboxResolver.resolve(query, contacts, null, settings, saturday)
+
+    @Test
+    fun quickAction_resolves() {
+        assertEquals(OmniboxMode.QuickAction(QuickAction.Alarm(7, 30, null)), quick("alarm 7:30"))
+        assertEquals(OmniboxMode.QuickAction(QuickAction.Timer(600, null)), quick("timer 10m"))
+    }
+
+    @Test
+    fun quickAction_leadingSpace_isWebSearch() {
+        assertEquals(OmniboxMode.WebSearch, quick(" alarm 7:30"))
+    }
+
+    @Test
+    fun quickAction_beatsContactAndSetting() {
+        val timerContact = listOf(Contact("Timer", "555 3000"))
+        assertEquals(OmniboxMode.QuickAction(QuickAction.Timer(600, null)), quick("timer 10m", timerContact))
+        assertEquals(OmniboxMode.QuickAction(QuickAction.Timer(600, null)),
+            OmniboxResolver.resolve("timer 10m", emptyList(), null, listOf(SettingsSearch.Row("Timer 10m", 1)), saturday))
+    }
+
+    @Test
+    fun keywordWithoutAction_fallsThrough() {
+        assertEquals(OmniboxMode.Contact("Timer", "555 3000"), quick("timer", listOf(Contact("Timer", "555 3000"))))
+        assertEquals(OmniboxMode.None, quick("alarm clock", emptyList()))
+    }
+
     // --- settings rows rank last ---
 
     private val settings = listOf(SettingsSearch.Row("Show icons", 7), SettingsSearch.Row("Johnny mode", 8))

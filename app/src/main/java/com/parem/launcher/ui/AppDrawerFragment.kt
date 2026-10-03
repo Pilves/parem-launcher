@@ -30,8 +30,12 @@ import com.parem.launcher.helper.CurrencyRates
 import com.parem.launcher.helper.OmniboxHistory
 import com.parem.launcher.helper.OmniboxMode
 import com.parem.launcher.helper.OmniboxResolver
+import com.parem.launcher.helper.QuickAction
+import com.parem.launcher.helper.QuickActionParser
 import com.parem.launcher.helper.SettingsSearch
 import com.parem.launcher.helper.dpToPx
+import com.parem.launcher.helper.fireQuickAction
+import com.parem.launcher.helper.quickActionPreview
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.getShortcutRaws
 import com.parem.launcher.helper.hideKeyboard
@@ -160,6 +164,11 @@ class AppDrawerFragment : BaseFragment() {
             binding.search.queryHint = getString(R.string.hidden_apps)
         else if (flag in Constants.FLAG_SET_HOME_APP_1..Constants.FLAG_SET_CALENDAR_APP)
             binding.search.queryHint = getString(R.string.select_an_app)
+        else if (flag == Constants.FLAG_LAUNCH_APP) {
+            // The omnibox's only in-app mention: a different example each open
+            val hints = resources.getStringArray(R.array.omnibox_hints)
+            binding.search.queryHint = hints[hintIndex++ % hints.size]
+        }
         try {
             searchTextView = binding.search.findViewById(R.id.search_src_text)
             searchTextView?.gravity = prefs.appLabelAlignment
@@ -230,6 +239,7 @@ class AppDrawerFragment : BaseFragment() {
                     }
                     OmniboxMode.CurrencyNoRates -> {}
                     is OmniboxMode.Dial -> dial(ctx, mode.number)
+                    is OmniboxMode.QuickAction -> runQuickAction(mode.action)
                     is OmniboxMode.Contact -> dial(ctx, mode.number)
                     OmniboxMode.WebSearch ->
                         ctx.openUrl(Constants.URL_GOOGLE_SEARCH + java.net.URLEncoder.encode(q.trim(), "UTF-8"))
@@ -295,6 +305,7 @@ class AppDrawerFragment : BaseFragment() {
             )
             is OmniboxMode.Dial -> getString(R.string.call_hint, mode.number)
             OmniboxMode.WebSearch -> getString(R.string.google_search_hint, newText.trim())
+            is OmniboxMode.QuickAction -> quickActionPreview(b.root.context, mode.action)
             is OmniboxMode.Contact -> getString(R.string.contact_hint, mode.name, mode.number)
             is OmniboxMode.Setting -> getString(R.string.setting_hint, mode.title)
             OmniboxMode.None -> null
@@ -440,7 +451,10 @@ class AppDrawerFragment : BaseFragment() {
         adapter.showIcons = prefs.showIcons
         adapter.iconPackPackage = prefs.iconPackPackage
         adapter.openCounts = AppOpenCounter.getCounts(requireContext())
-        adapter.autoLaunchGuard = { !isSearchComposing() }
+        // Read when the filter publishes, so fast typing only makes it stricter
+        adapter.autoLaunchGuard = {
+            !isSearchComposing() && !QuickActionParser.isActionPrefix(searchTextView?.text?.toString().orEmpty())
+        }
         if (flag == Constants.FLAG_LAUNCH_APP) {
             // Looked up once per drawer; the lock state is re-read on every rebuild
             val profile = privateProfile(requireContext())
@@ -559,6 +573,10 @@ class AppDrawerFragment : BaseFragment() {
                     dial(requireContext(), mode.number)
                     return@setOnClickListener
                 }
+                is OmniboxMode.QuickAction -> {
+                    runQuickAction(mode.action)
+                    return@setOnClickListener
+                }
                 is OmniboxMode.Setting -> {
                     openSetting(mode.anchor)
                     return@setOnClickListener
@@ -625,6 +643,21 @@ class AppDrawerFragment : BaseFragment() {
         )
     }
 
+    /**
+     * Not an app launch: Focus and the mindful pause don't apply, like Dial.
+     * Alarm and timer skip the clock's UI, so the drawer closes itself; the
+     * calendar editor opens on top and Back from it lands home.
+     */
+    private fun runQuickAction(action: QuickAction) {
+        val ctx = context ?: return
+        if (!fireQuickAction(ctx, action)) {
+            ctx.showToast(getString(R.string.quick_action_no_app))
+            return
+        }
+        if (action !is QuickAction.Event) ctx.showToast(getString(R.string.quick_action_sent))
+        findNavController().popBackStack(R.id.mainFragment, false)
+    }
+
     private fun dial(ctx: android.content.Context, number: String) {
         try {
             startActivity(
@@ -687,5 +720,10 @@ class AppDrawerFragment : BaseFragment() {
         searchTextView = null
         super.onDestroyView()
         _binding = null
+    }
+
+    private companion object {
+        // Process lifetime is enough to rotate; not worth a pref
+        var hintIndex = 0
     }
 }

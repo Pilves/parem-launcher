@@ -111,4 +111,14 @@ class SearchMatcherTest {
         assertTrue(SearchMatcher.matches(label, key, "the ex"))
         assertFalse(SearchMatcher.matches(label, key, "g zz"))
     }
+
+    // QuickActionParser.isActionPrefix relies on this: an app named like a
+    // keyword keeps matching up to the keyword and stops at the first digit
+    @Test
+    fun matches_alarmy_untilQuickActionDigit() {
+        val label = "Alarmy"
+        val key = SearchMatcher.key(label)
+        assertTrue(SearchMatcher.matches(label, key, "alarm "))
+        assertFalse(SearchMatcher.matches(label, key, "alarm 7"))
+    }
 }
