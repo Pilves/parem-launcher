@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Quiet notifications use less battery: notifications that are never hidden
+  (ongoing, calls, media, allowed apps) skip the system lookups
+
 - New first-run screens: Parem asks to become your home screen only when you
   tap "Set as home screen" (a second tap opens the system's home-app settings
   if the dialog doesn't come back), then offers optional Calm setup: screen

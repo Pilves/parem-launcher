@@ -18,8 +18,16 @@ class QuietFilterTest {
         hasLauncherActivity: Boolean = true,
         allowed: Set<String> = emptySet(),
     ) = QuietFilter.shouldSilence(
-        pkg, category, isOngoing, isClearable, isGroupSummary, isMedia, hasLauncherActivity, allowed, always
+        pkg, category, isOngoing, isClearable, isGroupSummary, isMedia, { hasLauncherActivity }, allowed, { always }
     )
+
+    @Test
+    fun exemptNotificationSkipsTheLookups() {
+        val lookup: () -> Nothing = { throw AssertionError("binder lookup for an exempt notification") }
+        assertFalse(QuietFilter.shouldSilence("com.chat", null, true, true, false, false, lookup, emptySet(), lookup))
+        assertFalse(QuietFilter.shouldSilence("com.chat", "call", false, true, false, false, lookup, emptySet(), lookup))
+        assertFalse(QuietFilter.shouldSilence("com.chat", null, false, true, false, false, lookup, setOf("com.chat"), lookup))
+    }
 
     @Test
     fun emptyAllowlistHidesClearableNotificationFromLaunchableApp() {

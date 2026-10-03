@@ -81,13 +81,15 @@ class QuietNotificationListener : NotificationListenerService() {
             isClearable = sbn.isClearable,
             isGroupSummary = n.flags and Notification.FLAG_GROUP_SUMMARY != 0,
             isMedia = n.extras?.containsKey(Notification.EXTRA_MEDIA_SESSION) == true,
-            hasLauncherActivity = hasLauncherActivity(pkg, sbn),
+            hasLauncherActivity = { hasLauncherActivity(pkg, sbn) },
             allowed = QuietNotificationsManager.getAllowed(this),
-            alwaysAllowed = QuietFilter.alwaysAllowed(
-                packageName,
-                QuietNotificationsManager.defaultDialer(this),
-                QuietNotificationsManager.defaultSms(this),
-            ),
+            alwaysAllowed = {
+                QuietFilter.alwaysAllowed(
+                    packageName,
+                    QuietNotificationsManager.defaultDialer(this),
+                    QuietNotificationsManager.defaultSms(this),
+                )
+            },
         )
     }
 
