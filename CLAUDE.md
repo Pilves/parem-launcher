@@ -1,22 +1,28 @@
-# Parem Launcher — working notes
+# Parem Launcher — Claude Code Instructions
 
-Read ARCHITECTURE.md first: code map, conventions, and the "Traps" section
-(the invisible lock view, the 4-hour self-recreate, widget ID bookkeeping).
+Read `AGENTS.md` for the project rules, workflow and checks; this file only
+adds Claude Code–specific guidance on top. Then `HANDOFF.md` (live state) and
+`ARCHITECTURE.md` (code map, conventions, and the "Traps" section: the
+invisible lock view, widget ID bookkeeping, the package-change stamp).
 
-## Rules
+## Workflow for a work package
 
-- Build-verify every change: `./gradlew compileDebugKotlin` for a quick check,
-  `./gradlew testDebugUnitTest` for the JVM test suite (app/src/test — pure
-  logic only), `./gradlew assembleDebug` before calling anything done.
-  A pipeline like `./gradlew … | tail` reports tail's exit code — check gradle's.
-- New pure logic (parsers, matchers, calculators) goes in helper/ as an
-  Android-free object with unit tests next to the existing ones.
-- Bottom sheets go through `ui/BottomSheetMenu`; app-launch/selection flows go
-  through `MainViewModel.selectedApp(model, flag)`.
-- All state is SharedPreferences file `"com.parem.launcher"`. New exported keys
-  need type registration in `Prefs` (see LONG_PREF_KEYS / exportExcludeKeys).
-- Async/posted callbacks in fragments must guard on `isAdded` / `_binding != null`.
-- Strings: new user-facing text goes in `res/values/strings.xml`; mark it
-  `translatable="false"` unless you also add translations.
-- Release = bump versionCode/versionName in app/build.gradle, tag `v*`, push;
-  CI signs and publishes. Never commit keystores.
+0. Claim it before reading anything: `scripts/claim-wp.sh next` (or
+   `claim <id>`). Refused means another session has it — `next` moves on by
+   itself.
+1. Read the roadmap row and the files the change will touch.
+2. Propose approach + tradeoffs — wait for confirmation on anything
+   non-trivial, and always for rows marked **design first**.
+3. Implement. Surgical changes only.
+4. Run the checks in `AGENTS.md`. Fix until green.
+5. Closing a work package: add `docs/handoff/<WP-id>.md`, run
+   `node scripts/build-handoff.mjs` and commit its output. Never hand-edit the
+   generated part of `HANDOFF.md` or a roadmap Done marker.
+
+## Skills
+
+| Task | Skill |
+|---|---|
+| Over-engineering creep, adding abstractions, choosing a dep | `/ponytail` |
+| Review changed code before declaring done | `/simplify` |
+| Audit whole codebase for bloat | `/ponytail-audit` |

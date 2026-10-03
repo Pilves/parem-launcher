@@ -1,0 +1,30 @@
+# Fail when HANDOFF.md / docs/ROADMAP.md are stale against docs/handoff/.
+# Read-only: it never pushes the regenerated output.
+name: Handoff
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+    paths:
+      - 'docs/handoff/**'
+      - 'scripts/**'
+      - 'HANDOFF.md'
+      - 'docs/ROADMAP.md'
+      - '.github/workflows/handoff.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - run: node --test scripts/build-handoff.test.mjs
+      - run: node scripts/build-handoff.mjs
+      - name: Check generated documentation
+        run: git diff --exit-code -- HANDOFF.md docs/ROADMAP.md
