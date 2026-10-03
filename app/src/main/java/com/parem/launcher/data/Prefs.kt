@@ -38,6 +38,7 @@ class Prefs(context: Context) {
     private val LOCK_MODE = "LOCK_MODE"
     private val LOCK_SERVICE_CONNECTED = "LOCK_SERVICE_CONNECTED"
     private val LOCK_SERVICE_OFF_EXPLAINED = "LOCK_SERVICE_OFF_EXPLAINED"
+    private val CRASH_REPORTS_ENABLED = "CRASH_REPORTS_ENABLED"
     private val HOME_APPS_NUM = "HOME_APPS_NUM"
     private val AUTO_SHOW_KEYBOARD = "AUTO_SHOW_KEYBOARD"
     private val KEYBOARD_MESSAGE = "KEYBOARD_MESSAGE"
@@ -119,6 +120,10 @@ class Prefs(context: Context) {
     var lockServiceOffExplained: Boolean
         get() = prefs.getBoolean(LOCK_SERVICE_OFF_EXPLAINED, false)
         set(value) = prefs.edit { putBoolean(LOCK_SERVICE_OFF_EXPLAINED, value) }
+
+    var crashReportsEnabled: Boolean
+        get() = prefs.getBoolean(CRASH_REPORTS_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(CRASH_REPORTS_ENABLED, value) }
 
     // Versioned so updates that add major features re-show onboarding once;
     // also immune to auto-backup restoring the old boolean flag

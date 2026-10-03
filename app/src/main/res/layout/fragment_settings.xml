@@ -106,6 +106,33 @@
                         android:text="@string/import_settings" />
                 </LinearLayout>
 
+                <!-- Crash reports (opt-in; saved on the phone, sent only by the user) -->
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp">
+
+                    <TextView
+                        style="@style/TextSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:paddingVertical="8dp"
+                        android:text="@string/crash_reports"
+                        android:textColor="?attr/primaryColor" />
+
+                    <TextView
+                        android:id="@+id/crashReportsToggle"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|bottom"
+                        android:layout_marginEnd="4dp"
+                        android:padding="8dp"
+                        android:text="@string/off" />
+
+                </FrameLayout>
+
             </LinearLayout>
 
             <!-- Card 2: Home Screen -->

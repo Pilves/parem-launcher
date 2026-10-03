@@ -28,6 +28,7 @@ import androidx.navigation.findNavController
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.ActivityMainBinding
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.HomeKeyInput
 import com.parem.launcher.helper.getColorFromAttr
@@ -40,6 +41,7 @@ import com.parem.launcher.helper.setPlainWallpaper
 import com.parem.launcher.helper.showLauncherSelector
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.HomeFragment
+import com.parem.launcher.ui.showCrashReport
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -89,6 +91,7 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        CrashReporter.pending(this)?.let { showCrashReport(this, it) }
 
         navController = this.findNavController(R.id.nav_host_fragment)
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]

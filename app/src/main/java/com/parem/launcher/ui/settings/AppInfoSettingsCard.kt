@@ -19,6 +19,7 @@ import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.AppLimitManager
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.openUrl
 import com.parem.launcher.helper.showToast
@@ -56,6 +57,7 @@ class AppInfoSettingsCard(
         binding.privacy.isVisible = Constants.URL_PAREM_PRIVACY.isNotEmpty()
         binding.github.isVisible = Constants.URL_PAREM_GITHUB.isNotEmpty()
 
+        populateCrashReports()
         initClickListeners()
         initObservers()
     }
@@ -69,6 +71,7 @@ class AppInfoSettingsCard(
         binding.aboutParem.setOnClickListener(this)
         binding.github.setOnClickListener(this)
         binding.privacy.setOnClickListener(this)
+        binding.crashReportsToggle.setOnClickListener(this)
     }
 
     private fun initObservers() {
@@ -90,7 +93,20 @@ class AppInfoSettingsCard(
             R.id.aboutParem -> context.openUrl(Constants.URL_ABOUT_PAREM)
             R.id.github -> context.openUrl(Constants.URL_PAREM_GITHUB)
             R.id.privacy -> context.openUrl(Constants.URL_PAREM_PRIVACY)
+            R.id.crashReportsToggle -> toggleCrashReports()
         }
+    }
+
+    private fun toggleCrashReports() {
+        prefs.crashReportsEnabled = !prefs.crashReportsEnabled
+        // Turning it off also drops a report that is still waiting
+        if (!prefs.crashReportsEnabled) CrashReporter.clear(context)
+        populateCrashReports()
+    }
+
+    private fun populateCrashReports() {
+        binding.crashReportsToggle.text =
+            context.getString(if (prefs.crashReportsEnabled) R.string.on else R.string.off)
     }
 
     private fun showHiddenApps() {

@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Crash reports (Settings, off by default): when on, a crash is saved on the
+  phone and offered on the next start; you send it yourself through an app you
+  pick, or discard it. Nothing is collected or sent automatically
 - Parem now needs Android 10 or newer (was Android 7.0)
 - Grayscale (Settings > Digital Wellbeing): turn the screen grey now, during
   focus, or after opening an app past its limit until you come back to Parem.

@@ -59,6 +59,13 @@
     <string name="currency_downloading" translatable="false">Downloading ECB rates…</string>
     <string name="currency_unavailable" translatable="false">ECB rates unavailable offline</string>
     <string name="contact_search" translatable="false">Contact search</string>
+    <string name="crash_reports" translatable="false">Crash reports</string>
+    <string name="crash_report_title" translatable="false">Parem crashed last time</string>
+    <string name="crash_report_body" translatable="false">Parem saved a report of the crash on this phone. Nothing has been sent. Send opens an app you choose with the full report, so you can read it before it goes anywhere. It holds the error, Parem\'s version, the Android version and the phone model. No apps, contacts or settings.</string>
+    <string name="crash_report_send" translatable="false">Send report</string>
+    <string name="crash_report_copy" translatable="false">Copy report</string>
+    <string name="crash_report_discard" translatable="false">Discard</string>
+    <string name="crash_report_subject" translatable="false">Parem crash report</string>
     <string name="okay">Okay</string>
     <string name="cool">Cool!</string>
     <string name="auto_show_keyboard">Auto show keyboard</string>

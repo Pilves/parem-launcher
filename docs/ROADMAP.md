@@ -94,7 +94,7 @@ date-driven yet — Parem is not listed — but all of it gates the 6.0 launch.
 **Owner tasks**
 - PAREM-113: remove dead `removeActiveAdmin()` (Patric's own ticket, spec in the archive).
 - PAREM-107: device repro of residual gesture-letter vs swipe conflicts; findings become an M2 row if anything misfires.
-- Write the privacy policy / about content for M2-WP3 (it must list `www.ecb.europa.eu` as a destination: triggered only by typing a currency query, no user data — M3-WP4); update Play Data safety for READ_CONTACTS.
+- Write the privacy policy / about content for M2-WP3 (it must list `www.ecb.europa.eu` as a destination: triggered only by typing a currency query, no user data — M3-WP4; and that crash reports are opt-in, kept on the phone and sent only by the user through an app they pick — M3-WP11); update Play Data safety for READ_CONTACTS.
 - Play Console accessibility declaration + demo video, using M2-WP5's text.
 - Device pass at targetSdk 36 (checklist + M2-WP1's list), bump version, tag `v5.8.0`.
 
