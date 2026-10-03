@@ -168,6 +168,10 @@ class Prefs(context: Context) {
         get() = prefs.getInt(APP_THEME, AppCompatDelegate.MODE_NIGHT_YES)
         set(value) = prefs.edit { putInt(APP_THEME, value) }
 
+    /** False until the user (settings, theme schedule or import) has ever set a theme. */
+    val hasAppTheme: Boolean
+        get() = prefs.contains(APP_THEME)
+
     var textSizeScale: Float
         get() = prefs.getFloat(TEXT_SIZE_SCALE, 1.0f)
         set(value) = prefs.edit { putFloat(TEXT_SIZE_SCALE, value) }

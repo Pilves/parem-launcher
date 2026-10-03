@@ -95,23 +95,49 @@ fun Context.openSearch(query: String? = null) {
     }
 }
 
+// Per process: the built-in display doesn't change type at runtime
+private var isEinkDevice: Boolean? = null
+
 fun Context.isEinkDisplay(): Boolean {
+    isEinkDevice?.let { return it }
+    // Boox devices report 60 Hz+, so the refresh-rate check alone misses them
+    if (isOnyxDevice() || EinkDetector.isEinkBrand(Build.BRAND, Build.MANUFACTURER, Build.MODEL))
+        return true.also { isEinkDevice = it }
+    // Not cached when the display can't be read (e.g. a non-visual context), so a later
+    // call from an Activity still gets a real answer
+    return hasEinkRefreshRate()?.also { isEinkDevice = it } ?: false
+}
+
+private fun Context.hasEinkRefreshRate(): Boolean? {
     return try {
         val currentDisplay = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             display
         } else {
             @Suppress("DEPRECATION")
             (getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
-        } ?: return false
+        } ?: return null
         // Check the max supported refresh rate, not the current one: adaptive refresh
         // rate (LTPO) displays drop to 1-10 Hz when idle without being e-ink (Olauncher #724)
         val maxRefreshRate = currentDisplay.supportedModes.maxOfOrNull { it.refreshRate } ?: currentDisplay.refreshRate
-        maxRefreshRate <= Constants.MIN_ANIM_REFRESH_RATE
+        EinkDetector.isEinkRefreshRate(maxRefreshRate)
     } catch (e: Exception) {
         Log.e("Extensions", "Failed to detect e-ink display", e)
+        null
+    }
+}
+
+private fun isOnyxDevice(): Boolean {
+    return try {
+        // Onyx firmware ships its e-ink SDK classes in the boot classpath
+        Class.forName("android.onyx.ViewUpdateHelper")
+        true
+    } catch (ignored: Throwable) {
         false
     }
 }
+
+/** One gate for every animation site: e-ink, or the user turned any system animation scale to 0. */
+fun Context.skipAnimations(): Boolean = isEinkDisplay() || isSystemAnimationsDisabled()
 
 fun Context.isSystemAnimationsDisabled(): Boolean {
     return try {

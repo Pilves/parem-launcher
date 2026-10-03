@@ -32,7 +32,7 @@ import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isEinkDisplay
-import com.parem.launcher.helper.isSystemAnimationsDisabled
+import com.parem.launcher.helper.skipAnimations
 import com.parem.launcher.helper.isSystemApp
 import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.openSearch
@@ -339,7 +339,10 @@ class AppDrawerFragment : BaseFragment() {
         scrollListener = getRecyclerViewOnScrollListener()
         binding.recyclerView.addOnScrollListener(scrollListener!!)
         binding.recyclerView.itemAnimator = null
-        if (requireContext().isEinkDisplay().not() && requireContext().isSystemAnimationsDisabled().not())
+        // The glow isn't an animator, so no system scale removes it; on e-ink it forces a partial refresh
+        if (requireContext().isEinkDisplay())
+            binding.recyclerView.overScrollMode = View.OVER_SCROLL_NEVER
+        if (requireContext().skipAnimations().not())
             binding.recyclerView.layoutAnimation =
                 AnimationUtils.loadLayoutAnimation(requireContext(), R.anim.layout_anim_from_bottom)
     }

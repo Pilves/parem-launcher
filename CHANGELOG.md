@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- E-ink phones (Boox/Onyx, Hisense A-series, Mudita and other e-ink brands)
+  are now recognised and get no screen transitions, drawer or sheet animations;
+  light theme is only the first-run default there, so a dark-theme choice sticks.
+  With any system animation scale at 0, bottom sheets also open without sliding
 - Parem no longer asks to see every installed package (`QUERY_ALL_PACKAGES`);
   it declares only the app kinds it uses: launchable apps, launchers, icon
   packs and widget providers

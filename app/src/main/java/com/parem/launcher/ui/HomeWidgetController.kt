@@ -713,6 +713,7 @@ class HomeWidgetController(
             ))
             dialog.setContentView(container)
             dialog.transparentSheetFrame()
+            dialog.disableAnimationsOnEink()
             dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
             dialog.show()
 

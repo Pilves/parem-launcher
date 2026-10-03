@@ -43,6 +43,7 @@ class FocusModeDialog(
         super.onCreate(savedInstanceState)
         setContentView(R.layout.dialog_focus_mode)
         transparentSheetFrame()
+        disableAnimationsOnEink()
         // Landscape's short default peek would open the sheet half-hidden;
         // the ScrollView root handles content taller than the screen
         behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED

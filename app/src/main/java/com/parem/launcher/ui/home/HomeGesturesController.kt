@@ -30,6 +30,7 @@ import com.parem.launcher.listener.OnSwipeTouchListener
 import com.parem.launcher.listener.ViewSwipeTouchListener
 import com.parem.launcher.ui.HomeFragment
 import com.parem.launcher.ui.showLockConsent
+import com.parem.launcher.ui.disableAnimationsOnEink
 import com.parem.launcher.ui.transparentSheetFrame
 
 /**
@@ -371,6 +372,7 @@ class HomeGesturesController(
         }
         dialog.setContentView(view)
         dialog.transparentSheetFrame()
+        dialog.disableAnimationsOnEink()
         dialog.show()
     }
 }

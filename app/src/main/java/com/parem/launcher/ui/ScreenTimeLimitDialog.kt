@@ -155,6 +155,7 @@ class ScreenTimeLimitDialog(
         // open it half-hidden
         setContentView(ScrollView(context).apply { addView(rootLayout) })
         transparentSheetFrame()
+        disableAnimationsOnEink()
         behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
         behavior.skipCollapsed = true
     }

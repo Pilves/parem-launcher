@@ -153,6 +153,7 @@ class CreateFolderDialog(
         // exceeds the screen and the save row must stay reachable
         dialog.setContentView(NestedScrollView(context).apply { addView(container) })
         dialog.transparentSheetFrame()
+        dialog.disableAnimationsOnEink()
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         dialog.behavior.skipCollapsed = true
         // Keep the filtered list visible above the keyboard, as the widget picker does
