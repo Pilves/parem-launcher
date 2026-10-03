@@ -467,6 +467,6 @@
     <string name="onboarding_row_quiet_caption" translatable="false">Notifications from other apps wait in a quiet list</string>
     <string name="onboarding_row_grayscale_caption" translatable="false">One-time setup, about 2 min</string>
     <string name="onboarding_set_up" translatable="false">Set up</string>
-    <string name="onboarding_footer" translatable="false">All of this is in Settings › %1$s</string>
+    <string name="onboarding_footer" translatable="false">Change any of these later in Settings</string>
     <string name="onboarding_done" translatable="false">Done</string>
 </resources>

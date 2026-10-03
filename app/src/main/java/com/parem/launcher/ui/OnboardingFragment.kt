@@ -70,7 +70,6 @@ class OnboardingFragment : BaseFragment() {
         binding.btnSetHome.setOnClickListener { askForHome() }
         binding.btnNotNow.setOnClickListener { showCalm() }
         binding.btnDone.setOnClickListener { findNavController().popBackStack() }
-        binding.calmFooter.text = getString(R.string.onboarding_footer, getString(R.string.wellbeing))
         addCalmRows()
 
         if (savedInstanceState?.getBoolean(KEY_CALM) == true) showCalm() else showHome()
