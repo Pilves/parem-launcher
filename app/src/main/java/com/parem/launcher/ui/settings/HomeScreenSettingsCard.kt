@@ -21,7 +21,7 @@ import com.parem.launcher.ui.SettingsFragment
 
 /**
  * Card 2 ("Home Screen"): number of home apps, date/time visibility, home
- * layout alignment, show-icons, sort-by-usage, widget placement.
+ * layout alignment, home layout lock, show-icons, sort-by-usage, widget placement.
  *
  * Extracted from SettingsFragment; mirrors HomeWidgetController's shape.
  */
@@ -40,6 +40,7 @@ class HomeScreenSettingsCard(
         populateSortByUsage()
         populateWidgetPlacement()
         populateShowIcons()
+        populateHomeLayoutLock()
         populateContactSearch()
         populateAlignment()
         populateDateTime()
@@ -53,6 +54,7 @@ class HomeScreenSettingsCard(
         binding.sortByUsage?.setOnClickListener(this)
         binding.widgetPlacement?.setOnClickListener(this)
         binding.showIconsToggle?.setOnClickListener(this)
+        binding.homeLayoutLockToggle.setOnClickListener(this)
         binding.contactSearchToggle?.setOnClickListener(this)
         binding.alignment.setOnClickListener(this)
         binding.alignmentLeft.setOnClickListener(this)
@@ -112,6 +114,7 @@ class HomeScreenSettingsCard(
 
             R.id.widgetPlacement -> toggleWidgetPlacement()
             R.id.showIconsToggle -> toggleShowIcons()
+            R.id.homeLayoutLockToggle -> toggleHomeLayoutLock()
             R.id.sortByUsage -> toggleSortByUsage()
             R.id.contactSearchToggle -> toggleContactSearch()
         }
@@ -231,6 +234,18 @@ class HomeScreenSettingsCard(
 
     private fun populateShowIcons() {
         binding.showIconsToggle?.text = if (prefs.showIcons) context.getString(R.string.on) else context.getString(R.string.off)
+    }
+
+    // Long-press reads the pref live; the refresh only updates empty slots' TalkBack hint
+    private fun toggleHomeLayoutLock() {
+        prefs.homeLayoutLocked = !prefs.homeLayoutLocked
+        populateHomeLayoutLock()
+        viewModel.refreshHome(false)
+    }
+
+    private fun populateHomeLayoutLock() {
+        binding.homeLayoutLockToggle.text =
+            if (prefs.homeLayoutLocked) context.getString(R.string.on) else context.getString(R.string.off)
     }
 
     private fun populateSortByUsage() {

@@ -185,6 +185,8 @@
 
     <!-- Icon Packs -->
     <string name="show_icons" translatable="false">Show icons</string>
+    <string name="lock_home_layout" translatable="false">Lock home layout</string>
+    <string name="home_layout_locked" translatable="false">Home layout is locked. Unlock it in Settings.</string>
     <string name="icon_pack" translatable="false">Icon pack</string>
     <string name="select_icon_pack" translatable="false">Select icon pack</string>
     <string name="no_icon_packs" translatable="false">No icon packs installed</string>
