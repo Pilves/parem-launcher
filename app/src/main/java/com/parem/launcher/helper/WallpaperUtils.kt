@@ -12,7 +12,6 @@ import android.graphics.Point
 import android.os.Build
 import android.util.Log
 import android.view.WindowManager
-import androidx.appcompat.app.AppCompatDelegate
 import com.parem.launcher.data.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -27,18 +26,6 @@ import java.util.Locale
  * Wallpaper and bitmap operations: plain-color wallpapers, bitmap scaling,
  * and the daily-wallpaper HTTP fetch used by WallpaperWorker.
  */
-fun setPlainWallpaperByTheme(context: Context, appTheme: Int) {
-    when (appTheme) {
-        AppCompatDelegate.MODE_NIGHT_YES -> setPlainWallpaper(context, android.R.color.black)
-        AppCompatDelegate.MODE_NIGHT_NO -> setPlainWallpaper(context, android.R.color.white)
-        else -> {
-            if (context.isDarkThemeOn())
-                setPlainWallpaper(context, android.R.color.black)
-            else setPlainWallpaper(context, android.R.color.white)
-        }
-    }
-}
-
 fun setPlainWallpaper(context: Context, color: Int) {
     val bitmap = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888)
     try {
