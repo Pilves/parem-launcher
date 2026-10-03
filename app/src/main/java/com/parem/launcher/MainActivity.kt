@@ -55,6 +55,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainViewModel
     private lateinit var binding: ActivityMainBinding
     private var timerJob: Job? = null
+    // Where the per-app grayscale watch starts reading app switches
+    private var lastPauseMs = 0L
 
     lateinit var appWidgetHost: AppWidgetHost
     lateinit var appWidgetManager: AppWidgetManager
@@ -193,9 +195,24 @@ class MainActivity : AppCompatActivity() {
         checkTheme()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Not onStart: a translucent or finish-at-once app only pauses Parem,
+        // and coming back from it must still bring colour back
+        GrayscaleController.stopAppWatch()
+        GrayscaleController.setAppForeground(this, false)
+    }
+
+    override fun onPause() {
+        lastPauseMs = System.currentTimeMillis()
+        super.onPause()
+    }
+
     override fun onStop() {
         try { appWidgetHost.stopListening() } catch (e: Exception) { Log.e("MainActivity", "Widget host error", e) }
         GrayscaleController.onLauncherStopped(this)
+        if (GrayscaleController.hasMarkedApps(this) && GrayscaleController.appModeReady(this))
+            GrayscaleController.startAppWatch(this, lastPauseMs)
         super.onStop()
     }
 
@@ -275,6 +292,28 @@ class MainActivity : AppCompatActivity() {
                         .setMessage(R.string.app_usage_message)
                         .setPositiveButton(R.string.okay) { _, _ ->
                             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                        }
+                        .setNegativeButton(R.string.not_now, null)
+                        .show()
+                }
+
+                Constants.Dialog.GRAYSCALE_USAGE_ACCESS -> {
+                    AlertDialog.Builder(this)
+                        .setTitle(R.string.grayscale)
+                        .setMessage(R.string.grayscale_app_needs_usage)
+                        .setPositiveButton(R.string.okay) { _, _ ->
+                            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                        }
+                        .setNegativeButton(R.string.not_now, null)
+                        .show()
+                }
+
+                Constants.Dialog.GRAYSCALE_DEFAULT_HOME -> {
+                    AlertDialog.Builder(this)
+                        .setTitle(R.string.grayscale)
+                        .setMessage(R.string.grayscale_app_needs_default)
+                        .setPositiveButton(R.string.set_as_default_launcher) { _, _ ->
+                            viewModel.resetLauncherLiveData.call()
                         }
                         .setNegativeButton(R.string.not_now, null)
                         .show()

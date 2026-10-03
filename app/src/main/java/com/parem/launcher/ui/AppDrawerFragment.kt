@@ -446,6 +446,9 @@ class AppDrawerFragment : BaseFragment() {
                 reapplyQueryOnReload = false
                 prefs.setAppRenameLabel(appModel.appPackage, renameLabel)
                 viewModel.getAppList()
+            },
+            appGrayscaleListener = {
+                if (isAdded) GrayscaleSheet.toggleApp(this, it.appPackage) { dialog -> viewModel.showDialog.postValue(dialog) }
             }
         )
         adapter.showIcons = prefs.showIcons

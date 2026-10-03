@@ -15,6 +15,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
 import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.AppLimitManager
+import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.FolderManager
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.dpToPx
@@ -23,6 +24,7 @@ import com.parem.launcher.helper.getUserHandleFromString
 import com.parem.launcher.helper.isPackageInstalledCached
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.BadHabitDialogs
+import com.parem.launcher.ui.GrayscaleSheet
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.CreateFolderDialog
 import com.parem.launcher.ui.HomeFragment
@@ -308,6 +310,10 @@ class HomeSlotsController(
                     }
                 }
                 BadHabitDialogs.addMindfulPauseToggle(menu, context, pkg)
+                val grey = GrayscaleController.isAppMarked(context, pkg)
+                menu.option(context.getString(if (grey) R.string.grayscale_app_off else R.string.grayscale_app_on)) {
+                    GrayscaleSheet.toggleApp(fragment, pkg) { viewModel.showDialog.postValue(it) }
+                }
             }
         }
 

@@ -449,5 +449,9 @@
     <string name="grayscale_pair_err_not_found" translatable="false">No pairing dialog found. Make sure Wi-Fi is on, tap Pair device with pairing code, and keep it open while you type.</string>
     <string name="grayscale_pair_err_connect" translatable="false">Paired, but Wireless debugging is not reachable. Check it is still on and try again.</string>
     <string name="grayscale_pair_err_refused" translatable="false">The phone refused the permission. Some phones need an extra switch in Developer options (for example USB debugging (Security settings)). Turn it on and try again.</string>
+    <string name="grayscale_app_on" translatable="false">Grayscale</string>
+    <string name="grayscale_app_off" translatable="false">Stop grayscale</string>
+    <string name="grayscale_app_needs_usage" translatable="false">Per-app grayscale needs usage access to notice when you switch apps.</string>
+    <string name="grayscale_app_needs_default" translatable="false">Per-app grayscale needs Parem as your default home screen to bring color back.</string>
     <string name="grayscale_pair_err_generic" translatable="false">Pairing failed. Try again with a new code.</string>
 </resources>

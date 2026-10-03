@@ -1,5 +1,6 @@
 package com.parem.launcher.ui
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -8,15 +9,19 @@ import android.view.View
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.parem.launcher.R
+import com.parem.launcher.data.Constants
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.GrayscalePairing
+import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.helper.isParemDefault
 import com.parem.launcher.helper.showToast
 
 /**
@@ -31,6 +36,31 @@ object GrayscaleSheet {
         val context = fragment.context ?: return
         if (GrayscaleController.isGranted(context)) showToggles(context, onChanged)
         else showGrant(fragment, onPair, onChanged)
+    }
+
+    /**
+     * The app menu's "Grayscale" row (M4-WP21). Marking walks the user through
+     * what the feature needs, one step per tap: the grant, usage access, Parem
+     * as default home. The app is marked only once all three are in place, so a
+     * mark never waits on a settings screen. Unmarking never asks.
+     */
+    fun toggleApp(fragment: Fragment, pkg: String, showDialog: (String) -> Unit) {
+        val context = fragment.context ?: return
+        when {
+            GrayscaleController.isAppMarked(context, pkg) -> GrayscaleController.toggleAppMark(context, pkg)
+            !GrayscaleController.isGranted(context) -> showGrant(fragment, onPair = { startPairing(fragment) }, onChanged = {})
+            !context.appUsagePermissionGranted() -> showDialog(Constants.Dialog.GRAYSCALE_USAGE_ACCESS)
+            !isParemDefault(context) -> showDialog(Constants.Dialog.GRAYSCALE_DEFAULT_HOME)
+            else -> GrayscaleController.toggleAppMark(context, pkg)
+        }
+    }
+
+    /** Settings has its own permission launcher; from an app menu, a refused prompt just means "tap again". */
+    private fun startPairing(fragment: Fragment) {
+        val context = fragment.context ?: return
+        if (!GrayscalePairing.isSupported()) return
+        if (GrayscalePairing.canNotify(context)) GrayscalePairing.start(context)
+        else ActivityCompat.requestPermissions(fragment.requireActivity(), arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0)
     }
 
     /**

@@ -29,6 +29,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.AppOpenCounter
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GestureLetterManager
+import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.SingleLiveEvent
 import com.parem.launcher.helper.ThemeScheduleManager
 import com.parem.launcher.helper.UsageStatsHelper
@@ -322,7 +323,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Returns true if the app was started. */
     private fun startApp(component: ComponentName, userHandle: UserHandle, packageName: String, isPrivate: Boolean): Boolean {
-        return try {
+        val started = try {
             launcherApps.startMainActivity(component, userHandle, null, null)
             // Open counts are exported; a private package name must never land there
             if (!isPrivate) AppOpenCounter.increment(appContext, packageName)
@@ -338,6 +339,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } catch (e: Exception) {
             false
         }
+        // Grey before the app draws, so there is no colour flash; only after a
+        // launch that worked, and only when home can bring colour back
+        if (started && GrayscaleController.isAppMarked(appContext, packageName) && GrayscaleController.appModeReady(appContext))
+            GrayscaleController.setAppForeground(appContext, true)
+        return started
     }
 
     fun getAppList(includeHiddenApps: Boolean = false) {

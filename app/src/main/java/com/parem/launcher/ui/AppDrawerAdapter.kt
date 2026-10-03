@@ -24,6 +24,7 @@ import com.parem.launcher.databinding.AdapterAppDrawerBinding
 import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.DrawerRows
+import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.formattedTimeSpent
@@ -41,6 +42,7 @@ class AppDrawerAdapter(
     private val appDeleteListener: (AppModel) -> Unit,
     private val appHideListener: (AppModel, Int) -> Unit,
     private val appRenameListener: (AppModel, String) -> Unit,
+    private val appGrayscaleListener: (AppModel) -> Unit,
 ) : ListAdapter<AppModel, AppDrawerAdapter.ViewHolder>(DIFF_CALLBACK), Filterable {
 
     companion object {
@@ -114,6 +116,7 @@ class AppDrawerAdapter(
                 appInfoListener,
                 appHideListener,
                 appRenameListener,
+                appGrayscaleListener,
                 usageStats,
                 openCounts,
                 showIcons,
@@ -283,6 +286,7 @@ class AppDrawerAdapter(
             appInfoListener: (AppModel) -> Unit,
             appHideListener: (AppModel, Int) -> Unit,
             appRenameListener: (AppModel, String) -> Unit,
+            appGrayscaleListener: (AppModel) -> Unit,
             usageStats: Map<String, Long> = emptyMap(),
             openCounts: Map<String, Int> = emptyMap(),
             showIcons: Boolean = false,
@@ -380,6 +384,13 @@ class AppDrawerAdapter(
                             else
                                 root.context.getString(R.string.set_time_limit)
                         }
+                        appGrayscale.isVisible = appBadHabit.isVisible
+                        if (appGrayscale.isVisible) {
+                            appGrayscale.text = root.context.getString(
+                                if (GrayscaleController.isAppMarked(root.context, appModel.appPackage)) R.string.grayscale_app_off
+                                else R.string.grayscale_app_on
+                            )
+                        }
                     }
                     true
                 }
@@ -471,6 +482,13 @@ class AppDrawerAdapter(
                                 appTitle.visibility = View.VISIBLE
                             }
                         }
+                    }
+                }
+                appGrayscale.setOnClickListener {
+                    if (appModel.appPackage.isNotEmpty()) {
+                        appGrayscaleListener(appModel)
+                        appHideLayout.visibility = View.GONE
+                        appTitle.visibility = View.VISIBLE
                     }
                 }
                 appDelete.setOnClickListener { appDeleteListener(appModel) }

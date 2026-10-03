@@ -28,8 +28,16 @@ object GrayscalePolicy {
         NONE,
     }
 
-    fun desired(manual: Boolean, onFocus: Boolean, focusActive: Boolean, onLimit: Boolean, limitOverride: Boolean): Boolean =
-        manual || (onFocus && focusActive) || (onLimit && limitOverride)
+    fun desired(manual: Boolean, onFocus: Boolean, focusActive: Boolean, onLimit: Boolean, limitOverride: Boolean, appForeground: Boolean): Boolean =
+        manual || (onFocus && focusActive) || (onLimit && limitOverride) || appForeground
+
+    /** Per-app marks (M4-WP21), stored as a CSV of package names like the mindful-pause list. */
+    fun isMarked(csv: String?, pkg: String): Boolean = pkg in MindfulPause.parse(csv)
+
+    fun toggle(csv: String?, pkg: String): String {
+        val marked = MindfulPause.parse(csv)
+        return MindfulPause.serialize(if (pkg in marked) marked - pkg else marked + pkg)
+    }
 
     fun plan(desired: Boolean, applied: Boolean, suppressed: Boolean, current: State): Action = when {
         applied && !current.isGrey -> Action.USER_OVERRIDE

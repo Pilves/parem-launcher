@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+- Per-app grayscale: long-press an app and tap Grayscale to see it in
+  grayscale. The screen turns grey while that app is in front, including after
+  recents and notification switches, and color comes back on Home or in any
+  other app. Needs the grayscale permission, usage access and Parem as default
+  home; the menu walks through each one
 - Tablets, foldables and wide windows: Parem rotates freely from 600dp up
   (phones stay portrait), the portrait lock is released when a foldable
   unfolds, and settings and the app drawer keep a readable width instead of
