@@ -51,8 +51,10 @@ class SettingsFragment : BaseFragment() {
 
     private lateinit var importSettingsLauncher: ActivityResultLauncher<Intent>
     private lateinit var requestContactsPermissionLauncher: ActivityResultLauncher<String>
+    private lateinit var requestNotificationPermissionLauncher: ActivityResultLauncher<String>
     private lateinit var appInfoCard: AppInfoSettingsCard
     private lateinit var homeScreenCard: HomeScreenSettingsCard
+    private lateinit var wellbeingCard: WellbeingSettingsCard
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,6 +71,12 @@ class SettingsFragment : BaseFragment() {
             ActivityResultContracts.RequestPermission()
         ) { granted ->
             if (_binding != null) homeScreenCard.onContactsPermissionResult(granted)
+        }
+        // Only launched by the grayscale pairing flow (the code is typed into a notification)
+        requestNotificationPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            if (_binding != null) wellbeingCard.onNotificationPermissionResult(granted)
         }
     }
 
@@ -94,7 +102,11 @@ class SettingsFragment : BaseFragment() {
         homeScreenCard.bind()
         AppearanceSettingsCard(this, binding, prefs, viewModel, onWellbeingChanged = ::populateWellbeingSection).bind()
         GesturesSettingsCard(this, binding, prefs, viewModel, onWellbeingChanged = ::populateWellbeingSection).bind()
-        WellbeingSettingsCard(this, binding, prefs, viewModel, onWellbeingChanged = ::populateWellbeingSection).bind()
+        wellbeingCard = WellbeingSettingsCard(
+            this, binding, prefs, viewModel, onWellbeingChanged = ::populateWellbeingSection,
+            requestNotificationPermission = requestNotificationPermissionLauncher,
+        )
+        wellbeingCard.bind()
 
         populateWellbeingSection()
 

@@ -1225,6 +1225,37 @@
                         android:text="@string/off" />
                 </LinearLayout>
 
+                <!-- Grayscale -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/TextSmall"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="24dp"
+                        android:layout_weight="1"
+                        android:lines="1"
+                        android:paddingVertical="8dp"
+                        android:text="@string/grayscale"
+                        android:textColor="?attr/primaryColor" />
+
+                    <TextView
+                        android:id="@+id/grayscaleToggle"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|center_vertical"
+                        android:layout_marginEnd="4dp"
+                        android:lines="1"
+                        android:padding="8dp"
+                        android:text="@string/off" />
+                </LinearLayout>
+
                 <!-- Hide from shade, keep for later (the card hides it below API 26) -->
                 <LinearLayout
                     android:id="@+id/quietNotifLayout"

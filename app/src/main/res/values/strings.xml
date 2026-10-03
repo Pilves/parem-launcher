@@ -389,4 +389,34 @@
     <string name="quiet_keep" translatable="false">Keep</string>
     <string name="quiet_keep_info" translatable="false">Hidden notifications will come back to the shade within 8 h.</string>
     <string name="quiet_not_supported" translatable="false">Not available on this Android version</string>
+    <string name="grayscale" translatable="false">Grayscale</string>
+    <string name="grayscale_set_up" translatable="false">Set up</string>
+    <string name="grayscale_now" translatable="false">Now</string>
+    <string name="grayscale_during_focus" translatable="false">During focus</string>
+    <string name="grayscale_after_limit" translatable="false">After a limit (until you come back to Parem)</string>
+    <string name="grayscale_toggles_hint" translatable="false">Color always comes back when you turn these off. You can also switch it back yourself in Settings > Accessibility > Color correction.</string>
+    <string name="grayscale_grant_title" translatable="false">Allow grayscale</string>
+    <string name="grayscale_grant_body" translatable="false">Android lets an app switch the screen to grayscale only after a one-time permission given through developer tools. Parem uses it for grayscale and nothing else.\n\nTo get color back at any time, without Parem: Settings > Accessibility > Color correction.</string>
+    <string name="grayscale_grant_wifi" translatable="false">On this phone, over Wi-Fi:\n1. Turn on Developer options: Settings > About phone > tap Build number 7 times.\n2. In Developer options, turn on Wireless debugging and tap Pair device with pairing code.\n3. Pull down Parem\'s notification and type the 6-digit code into it.</string>
+    <string name="grayscale_pair_start" translatable="false">Start pairing</string>
+    <string name="grayscale_grant_computer" translatable="false">Or with a computer: turn on USB debugging, plug the phone in, and open this page in Chrome or Edge:</string>
+    <string name="grayscale_grant_url" translatable="false">pilves.github.io/parem-launcher/grant/</string>
+    <string name="grayscale_share_link" translatable="false">Share link</string>
+    <string name="grayscale_copy_link" translatable="false">Copy link</string>
+    <string name="grayscale_copy_command" translatable="false">Copy adb command</string>
+    <string name="grayscale_check_again" translatable="false">Check again</string>
+    <string name="grayscale_not_granted" translatable="false">Not allowed yet</string>
+    <string name="grayscale_ready" translatable="false">Grayscale is on</string>
+    <string name="grayscale_pair_needs_notif" translatable="false">Allow notifications so you can type the pairing code</string>
+    <string name="grayscale_pair_notif_title" translatable="false">Grayscale: pairing code</string>
+    <string name="grayscale_pair_notif_text" translatable="false">In Wireless debugging, tap Pair device with pairing code, then type the 6-digit code here.</string>
+    <string name="grayscale_pair_code_hint" translatable="false">6-digit code</string>
+    <string name="grayscale_pair_enter_code" translatable="false">Enter code</string>
+    <string name="grayscale_pair_working" translatable="false">Pairing…</string>
+    <string name="grayscale_pair_done" translatable="false">Grayscale is on. You can turn Wireless debugging off again.</string>
+    <string name="grayscale_pair_err_code" translatable="false">That code did not work. Keep the pairing dialog open and type the 6-digit code it shows.</string>
+    <string name="grayscale_pair_err_not_found" translatable="false">No pairing dialog found. Make sure Wi-Fi is on, tap Pair device with pairing code, and keep it open while you type.</string>
+    <string name="grayscale_pair_err_connect" translatable="false">Paired, but Wireless debugging is not reachable. Check it is still on and try again.</string>
+    <string name="grayscale_pair_err_refused" translatable="false">The phone refused the permission. Some phones need an extra switch in Developer options (for example USB debugging (Security settings)). Turn it on and try again.</string>
+    <string name="grayscale_pair_err_generic" translatable="false">Pairing failed. Try again with a new code.</string>
 </resources>

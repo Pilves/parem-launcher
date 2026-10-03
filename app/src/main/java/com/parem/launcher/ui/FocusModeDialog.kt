@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.parem.launcher.R
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.FocusSchedule
+import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -105,6 +106,8 @@ class FocusModeDialog(
         container.addView(createActionRow(ctx, ctx.getString(R.string.disable_focus)) {
             FocusModeManager.disable(ctx)
             FocusModeManager.pauseSchedule(ctx)
+            GrayscaleController.cancelFocusEnd(ctx)
+            GrayscaleController.reconcile(ctx)
             dismiss()
         })
     }
@@ -304,6 +307,8 @@ class FocusModeDialog(
 
             saveSettings()
             FocusModeManager.enable(ctx, durationMinutes)
+            // Also queues the focus-end job when grey goes on
+            GrayscaleController.reconcile(ctx)
             dismiss()
         })
     }

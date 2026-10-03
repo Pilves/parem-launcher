@@ -16,6 +16,13 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <!--Lets the default launcher list Private Space apps (Android 15+)-->
     <uses-permission android:name="android.permission.ACCESS_HIDDEN_PROFILES" />
+    <!--Grayscale: switches the system daltonizer. Granted once through adb (Wireless
+        debugging pairing in Parem, the WebUSB page, or the adb command); never by Play-->
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+    <!--Only asked for when grayscale pairing starts: the pairing code is typed into a notification-->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
@@ -111,6 +118,11 @@
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
         </service>
+
+        <!--Receives the Wireless debugging pairing code typed into the grayscale notification-->
+        <receiver
+            android:name=".helper.GrayscalePairing$Receiver"
+            android:exported="false" />
 
         <!--Opt-in "Hide from shade, keep for later": disabled until the user turns it
             on, so it is never bound and never listed in notification access before then-->

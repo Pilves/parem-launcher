@@ -1,7 +1,9 @@
 package com.parem.launcher.ui.settings
 
+import android.Manifest
 import android.os.Build
 import android.view.View
+import androidx.activity.result.ActivityResultLauncher
 import androidx.core.os.bundleOf
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -12,11 +14,15 @@ import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
+import com.parem.launcher.helper.GrayscaleController
+import com.parem.launcher.helper.GrayscalePairing
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.getAppsList
+import com.parem.launcher.helper.showToast
 import com.parem.launcher.helper.notifications.QuietNotificationsManager
 import com.parem.launcher.helper.notifications.QuietNotificationsManager.State
 import com.parem.launcher.ui.FocusModeDialog
+import com.parem.launcher.ui.GrayscaleSheet
 import com.parem.launcher.ui.QuietListSheet
 import com.parem.launcher.ui.ScreenTimeLimitDialog
 import com.parem.launcher.ui.SettingsFragment
@@ -24,7 +30,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Card 5 ("Digital Wellbeing"): screen-time permission status, per-app time
- * limits, focus mode, and the notification filter ("Hide from shade, keep for later").
+ * limits, focus mode, grayscale, and the notification filter ("Hide from shade, keep for later").
  *
  * Extracted from SettingsFragment; mirrors HomeWidgetController's shape.
  */
@@ -34,6 +40,7 @@ class WellbeingSettingsCard(
     private val prefs: Prefs,
     private val viewModel: MainViewModel,
     private val onWellbeingChanged: () -> Unit,
+    private val requestNotificationPermission: ActivityResultLauncher<String>,
 ) : View.OnClickListener {
 
     private val context get() = binding.root.context
@@ -41,17 +48,23 @@ class WellbeingSettingsCard(
     fun bind() {
         populateScreenTimeOnOff()
         populateQuietNotif()
+        populateGrayscale()
 
         initClickListeners()
         // The access grant happens in system settings; re-derive the state on return
         fragment.viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME && fragment.isBindingAlive()) populateQuietNotif()
+            if (event == Lifecycle.Event.ON_RESUME && fragment.isBindingAlive()) {
+                populateQuietNotif()
+                // The grant can land from the pairing notification while Settings is open
+                populateGrayscale()
+            }
         })
     }
 
     private fun initClickListeners() {
         binding.screenTimeOnOff.setOnClickListener(this)
         binding.focusModeToggle?.setOnClickListener(this)
+        binding.grayscaleToggle?.setOnClickListener(this)
         binding.screenTimeLimitsToggle?.setOnClickListener(this)
         binding.quietNotifToggle?.setOnClickListener(this)
         binding.quietNotifAllowed?.setOnClickListener(this)
@@ -63,6 +76,9 @@ class WellbeingSettingsCard(
         when (view.id) {
             R.id.screenTimeOnOff -> viewModel.showDialog.postValue(Constants.Dialog.DIGITAL_WELLBEING)
             R.id.focusModeToggle -> showFocusModeFromSettings()
+            R.id.grayscaleToggle -> GrayscaleSheet.open(fragment, onPair = ::startPairing, onChanged = {
+                if (fragment.isBindingAlive()) populateGrayscale()
+            })
             R.id.screenTimeLimitsToggle -> showScreenTimeLimitsDialog()
             R.id.quietNotifToggle -> onQuietNotifToggle()
             R.id.quietNotifAllowed -> QuietListSheet.editAllowed(fragment, prefs, fragment::isBindingAlive)
@@ -83,6 +99,28 @@ class WellbeingSettingsCard(
             State.NEEDS_ACCESS -> QuietListSheet.showNeedsAccess(context, starting = false, onChanged = onChanged)
             State.ON -> QuietListSheet.confirmTurnOff(context, onChanged)
         }
+    }
+
+    private fun startPairing() {
+        if (!GrayscalePairing.isSupported()) return
+        if (GrayscalePairing.canNotify(context)) GrayscalePairing.start(context)
+        else requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    /** SettingsFragment's permission callback. */
+    fun onNotificationPermissionResult(granted: Boolean) {
+        if (granted && GrayscalePairing.isSupported()) GrayscalePairing.start(context)
+        else context.showToast(R.string.grayscale_pair_needs_notif)
+    }
+
+    private fun populateGrayscale() {
+        binding.grayscaleToggle?.text = context.getString(
+            when {
+                !GrayscaleController.isGranted(context) -> R.string.grayscale_set_up
+                GrayscaleController.isManual(context) -> R.string.on
+                else -> R.string.off
+            }
+        )
     }
 
     private fun populateQuietNotif() {

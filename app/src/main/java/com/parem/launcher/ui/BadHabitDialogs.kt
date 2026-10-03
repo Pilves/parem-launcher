@@ -6,6 +6,7 @@ import android.widget.TextView
 import com.parem.launcher.R
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
+import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.MindfulPause
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.dpToPx
@@ -74,14 +75,19 @@ object BadHabitDialogs {
             val usageMinutes = usageMs / 60_000
             val overLimit = usageMinutes >= limitMinutes
             val label = appLabel(context, appName, packageName)
+            // Opening past the limit is the "after a limit" grayscale trigger
+            val openOverLimit = {
+                if (overLimit) GrayscaleController.onLimitOverride(context)
+                open()
+            }
             when (MindfulPause.decide(pause, overLimit)) {
                 MindfulPause.Gate.LAUNCH -> open()
                 MindfulPause.Gate.LIMIT_WARNING ->
-                    showLimitWarning(context, label, usageMinutes, limitMinutes, open)
+                    showLimitWarning(context, label, usageMinutes, limitMinutes, openOverLimit)
                 MindfulPause.Gate.PAUSE -> showMindfulPause(
                     context, label,
                     if (overLimit) limitWarningText(context, label, usageMinutes, limitMinutes) else null,
-                    open, onCancel
+                    openOverLimit, onCancel
                 )
             }
         }

@@ -18,6 +18,7 @@ import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
 import com.parem.launcher.helper.FocusModeManager
+import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.home.HomeClockController
 import com.parem.launcher.ui.home.HomeGesturesController
@@ -90,6 +91,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         if (prefs.showStatusBar) showStatusBar()
         else hideStatusBar()
         FocusModeManager.checkAndExpire(requireContext())
+        GrayscaleController.reconcile(requireContext())
         viewModel.getWeather()
         gesturesController?.updateGestureLetterOverlay()
     }

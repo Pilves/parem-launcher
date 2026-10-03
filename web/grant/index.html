@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; connect-src 'none'; img-src 'self'; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Parem: allow grayscale</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Allow grayscale for Parem</h1>
+    <ol>
+      <li>On the phone, turn on <b>Developer options</b> (Settings &gt; About phone &gt; tap Build number 7 times), then <b>USB debugging</b>.</li>
+      <li>Plug the phone into this computer.</li>
+      <li>Click <b>Grant</b>, pick the phone, and tap <b>Allow</b> on the phone if it asks about USB debugging.</li>
+    </ol>
+    <p class="privacy">This page runs only in your browser. It sends nothing anywhere and runs one command: granting Parem permission to change color settings.</p>
+    <button id="grant" type="button">Grant</button>
+    <p id="status" role="status" aria-live="polite"></p>
+    <p class="small">Needs Chrome or Edge on a computer. Prefer a terminal? Run
+      <code id="command">adb shell pm grant com.parem.launcher android.permission.WRITE_SECURE_SETTINGS</code></p>
+    <p class="small">To get color back at any time, without Parem: Settings &gt; Accessibility &gt; Color correction.</p>
+  </main>
+  <script type="module" src="grant.js"></script>
+</body>
+</html>
