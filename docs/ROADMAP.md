@@ -114,8 +114,11 @@ Depends on: M2 shipped. WP2 and WP3 are prerequisites for M4.
 | M3-WP7 | **Design first.** E-ink mode: skip animations on e-ink displays (upstream `a9da9d4`), building on the existing `isEinkDisplay()` and M2-WP2's detection fix | per proposal | per proposal |
 | M3-WP8 | Widget picker: list work-profile providers (`getInstalledProvidersForProfile`) and show generated previews on Android 15+. Trap #2 — no widget-ID logic changes | widget picker code in `ui/HomeWidgetController.kt` | Work-profile widgets addable; previews shown where the provider offers them |
 
+| M3-WP10 | Performance baseline + budget: cold start to interactive home, return-to-home, drawer scroll and omnibox typing frame timing (Macrobenchmark or `am start -W` + gfxinfo), run in the M3-WP1 emulator CI. Budgets: cold start < 300 ms mid-range, return home < 100 ms, < 1% janky frames, no frame > 32 ms | new benchmark module or scripts, CI workflow from M3-WP1 | Numbers recorded in `docs/RELEASE_CHECKLIST.md`; CI fails on a > 20% regression |
+| M3-WP11 | **Design first.** Opt-in crash reports (ACRA or equivalent, F-Droid-compatible, no network SDK): off by default; on crash, offer to send a report via email/share sheet. Play vitals cover the Play channel | `app/build.gradle` dep, `Application` class, a settings row, strings | Off = nothing collected; on = user sees and sends the report themselves |
+
 **Owner tasks**
-- Pick which of M3-WP5…WP8 make the release; unpicked rows move to a later milestone.
+- Pick which of M3-WP5…WP11 make the release; unpicked rows move to a later milestone.
 - Device pass, bump, tag `v5.9.0`.
 
 ## M4 — v6.0.0: Calm phone
@@ -139,7 +142,18 @@ accessibility service.
 | M4-WP7 | **Design first.** Website shortcuts on home: pin a URL (or a PWA shortcut via `LauncherApps` pinned shortcuts, see upstream `14b89e9`) to a home slot or folder | home slots, shortcut handling, `Prefs` | Pinned site opens in the default browser/PWA; survives export/import |
 | M4-WP8 | Lock-service revoked: detect when the accessibility service is off (Android 17 Advanced Protection revokes non-tool services — confirm on developer.android.com first) and explain it once instead of failing silently on double-tap | home double-tap path, a one-time sheet | Double-tap with the service off shows the explanation; no repeat nagging |
 
+| M4-WP9 | Translation coverage: make every Parem-specific string translatable where it is user-facing, add Estonian, bring de/es/pt-BR/fr/ru to 100% (machine draft + native review list for Patric). Not upstream's newly added locales — their strings don't match ours | `res/values*/strings.xml` | Lint `MissingTranslation` clean for the six target locales |
+| M4-WP10 | Store assets from 6.0: scripted screenshots (fastlane screengrab on an emulator) of home, omnibox, Calm-phone features, screen time; refreshed en-US/de/et listing text | `fastlane/`, a screengrab test | One command regenerates all screenshots |
+| M4-WP11 | Battery + wake-lock audit: weather fetch, scheduled-focus alarms, notification listener hold no wake locks; 24 h soak < 1%/day | code the audit names | `dumpsys batterystats` soak recorded; zero excessive wake locks |
+| M4-WP12 | **Design first.** Onboarding for 6.0: set default home first, then optional Calm-phone setup (notification filter, mindful pause, grayscale grant, lock consent), every step skippable | `ui/onboarding/`, strings | ≥ 90% of testers finish "set as default home" in the closed test |
+
+**Launch quality bars** (Play vitals bad-behaviour lines are 1.09% crash / 0.47% ANR):
+crash-free ≥ 99.8%, ANR < 0.2%, battery < 1%/day, APK < 10 MB, no RAM growth over 24 h.
+Pricing: free, no ads, no accounts, donations only — the privacy story is the differentiator.
+
 **Owner tasks**
+- **Start now (≈4–5 weeks of lead time):** create the Play developer account + identity verification; register the package for Android developer verification (covers GitHub/IzzyOnDroid sideloads too); recruit 15–20 testers and run a closed test ≥ 14 days with ≥ 12 opted in (any current build is fine); then apply for production access.
+- IzzyOnDroid listing request (GitHub releases already ship signed APKs); F-Droid main later.
 - minSdk 24 → 29 decision from Play Console install share (do it if Android 7–9 < ~3%); becomes an M4 row if yes.
 - Delete the local upstream `v6.*` tags and set `remote.upstream.tagOpt --no-tags` before tagging 6.0; push release tags by name only.
 - Play launch: developer account, closed testing (check the current tester/day
