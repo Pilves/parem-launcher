@@ -2,7 +2,7 @@
 // Run: node --test scripts/perf-budget.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { compare, median, overBudget, parseAmStart, parseGfxinfo } from './perf-budget.mjs';
+import { compare, enoughFrames, median, overBudget, parseAmStart, parseGfxinfo } from './perf-budget.mjs';
 
 test('parses am start -W output', () => {
   const out = 'Starting: Intent { act=android.intent.action.MAIN }\nStatus: ok\nLaunchState: COLD\n'
@@ -63,4 +63,10 @@ test('gate fails on a missing measurement or baseline', () => {
 
 test('budgets are reported per metric', () => {
   assert.deepEqual(overBudget(run(250, 90, 0.5, 20)), ['drawerScroll.maxFrameMs: 40 > 32']);
+});
+
+test('a phase with too few frames counts as not measured', () => {
+  const few = { frames: 12, jankyPct: 50, p50Ms: 16, p99Ms: 105, maxFrameMs: 105 };
+  assert.deepEqual(enoughFrames(few), { frames: 12, jankyPct: null, p50Ms: 16, p99Ms: null, maxFrameMs: null });
+  assert.deepEqual(enoughFrames({ ...few, frames: 30 }), { ...few, frames: 30 });
 });

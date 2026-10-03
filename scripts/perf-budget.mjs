@@ -5,6 +5,8 @@
 //
 //   node scripts/perf-budget.mjs [--package <id>] [--out <file>] [--write-baseline]
 //
+// --out also saves a screenshot of each frame-timing phase next to the file.
+//
 // Compares against scripts/perf-baseline.json and exits 1 when a gated metric
 // regresses by more than 20%. The absolute budgets (BUDGETS) are for a
 // mid-range phone and are only reported: an emulator is not one.
@@ -158,7 +160,15 @@ function screenSize() {
   return { w: Number(w), h: Number(h) };
 }
 
-function frames(pkg, open, act) {
+// Fewer frames than this and one slow frame moves jank by several points:
+// treat the phase as not measured rather than gate on noise.
+export const MIN_FRAMES = 30;
+export const enoughFrames = (f) => (f.frames !== null && f.frames >= MIN_FRAMES ? f
+  : { ...f, jankyPct: null, p99Ms: null, maxFrameMs: null });
+
+// shot: where to save a screenshot of what the phase ended on, so a run with
+// too few frames can be diagnosed from the CI artifact
+function frames(pkg, open, act, shot) {
   startHome();
   sleepMs(1500);
   open();
@@ -167,8 +177,9 @@ function frames(pkg, open, act) {
   act();
   sleepMs(1000);
   const out = parseGfxinfo(adb(`dumpsys gfxinfo ${pkg}`));
+  if (shot) writeFileSync(shot, execFileSync('adb', ['exec-out', 'screencap', '-p']));
   startHome();
-  return out;
+  return enoughFrames(out);
 }
 
 function samples(label, runs, fn, accept) {
@@ -183,7 +194,7 @@ function samples(label, runs, fn, accept) {
   return times.length >= runs / 2 ? median(times) : null;
 }
 
-export function measure(pkg) {
+export function measure(pkg, shotDir) {
   seedPrefs(pkg);
   console.log(adb(`cmd package set-home-activity ${pkg}/${ACTIVITY}`).trim());
   const { w, h } = screenSize();
@@ -192,20 +203,28 @@ export function measure(pkg) {
 
   const coldStartMs = samples('cold start', RUNS, () => coldStart(pkg), (r) => r.launchState === 'COLD');
   const returnHomeMs = samples('return home', RUNS, returnHome, (r) => r.status === 'ok');
+  const shot = (name) => shotDir && resolve(shotDir, name);
   const drawerScroll = frames(pkg, openDrawer, () => {
-    for (const [from, to] of [[0.7, 0.3], [0.7, 0.3], [0.7, 0.3], [0.3, 0.7], [0.3, 0.7], [0.3, 0.7]]) {
-      adb(`input swipe ${x} ${Math.round(h * from)} ${x} ${Math.round(h * to)} 300`);
-      sleepMs(500);
+    for (let round = 0; round < 3; round++) {
+      for (const [from, to] of [[0.8, 0.2], [0.8, 0.2], [0.2, 0.8], [0.2, 0.8]]) {
+        adb(`input swipe ${x} ${Math.round(h * from)} ${x} ${Math.round(h * to)} 150`);
+        sleepMs(700);
+      }
     }
-  });
+  }, shot('drawer-scroll.png'));
   // A leading space turns off auto-launch on a single match
   const omniboxTyping = frames(pkg, openDrawer, () => {
-    for (const c of ['%s', ...'settings']) {
-      adb(`input text ${c}`);
-      sleepMs(300);
+    for (let round = 0; round < 3; round++) {
+      for (const c of ['%s', ...'settings']) {
+        adb(`input text ${c}`);
+        sleepMs(300);
+      }
+      for (let i = 0; i < 9; i++) {
+        adb('input keyevent KEYCODE_DEL');
+        sleepMs(150);
+      }
     }
-    for (let i = 0; i < 9; i++) adb('input keyevent KEYCODE_DEL');
-  });
+  }, shot('omnibox-typing.png'));
   return { package: pkg, coldStartMs, returnHomeMs, drawerScroll, omniboxTyping };
 }
 
@@ -215,12 +234,11 @@ function main(argv) {
     return i >= 0 ? argv[i + 1] : undefined;
   };
   const pkg = opt('--package') ?? 'com.parem.launcher.debug';
-  const current = measure(pkg);
+  const outDir = opt('--out') && dirname(resolve(opt('--out')));
+  if (outDir) mkdirSync(outDir, { recursive: true });
+  const current = measure(pkg, outDir);
   const json = JSON.stringify(current, null, 2) + '\n';
-  if (opt('--out')) {
-    mkdirSync(dirname(resolve(opt('--out'))), { recursive: true });
-    writeFileSync(opt('--out'), json);
-  }
+  if (outDir) writeFileSync(opt('--out'), json);
   if (argv.includes('--write-baseline')) {
     writeFileSync(BASELINE_FILE, json);
     console.log(`wrote ${BASELINE_FILE}`);
