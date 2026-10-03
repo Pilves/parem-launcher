@@ -1,7 +1,9 @@
 # Parem Launcher roadmap
 
-Owner: Patric. Updated: 2026-10-03 (M0 in progress; M1 = ship v5.7.0, M2 =
-v5.8.0, M3 = v5.9.0). Current state: `HANDOFF.md`. Rules: `AGENTS.md`.
+Owner: Patric. Updated: 2026-10-03 (M1 = ship v5.7.0, M2 = v5.8.0 Play
+compliance — Play needs targetSdk 36 by 2026-11-01 even with an extension,
+M3 = v5.9.0 groundwork, M4 = v6.0.0 "Calm phone"). 6.0 theme from the
+2026-10-03 advisor round (product, platform, architecture). Current state: `HANDOFF.md`. Rules: `AGENTS.md`.
 Code map and traps: `ARCHITECTURE.md`. Who is on what: `scripts/claim-wp.sh list`.
 Tickets before this roadmap (PAREM-101…122) are archived with their full specs
 in `docs/archive/TODO-pre-roadmap.md`; commits and CHANGELOG still cite those ids.
@@ -73,38 +75,73 @@ row per finding, scoped to the fix.
 - Device pass on the M1 head using `docs/RELEASE_CHECKLIST.md`.
 - Tag `v5.7.0` and push once the pass is clean. CI signs and publishes.
 
-## M2 — v5.8.0: platform currency + housekeeping
+## M2 — v5.8.0: Play compliance + housekeeping
 
-Depends on: M1 shipped (v5.7.0 tagged).
+Since 2026-08-31 Play rejects updates below targetSdk 36; an extension
+(requested in Play Console) only reaches 2026-11-01. M2-WP1 and M2-WP5 may
+start before M1 ships; the rest waits for v5.7.0.
 
 | id | Outcome | Owns | Done |
 |---|---|---|---|
 | M2-WP1 | **Design first.** targetSdk/compileSdk 36 — mandatory for Play updates. Proposal covers: edge-to-edge (opt-out removed at 36) on home, drawer, settings and every BottomSheetMenu sheet; predictive back in drawer/settings/sheets; any behaviour change list for API 36 that touches launchers (home intent, accessibility lock, usage stats, widgets) | `app/build.gradle` SDK lines, `MainActivity`, insets handling in layouts/fragments it names | Builds at 36; proposal's on-device checks listed as "not verified" until Patric runs them |
 | M2-WP2 | Upstream Olauncher review (since 2026-07-09, upstream HEAD `66712f7`): a shortlist with verdicts. Port *fixes* only: drawer not closing with animations off (`7e69731`, #713), pending text size applied on leaving settings (`952d9e9`), e-ink false detection on adaptive-refresh displays (`fc5b37f`; this fork has `isEinkDisplay()` in `helper/Extensions.kt`). Features go to M3. Skip: settings popup rework, dialog blur, swipe-down removal | Review notes in the PR; each accepted fix becomes `M2-WP2a`, `M2-WP2b`, … rows | Every upstream commit since the last review has a verdict; log line added to the recurring section below |
 | M2-WP3 | About + privacy wiring: fill `Constants.URL_ABOUT_PAREM` / `URL_PAREM_PRIVACY`, unhide their settings rows, remove the known-issue line. Blocked on Patric's privacy text (must cover READ_CONTACTS — read on-device only, opt-in, never transmitted — usage stats, weather requests to Open-Meteo) | `data/Constants.kt`, `ui/settings/AppInfoSettingsCard.kt`, `ARCHITECTURE.md` known issues | Rows visible and open the right URLs; Play Data safety answers listed in the PR for Patric |
+| M2-WP5 | **Design first.** Accessibility disclosure + consent: a BottomSheetMenu sheet shown before sending the user to enable the lock service — what it does, that it reads nothing else, explicit accept/decline (Play accessibility-API policy). Also drop `canRetrieveWindowContent="true"` from the service config if the lock still works without `event.source` (trap #1 — device check) | lock-enable flow in `ui/settings/GesturesSettingsCard.kt` and the home double-tap path, `res/xml` accessibility config, strings | Consent shown before every route into accessibility settings; decline leaves lock off; Play declaration text drafted in the PR for Patric |
+| M2-WP6 | Spike: can `QUERY_ALL_PACKAGES` go? App list comes from `LauncherApps`; the icon-pack `queryIntentActivities` may only need a `<queries>` entry. Remove the permission, add `<queries>`, check hidden apps, usage-stat names, icon packs, omnibox | `AndroidManifest.xml`, a verdict in the PR | Verdict with evidence; if removable, the change ships; if not, the Play declaration text for keeping it |
 | M2-WP4 | Remove dead `setPlainWallpaperByTheme` (moved, not removed, in PAREM-122). Confirm dead yourself; remove only what the deletion orphans | `helper/WallpaperUtils.kt` | No references left; full build green |
 
 **Owner tasks**
 - PAREM-113: remove dead `removeActiveAdmin()` (Patric's own ticket, spec in the archive).
 - PAREM-107: device repro of residual gesture-letter vs swipe conflicts; findings become an M2 row if anything misfires.
+- **Today:** request the targetSdk extension in Play Console (deadline 2026-11-01).
 - Write the privacy policy / about content for M2-WP3; update Play Data safety for READ_CONTACTS.
+- Play Console accessibility declaration + demo video, using M2-WP5's text.
 - Device pass at targetSdk 36 (checklist + M2-WP1's list), bump version, tag `v5.8.0`.
 
-## M3 — v5.9.0: features + cheaper releases
+## M3 — v5.9.0: groundwork + small features
 
-Depends on: M2 shipped.
+Depends on: M2 shipped. WP2 and WP3 are prerequisites for M4.
 
 | id | Outcome | Owns | Done |
 |---|---|---|---|
 | M3-WP1 | **Design first.** Release smoke tests: instrumented tests (launcher starts as home, drawer opens, omnibox search launches an app, settings export/import round-trips) on an emulator in GitHub Actions. Proposal names the runner/emulator setup and CI cost | `app/src/androidTest/`, `app/build.gradle` test deps, new workflow file | Tests pass in CI; `docs/RELEASE_CHECKLIST.md` drops the items they now cover |
-| M3-WP2 | **Design first.** Omnibox currency conversion ("10 eur in usd"). Proposal: rate source (no API key), fetch/cache policy (daily, never on keystroke), offline/stale behaviour, privacy note. Parser stays Android-free in `helper/` next to `UnitConverter`, with JVM tests | `helper/` new object + tests, omnibox dispatch, a rates fetcher | Parses/doesn't-parse tests like PAREM-103; works offline from cache; stale rates are marked |
-| M3-WP3 | Bold font option (upstream `4c210da`), adapted to this fork's settings cards | the typography settings card, theme/text helpers, `Prefs` | Toggle applies live and survives export/import |
-| M3-WP4 | D-pad focus on home text and drawer (upstream `33ea31e`), for TV / keyboard use | home + drawer layouts/fragments focus handling | Every home slot and drawer row reachable and launchable with arrow keys + enter (emulator) |
-| M3-WP5 | **Design first.** E-ink mode: skip animations on e-ink displays (upstream `a9da9d4`), building on the existing `isEinkDisplay()` and M2-WP2's detection fix | per proposal | per proposal |
+| M3-WP2 | Omnibox resolver: move the mode precedence in `AppDrawerFragment.updateOmniboxState` (calc → conversion → dial → web → contact) into an Android-free `helper/OmniboxResolver` returning a mode, with JVM tests for the precedence. Zero behaviour change. No provider/plugin system | `helper/OmniboxResolver.kt` + test, `ui/AppDrawerFragment.kt` | Precedence tests green; drawer behaviour unchanged |
+| M3-WP3 | Prefs registration guard: a JVM test that fails when a key read with `getLong`/`getFloat` anywhere in `app/src/main` is neither in `LONG_PREF_KEYS`/`FLOAT_PREF_KEYS` nor `exportExcludeKeys` (import guesses types from JSON) | `app/src/test/` new test, `data/Prefs.kt` only if the test finds a real gap | Test green on master; deliberately unregistered key makes it fail |
+| M3-WP4 | **Design first.** Omnibox currency conversion ("10 eur in usd"). Proposal: rate source (no API key), fetch/cache policy (daily, never on keystroke), offline/stale behaviour, privacy note. Parser Android-free in `helper/` next to `UnitConverter`, with JVM tests. Depends on M3-WP2 | `helper/` new object + tests, `helper/OmniboxResolver.kt`, a rates fetcher | Parses/doesn't-parse tests like PAREM-103; works offline from cache; stale rates are marked |
+| M3-WP5 | Bold font option (upstream `4c210da`), adapted to this fork's settings cards | the typography settings card, theme/text helpers, `Prefs` | Toggle applies live and survives export/import |
+| M3-WP6 | D-pad focus on home text and drawer (upstream `33ea31e`), for TV / keyboard use | home + drawer layouts/fragments focus handling | Every home slot and drawer row reachable and launchable with arrow keys + enter (emulator) |
+| M3-WP7 | **Design first.** E-ink mode: skip animations on e-ink displays (upstream `a9da9d4`), building on the existing `isEinkDisplay()` and M2-WP2's detection fix | per proposal | per proposal |
+| M3-WP8 | Widget picker: list work-profile providers (`getInstalledProvidersForProfile`) and show generated previews on Android 15+. Trap #2 — no widget-ID logic changes | widget picker code in `ui/HomeWidgetController.kt` | Work-profile widgets addable; previews shown where the provider offers them |
 
 **Owner tasks**
-- Pick which of M3-WP3…WP5 make the release; unpicked rows move to a later milestone.
+- Pick which of M3-WP5…WP8 make the release; unpicked rows move to a later milestone.
 - Device pass, bump, tag `v5.9.0`.
+
+## M4 — v6.0.0: Calm phone
+
+Parem controls attention, not just measures it: notifications that wait,
+a pause before habit apps, focus on a schedule, grayscale on demand — plus
+the platform's privacy surface (Private Space) and the top user request
+(website shortcuts). Depends on: M3-WP1…WP3. Everything new is opt-in and
+on-device. Not in 6.0: hard blocking without an override, a unified inbox,
+theming studio, accounts/sync, Compose, DataStore, any new use of the
+accessibility service.
+
+| id | Outcome | Owns | Done |
+|---|---|---|---|
+| M4-WP1 | **Design first.** Filtered notifications: opt-in `NotificationListenerService`; the user picks apps allowed to alert, everything else is silenced into a quiet list behind a home gesture. Proposal: listener lifecycle, storage (in-memory vs persisted, never exported), how silencing works per Android version, focus-mode interaction, Play Data safety impact | new `helper/notifications/`, a quiet-list sheet via BottomSheetMenu, settings card, manifest service entry | Off by default; listener never bound while off; quiet list survives process death per the design; JVM tests for filtering rules |
+| M4-WP2 | Mindful pause: per-app opt-in delay (default 5 s, with "why are you opening this?") before a habit app launches, built on app limits' bad-habit flag; cancel returns home | the limit-check launch path (`ui/home/HomeSlotsController`, drawer launch via `MainViewModel.selectedApp`), app-limit sheet, `Prefs` | Pause shown on every launch route (home slot, drawer, omnibox, gesture letter, swipe app); cancel and proceed both work |
+| M4-WP3 | **Design first.** Scheduled focus: weekday/time windows (work, sleep) on top of timed focus; same whitelist and enforcement. Proposal: scheduling mechanism (AlarmManager exact vs inexact, Doze), overlap rules, export/import | `helper/FocusModeManager.kt`, focus sheet, `Prefs` | Window starts/ends on time ±1 min with the screen off; JVM tests for window maths incl. midnight and DST |
+| M4-WP4 | Weekly review card in the screen-time sheet: this week vs last week, biggest riser/faller app | screen-time sheet, `helper/usageStats/` read-only | Numbers match the 7-day graph; JVM test for the comparison |
+| M4-WP5 | **Design first.** Grayscale on demand via `Settings.Secure` daltonizer (needs `WRITE_SECURE_SETTINGS`, adb-only). Goal: one tap for the user. Proposal compares (a) copy-paste `adb pm grant` once then one-tap forever, (b) Shizuku one-tap grant, (c) in-app wireless-debugging self-pairing like LADB — cost, deps, Play risk, failure modes — and picks. Triggers: manual toggle, during focus, after a limit is hit. Must restore colour on disable/uninstall-adjacent paths | per proposal; grant flow sheet, `helper/` grayscale controller, settings card | Toggle works after the chosen grant flow; never leaves the phone stuck grey (crash, focus end, toggle off) |
+| M4-WP6 | **Design first.** Private Space: declare `ACCESS_HIDDEN_PROFILES`, separate drawer section, lock/unlock via `requestQuietModeEnabled`, nothing visible or searchable (omnibox included) while locked, profile available/unavailable receivers. `AppListSource` must gate by profile type | `helper/AppListSource.kt`, drawer section, omnibox filtering, manifest | Meets Android's launcher requirements for Private Space; locked = zero leakage in drawer, search, home slots, folders |
+| M4-WP7 | **Design first.** Website shortcuts on home: pin a URL (or a PWA shortcut via `LauncherApps` pinned shortcuts, see upstream `14b89e9`) to a home slot or folder | home slots, shortcut handling, `Prefs` | Pinned site opens in the default browser/PWA; survives export/import |
+| M4-WP8 | Lock-service revoked: detect when the accessibility service is off (Android 17 Advanced Protection revokes non-tool services — confirm on developer.android.com first) and explain it once instead of failing silently on double-tap | home double-tap path, a one-time sheet | Double-tap with the service off shows the explanation; no repeat nagging |
+
+**Owner tasks**
+- minSdk 24 → 29 decision from Play Console install share (do it if Android 7–9 < ~3%); becomes an M4 row if yes.
+- Delete the local upstream `v6.*` tags and set `remote.upstream.tagOpt --no-tags` before tagging 6.0; push release tags by name only.
+- Play Data safety for notification access; device pass; tag `v6.0.0`.
 
 ## Recurring (no id)
 

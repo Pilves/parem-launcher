@@ -10,8 +10,9 @@ Rules: `AGENTS.md`. Code map and traps: `ARCHITECTURE.md`.
 
 v5.5.1 is the latest published release (2026-07-03). `master` at `f4b55cf`
 is the v5.7.0 release candidate (versionCode 102), green since 2026-07-10 and
-held for Patric's device pass — roadmap M1. Next: M2 (v5.8.0, targetSdk 36 is
-mandatory for Play), then M3 (v5.9.0). What is next and who owns it live in
+held for Patric's device pass — roadmap M1. Next: M2 (v5.8.0, Play compliance —
+targetSdk 36 due 2026-11-01), M3 (v5.9.0, groundwork), M4 (v6.0.0, "Calm
+phone"). What is next and who owns it live in
 `docs/ROADMAP.md` — not here.
 
 ## What exists
