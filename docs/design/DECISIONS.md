@@ -24,3 +24,7 @@ Recorded 2026-10-03 after the design/manager review round. These override the
   chooser. No globe icon.
 - **M3-WP4 currency.** The M3-WP4 implementer adds ECB to the privacy-policy
   destinations in the M2-WP3 row.
+- **minSdk 29** (Patric, 2026-10-03): drop Android 7–9 in 6.0 without waiting for
+  install data — M4-WP20.
+- **Per-app grayscale** (Patric, 2026-10-03): in 6.0, without the accessibility
+  service — Parem-launch trigger plus a session-only UsageEvents check — M4-WP21.

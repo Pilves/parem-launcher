@@ -157,6 +157,8 @@ accessibility service.
 | M4-WP17 | Settings search: typing a setting's name in the omnibox offers to open that settings row | settings index in `helper/` + tests, settings deep-link/scroll | Every settings row findable by its title |
 | M4-WP18 | **Design first.** Lock without accessibility: fallback when the service is unavailable (Advanced Protection, restricted settings, user declined) — e.g. Device Admin `lockNow()` (forces PIN/password, no biometric on next unlock) — with the tradeoff stated to the user | lock path in `ui/home/HomeGesturesController.kt`, settings card, M4-WP8's explanation sheet | Double-tap locks via the fallback when chosen; the tradeoff is disclosed before enabling |
 | M4-WP19 | F-Droid readiness: reproducible release build check, fdroiddata metadata draft (anti-features declared: network for weather/currency), no proprietary deps | `fastlane/`, build config, a `docs/` note | `fdroid build` (or the reproducibility check) succeeds locally/CI; submission text ready for Patric |
+| M4-WP20 | minSdk 24 → 29 (Patric's decision 2026-10-03): delete every `SDK_INT` branch for N/O/P/Q that becomes always-true, plus code only reachable on API < 29 (e.g. device-admin lock fallback below P). Zero behaviour change on API 29+ | `app/build.gradle`, every file with a now-dead version gate | No `SDK_INT < 29`-reachable code left; full build green; smoke tests green |
+| M4-WP21 | **Design first.** Per-app grayscale (Patric's decision 2026-10-03), built on M4-WP5's grant: mark apps "grayscale"; launching one through Parem turns grayscale on, returning home turns it off; app switches that bypass Parem (recents, notifications) are caught by a short-interval UsageEvents check that runs only while a grayscale-app session is active. No accessibility service. Never leaves the phone stuck grey | grayscale controller in `helper/`, launch path (`MainViewModel.selectedApp`), app menu/sheet, `Prefs` | On/off follows the foreground app across launcher, recents and notification launches; battery cost of the check measured |
 
 **Launch quality bars** (Play vitals bad-behaviour lines are 1.09% crash / 0.47% ANR):
 crash-free ≥ 99.8%, ANR < 0.2%, battery < 1%/day, APK < 10 MB, no RAM growth over 24 h.
@@ -166,7 +168,6 @@ Pricing: free, no ads, no accounts, donations only — the privacy story is the 
 - **Start now (≈4–5 weeks of lead time):** create the Play developer account + identity verification; register the package for Android developer verification (covers GitHub/IzzyOnDroid sideloads too); recruit 15–20 testers and run a closed test ≥ 14 days with ≥ 12 opted in (any current build is fine); then apply for production access.
 - IzzyOnDroid listing request (GitHub releases already ship signed APKs); F-Droid main submission after M4-WP19; Accrescent optional.
 - Cut-off: any M4 row not green when the closed test ends moves to 6.1 instead of delaying launch.
-- minSdk 24 → 29 decision from Play Console install share (do it if Android 7–9 < ~3%); becomes an M4 row if yes.
 - Delete the local upstream `v6.*` tags and set `remote.upstream.tagOpt --no-tags` before tagging 6.0; push release tags by name only.
 - Play launch: developer account, closed testing (check the current tester/day
   requirement for new personal accounts — start it early, it is the longest
