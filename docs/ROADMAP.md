@@ -117,6 +117,10 @@ Depends on: M2 shipped. WP2 and WP3 are prerequisites for M4.
 | M3-WP10 | Performance baseline + budget: cold start to interactive home, return-to-home, drawer scroll and omnibox typing frame timing (Macrobenchmark or `am start -W` + gfxinfo), run in the M3-WP1 emulator CI. Budgets: cold start < 300 ms mid-range, return home < 100 ms, < 1% janky frames, no frame > 32 ms | new benchmark module or scripts, CI workflow from M3-WP1 | Numbers recorded in `docs/RELEASE_CHECKLIST.md`; CI fails on a > 20% regression |
 | M3-WP11 | **Design first.** Opt-in crash reports (ACRA or equivalent, F-Droid-compatible, no network SDK): off by default; on crash, offer to send a report via email/share sheet. Play vitals cover the Play channel | `app/build.gradle` dep, `Application` class, a settings row, strings | Off = nothing collected; on = user sees and sends the report themselves |
 
+**Known limitations**
+- M3-WP8: widget restore is not profile-aware. `prefs.widgetProviders` stores only the component string, and `processNextWidgetRestore()` rebinds via `bindAppWidgetIdIfAllowed(newId, component)` / an `ACTION_APPWIDGET_BIND` intent without `EXTRA_APPWIDGET_PROVIDER_PROFILE`. If the OS invalidates a work-profile widget (work profile removed or re-provisioned), restore silently rebinds the personal-profile provider of the same component, or shows a bind dialog for it. Fixing it means storing the profile alongside the component — a Trap #2 widget-ID change, so it needs its own WP.
+- M3-WP8: the picker fetches every provider's generated preview up front on IO before the sheet opens. Fine for typical provider counts; if it shows up in memory or open latency, fetch lazily per visible row or cap the count.
+
 **Owner tasks**
 - Pick which of M3-WP5…WP11 make the release; unpicked rows move to a later milestone.
 - Device pass, bump, tag `v5.9.0`.
