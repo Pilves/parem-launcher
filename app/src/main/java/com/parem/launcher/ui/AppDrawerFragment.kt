@@ -26,6 +26,7 @@ import com.parem.launcher.helper.ContactSearchManager
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
+import com.parem.launcher.helper.CurrencyRates
 import com.parem.launcher.helper.OmniboxMode
 import com.parem.launcher.helper.OmniboxResolver
 import com.parem.launcher.helper.dpToPx
@@ -73,6 +74,11 @@ class AppDrawerFragment : BaseFragment() {
     // Loaded once per drawer session, only when contact search is enabled and
     // permitted (see loadContactsIfEnabled). Empty otherwise → no matching runs.
     private var contacts: List<ContactMatcher.Contact> = emptyList()
+
+    // At most one ECB rates fetch per drawer session, started by the first
+    // currency query; the in-flight flag picks the CurrencyNoRates tip.
+    private var currencyFetchStarted = false
+    private var currencyFetchInFlight = false
 
     private val viewModel: MainViewModel by activityViewModels()
     private var _binding: FragmentAppDrawerBinding? = null
@@ -181,6 +187,11 @@ class AppDrawerFragment : BaseFragment() {
                         ctx.copyToClipboard(mode.result)
                         ctx.showToast(getString(R.string.copied))
                     }
+                    is OmniboxMode.Currency -> {
+                        ctx.copyToClipboard(mode.result)
+                        ctx.showToast(getString(R.string.copied))
+                    }
+                    OmniboxMode.CurrencyNoRates -> {}
                     is OmniboxMode.Dial -> dial(ctx, mode.number)
                     is OmniboxMode.Contact -> dial(ctx, mode.number)
                     OmniboxMode.WebSearch ->
@@ -231,10 +242,16 @@ class AppDrawerFragment : BaseFragment() {
         // Omnibox modes only make sense when the drawer is a launcher, not when
         // it is open as an app picker (set home app / swipe app / etc.)
         if (flag != Constants.FLAG_LAUNCH_APP) return
-        omniboxMode = OmniboxResolver.resolve(newText, contacts)
+        omniboxMode = OmniboxResolver.resolve(newText, contacts, CurrencyRates.cached(b.root.context))
+        if (omniboxMode is OmniboxMode.Currency || omniboxMode == OmniboxMode.CurrencyNoRates)
+            fetchCurrencyRatesOnce()
         val tip = when (val mode = omniboxMode) {
             is OmniboxMode.Calc -> "= ${mode.result}"
             is OmniboxMode.Conversion -> "= ${mode.result}"
+            is OmniboxMode.Currency -> getString(R.string.currency_hint, mode.result, mode.date)
+            OmniboxMode.CurrencyNoRates -> getString(
+                if (currencyFetchInFlight) R.string.currency_downloading else R.string.currency_unavailable
+            )
             is OmniboxMode.Dial -> getString(R.string.call_hint, mode.number)
             OmniboxMode.WebSearch -> getString(R.string.google_search_hint, newText.trim())
             is OmniboxMode.Contact -> getString(R.string.contact_hint, mode.name, mode.number)
@@ -242,6 +259,24 @@ class AppDrawerFragment : BaseFragment() {
         }
         if (tip != null) b.appDrawerTip.text = tip
         b.appDrawerTip.visibility = if (tip != null) View.VISIBLE else View.GONE
+    }
+
+    /** fetchIfDue is a no-op when the cache is fresh; the re-resolve shows new rates without retyping. */
+    private fun fetchCurrencyRatesOnce() {
+        if (currencyFetchStarted) return
+        currencyFetchStarted = true
+        currencyFetchInFlight = true
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            CurrencyRates.fetchIfDue(appContext)
+            currencyFetchInFlight = false
+            val b = _binding ?: return@launch
+            if (!isAdded) return@launch
+            // Only a still-showing currency tip is refreshed; other tips (e.g.
+            // "no apps found") are owned by the filter callback.
+            if (omniboxMode is OmniboxMode.Currency || omniboxMode == OmniboxMode.CurrencyNoRates)
+                updateOmniboxState(b.search.query.toString())
+        }
     }
 
     private fun initAdapter() {
@@ -407,6 +442,11 @@ class AppDrawerFragment : BaseFragment() {
                     return@setOnClickListener
                 }
                 is OmniboxMode.Conversion -> {
+                    requireContext().copyToClipboard(mode.result)
+                    requireContext().showToast(getString(R.string.copied))
+                    return@setOnClickListener
+                }
+                is OmniboxMode.Currency -> {
                     requireContext().copyToClipboard(mode.result)
                     requireContext().showToast(getString(R.string.copied))
                     return@setOnClickListener

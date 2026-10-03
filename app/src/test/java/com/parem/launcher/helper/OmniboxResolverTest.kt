@@ -27,6 +27,31 @@ class OmniboxResolverTest {
         assertEquals(OmniboxMode.Conversion("3.106856 mi"), resolve("5 km to mi"))
     }
 
+    private val rates = CurrencyConverter.Rates("2026-10-02", mapOf("USD" to 1.1225))
+
+    @Test
+    fun currency() {
+        assertEquals(OmniboxMode.Currency("112.25 USD", "2026-10-02"),
+            OmniboxResolver.resolve("100 eur in usd", contacts, rates))
+    }
+
+    @Test
+    fun currency_withoutRates_isNoRates() {
+        assertEquals(OmniboxMode.CurrencyNoRates, OmniboxResolver.resolve("10 eur in usd", contacts, null))
+    }
+
+    @Test
+    fun currency_rateMissing_fallsThrough() {
+        assertEquals(OmniboxMode.None, OmniboxResolver.resolve("10 eur in gbp", emptyList(), rates))
+    }
+
+    @Test
+    fun unitsBeatCurrency_andAreUnchangedByRates() {
+        assertEquals(OmniboxMode.Conversion("12.7 cm"), OmniboxResolver.resolve("5 in to cm", contacts, rates))
+        assertEquals(OmniboxMode.Conversion("37.777778 °C"), OmniboxResolver.resolve("100 f c", contacts, rates))
+        assertEquals(OmniboxMode.Conversion("3.106856 mi"), OmniboxResolver.resolve("5 km to mi", contacts, null))
+    }
+
     @Test
     fun dial_keepsTrimmedNumber() {
         assertEquals(OmniboxMode.Dial("+372 5555 1234"), resolve("  +372 5555 1234 "))

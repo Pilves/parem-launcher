@@ -23,6 +23,10 @@
   drawer animation (from Olauncher #724)
 - New "Bold font" toggle under Appearance swaps the light typeface for a
   heavier one on home, drawer and settings text (from Olauncher)
+- The drawer search converts currencies ("10 eur in usd") using the European
+  Central Bank's daily reference rates, showing the rates' date. Typing a
+  currency conversion may make one anonymous download a day of the public
+  rates from www.ecb.europa.eu; nothing you type leaves the phone
 - New "Lock home layout" toggle under Home Screen: while on, long-pressing a
   home app or folder no longer opens the change/folder/limit/delete menu, so
   the layout can't be edited by accident (from Olauncher #726)
