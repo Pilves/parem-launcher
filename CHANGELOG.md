@@ -5,6 +5,7 @@
 - Parem no longer asks to see every installed package (`QUERY_ALL_PACKAGES`);
   it declares only the app kinds it uses: launchable apps, launchers, icon
   packs and widget providers
+- Target Android 16 (API 36).
 
 ## v5.7.0
 
