@@ -205,8 +205,10 @@ export function measure(pkg, shotDir) {
   const returnHomeMs = samples('return home', RUNS, returnHome, (r) => r.status === 'ok');
   const shot = (name) => shotDir && resolve(shotDir, name);
   const drawerScroll = frames(pkg, openDrawer, () => {
+    // Stay above the keyboard the drawer opens with: a swipe across it is
+    // glide typing, not a scroll. The first drag at the top hides it.
     for (let round = 0; round < 3; round++) {
-      for (const [from, to] of [[0.8, 0.2], [0.8, 0.2], [0.2, 0.8], [0.2, 0.8]]) {
+      for (const [from, to] of [[0.55, 0.15], [0.55, 0.15], [0.15, 0.55], [0.15, 0.55]]) {
         adb(`input swipe ${x} ${Math.round(h * from)} ${x} ${Math.round(h * to)} 150`);
         sleepMs(700);
       }
