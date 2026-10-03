@@ -8,6 +8,12 @@ file to record a pass.
 A failure becomes a roadmap row (`M<n>-WP<k>`, one per finding) and blocks the
 tag until it is fixed and the affected section is re-run.
 
+Run `.github/workflows/smoke.yml` (Actions → Smoke tests → Run workflow) on
+the candidate commit first. It covers what is no longer listed here: Parem
+resolves as HOME, swipe up opens the drawer, typing an app name in the drawer
+launches it, and export/import keeps one pref of each type (long, float,
+int, string, boolean, string set) intact and leaves excluded keys local.
+
 ## Setup
 
 - [ ] Release-candidate APK installed over the previous release (not a fresh
@@ -21,7 +27,6 @@ tag until it is fixed and the affected section is re-run.
 
 ### 1. Home gestures
 
-- [ ] Swipe up opens the drawer
 - [ ] Swipe down runs its configured action
 - [ ] Swipe left / right launch their apps; disabled ones do nothing
 - [ ] Long press on empty home: haptic tick, menu with Add widget and Settings
