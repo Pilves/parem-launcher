@@ -106,6 +106,39 @@ int, string, boolean, string set) intact and leaves excluded keys local.
       fully expanded and scroll on a short/landscape screen
 - [ ] Long-press menus in the drawer and on slots reach their last row
 
+## Performance
+
+The smoke workflow also runs `scripts/perf-budget.mjs` on the emulator and
+fails when a gated metric is more than 20% (and more than its noise floor)
+worse than `scripts/perf-baseline.json`. The run's numbers, and a screenshot
+of each frame phase, are in its `perf-result` artifact and job summary.
+
+Emulator baseline (CI, debug APK, 2026-10-03, medians of four runs on the
+same app code; the spread also covers a fifth run, which passed the gate,
+and 10 samples per start metric). These are regression
+references, not quality numbers: a software-rendered emulator is no phone.
+
+| metric | baseline | spread | gated (floor) | budget, mid-range phone |
+|---|---|---|---|---|
+| cold start to first home frame (`am start -W`) | 724 ms | 691–770 | yes (10 ms) | < 300 ms |
+| return home from Settings | 49.5 ms | 45.5–53.5 | yes (10 ms) | < 100 ms |
+| drawer scroll, janky frames | 8.4% of 286 | 8.4–8.7% | yes (5 points) | < 1% |
+| drawer scroll, worst frame | 150 ms | — | no | ≤ 32 ms |
+| omnibox typing, janky frames | 55.8% of ~118 | 50–62.7% | yes (5 points) | < 1% |
+| omnibox typing, worst frame | 150 ms | — | no | ≤ 32 ms |
+
+When a change makes things legitimately slower (or faster), rerun the
+workflow a few times and update the baseline file with the medians in the
+same PR, saying why.
+
+Budgets are checked on a device, release build:
+
+- [ ] Mid-range phone, release APK installed and set up as home, USB
+      debugging on: `node scripts/perf-budget.mjs --package com.parem.launcher`
+      — cold start < 300 ms, return home < 100 ms, < 1% janky frames, no
+      frame > 32 ms. Ignore its REGRESSION lines (the baseline is the
+      emulator); record the numbers in the release PR
+
 ## This release touched
 
 Rewrite this section for each release from `[Unreleased]` in CHANGELOG.md and
