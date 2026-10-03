@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Parem no longer asks to see every installed package (`QUERY_ALL_PACKAGES`);
+  it declares only the app kinds it uses: launchable apps, launchers, icon
+  packs and widget providers
+
 ## v5.7.0
 
 - The number-of-apps picker now knows how much room the home screen actually
