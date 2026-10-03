@@ -1,7 +1,9 @@
 package com.parem.launcher.ui
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Typeface
+import android.os.Process
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
@@ -9,6 +11,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -25,7 +28,8 @@ import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.showToast
 
 /**
- * "Create folder" sheet: name input plus a searchable app picker (max 4),
+ * "Create folder" sheet: name input plus a searchable app picker and
+ * "Add website…" (max 4 items together),
  * extracted from HomeFragment. Pure UI — the caller loads the app list and
  * persists the created folder in [onSave], which only fires with a non-empty
  * name and at least one selected app.
@@ -35,6 +39,10 @@ class CreateFolderDialog(
     private val apps: List<AppModel>,
     private val onSave: (folderName: String, selected: List<FolderApp>) -> Unit,
 ) {
+
+    private companion object {
+        const val MAX_ITEMS = 4
+    }
 
     fun show() {
         val dialog = BottomSheetDialog(context)
@@ -94,7 +102,7 @@ class CreateFolderDialog(
         val appsById = apps.associateBy(::rowId)
         val pickerAdapter = AppPickerAdapter(
             textColor = context.getColorFromAttr(R.attr.primaryColor),
-            maxSelected = 4,
+            maxSelected = MAX_ITEMS,
             entries = apps.map { AppPickerAdapter.Entry(rowId(it), it.appLabel) }
         )
 
@@ -127,6 +135,41 @@ class CreateFolderDialog(
         }
         container.addView(appsList)
 
+        // Websites sit beside the picked apps under the same 4-item cap;
+        // unchecking one drops it
+        val websites = mutableListOf<FolderApp>()
+        val websiteRows = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+        val textColor = context.getColorFromAttr(R.attr.primaryColor)
+        container.addView(TextView(context).apply {
+            text = context.getString(R.string.add_website)
+            textSize = 14f
+            setTextColor(textColor)
+            setPadding(0, 12.dpToPx(), 0, 4.dpToPx())
+            setOnClickListener {
+                if (pickerAdapter.selectedIds.size + websites.size >= MAX_ITEMS) {
+                    context.showToast(context.getString(R.string.folder_full))
+                    return@setOnClickListener
+                }
+                WebsiteDialog(context) { url, label ->
+                    val site = FolderApp(label, "", "", Process.myUserHandle().toString(), url)
+                    websites.add(site)
+                    websiteRows.addView(CheckBox(context).apply {
+                        text = label
+                        textSize = 14f
+                        setTextColor(textColor)
+                        buttonTintList = ColorStateList.valueOf(textColor)
+                        setPadding(8.dpToPx(), 2.dpToPx(), 0, 2.dpToPx())
+                        isChecked = true
+                        setOnCheckedChangeListener { box, _ ->
+                            websites.remove(site)
+                            websiteRows.removeView(box)
+                        }
+                    })
+                }.show()
+            }
+        })
+        container.addView(websiteRows)
+
         // Save button
         val saveButton = TextView(context).apply {
             text = context.getString(R.string.save)
@@ -138,9 +181,13 @@ class CreateFolderDialog(
                 val folderName = nameInput.text.toString().trim()
                 val selectedApps = pickerAdapter.selectedIds.mapNotNull { appsById[it] }.map {
                     FolderApp(it.appLabel, it.appPackage, it.activityClassName ?: "", it.user.toString())
-                }
+                } + websites
                 if (folderName.isEmpty() || selectedApps.isEmpty()) {
                     context.showToast(context.getString(R.string.folder_needs_name_and_app))
+                    return@setOnClickListener
+                }
+                if (selectedApps.size > MAX_ITEMS) {
+                    context.showToast(context.getString(R.string.folder_full))
                     return@setOnClickListener
                 }
                 onSave(folderName, selectedApps)

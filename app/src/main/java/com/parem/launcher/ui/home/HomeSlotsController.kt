@@ -1,6 +1,7 @@
 package com.parem.launcher.ui.home
 
 import android.os.Build
+import android.os.Process
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -26,6 +27,7 @@ import com.parem.launcher.ui.BadHabitDialogs
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.CreateFolderDialog
 import com.parem.launcher.ui.HomeFragment
+import com.parem.launcher.ui.WebsiteDialog
 import kotlinx.coroutines.launch
 
 /**
@@ -90,6 +92,12 @@ class HomeSlotsController(
                 val folder = folderManager.getFolderGroup(slot)
                 view.text = folder?.name ?: ""
                 view.contentDescription = folder?.name ?: emptySlotHint()
+            } else if (prefs.getHomeAppUrl(slot).isNotEmpty()) {
+                // A website has no package: skip the installed check, and clear
+                // the icon setHomeAppText would otherwise have reset
+                view.text = prefs.getHomeAppName(slot)
+                view.setCompoundDrawablesRelative(null, null, null, null)
+                view.contentDescription = view.text
             } else {
                 val appName = prefs.getHomeAppName(slot)
                 if (!setHomeAppText(view, appName, prefs.getHomeAppPackage(slot), prefs.getHomeAppUser(slot))) {
@@ -208,7 +216,8 @@ class HomeSlotsController(
             prefs.getHomeAppName(location),
             prefs.getHomeAppPackage(location),
             prefs.getHomeAppActivityClassName(location),
-            prefs.getHomeAppUser(location)
+            prefs.getHomeAppUser(location),
+            prefs.getHomeAppUrl(location).ifEmpty { null }
         )
     }
 
@@ -217,16 +226,16 @@ class HomeSlotsController(
      * clock/calendar) comes through here so app limits and the mindful pause
      * apply to all of them.
      */
-    fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String) {
+    fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String? = null) {
         val ctx = fragment.context ?: return
         BadHabitDialogs.gateLaunch(
             ctx, fragment.viewLifecycleOwner.lifecycleScope, { fragment.isAdded },
             appName, packageName,
-            open = { openApp(appName, packageName, activityClassName, userString) },
+            open = { openApp(appName, packageName, activityClassName, userString, url) },
         )
     }
 
-    private fun openApp(appName: String, packageName: String, activityClassName: String?, userString: String) {
+    private fun openApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String?) {
         viewModel.selectedApp(
             AppModel(
                 appName,
@@ -234,7 +243,8 @@ class HomeSlotsController(
                 packageName,
                 activityClassName,
                 false,
-                getUserHandleFromString(context, userString)
+                getUserHandleFromString(context, userString),
+                url
             ),
             Constants.FLAG_LAUNCH_APP
         )
@@ -247,7 +257,7 @@ class HomeSlotsController(
         val menu = BottomSheetMenu(context).title(folder.name)
         for (app in folder.apps) {
             menu.option(app.appName) {
-                launchApp(app.appName, app.packageName, app.activityClassName, app.userString)
+                launchApp(app.appName, app.packageName, app.activityClassName, app.userString, app.url.ifEmpty { null })
             }
         }
         menu.show()
@@ -267,6 +277,18 @@ class HomeSlotsController(
         // Set / change app
         menu.option(if (hasApp) context.getString(R.string.change_app) else context.getString(R.string.select_app)) {
             fragment.showAppList(slot, hasApp, true)
+        }
+
+        menu.option(context.getString(R.string.add_website)) {
+            val ctx = fragment.context ?: return@option
+            WebsiteDialog(ctx) { url, label ->
+                if (!isActive()) return@WebsiteDialog
+                if (isFolder) folderManager.removeFolder(slot)
+                viewModel.selectedApp(
+                    AppModel(label, null, "", null, false, Process.myUserHandle(), url = url),
+                    slot
+                )
+            }.show()
         }
 
         // Create folder
@@ -299,6 +321,7 @@ class HomeSlotsController(
                 prefs.setHomeAppPackage(slot, "")
                 prefs.setHomeAppActivityClassName(slot, "")
                 prefs.setHomeAppUser(slot, "")
+                prefs.setHomeAppUrl(slot, "")
                 populateHomeScreen(false)
             }
         }
@@ -317,6 +340,7 @@ class HomeSlotsController(
                 // Clear any existing app at this slot
                 prefs.setHomeAppName(slot, "")
                 prefs.setHomeAppPackage(slot, "")
+                prefs.setHomeAppUrl(slot, "")
                 folderManager.createFolder(slot, folderName, selectedApps)
                 populateHomeScreen(false)
             }.show()

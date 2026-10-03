@@ -450,6 +450,7 @@ class Prefs(context: Context) {
     private fun packageKeyForSlot(slot: Int) = "APP_PACKAGE_$slot"
     private fun activityKeyForSlot(slot: Int) = "APP_ACTIVITY_CLASS_NAME_$slot"
     private fun userKeyForSlot(slot: Int) = "APP_USER_$slot"
+    private fun urlKeyForSlot(slot: Int) = "APP_URL_$slot"
 
     fun getHomeAppName(slot: Int): String {
         require(slot in 1..8)
@@ -485,6 +486,16 @@ class Prefs(context: Context) {
     fun setHomeAppUser(slot: Int, value: String) {
         require(slot in 1..8)
         prefs.edit { putString(userKeyForSlot(slot), value) }
+    }
+
+    /** Website shortcut URL for a home slot; "" when the slot holds an app. */
+    fun getHomeAppUrl(slot: Int): String {
+        require(slot in 1..8)
+        return prefs.getString(urlKeyForSlot(slot), "") ?: ""
+    }
+    fun setHomeAppUrl(slot: Int, value: String) {
+        require(slot in 1..8)
+        prefs.edit { putString(urlKeyForSlot(slot), value) }
     }
 
     fun getAppRenameLabel(appPackage: String): String = prefs.getString("RENAME_$appPackage", "").toString()

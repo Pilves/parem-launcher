@@ -14,7 +14,7 @@ import org.json.JSONObject
  *   "1": {
  *     "name": "Social",
  *     "apps": [
- *       {"appName":"...", "packageName":"...", "activityClassName":"...", "userString":"..."}
+ *       {"appName":"...", "packageName":"...", "activityClassName":"...", "userString":"...", "url":"..."}
  *     ]
  *   },
  *   ...
@@ -36,6 +36,7 @@ class FolderManager(context: Context) {
         private const val JSON_PACKAGE_NAME = "packageName"
         private const val JSON_ACTIVITY_CLASS_NAME = "activityClassName"
         private const val JSON_USER_STRING = "userString"
+        private const val JSON_URL = "url"
     }
 
     private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, 0)
@@ -78,6 +79,7 @@ class FolderManager(context: Context) {
                 appObj.put(JSON_PACKAGE_NAME, app.packageName)
                 appObj.put(JSON_ACTIVITY_CLASS_NAME, app.activityClassName)
                 appObj.put(JSON_USER_STRING, app.userString)
+                if (app.url.isNotEmpty()) appObj.put(JSON_URL, app.url)
                 appsArray.put(appObj)
             }
             folderObj.put(JSON_APPS, appsArray)
@@ -147,7 +149,8 @@ class FolderManager(context: Context) {
                     appName = a.optString(JSON_APP_NAME, ""),
                     packageName = a.optString(JSON_PACKAGE_NAME, ""),
                     activityClassName = a.optString(JSON_ACTIVITY_CLASS_NAME, ""),
-                    userString = a.optString(JSON_USER_STRING, "")
+                    userString = a.optString(JSON_USER_STRING, ""),
+                    url = a.optString(JSON_URL, "")
                 )
             )
         }

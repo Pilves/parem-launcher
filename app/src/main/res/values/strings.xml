@@ -350,6 +350,11 @@
     <string name="folder_name_hint" translatable="false">Social, Work, etc.</string>
     <string name="folder_needs_name_and_app" translatable="false">Enter a name and select at least one app</string>
     <string name="unable_to_open_link" translatable="false">Unable to open link</string>
+    <string name="add_website" translatable="false">Add website…</string>
+    <string name="website_url_hint" translatable="false">example.com</string>
+    <string name="website_label_hint" translatable="false">Label (optional)</string>
+    <string name="invalid_url" translatable="false">Enter a web address (http or https)</string>
+    <string name="folder_full" translatable="false">A folder holds up to 4 items</string>
     <string name="select_an_app" translatable="false">Please select an app</string>
     <string name="lock_consent_body" translatable="false">Double tap to lock uses Android\'s accessibility service. Android tells Parem\'s service when you tap inside Parem. The service ignores every tap except the one on its own invisible lock area, and when that tap comes it asks Android to lock the screen. It gets no events from other apps and cannot read your screen. Nothing is stored or sent anywhere. You can turn it off any time in Accessibility settings.</string>
     <string name="lock_consent_accept" translatable="false">Agree and open settings</string>

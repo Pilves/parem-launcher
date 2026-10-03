@@ -4,6 +4,9 @@ import android.app.Application
 import android.util.Log
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.content.pm.LauncherApps
 import android.os.UserHandle
 import androidx.lifecycle.AndroidViewModel
@@ -89,20 +92,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun selectedApp(appModel: AppModel, flag: Int) {
         when (flag) {
             Constants.FLAG_LAUNCH_APP, Constants.FLAG_HIDDEN_APPS -> {
+                // Before the package check: a website's package is "" and would be blocked
+                if (appModel.url != null) {
+                    launchUrl(appModel.url)
+                    return
+                }
                 if (!FocusModeManager.isAppAllowed(appContext, appModel.appPackage)) {
-                    // A schedule block names its end and where the override is,
-                    // since nothing the user did started it
-                    val message = when (val label = FocusModeManager.getActiveLabel(appContext)) {
-                        is FocusModeManager.ActiveLabel.ScheduledUntil -> appContext.getString(
-                            R.string.app_blocked_focus_scheduled,
-                            FocusModeManager.formatScheduledEnd(appContext, label.epochMs)
-                        )
-                        FocusModeManager.ActiveLabel.ScheduledNoEnd ->
-                            appContext.getString(R.string.app_blocked_focus_scheduled_no_end)
-                        else -> null
-                    }
-                    if (message != null) appContext.showToast(message, android.widget.Toast.LENGTH_LONG)
-                    else appContext.showToast(appContext.getString(R.string.app_blocked_focus))
+                    showFocusBlocked()
                     return
                 }
                 launchApp(appModel.appPackage, appModel.activityClassName, appModel.user)
@@ -113,6 +109,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 prefs.setHomeAppPackage(flag, appModel.appPackage)
                 prefs.setHomeAppUser(flag, appModel.user.toString())
                 prefs.setHomeAppActivityClassName(flag, appModel.activityClassName)
+                // Picking a normal app clears a website left on the slot
+                prefs.setHomeAppUrl(flag, appModel.url ?: "")
                 refreshHome(false)
             }
 
@@ -191,6 +189,52 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun updateSwipeApps() {
         updateSwipeApps.postValue(Unit)
+    }
+
+    private fun showFocusBlocked() {
+        // A schedule block names its end and where the override is,
+        // since nothing the user did started it
+        val message = when (val label = FocusModeManager.getActiveLabel(appContext)) {
+            is FocusModeManager.ActiveLabel.ScheduledUntil -> appContext.getString(
+                R.string.app_blocked_focus_scheduled,
+                FocusModeManager.formatScheduledEnd(appContext, label.epochMs)
+            )
+            FocusModeManager.ActiveLabel.ScheduledNoEnd ->
+                appContext.getString(R.string.app_blocked_focus_scheduled_no_end)
+            else -> null
+        }
+        if (message != null) appContext.showToast(message, android.widget.Toast.LENGTH_LONG)
+        else appContext.showToast(appContext.getString(R.string.app_blocked_focus))
+    }
+
+    private fun launchUrl(url: String) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (FocusModeManager.isActive(appContext)) {
+            val pm = appContext.packageManager
+            val handler = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
+            if (handler != null && handler != "android") {
+                if (!FocusModeManager.isAppAllowed(appContext, handler)) {
+                    showFocusBlocked()
+                    return
+                }
+            } else {
+                // No default browser: the system chooser would also offer
+                // browsers focus blocks, so pin the first whitelisted one
+                val allowed = pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                    .map { it.activityInfo.packageName }
+                    .firstOrNull { FocusModeManager.isAppAllowed(appContext, it) }
+                if (allowed == null) {
+                    showFocusBlocked()
+                    return
+                }
+                intent.setPackage(allowed)
+            }
+        }
+        try {
+            appContext.startActivity(intent)
+        } catch (_: Exception) {
+            appContext.showToast(appContext.getString(R.string.unable_to_open_link))
+        }
     }
 
     private fun launchApp(packageName: String, activityClassName: String?, userHandle: UserHandle) {

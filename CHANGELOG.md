@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Website shortcuts: long-press a home slot (or use "Add website…" when creating
+  a folder) to put a website there; it opens in your browser, or in an
+  installed web app that claims the address, and survives settings export/import
 - Scheduled focus: the Focus mode sheet can now turn focus on by itself in
   weekly windows (for example work 09:00–17:00 Mon–Fri, sleep 22:00–07:00),
   with the same allowed apps. Disable pauses it until the current window ends;
