@@ -4,7 +4,6 @@ import android.accessibilityservice.AccessibilityService
 import android.util.Log
 import android.os.Build
 import android.view.accessibility.AccessibilityEvent
-import android.view.accessibility.AccessibilityNodeInfo
 import com.parem.launcher.R
 import com.parem.launcher.data.Prefs
 
@@ -20,19 +19,13 @@ class MyAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         try {
-            val source: AccessibilityNodeInfo = event.source ?: return
-            try {
-                if ((source.className == "android.widget.FrameLayout") &&
-                    (source.contentDescription == lockDescription)
-                ) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
-                    }
-                }
-            } finally {
-                if (Build.VERSION.SDK_INT < 34) {
-                    @Suppress("DEPRECATION")
-                    source.recycle()
+            // No canRetrieveWindowContent, so event.source is null; the event
+            // itself carries the clicked view's className and contentDescription.
+            if ((event.className == "android.widget.FrameLayout") &&
+                (event.contentDescription == lockDescription)
+            ) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
                 }
             }
         } catch (e: Exception) {

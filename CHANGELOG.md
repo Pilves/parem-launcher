@@ -6,6 +6,10 @@
   it declares only the app kinds it uses: launchable apps, launchers, icon
   packs and widget providers
 - Target Android 16 (API 36).
+- Lock screen gestures (double tap, swipe) now show a clear disclosure of what
+  the accessibility service sees and ask for consent before opening
+  Accessibility settings, from Settings and from the home screen; declining
+  leaves the lock off, and the service no longer reads screen content
 
 ## v5.7.0
 
