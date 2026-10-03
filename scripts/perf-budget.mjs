@@ -25,15 +25,15 @@ const RUNS = 10;
 export const TOLERANCE = 0.2;
 
 // Metrics the CI gate checks. A regression must also exceed `floor` in
-// absolute terms, so a 0.4% → 0.6% jank wobble on a shared runner is not one.
-// The worst single frame is reported but not gated: one outlier is noise.
+// absolute terms: a phase renders ~70-120 frames, so a few slow frames on a
+// shared runner move jank by several points. p99 and the worst frame are
+// reported but not gated: at this frame count they are one or two outliers
+// (p99 swung 81 → 101 ms between two runs of the same commit).
 export const GATED = [
   { key: 'coldStartMs', floor: 10 },
   { key: 'returnHomeMs', floor: 10 },
-  { key: 'drawerScroll.jankyPct', floor: 1 },
-  { key: 'drawerScroll.p99Ms', floor: 5 },
-  { key: 'omniboxTyping.jankyPct', floor: 1 },
-  { key: 'omniboxTyping.p99Ms', floor: 5 },
+  { key: 'drawerScroll.jankyPct', floor: 5 },
+  { key: 'omniboxTyping.jankyPct', floor: 5 },
 ];
 
 export const BUDGETS = [
@@ -206,9 +206,10 @@ export function measure(pkg, shotDir) {
   const shot = (name) => shotDir && resolve(shotDir, name);
   const drawerScroll = frames(pkg, openDrawer, () => {
     // Stay above the keyboard the drawer opens with: a swipe across it is
-    // glide typing, not a scroll. The first drag at the top hides it.
+    // glide typing, not a scroll. The first drag at the top hides it. Too
+    // high and the swipe starts on the search field instead of the list.
     for (let round = 0; round < 3; round++) {
-      for (const [from, to] of [[0.55, 0.15], [0.55, 0.15], [0.15, 0.55], [0.15, 0.55]]) {
+      for (const [from, to] of [[0.6, 0.3], [0.6, 0.3], [0.3, 0.6], [0.3, 0.6]]) {
         adb(`input swipe ${x} ${Math.round(h * from)} ${x} ${Math.round(h * to)} 150`);
         sleepMs(700);
       }

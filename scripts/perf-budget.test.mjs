@@ -47,18 +47,18 @@ const run = (cold, home, jank, p99) => ({
 });
 
 test('gate fails only past 20% and the absolute floor', () => {
-  const base = run(500, 100, 5, 30);
-  assert.deepEqual(compare(base, run(600, 120, 6, 36)), []);
-  assert.deepEqual(compare(base, run(601, 100, 5, 30)), ['coldStartMs: 601 vs baseline 500 (+20%)']);
-  // +50% but only 0.5 points of jank: under the floor
-  assert.deepEqual(compare(run(500, 100, 1, 30), run(500, 100, 1.5, 30)), []);
-  assert.deepEqual(compare(run(500, 100, 1, 30), run(500, 100, 2.5, 30)).length, 2);
+  const base = run(500, 100, 20, 30);
+  assert.deepEqual(compare(base, run(600, 120, 24, 300)), []);
+  assert.deepEqual(compare(base, run(601, 100, 20, 30)), ['coldStartMs: 601 vs baseline 500 (+20%)']);
+  // +50% but only 3 points of jank: under the floor
+  assert.deepEqual(compare(run(500, 100, 6, 30), run(500, 100, 9, 30)), []);
+  assert.equal(compare(run(500, 100, 6, 30), run(500, 100, 12, 30)).length, 2);
 });
 
 test('gate fails on a missing measurement or baseline', () => {
   const base = run(500, 100, 5, 30);
   assert.deepEqual(compare(base, { ...base, returnHomeMs: null }), ['returnHomeMs: not measured']);
-  assert.equal(compare({}, base).length, 6);
+  assert.equal(compare({}, base).length, 4);
 });
 
 test('budgets are reported per metric', () => {
