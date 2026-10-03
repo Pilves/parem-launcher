@@ -14,6 +14,8 @@
         tools:ignore="ProtectedPermissions" />
     <!--Opt-in only: requested at runtime when the user enables omnibox contact search-->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!--Lets the default launcher list Private Space apps (Android 15+)-->
+    <uses-permission android:name="android.permission.ACCESS_HIDDEN_PROFILES" />
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.flash" android:required="false" />

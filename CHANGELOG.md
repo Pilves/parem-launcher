@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Private space (Android 15+): with Parem as the default home app, private
+  space apps appear in their own section at the bottom of the drawer, with a
+  header to lock and unlock the space. Locked apps are not shown or searchable,
+  and private apps cannot be put on home slots, swipes, gestures or folders
 - Website shortcuts: long-press a home slot (or use "Add website…" when creating
   a folder) to put a website there; it opens in your browser, or in an
   installed web app that claims the address, and survives settings export/import

@@ -5,10 +5,15 @@ import android.util.Log
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.BroadcastReceiver
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.content.pm.LauncherApps
+import android.os.Build
 import android.os.UserHandle
+import android.os.UserManager
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -35,6 +40,7 @@ import com.parem.launcher.helper.hasBeenMinutes
 import com.parem.launcher.helper.isParemDefault
 import com.parem.launcher.helper.isPackageInstalled
 import com.parem.launcher.helper.PackageChangeTracker
+import com.parem.launcher.helper.privateProfile
 import com.parem.launcher.helper.showToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -68,11 +74,33 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val showDialog = SingleLiveEvent<String>()
     val resetLauncherLiveData = SingleLiveEvent<Unit?>()
 
+    // Private Space lock/unlock is not a package change, so it needs its own
+    // invalidation (trap #5) or an unlock would keep serving the locked query.
+    private var profileReceiver: BroadcastReceiver? = null
+
     init {
         // The raw app-list and icon caches are trusted only while this
         // tracker's stamp is unchanged; the activity-scoped ViewModel is the
         // longest-lived owner available, so it holds the registration.
         PackageChangeTracker.register(appContext)
+        registerProfileReceiver()
+    }
+
+    private fun registerProfileReceiver() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                PackageChangeTracker.invalidate()
+                getAppList()
+                getHiddenApps()
+            }
+        }
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_PROFILE_AVAILABLE)
+            addAction(Intent.ACTION_PROFILE_UNAVAILABLE)
+        }
+        ContextCompat.registerReceiver(appContext, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        profileReceiver = receiver
     }
 
     /**
@@ -85,6 +113,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     @Volatile var homeAppsCapacity: Int = 8
 
     override fun onCleared() {
+        profileReceiver?.let { appContext.unregisterReceiver(it) }
+        profileReceiver = null
         PackageChangeTracker.unregister()
         super.onCleared()
     }
@@ -101,7 +131,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     showFocusBlocked()
                     return
                 }
-                launchApp(appModel.appPackage, appModel.activityClassName, appModel.user)
+                launchApp(appModel.appPackage, appModel.activityClassName, appModel.user, appModel.isPrivate)
             }
 
             in Constants.FLAG_SET_HOME_APP_1..Constants.FLAG_SET_HOME_APP_8 -> {
@@ -237,11 +267,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun launchApp(packageName: String, activityClassName: String?, userHandle: UserHandle) {
+    private fun launchApp(packageName: String, activityClassName: String?, userHandle: UserHandle, isPrivate: Boolean = false) {
         // Fast path: the activity is known for every home slot and drawer row —
         // launch synchronously instead of paying two dispatcher hops per tap
         if (!activityClassName.isNullOrBlank()) {
-            if (startApp(ComponentName(packageName, activityClassName), userHandle, packageName)) return
+            if (startApp(ComponentName(packageName, activityClassName), userHandle, packageName, isPrivate)) return
             // Stale component (app updated and renamed its activity) — fall through to resolve
         }
         viewModelScope.launch {
@@ -262,22 +292,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 appContext.showToast(appContext.getString(R.string.app_not_found))
                 return@launch
             }
-            if (!startApp(component, userHandle, packageName)) {
+            if (!startApp(component, userHandle, packageName, isPrivate)) {
                 appContext.showToast(appContext.getString(R.string.unable_to_open_app))
             }
         }
     }
 
     /** Returns true if the app was started. */
-    private fun startApp(component: ComponentName, userHandle: UserHandle, packageName: String): Boolean {
+    private fun startApp(component: ComponentName, userHandle: UserHandle, packageName: String, isPrivate: Boolean): Boolean {
         return try {
             launcherApps.startMainActivity(component, userHandle, null, null)
-            AppOpenCounter.increment(appContext, packageName)
+            // Open counts are exported; a private package name must never land there
+            if (!isPrivate) AppOpenCounter.increment(appContext, packageName)
             true
         } catch (e: SecurityException) {
             try {
                 launcherApps.startMainActivity(component, android.os.Process.myUserHandle(), null, null)
-                AppOpenCounter.increment(appContext, packageName)
+                if (!isPrivate) AppOpenCounter.increment(appContext, packageName)
                 true
             } catch (e: Exception) {
                 false
@@ -289,13 +320,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun getAppList(includeHiddenApps: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
-            appList.postValue(getAppsList(appContext, prefs, includeRegularApps = true, includeHiddenApps))
+            // Always includes private apps: appList is shared by every non-hidden
+            // drawer flag, so AppDrawerAdapter.setAppList gates them per flag.
+            appList.postValue(getAppsList(appContext, prefs, includeRegularApps = true, includeHiddenApps, includePrivate = true))
         }
     }
 
     fun getHiddenApps() {
         viewModelScope.launch(Dispatchers.IO) {
             hiddenApps.postValue(getAppsList(appContext, prefs, includeRegularApps = false, includeHiddenApps = true))
+        }
+    }
+
+    /** Locks or unlocks the Private Space; the system shows the credential prompt on unlock. */
+    fun setPrivateLocked(locked: Boolean) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return
+        val profile = privateProfile(appContext) ?: return
+        try {
+            (appContext.getSystemService(Context.USER_SERVICE) as UserManager)
+                .requestQuietModeEnabled(locked, profile)
+        } catch (e: Exception) {
+            Log.e("MainViewModel", "Failed to change the private space lock", e)
         }
     }
 

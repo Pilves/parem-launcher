@@ -35,13 +35,13 @@ object PackageChangeTracker {
             val launcherApps = context.applicationContext
                 .getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
             val cb = object : LauncherApps.Callback() {
-                override fun onPackageRemoved(packageName: String?, user: UserHandle?) = bump()
-                override fun onPackageAdded(packageName: String?, user: UserHandle?) = bump()
-                override fun onPackageChanged(packageName: String?, user: UserHandle?) = bump()
-                override fun onPackagesAvailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) = bump()
-                override fun onPackagesUnavailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) = bump()
-                override fun onPackagesSuspended(packageNames: Array<out String>?, user: UserHandle?) = bump()
-                override fun onPackagesUnsuspended(packageNames: Array<out String>?, user: UserHandle?) = bump()
+                override fun onPackageRemoved(packageName: String?, user: UserHandle?) = invalidate()
+                override fun onPackageAdded(packageName: String?, user: UserHandle?) = invalidate()
+                override fun onPackageChanged(packageName: String?, user: UserHandle?) = invalidate()
+                override fun onPackagesAvailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) = invalidate()
+                override fun onPackagesUnavailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) = invalidate()
+                override fun onPackagesSuspended(packageNames: Array<out String>?, user: UserHandle?) = invalidate()
+                override fun onPackagesUnsuspended(packageNames: Array<out String>?, user: UserHandle?) = invalidate()
             }
             launcherApps.registerCallback(cb)
             callback = cb
@@ -57,7 +57,7 @@ object PackageChangeTracker {
         }
     }
 
-    private fun bump() {
+    fun invalidate() {
         stamp.incrementAndGet()
         // An updated app may ship a new icon; both icon caches key on package
         // name alone and can't tell, so drop them wholesale (cheap, rare).

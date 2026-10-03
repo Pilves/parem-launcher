@@ -15,6 +15,7 @@ class AppListRebuilderTest {
         pkg: String,
         user: String = MAIN_USER,
         firstInstall: Long = 0L,
+        isPrivate: Boolean = false,
     ) = AppListRebuilder.RawApp(
         label = label,
         key = collator.getCollationKey(label),
@@ -23,6 +24,7 @@ class AppListRebuilderTest {
         firstInstallTime = firstInstall,
         user = user,
         userString = user,
+        isPrivate = isPrivate,
     )
 
     private fun rebuild(
@@ -30,11 +32,13 @@ class AppListRebuilderTest {
         hiddenApps: Set<String> = emptySet(),
         includeRegularApps: Boolean = true,
         includeHiddenApps: Boolean = false,
+        includePrivate: Boolean = false,
+        privateLocked: Boolean = false,
         renameLabel: (String) -> String = { "" },
         now: Long = NOW,
     ) = AppListRebuilder.rebuild(
         rawApps, OWN_PACKAGE, hiddenApps,
-        includeRegularApps, includeHiddenApps, renameLabel, now, HOUR
+        includeRegularApps, includeHiddenApps, includePrivate, privateLocked, renameLabel, now, HOUR
     )
 
     @Test
@@ -115,7 +119,51 @@ class AppListRebuilderTest {
         assertFalse(result.first { it.app.packageName == "com.old" }.isNew)
     }
 
+    private val withPrivate = listOf(
+        raw("Signal", "org.signal"),
+        raw("Bank", "com.bank", user = PRIVATE_USER, isPrivate = true),
+        raw("Zoom", "us.zoom"),
+    )
+
+    @Test
+    fun private_listedLastWhenIncludedAndUnlocked() {
+        val result = rebuild(withPrivate, includePrivate = true)
+        assertEquals(listOf("org.signal", "us.zoom", "com.bank"), result.map { it.app.packageName })
+    }
+
+    @Test
+    fun private_droppedWhenLocked() {
+        val result = rebuild(withPrivate, includePrivate = true, privateLocked = true)
+        assertEquals(listOf("org.signal", "us.zoom"), result.map { it.app.packageName })
+    }
+
+    @Test
+    fun private_droppedUnlessCallerOptsIn() {
+        val result = rebuild(withPrivate, includeHiddenApps = true)
+        assertEquals(listOf("org.signal", "us.zoom"), result.map { it.app.packageName })
+    }
+
+    @Test
+    fun private_ignoresHiddenSet() {
+        val result = rebuild(
+            withPrivate, includePrivate = true,
+            hiddenApps = setOf("com.bank|$PRIVATE_USER")
+        )
+        assertTrue(result.any { it.app.packageName == "com.bank" })
+    }
+
+    @Test
+    fun private_neverInHiddenList() {
+        val result = rebuild(
+            withPrivate, includePrivate = true,
+            hiddenApps = setOf("com.bank|$PRIVATE_USER", "org.signal|$MAIN_USER"),
+            includeRegularApps = false, includeHiddenApps = true
+        )
+        assertEquals(listOf("org.signal"), result.map { it.app.packageName })
+    }
+
     companion object {
+        private const val PRIVATE_USER = "UserHandle{11}"
         private const val OWN_PACKAGE = "com.parem.launcher"
         private const val MAIN_USER = "UserHandle{0}"
         private const val WORK_USER = "UserHandle{10}"

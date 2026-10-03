@@ -37,6 +37,7 @@ import com.parem.launcher.helper.isSystemApp
 import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.openSearch
 import com.parem.launcher.helper.openUrl
+import com.parem.launcher.helper.privateProfile
 import com.parem.launcher.helper.showKeyboard
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.helper.uninstall
@@ -283,7 +284,12 @@ class AppDrawerFragment : BaseFragment() {
             flag,
             prefs.appLabelAlignment,
             appClickListener = {
-                if (!isAdded || it.appPackage.isEmpty())
+                if (!isAdded) return@AppDrawerAdapter
+                if (it.isPrivateHeader()) {
+                    viewModel.setPrivateLocked(!isQuietMode(it.user))
+                    return@AppDrawerAdapter
+                }
+                if (it.appPackage.isEmpty())
                     return@AppDrawerAdapter
                 if ((flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
                     && checkBadHabitAndLaunch(it)
@@ -354,6 +360,18 @@ class AppDrawerFragment : BaseFragment() {
         adapter.iconPackPackage = prefs.iconPackPackage
         adapter.openCounts = AppOpenCounter.getCounts(requireContext())
         adapter.autoLaunchGuard = { !isSearchComposing() }
+        if (flag == Constants.FLAG_LAUNCH_APP) {
+            // Looked up once per drawer; the lock state is re-read on every rebuild
+            val profile = privateProfile(requireContext())
+            if (profile != null) adapter.privateSpaceHeader = header@{
+                if (!isAdded) return@header null
+                val locked = isQuietMode(profile)
+                AppModel(
+                    getString(if (locked) R.string.private_space_unlock else R.string.private_space_lock),
+                    null, "", null, false, profile, isPrivate = true
+                )
+            }
+        }
 
         linearLayoutManager = object : LinearLayoutManager(requireContext()) {
             override fun scrollVerticallyBy(
@@ -520,6 +538,13 @@ class AppDrawerFragment : BaseFragment() {
         } catch (e: Exception) {
             ctx.showToast(getString(R.string.unable_to_open_app))
         }
+    }
+
+    private fun isQuietMode(profile: android.os.UserHandle): Boolean = try {
+        (requireContext().getSystemService(android.content.Context.USER_SERVICE) as android.os.UserManager)
+            .isQuietModeEnabled(profile)
+    } catch (e: Exception) {
+        true
     }
 
     /**

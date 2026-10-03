@@ -23,6 +23,7 @@ import com.parem.launcher.data.Constants
 import com.parem.launcher.databinding.AdapterAppDrawerBinding
 import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.AppLimitManager
+import com.parem.launcher.helper.DrawerRows
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.formattedTimeSpent
@@ -54,6 +55,14 @@ class AppDrawerAdapter(
     @Volatile private var autoLaunch = true
     @Volatile private var isBangSearch = false
 
+    /**
+     * Builds the private-space header row (empty package, isPrivate, label =
+     * its Lock/Unlock action), or null when there is none. Only the launch
+     * drawer sets it; it is read on every rebuild so the label tracks the
+     * current lock state.
+     */
+    var privateSpaceHeader: () -> AppModel? = { null }
+
     /** Extra veto for auto-launch, checked on the main thread right before firing. */
     var autoLaunchGuard: () -> Boolean = { true }
     private val appFilter = createAppFilter()
@@ -68,6 +77,11 @@ class AppDrawerAdapter(
     @Volatile var appsList: MutableList<AppModel> = mutableListOf()
     @Volatile var appFilteredList: MutableList<AppModel> = mutableListOf()
     @Volatile private var labelKeys: Map<String, SearchMatcher.LabelKey> = emptyMap()
+
+    // The header shares the row layout; its own view type keeps recycled
+    // header and app rows apart.
+    override fun getItemViewType(position: Int): Int =
+        if (getItem(position).isPrivateHeader()) 1 else 0
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
         ViewHolder(AdapterAppDrawerBinding.inflate(LayoutInflater.from(parent.context), parent, false))
@@ -133,7 +147,7 @@ class AppDrawerAdapter(
             override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
                 results?.values?.let {
                     val items = (it as? MutableList<AppModel>) ?: (it as? List<AppModel>)?.toMutableList() ?: return
-                    appFilteredList = items
+                    appFilteredList = decorate(items, constraint.isNullOrBlank())
                     val currentFiltered = appFilteredList.toList()
                     submitList(currentFiltered) {
                         autoLaunch(currentFiltered)
@@ -153,7 +167,7 @@ class AppDrawerAdapter(
                 && autoLaunchGuard()
             ) {
                 Handler(Looper.getMainLooper()).post {
-                    try { appClickListener(filteredSnapshot[0]) } catch (_: Exception) {}
+                    try { firstApp(filteredSnapshot)?.let(appClickListener) } catch (_: Exception) {}
                 }
             }
         } catch (e: Exception) {
@@ -167,9 +181,8 @@ class AppDrawerAdapter(
     }
 
     fun setAppList(appsList: MutableList<AppModel>) {
-        // Add empty app for bottom padding in recyclerview
-        val list = appsList.toMutableList()
-        list.add(AppModel("", null, "", "", false, android.os.Process.myUserHandle()))
+        // Must stay first: every picker observes the same appList as the launch drawer
+        val list = DrawerRows.gate(appsList, flag == Constants.FLAG_LAUNCH_APP) { it.isPrivate }.toMutableList()
         this.appsList = list
         val newKeys = mutableMapOf<String, SearchMatcher.LabelKey>()
         for (app in list) {
@@ -179,14 +192,27 @@ class AppDrawerAdapter(
         if (sortByUsage && (usageStats.isNotEmpty() || openCounts.isNotEmpty())) {
             filter.filter("")
         } else {
-            this.appFilteredList = list.toMutableList()
-            submitList(list.toList())
+            this.appFilteredList = decorate(list, searchBlank = true)
+            submitList(appFilteredList.toList())
         }
     }
 
+    /**
+     * Rows as submitted: regular apps, the private-space header, private apps,
+     * then the bottom-padding row. Header and padding only with a blank
+     * search, as the padding row never matched a search before.
+     */
+    private fun decorate(apps: List<AppModel>, searchBlank: Boolean): MutableList<AppModel> {
+        val header = if (searchBlank && flag == Constants.FLAG_LAUNCH_APP) privateSpaceHeader() else null
+        val padding = if (searchBlank) AppModel("", null, "", "", false, myUserHandle) else null
+        return DrawerRows.decorate(apps, { it.isPrivate }, header, padding).toMutableList()
+    }
+
+    // Header and padding rows have no package and are never launched
+    private fun firstApp(rows: List<AppModel>): AppModel? = rows.firstOrNull { it.appPackage.isNotEmpty() }
+
     fun launchFirstInList() {
-        if (appFilteredList.size > 0)
-            appClickListener(appFilteredList[0])
+        firstApp(appFilteredList)?.let(appClickListener)
     }
 
     fun removeApp(position: Int) {
@@ -217,6 +243,20 @@ class AppDrawerAdapter(
             iconPackPackage: String = "",
         ) =
             with(binding) {
+                if (appModel.isPrivateHeader()) {
+                    appHideLayout.visibility = View.GONE
+                    renameLayout.visibility = View.GONE
+                    appTitle.visibility = View.VISIBLE
+                    appTitle.text = root.context.getString(R.string.private_space)
+                    appTitle.gravity = appLabelGravity
+                    appTitle.setCompoundDrawablesRelative(null, null, null, null)
+                    appTitle.setOnClickListener { clickListener(appModel) }
+                    appTitle.setOnLongClickListener(null)
+                    otherProfileIndicator.isVisible = false
+                    appUsageTime.text = appModel.appLabel
+                    appUsageTime.visibility = View.VISIBLE
+                    return
+                }
                 if (appModel.appPackage.isEmpty()) {
                     appTitle.text = ""
                     appTitle.setOnClickListener(null)
@@ -273,8 +313,11 @@ class AppDrawerAdapter(
                             root.context.getString(R.string.adapter_hide)
                         appTitle.visibility = View.INVISIBLE
                         appHideLayout.visibility = View.VISIBLE
-                        appRename.isVisible = flag != Constants.FLAG_HIDDEN_APPS
-                        appBadHabit.isVisible = flag != Constants.FLAG_HIDDEN_APPS
+                        // Hide, rename and time limit key on package (rename, limit) or
+                        // write exported prefs; private rows offer none of them
+                        appHide.isVisible = !appModel.isPrivate
+                        appRename.isVisible = flag != Constants.FLAG_HIDDEN_APPS && !appModel.isPrivate
+                        appBadHabit.isVisible = flag != Constants.FLAG_HIDDEN_APPS && !appModel.isPrivate
                         if (appBadHabit.isVisible) {
                             appBadHabit.text = if (AppLimitManager.hasLimit(root.context, appModel.appPackage))
                                 root.context.getString(R.string.remove_time_limit)
@@ -399,3 +442,6 @@ class AppDrawerAdapter(
 
     }
 }
+
+/** The drawer's private-space header row (see [AppDrawerAdapter.privateSpaceHeader]). */
+fun AppModel.isPrivateHeader(): Boolean = isPrivate && appPackage.isEmpty()

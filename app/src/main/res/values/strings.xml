@@ -120,6 +120,9 @@
     <string name="system_app_cannot_delete">System app, cannot delete</string>
     <string name="type_a_new_app_name_first">Type a new app name first</string>
     <string name="app_not_found">App not found</string>
+    <string name="private_space" translatable="false">Private space</string>
+    <string name="private_space_unlock" translatable="false">Unlock</string>
+    <string name="private_space_lock" translatable="false">Lock</string>
     <string name="unable_to_launch_app">Unable to launch app</string>
     <string name="search_for_Launcher_or_home_app">Search for Launcher or Home app</string>
     <string name="swipe_left_app_enabled">Swipe left app enabled</string>

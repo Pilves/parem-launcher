@@ -24,6 +24,7 @@ object AppListRebuilder {
         val firstInstallTime: Long,
         val user: U,
         val userString: String,
+        val isPrivate: Boolean = false,
     )
 
     /** A raw app that passed filtering, plus its per-call computed fields. */
@@ -39,6 +40,8 @@ object AppListRebuilder {
         hiddenApps: Set<String>,
         includeRegularApps: Boolean,
         includeHiddenApps: Boolean,
+        includePrivate: Boolean,
+        privateLocked: Boolean,
         renameLabel: (String) -> String,
         now: Long,
         newAppWindowMillis: Long,
@@ -46,9 +49,15 @@ object AppListRebuilder {
         val result = mutableListOf<Entry<U>>()
         for (app in rawApps) {
             if (app.packageName == ownPackageName) continue
-            val hidden = hiddenApps.contains(app.packageName + "|" + app.userString)
-            if (hidden && !includeHiddenApps) continue
-            if (!hidden && !includeRegularApps) continue
+            if (app.isPrivate) {
+                // Private Space apps ignore the hidden set, so the hidden list
+                // (and a hide/unhide of the main-profile copy) never reaches them
+                if (privateLocked || !includePrivate || !includeRegularApps) continue
+            } else {
+                val hidden = hiddenApps.contains(app.packageName + "|" + app.userString)
+                if (hidden && !includeHiddenApps) continue
+                if (!hidden && !includeRegularApps) continue
+            }
             result.add(
                 Entry(
                     shownLabel = renameLabel(app.packageName).ifBlank { app.label },
@@ -58,8 +67,9 @@ object AppListRebuilder {
             )
         }
         // Sorted by the original label's collation key, same as the live path
-        // always did — a renamed app keeps its original position.
-        result.sortWith(compareBy { it.app.key })
+        // always did — a renamed app keeps its original position. Private
+        // apps form their own section after every regular one.
+        result.sortWith(compareBy({ it.app.isPrivate }, { it.app.key }))
         return result
     }
 }
