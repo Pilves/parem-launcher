@@ -15,6 +15,8 @@
 - Fixed: phones with adaptive refresh rate (LTPO) screens could be mistaken
   for e-ink displays when idle, forcing the light theme and turning off the
   drawer animation (from Olauncher #724)
+- New "Bold font" toggle under Appearance swaps the light typeface for a
+  heavier one on home, drawer and settings text (from Olauncher)
 
 ## v5.7.0
 
