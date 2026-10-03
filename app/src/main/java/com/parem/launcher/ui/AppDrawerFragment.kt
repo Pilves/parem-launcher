@@ -27,8 +27,8 @@ import com.parem.launcher.helper.ContactSearchManager
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
-import com.parem.launcher.helper.ExpressionEvaluator
-import com.parem.launcher.helper.UnitConverter
+import com.parem.launcher.helper.OmniboxMode
+import com.parem.launcher.helper.OmniboxResolver
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.hideKeyboard
@@ -66,12 +66,6 @@ class AppDrawerFragment : Fragment() {
     // Loaded once per drawer session, only when contact search is enabled and
     // permitted (see loadContactsIfEnabled). Empty otherwise → no matching runs.
     private var contacts: List<ContactMatcher.Contact> = emptyList()
-
-    companion object {
-        // Digits with optional leading + and spaces, at least 4 digits total.
-        // Hyphenated numbers lose to the calculator (they parse as subtraction).
-        private val DIAL_REGEX = Regex("^\\+?[0-9][0-9 ]{2,}[0-9]$")
-    }
 
     private val viewModel: MainViewModel by activityViewModels()
     private var _binding: FragmentAppDrawerBinding? = null
@@ -228,52 +222,17 @@ class AppDrawerFragment : Fragment() {
         // Omnibox modes only make sense when the drawer is a launcher, not when
         // it is open as an app picker (set home app / swipe app / etc.)
         if (flag != Constants.FLAG_LAUNCH_APP) return
-        val trimmed = newText.trim()
-
-        if (ExpressionEvaluator.looksLikeExpression(trimmed)) {
-            ExpressionEvaluator.evaluate(trimmed)?.let { value ->
-                val result = ExpressionEvaluator.format(value)
-                omniboxMode = OmniboxMode.Calc(result)
-                b.appDrawerTip.text = "= $result"
-                b.appDrawerTip.visibility = View.VISIBLE
-                return
-            }
+        omniboxMode = OmniboxResolver.resolve(newText, contacts)
+        val tip = when (val mode = omniboxMode) {
+            is OmniboxMode.Calc -> "= ${mode.result}"
+            is OmniboxMode.Conversion -> "= ${mode.result}"
+            is OmniboxMode.Dial -> getString(R.string.call_hint, mode.number)
+            OmniboxMode.WebSearch -> getString(R.string.google_search_hint, newText.trim())
+            is OmniboxMode.Contact -> getString(R.string.contact_hint, mode.name, mode.number)
+            OmniboxMode.None -> null
         }
-        // Letters-only unit tokens keep this disjoint from both the calculator
-        // (digits/operators only) and the dial matcher below (digits/spaces
-        // only), so there's no ordering conflict between the three.
-        if (UnitConverter.looksLikeConversion(trimmed)) {
-            UnitConverter.convert(trimmed)?.let { result ->
-                val formatted = result.format()
-                omniboxMode = OmniboxMode.Conversion(formatted)
-                b.appDrawerTip.text = "= $formatted"
-                b.appDrawerTip.visibility = View.VISIBLE
-                return
-            }
-        }
-        if (DIAL_REGEX.matches(trimmed) && trimmed.count { it.isDigit() } >= 4) {
-            omniboxMode = OmniboxMode.Dial(trimmed)
-            b.appDrawerTip.text = getString(R.string.call_hint, trimmed)
-            b.appDrawerTip.visibility = View.VISIBLE
-            return
-        }
-        if (newText.startsWith(" ") && trimmed.isNotEmpty()) {
-            omniboxMode = OmniboxMode.WebSearch
-            b.appDrawerTip.text = getString(R.string.google_search_hint, trimmed)
-            b.appDrawerTip.visibility = View.VISIBLE
-            return
-        }
-        // Contacts rank below every other mode and below the app list (which the
-        // filter still populates): the matching contact only fills the tip line.
-        if (contacts.isNotEmpty() && ContactMatcher.looksLikeContactQuery(trimmed)) {
-            ContactMatcher.match(trimmed, contacts).firstOrNull()?.let { top ->
-                omniboxMode = OmniboxMode.Contact(top.name, top.number)
-                b.appDrawerTip.text = getString(R.string.contact_hint, top.name, top.number)
-                b.appDrawerTip.visibility = View.VISIBLE
-                return
-            }
-        }
-        b.appDrawerTip.visibility = View.GONE
+        if (tip != null) b.appDrawerTip.text = tip
+        b.appDrawerTip.visibility = if (tip != null) View.VISIBLE else View.GONE
     }
 
     private fun initAdapter() {
@@ -552,17 +511,4 @@ class AppDrawerFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-}
-
-/**
- * The omnibox can be in exactly one mode at a time. [None] is ordinary app
- * search; the others each drive the tip line and the submit action.
- */
-sealed interface OmniboxMode {
-    object None : OmniboxMode
-    data class Calc(val result: String) : OmniboxMode
-    data class Conversion(val result: String) : OmniboxMode
-    data class Dial(val number: String) : OmniboxMode
-    object WebSearch : OmniboxMode
-    data class Contact(val name: String, val number: String) : OmniboxMode
 }
