@@ -9,6 +9,7 @@
         android:id="@+id/appTitle"
         style="@style/TextLarge"
         android:background="@drawable/bg_focus_highlight"
+        android:focusable="true"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:maxLines="1"
