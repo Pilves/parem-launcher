@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.view.WindowInsets
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -25,7 +24,7 @@ import com.parem.launcher.ui.home.HomeGesturesController
 import com.parem.launcher.ui.home.HomeSlotsController
 import kotlinx.coroutines.launch
 
-class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener {
+class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListener {
 
     private lateinit var prefs: Prefs
     private lateinit var viewModel: MainViewModel

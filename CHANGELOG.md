@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Fixed: with system animations turned off, the app drawer (and other
+  screens) could stay stuck on screen instead of closing (from Olauncher #713)
+
 ## v5.7.0
 
 - The number-of-apps picker now knows how much room the home screen actually

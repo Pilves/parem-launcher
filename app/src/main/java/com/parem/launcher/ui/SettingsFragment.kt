@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -39,7 +38,7 @@ import com.parem.launcher.ui.settings.WellbeingSettingsCard
  *  - [importSettingsLauncher], since ActivityResultLauncher must be registered
  *    in onCreate, before the cards (which own the export/import logic) exist.
  */
-class SettingsFragment : Fragment() {
+class SettingsFragment : BaseFragment() {
 
     private lateinit var prefs: Prefs
     private lateinit var viewModel: MainViewModel

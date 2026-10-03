@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -33,6 +32,7 @@ import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isEinkDisplay
+import com.parem.launcher.helper.isSystemAnimationsDisabled
 import com.parem.launcher.helper.isSystemApp
 import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.openSearch
@@ -46,7 +46,7 @@ import kotlinx.coroutines.withContext
 import androidx.lifecycle.lifecycleScope
 
 
-class AppDrawerFragment : Fragment() {
+class AppDrawerFragment : BaseFragment() {
 
     private lateinit var prefs: Prefs
     private lateinit var adapter: AppDrawerAdapter
@@ -369,7 +369,7 @@ class AppDrawerFragment : Fragment() {
         scrollListener = getRecyclerViewOnScrollListener()
         binding.recyclerView.addOnScrollListener(scrollListener!!)
         binding.recyclerView.itemAnimator = null
-        if (requireContext().isEinkDisplay().not())
+        if (requireContext().isEinkDisplay().not() && requireContext().isSystemAnimationsDisabled().not())
             binding.recyclerView.layoutAnimation =
                 AnimationUtils.loadLayoutAnimation(requireContext(), R.anim.layout_anim_from_bottom)
     }

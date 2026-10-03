@@ -110,6 +110,17 @@ fun Context.isEinkDisplay(): Boolean {
     }
 }
 
+fun Context.isSystemAnimationsDisabled(): Boolean {
+    return try {
+        Settings.Global.getFloat(contentResolver, Settings.Global.WINDOW_ANIMATION_SCALE, 1f) == 0f
+                || Settings.Global.getFloat(contentResolver, Settings.Global.TRANSITION_ANIMATION_SCALE, 1f) == 0f
+                || Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    } catch (e: Exception) {
+        Log.e("Extensions", "Failed to read system animation scales", e)
+        false
+    }
+}
+
 fun Context.isPackageInstalled(packageName: String, userHandle: UserHandle = android.os.Process.myUserHandle()): Boolean {
     val launcher = getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
     val activityInfo = launcher.getActivityList(packageName, userHandle)
