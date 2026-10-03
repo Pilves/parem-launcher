@@ -1,8 +1,9 @@
 # Parem Launcher roadmap
 
 Owner: Patric. Updated: 2026-10-03 (M1 = ship v5.7.0, M2 = v5.8.0 Play
-compliance — Play needs targetSdk 36 by 2026-11-01 even with an extension,
-M3 = v5.9.0 groundwork, M4 = v6.0.0 "Calm phone"). 6.0 theme from the
+readiness, M3 = v5.9.0 groundwork, M4 = v6.0.0 "Calm phone" = first Google
+Play release). Parem is not on Play yet; until 6.0, releases are GitHub-only.
+The bar for 6.0 is market leader at launch, not "good enough". 6.0 theme from the
 2026-10-03 advisor round (product, platform, architecture). Current state: `HANDOFF.md`. Rules: `AGENTS.md`.
 Code map and traps: `ARCHITECTURE.md`. Who is on what: `scripts/claim-wp.sh list`.
 Tickets before this roadmap (PAREM-101…122) are archived with their full specs
@@ -75,11 +76,11 @@ row per finding, scoped to the fix.
 - Device pass on the M1 head using `docs/RELEASE_CHECKLIST.md`.
 - Tag `v5.7.0` and push once the pass is clean. CI signs and publishes.
 
-## M2 — v5.8.0: Play compliance + housekeeping
+## M2 — v5.8.0: Play readiness + housekeeping
 
-Since 2026-08-31 Play rejects updates below targetSdk 36; an extension
-(requested in Play Console) only reaches 2026-11-01. M2-WP1 and M2-WP5 may
-start before M1 ships; the rest waits for v5.7.0.
+New Play apps must target API 36, and the accessibility, contacts and
+package-visibility declarations must hold up in review. None of it is
+date-driven yet — Parem is not listed — but all of it gates the 6.0 launch.
 
 | id | Outcome | Owns | Done |
 |---|---|---|---|
@@ -93,7 +94,6 @@ start before M1 ships; the rest waits for v5.7.0.
 **Owner tasks**
 - PAREM-113: remove dead `removeActiveAdmin()` (Patric's own ticket, spec in the archive).
 - PAREM-107: device repro of residual gesture-letter vs swipe conflicts; findings become an M2 row if anything misfires.
-- **Today:** request the targetSdk extension in Play Console (deadline 2026-11-01).
 - Write the privacy policy / about content for M2-WP3; update Play Data safety for READ_CONTACTS.
 - Play Console accessibility declaration + demo video, using M2-WP5's text.
 - Device pass at targetSdk 36 (checklist + M2-WP1's list), bump version, tag `v5.8.0`.
@@ -141,7 +141,10 @@ accessibility service.
 **Owner tasks**
 - minSdk 24 → 29 decision from Play Console install share (do it if Android 7–9 < ~3%); becomes an M4 row if yes.
 - Delete the local upstream `v6.*` tags and set `remote.upstream.tagOpt --no-tags` before tagging 6.0; push release tags by name only.
-- Play Data safety for notification access; device pass; tag `v6.0.0`.
+- Play launch: developer account, closed testing (check the current tester/day
+  requirement for new personal accounts — start it early, it is the longest
+  lead time), store listing, Data safety incl. notification access; device
+  pass; tag `v6.0.0`.
 
 ## Recurring (no id)
 
