@@ -51,7 +51,6 @@
     <string name="adapter_hide">Gizle</string>
     <string name="app_text_color">Metin rengi</string>
     <string name="double_tap_to_lock_screen">Kilitlemek için çift dokunun</string>
-    <string name="admin_permission_message">Parem Launcher, kilit ekranı iznini sorumlu bir şekilde kullanacaktır. Parem Launcher herhangi bir veri toplamaz veya paylaşmaz.</string>
     <string name="about">Hakkında</string>
     <string name="off">Kapalı</string>
     <string name="on">Açık</string>

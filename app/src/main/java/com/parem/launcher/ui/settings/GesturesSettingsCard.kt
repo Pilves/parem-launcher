@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.View
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.findNavController
+import com.parem.launcher.MainActivity
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -23,6 +24,7 @@ import com.parem.launcher.helper.showToast
 import com.parem.launcher.listener.DeviceAdmin
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SettingsFragment
+import com.parem.launcher.ui.requestLockAdmin
 import com.parem.launcher.ui.showLockConsent
 
 /**
@@ -51,6 +53,7 @@ class GesturesSettingsCard(
         populateSwipeApps()
         populateSwipeDownAction()
         populateDoubleTapAction()
+        populateLockMethod()
 
         initClickListeners()
         initObservers()
@@ -66,6 +69,7 @@ class GesturesSettingsCard(
         binding.notifications.setOnClickListener(this)
         binding.gestureLettersToggle?.setOnClickListener(this)
         binding.tvGestures?.setOnClickListener(this)
+        binding.lockMethod.setOnClickListener(this)
 
         binding.swipeLeftApp.setOnLongClickListener(this)
         binding.swipeRightApp.setOnLongClickListener(this)
@@ -90,6 +94,7 @@ class GesturesSettingsCard(
             R.id.search -> updateSwipeDownAction(Constants.SwipeDownAction.SEARCH)
 
             R.id.doubleTapAction -> showDoubleTapActionPicker()
+            R.id.lockMethod -> toggleLockAdmin()
             R.id.gestureLettersToggle -> {
                 if (GestureLetterManager.isEnabled(context)) {
                     GestureLetterConfigDialog(
@@ -223,9 +228,13 @@ class GesturesSettingsCard(
                         val reverted = revertedLockAction(previous)
                         if (isLeft) prefs.swipeLeftAction = reverted
                         else prefs.swipeRightAction = reverted
-                        if (fragment.isAdded) populateSwipeApps()
+                        if (fragment.isAdded) {
+                            populateSwipeApps()
+                            populateLockMethod()
+                        }
                     })
                 }
+                populateLockMethod()
             }
         }
         menu.show()
@@ -279,10 +288,14 @@ class GesturesSettingsCard(
                 if (actionValue == Constants.GestureAction.LOCK_SCREEN) {
                     ensureLockPermission(onDecline = {
                         DoubleTapActionManager.setAction(context, revertedLockAction(previous))
-                        if (fragment.isAdded) populateDoubleTapAction()
+                        if (fragment.isAdded) {
+                            populateDoubleTapAction()
+                            populateLockMethod()
+                        }
                     })
                 }
                 populateDoubleTapAction()
+                populateLockMethod()
             }
         }
         menu.show()
@@ -297,15 +310,54 @@ class GesturesSettingsCard(
         if (previous == Constants.GestureAction.LOCK_SCREEN) Constants.GestureAction.NONE else previous
 
     private fun ensureLockPermission(onDecline: () -> Unit) {
-        if (!isAccessServiceEnabled(context)) {
-            showLockConsent(
-                context,
-                onAccept = {
-                    if (fragment.isAdded)
-                        fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                },
-                onDecline = onDecline,
-            )
+        if (isAccessServiceEnabled(context) || deviceManager.isAdminActive(componentName)) return
+        showLockConsent(
+            context,
+            onAccept = {
+                if (fragment.isAdded)
+                    fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            },
+            onDecline = onDecline,
+            // A cancelled activation reverts exactly like "Not now"
+            onUseAdmin = {
+                (fragment.activity as? MainActivity)?.let { activity ->
+                    requestLockAdmin(activity) { ok ->
+                        if (!ok) onDecline()
+                        else if (fragment.isAdded) populateLockMethod()
+                    }
+                } ?: onDecline()
+            },
+        )
+    }
+
+    private fun hasLockGesture() =
+        DoubleTapActionManager.getAction(context) == Constants.GestureAction.LOCK_SCREEN ||
+            prefs.getEffectiveSwipeLeftAction() == Constants.GestureAction.LOCK_SCREEN ||
+            prefs.getEffectiveSwipeRightAction() == Constants.GestureAction.LOCK_SCREEN
+
+    /**
+     * The device-admin lock fallback's one permanent entry point (M4-WP18).
+     * [adminActive] is passed after a removal because removeActiveAdmin
+     * finishes asynchronously and isAdminActive can still say true.
+     */
+    private fun populateLockMethod(adminActive: Boolean = deviceManager.isAdminActive(componentName)) {
+        binding.lockMethod.visibility = View.VISIBLE
+        when {
+            adminActive -> binding.lockMethod.text = context.getString(R.string.lock_admin_on_row)
+            !isAccessServiceEnabled(context) && hasLockGesture() ->
+                binding.lockMethod.text = context.getString(R.string.lock_admin_off_row)
+            else -> binding.lockMethod.visibility = View.GONE
+        }
+    }
+
+    private fun toggleLockAdmin() {
+        if (deviceManager.isAdminActive(componentName)) {
+            removeActiveAdmin()
+            populateLockMethod(adminActive = false)
+        } else {
+            // Cancel changes nothing: the gesture was stored before this row showed
+            val activity = fragment.activity as? MainActivity ?: return
+            requestLockAdmin(activity) { if (fragment.isAdded) populateLockMethod() }
         }
     }
 

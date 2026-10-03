@@ -64,6 +64,7 @@ class MainActivity : AppCompatActivity() {
 
     var onWidgetBindResult: ((Boolean) -> Unit)? = null
     var onWidgetConfigureResult: ((Boolean) -> Unit)? = null
+    var onAdminResult: ((Boolean) -> Unit)? = null
 
     lateinit var bindWidgetLauncher: ActivityResultLauncher<Intent>
     lateinit var configureWidgetLauncher: ActivityResultLauncher<Intent>
@@ -125,6 +126,8 @@ class MainActivity : AppCompatActivity() {
         ) { result ->
             if (result.resultCode == Activity.RESULT_OK)
                 prefs.lockModeOn = true
+            onAdminResult?.invoke(result.resultCode == Activity.RESULT_OK)
+            onAdminResult = null
         }
 
         launcherSelectorLauncher = registerForActivityResult(
@@ -180,6 +183,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         onWidgetBindResult = null
         onWidgetConfigureResult = null
+        onAdminResult = null
         super.onDestroy()
     }
 

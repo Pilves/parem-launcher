@@ -51,7 +51,6 @@
     <string name="adapter_hide">يخفي</string>
     <string name="app_text_color">لون الخط</string>
     <string name="double_tap_to_lock_screen">انقر مرتين لقفل الشاشة</string>
-    <string name="admin_permission_message">يعد Parem Launcher باستخدام إذن قفل الشاشة بشكل مسؤول. لا يقوم Parem Launcher بجمع أو مشاركة أي بيانات.</string>
     <string name="about">حول</string>
     <string name="off">ﻻ</string>
     <string name="on">نعم</string>

@@ -5,7 +5,6 @@
     <string name="set_as_default_launcher_first"><u>הגדר תחילה את Parem Launcher כברירת מחדל</u></string>
     <string name="app_text_color">צבע הטקסט</string>
     <string name="double_tap_to_lock_screen">נעילת המסך בהקשה כפולה</string>
-    <string name="admin_permission_message">יישום Parem Launcher ישתמש בהרשאה של נעילת המסך באופן מתון. יישום Parem Launcher אינו אוסף או משתף נתונים כלל.</string>
     <string name="about">מידע כללי</string>
     <string name="off">כבוי</string>
     <string name="on">מופעל</string>

@@ -38,8 +38,10 @@ int, string, boolean, string set) intact and leaves excluded keys local.
 ### 2. Double-tap lock (trap #1)
 
 - [ ] Double tap locks the screen (Android 9+, accessibility service on)
-- [ ] With the service off, double tap falls back to device-admin lock, or
-      toasts and opens settings — never fails silently
+- [ ] Service off, device admin on: double tap locks, next unlock asks for PIN (fingerprint refused)
+- [ ] Gestures "turn off" row deactivates the admin; uninstall then needs no extra step
+- [ ] With the admin active, uninstall is blocked until it is turned off, and the system screen says why
+- [ ] Service off, admin off: first explanation offers the admin option, later taps toast and point to Settings › Gestures
 - [ ] Other double-tap actions (app, none) do what they say
 
 ### 3. Slots, menus, folders

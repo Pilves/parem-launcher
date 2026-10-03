@@ -6,7 +6,6 @@
     <string name="set_as_default_launcher_first">Postavi kao zadani pokretač</string>
     <string name="app_text_color">Boja teksta</string>
     <string name="double_tap_to_lock_screen">Dvostruki dodir za zaključavanje</string>
-    <string name="admin_permission_message">Parem Launcher obećava da će odgovorno koristiti dozvolu za zaključavanje zaslona.</string>
     <string name="about">Informacije</string>
     <string name="off">Isklj.</string>
     <string name="on">Uklj.</string>

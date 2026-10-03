@@ -6,7 +6,6 @@
     <string name="set_as_default_launcher_first">Establecer como lanzador principal</string>
     <string name="app_text_color">Color del texto</string>
     <string name="double_tap_to_lock_screen">Tocar dos veces para bloquear</string>
-    <string name="admin_permission_message">Parem Launcher promete usar el permiso de la pantalla de bloqueo de manera responsable. Parem Launcher no recopila ni comparte ningún dato.</string>
     <string name="about">Acerca de</string>
     <string name="off">No</string>
     <string name="on">Sí</string>

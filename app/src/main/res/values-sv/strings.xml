@@ -6,7 +6,6 @@
     <string name="set_as_default_launcher_first">Ange Parem Launcher som förvald först</string>
     <string name="app_text_color">Textfärg</string>
     <string name="double_tap_to_lock_screen">Dubbeltryck för att låsa</string>
-    <string name="admin_permission_message">Parem Launcher lovar att använda skärmlåsningsbehörigheten ansvarsfullt. Parem Launcher varken samlar in eller delar några data.</string>
     <string name="about">Om</string>
     <string name="off">Av</string>
     <string name="on">På</string>

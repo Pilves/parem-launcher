@@ -51,7 +51,6 @@
     <string name="adapter_hide">Ukryj</string>
     <string name="app_text_color">Kolor tekstu</string>
     <string name="double_tap_to_lock_screen">Kliknij dwukrotnie, aby zablokować</string>
-    <string name="admin_permission_message">Parem Launcher obiecuje odpowiedzialnie korzystać z uprawnień blokady ekranu. Parem Launcher nie gromadzi ani nie udostępnia żadnych danych.</string>
     <string name="about">Informacje</string>
     <string name="off">Nie</string>
     <string name="on">Tak</string>

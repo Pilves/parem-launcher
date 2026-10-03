@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+- Lock without accessibility: when Android turns Parem's accessibility service
+  off (e.g. Advanced Protection), the lock gesture can fall back to device
+  admin. Opt-in from the lock explanation or Settings › Gestures; the tradeoff
+  is stated first: every unlock after such a lock needs your PIN, not your
+  fingerprint. Turn it off from the same Gestures row
 - Quick actions in search: type "alarm 7:30", "timer 10m", "event friday 3pm
   dentist" or "remind me 5pm call mum" (Estonian too: "äratus", "taimer",
   "kohtumine", "tuleta meelde") and press Enter or tap the line to set it in your

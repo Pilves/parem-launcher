@@ -42,7 +42,6 @@
     <string name="adapter_hide">隐藏</string>
     <string name="app_text_color">文字颜色</string>
     <string name="double_tap_to_lock_screen">双击即可锁定</string>
-    <string name="admin_permission_message">Parem Launcher 承诺负责任地使用锁屏权限。 Parem Launcher 不收集或共享任何数据。</string>
     <string name="about">关于</string>
     <string name="off">否</string>
     <string name="on">是</string>

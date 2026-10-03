@@ -52,7 +52,6 @@
     <string name="adapter_hide">隠れる</string>
     <string name="app_text_color">テキストの色</string>
     <string name="double_tap_to_lock_screen">ダブルタップしてロックします</string>
-    <string name="admin_permission_message">Parem Launcher は、ロック画面のアクセス許可を責任を持って使用することを約束します。 Parem Launcher はデータを収集または共有しません。</string>
     <string name="about">アバウト</string>
     <string name="off">オフ</string>
     <string name="on">オン</string>
