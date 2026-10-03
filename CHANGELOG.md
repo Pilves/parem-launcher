@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Target Android 16 (API 36).
+
 ## v5.7.0
 
 - The number-of-apps picker now knows how much room the home screen actually
