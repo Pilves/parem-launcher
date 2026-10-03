@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Recycler
@@ -26,6 +27,7 @@ import com.parem.launcher.helper.ContactSearchManager
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
 import com.parem.launcher.helper.CurrencyRates
+import com.parem.launcher.helper.OmniboxHistory
 import com.parem.launcher.helper.OmniboxMode
 import com.parem.launcher.helper.OmniboxResolver
 import com.parem.launcher.helper.dpToPx
@@ -51,6 +53,7 @@ class AppDrawerFragment : BaseFragment() {
 
     private lateinit var prefs: Prefs
     private lateinit var adapter: AppDrawerAdapter
+    private lateinit var recentAdapter: RecentHistoryAdapter
     private lateinit var linearLayoutManager: LinearLayoutManager
 
     private var flag = Constants.FLAG_LAUNCH_APP
@@ -178,6 +181,15 @@ class AppDrawerFragment : BaseFragment() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 val ctx = context ?: return true
                 val q = query ?: ""
+                // Calls stay out of history (a number or contact name is not a
+                // query); a plain search that launches an app records the launch
+                val isQuery = when (omniboxMode) {
+                    is OmniboxMode.Calc, is OmniboxMode.Conversion, is OmniboxMode.Currency,
+                    OmniboxMode.WebSearch -> true
+                    OmniboxMode.None -> q.startsWith("!") || adapter.itemCount == 0
+                    else -> false
+                }
+                if (isQuery) recordHistory(OmniboxHistory.Entry.Query(q))
                 when (val mode = omniboxMode) {
                     is OmniboxMode.Calc -> {
                         ctx.copyToClipboard(mode.result)
@@ -209,6 +221,7 @@ class AppDrawerFragment : BaseFragment() {
             override fun onQueryTextChange(newText: String): Boolean {
                 _binding?.appRename?.visibility = if (canRename && newText.isNotBlank()) View.VISIBLE else View.GONE
                 updateOmniboxState(newText)
+                refreshRecent()
                 // No debounce: matching against precomputed keys is sub-millisecond
                 // and Filter supersedes stale requests itself — instant beats smooth
                 try {
@@ -279,30 +292,69 @@ class AppDrawerFragment : BaseFragment() {
         }
     }
 
+    private fun onAppClick(app: AppModel) {
+        if (!isAdded) return
+        if (app.isPrivateHeader()) {
+            viewModel.setPrivateLocked(!isQuietMode(app.user))
+            return
+        }
+        if (app.appPackage.isEmpty())
+            return
+        if ((flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
+            && checkBadHabitAndLaunch(app)
+        ) {
+            // Bad habit check is handling launch asynchronously
+        } else {
+            recordLaunch(app)
+            viewModel.selectedApp(app, flag)
+            if (flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
+                findNavController().popBackStack(R.id.mainFragment, false)
+            else
+                findNavController().popBackStack()
+        }
+    }
+
+    // Only the launch drawer feeds history: pickers aren't launches, and the
+    // hidden-apps drawer and private space would leak what they keep out of sight.
+    private fun recordLaunch(app: AppModel) {
+        if (flag == Constants.FLAG_LAUNCH_APP && !app.isPrivate)
+            recordHistory(OmniboxHistory.Entry.App(historyKey(app)))
+    }
+
+    private fun recordHistory(entry: OmniboxHistory.Entry) {
+        if (flag != Constants.FLAG_LAUNCH_APP || !prefs.omniboxHistoryEnabled) return
+        prefs.omniboxHistory = OmniboxHistory.encode(
+            OmniboxHistory.push(OmniboxHistory.decode(prefs.omniboxHistory), entry)
+        )
+    }
+
+    private fun historyKey(app: AppModel) = app.appPackage + "|" + app.user.toString()
+
+    /**
+     * Recent launches and queries while the search is empty. Launches resolve
+     * against the drawer's current list, so uninstalled, hidden and locked
+     * private apps drop out and renamed apps show their current label.
+     */
+    private fun refreshRecent() {
+        val b = _binding ?: return
+        if (!::recentAdapter.isInitialized) return
+        val show = flag == Constants.FLAG_LAUNCH_APP && prefs.omniboxHistoryEnabled && b.search.query.isNullOrBlank()
+        val entries = if (show) OmniboxHistory.decode(prefs.omniboxHistory) else emptyList()
+        val apps = if (entries.isEmpty()) emptyMap()
+            else adapter.appsList.filter { !it.isPrivate && it.appPackage.isNotEmpty() }.associateBy(::historyKey)
+        recentAdapter.submit(entries.mapNotNull {
+            when (it) {
+                is OmniboxHistory.Entry.App -> apps[it.key]?.let(RecentHistoryAdapter.Row::App)
+                is OmniboxHistory.Entry.Query -> RecentHistoryAdapter.Row.Query(it.text)
+            }
+        })
+    }
+
     private fun initAdapter() {
         adapter = AppDrawerAdapter(
             flag,
             prefs.appLabelAlignment,
-            appClickListener = {
-                if (!isAdded) return@AppDrawerAdapter
-                if (it.isPrivateHeader()) {
-                    viewModel.setPrivateLocked(!isQuietMode(it.user))
-                    return@AppDrawerAdapter
-                }
-                if (it.appPackage.isEmpty())
-                    return@AppDrawerAdapter
-                if ((flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
-                    && checkBadHabitAndLaunch(it)
-                ) {
-                    // Bad habit check is handling launch asynchronously
-                } else {
-                    viewModel.selectedApp(it, flag)
-                    if (flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
-                        findNavController().popBackStack(R.id.mainFragment, false)
-                    else
-                        findNavController().popBackStack()
-                }
-            },
+            appClickListener = { onAppClick(it) },
             appInfoListener = {
                 if (!isAdded) return@AppDrawerAdapter
                 val ctx = context ?: return@AppDrawerAdapter
@@ -388,8 +440,14 @@ class AppDrawerFragment : BaseFragment() {
             }
         }
 
+        recentAdapter = RecentHistoryAdapter(
+            prefs.appLabelAlignment,
+            onApp = { onAppClick(it) },
+            onQuery = { _binding?.search?.setQuery(it, false) },
+        )
+
         binding.recyclerView.layoutManager = linearLayoutManager
-        binding.recyclerView.adapter = adapter
+        binding.recyclerView.adapter = ConcatAdapter(recentAdapter, adapter)
         scrollListener = getRecyclerViewOnScrollListener()
         binding.recyclerView.addOnScrollListener(scrollListener!!)
         binding.recyclerView.itemAnimator = null
@@ -428,6 +486,7 @@ class AppDrawerFragment : BaseFragment() {
             viewModel.appList.observe(viewLifecycleOwner) {
                 it?.let { appModels ->
                     adapter.setAppList(appModels.toMutableList())
+                    refreshRecent()
                     if (typedQuery.isNotEmpty()) {
                         // Keys typed after the drawer took focus follow the first one
                         binding.search.setQuery(typedQuery + binding.search.query, false)
@@ -556,6 +615,7 @@ class AppDrawerFragment : BaseFragment() {
             appModel.appLabel, appModel.appPackage,
             open = {
                 if (isAdded) {
+                    recordLaunch(appModel)
                     viewModel.selectedApp(appModel, flag)
                     findNavController().popBackStack(R.id.mainFragment, false)
                 }

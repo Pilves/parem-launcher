@@ -39,6 +39,8 @@ class Prefs(context: Context) {
     private val LOCK_SERVICE_CONNECTED = "LOCK_SERVICE_CONNECTED"
     private val LOCK_SERVICE_OFF_EXPLAINED = "LOCK_SERVICE_OFF_EXPLAINED"
     private val CRASH_REPORTS_ENABLED = "CRASH_REPORTS_ENABLED"
+    private val OMNIBOX_HISTORY_ENABLED = "OMNIBOX_HISTORY_ENABLED"
+    private val OMNIBOX_HISTORY = "OMNIBOX_HISTORY"
     private val HOME_APPS_NUM = "HOME_APPS_NUM"
     private val AUTO_SHOW_KEYBOARD = "AUTO_SHOW_KEYBOARD"
     private val KEYBOARD_MESSAGE = "KEYBOARD_MESSAGE"
@@ -91,6 +93,11 @@ class Prefs(context: Context) {
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_FILENAME, 0)
 
+    // Omnibox history lives in its own file: the export only reads the main
+    // file, and backup_rules / data_extraction_rules keep this one on the device.
+    private val historyPrefs: SharedPreferences =
+        context.getSharedPreferences("$PREFS_FILENAME.omnibox_history", 0)
+
     private var widgetHeightsCache: Map<Int, Int>? = null
     private var widgetProvidersCache: Map<Int, String>? = null
     private var usageStatsCache: Map<String, Long>? = null
@@ -124,6 +131,18 @@ class Prefs(context: Context) {
     var crashReportsEnabled: Boolean
         get() = prefs.getBoolean(CRASH_REPORTS_ENABLED, false)
         set(value) = prefs.edit { putBoolean(CRASH_REPORTS_ENABLED, value) }
+
+    // Turning history off also wipes it: off means nothing is kept.
+    var omniboxHistoryEnabled: Boolean
+        get() = prefs.getBoolean(OMNIBOX_HISTORY_ENABLED, false)
+        set(value) {
+            prefs.edit { putBoolean(OMNIBOX_HISTORY_ENABLED, value) }
+            if (!value) omniboxHistory = ""
+        }
+
+    var omniboxHistory: String
+        get() = historyPrefs.getString(OMNIBOX_HISTORY, "").orEmpty()
+        set(value) = historyPrefs.edit { if (value.isEmpty()) remove(OMNIBOX_HISTORY) else putString(OMNIBOX_HISTORY, value) }
 
     // Versioned so updates that add major features re-show onboarding once;
     // also immune to auto-backup restoring the old boolean flag
