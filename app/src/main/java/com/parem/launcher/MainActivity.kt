@@ -134,7 +134,9 @@ class MainActivity : AppCompatActivity() {
         launcherSelectorLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            if (result.resultCode == Activity.RESULT_OK)
+            // Only when the grant didn't take: once Parem holds the role, the fake-activity
+            // reset would fire a HOME chooser and then open Default apps settings
+            if (result.resultCode == Activity.RESULT_OK && !isDefaultLauncher())
                 resetLauncherViaFakeActivity()
         }
 
@@ -151,7 +153,7 @@ class MainActivity : AppCompatActivity() {
             prefs.firstOpen = false
             prefs.firstOpenTime = System.currentTimeMillis()
             viewModel.setDefaultClockApp()
-            viewModel.resetLauncherLiveData.call()
+            // No role prompt here: onboarding asks for home with context, on the user's tap
         }
 
         initObservers(viewModel)
@@ -332,6 +334,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun backToHomeScreen() {
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return
+        // Becoming home (chooser "Always", or Home pressed in system settings) arrives
+        // as a HOME intent; popping here would skip onboarding's Calm screen
+        if (navController.currentDestination?.id == R.id.onboardingFragment) return
         if (navController.currentDestination?.id != R.id.mainFragment)
             navController.popBackStack(R.id.mainFragment, false)
     }

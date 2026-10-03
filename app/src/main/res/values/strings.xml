@@ -454,4 +454,19 @@
     <string name="grayscale_app_needs_usage" translatable="false">Per-app grayscale needs usage access to notice when you switch apps.</string>
     <string name="grayscale_app_needs_default" translatable="false">Per-app grayscale needs Parem as your default home screen to bring color back.</string>
     <string name="grayscale_pair_err_generic" translatable="false">Pairing failed. Try again with a new code.</string>
+    <!-- Onboarding (6.0): home screen, then optional Calm setup -->
+    <string name="onboarding_home_screen_title" translatable="false">Make Parem your home screen</string>
+    <string name="onboarding_home_screen_body" translatable="false">Parem only works as your home screen.</string>
+    <string name="onboarding_home_screen_reassure" translatable="false">Your apps stay installed. You can switch back anytime.</string>
+    <string name="onboarding_set_home" translatable="false">Set as home screen</string>
+    <string name="onboarding_calm_title" translatable="false">Calm phone (optional)</string>
+    <string name="onboarding_calm_body" translatable="false">Turn on what helps. Each one explains itself first, and you can skip all of them.</string>
+    <string name="onboarding_row_slow_down" translatable="false">Slow down an app</string>
+    <string name="onboarding_row_slow_down_caption" translatable="false">A short pause before an app with a time limit opens</string>
+    <string name="onboarding_row_quiet" translatable="false">Quiet notifications</string>
+    <string name="onboarding_row_quiet_caption" translatable="false">Notifications from other apps wait in a quiet list</string>
+    <string name="onboarding_row_grayscale_caption" translatable="false">One-time setup, about 2 min</string>
+    <string name="onboarding_set_up" translatable="false">Set up</string>
+    <string name="onboarding_footer" translatable="false">All of this is in Settings › %1$s</string>
+    <string name="onboarding_done" translatable="false">Done</string>
 </resources>

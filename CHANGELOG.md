@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+- New first-run screens: Parem asks to become your home screen only when you
+  tap "Set as home screen" (a second tap opens the system's home-app settings
+  if the dialog doesn't come back), then offers optional Calm setup: screen
+  time, slowing down an app, quiet notifications, double tap to lock and
+  grayscale, each skippable. Shown once to updating users too. The feature tour
+  is gone, and granting home no longer bounces you into Default apps settings
 - Per-app grayscale: long-press an app and tap Grayscale to see it in
   grayscale. The screen turns grey while that app is in front, including after
   recents and notification switches, and color comes back on Home or in any

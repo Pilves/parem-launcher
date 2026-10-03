@@ -38,6 +38,10 @@ object GrayscaleSheet {
         else showGrant(fragment, onPair, onChanged)
     }
 
+    /** Onboarding's "Grayscale" row (M4-WP12): the settings row's flow, with the app menu's pairing prompt. */
+    fun startSetup(fragment: Fragment, onChanged: () -> Unit) =
+        open(fragment, onPair = { startPairing(fragment) }, onChanged = onChanged)
+
     /**
      * The app menu's "Grayscale" row (M4-WP21). Marking walks the user through
      * what the feature needs, one step per tap: the grant, usage access, Parem
