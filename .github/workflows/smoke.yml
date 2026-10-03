@@ -1,4 +1,5 @@
-# Release smoke tests (app/src/androidTest) on an x86_64 emulator.
+# Release smoke tests (app/src/androidTest) and the performance regression
+# gate (scripts/perf-budget.mjs, M3-WP10) on an x86_64 emulator.
 # Not on tag push: release.yml is already publishing by then. Run it by hand
 # on the RC commit before tagging.
 name: Smoke tests
@@ -25,6 +26,9 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: Perf script tests
+        run: node --test scripts/perf-budget.test.mjs
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
@@ -42,7 +46,12 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-          script: ./gradlew connectedDebugAndroidTest
+          # connectedDebugAndroidTest uninstalls the app when done, so reinstall
+          # for the perf run; it fails the job on a > 20% regression
+          script: |
+            ./gradlew connectedDebugAndroidTest
+            ./gradlew installDebug
+            node scripts/perf-budget.mjs --out app/build/perf/result.json
 
       - name: Upload test reports
         if: failure()
@@ -51,3 +60,12 @@ jobs:
           name: smoke-test-reports
           path: app/build/reports/androidTests/
           retention-days: 14
+
+      - name: Upload perf result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-result
+          path: app/build/perf/
+          if-no-files-found: ignore
+          retention-days: 30
