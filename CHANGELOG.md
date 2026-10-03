@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- The screen-time sheet now compares this week with last week: daily average
+  up or down against last week, and the app that rose and fell the most.
+  Android keeps a limited usage history (often about ten days), so last week
+  can be compared over only the days still on record (the sheet says how many)
 - Mindful pause: for an app with a time limit, turn on "mindful pause" (home
   slot long-press or the App limits sheet) and every launch of it — home slot,
   folder, drawer, search, gesture letter, swipe app — first asks why you are

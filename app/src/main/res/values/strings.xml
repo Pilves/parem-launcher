@@ -326,6 +326,14 @@
     <string name="top_apps_week" translatable="false">Top apps this week</string>
     <string name="top_apps_day" translatable="false">Top apps \u2014 %1$s</string>
     <string name="daily_average" translatable="false">%1$s/day average</string>
+    <string name="weekly_review_title" translatable="false">This week vs last week</string>
+    <string name="weekly_review_up" translatable="false">Up %1$d%% from %2$s/day last week</string>
+    <string name="weekly_review_down" translatable="false">Down %1$d%% from %2$s/day last week</string>
+    <string name="weekly_review_same" translatable="false">Same as last week (%1$s/day)</string>
+    <string name="weekly_review_partial" translatable="false">Last week has %1$d of 7 days on record</string>
+    <string name="weekly_review_no_history" translatable="false">Not enough usage history yet to compare with last week</string>
+    <string name="weekly_review_riser" translatable="false">Most up: %1$s, +%2$s/day</string>
+    <string name="weekly_review_faller" translatable="false">Most down: %1$s, \u2212%2$s/day</string>
     <string name="apps_dont_fit" translatable="false">Only %1$d apps fit — resize or remove widgets first</string>
     <string name="folder_name_hint" translatable="false">Social, Work, etc.</string>
     <string name="folder_needs_name_and_app" translatable="false">Enter a name and select at least one app</string>
