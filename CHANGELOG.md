@@ -10,6 +10,11 @@
   the accessibility service sees and ask for consent before opening
   Accessibility settings, from Settings and from the home screen; declining
   leaves the lock off, and the service no longer reads screen content
+- Fixed: with system animations turned off, the app drawer (and other
+  screens) could stay stuck on screen instead of closing (from Olauncher #713)
+- Fixed: phones with adaptive refresh rate (LTPO) screens could be mistaken
+  for e-ink displays when idle, forcing the light theme and turning off the
+  drawer animation (from Olauncher #724)
 
 ## v5.7.0
 

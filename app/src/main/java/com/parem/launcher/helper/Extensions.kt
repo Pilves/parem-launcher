@@ -97,15 +97,29 @@ fun Context.openSearch(query: String? = null) {
 
 fun Context.isEinkDisplay(): Boolean {
     return try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            display?.refreshRate?.let { it <= Constants.MIN_ANIM_REFRESH_RATE } ?: false
+        val currentDisplay = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            display
         } else {
             @Suppress("DEPRECATION")
-            (getSystemService(Context.WINDOW_SERVICE) as WindowManager)
-                .defaultDisplay.refreshRate <= Constants.MIN_ANIM_REFRESH_RATE
-        }
+            (getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
+        } ?: return false
+        // Check the max supported refresh rate, not the current one: adaptive refresh
+        // rate (LTPO) displays drop to 1-10 Hz when idle without being e-ink (Olauncher #724)
+        val maxRefreshRate = currentDisplay.supportedModes.maxOfOrNull { it.refreshRate } ?: currentDisplay.refreshRate
+        maxRefreshRate <= Constants.MIN_ANIM_REFRESH_RATE
     } catch (e: Exception) {
         Log.e("Extensions", "Failed to detect e-ink display", e)
+        false
+    }
+}
+
+fun Context.isSystemAnimationsDisabled(): Boolean {
+    return try {
+        Settings.Global.getFloat(contentResolver, Settings.Global.WINDOW_ANIMATION_SCALE, 1f) == 0f
+                || Settings.Global.getFloat(contentResolver, Settings.Global.TRANSITION_ANIMATION_SCALE, 1f) == 0f
+                || Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    } catch (e: Exception) {
+        Log.e("Extensions", "Failed to read system animation scales", e)
         false
     }
 }
