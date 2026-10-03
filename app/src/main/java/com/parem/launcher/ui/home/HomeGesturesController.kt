@@ -2,7 +2,9 @@ package com.parem.launcher.ui.home
 
 import android.app.admin.DevicePolicyManager
 import android.content.Context
+import android.content.Intent
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -27,6 +29,7 @@ import com.parem.launcher.helper.showToast
 import com.parem.launcher.listener.OnSwipeTouchListener
 import com.parem.launcher.listener.ViewSwipeTouchListener
 import com.parem.launcher.ui.HomeFragment
+import com.parem.launcher.ui.showLockConsent
 import com.parem.launcher.ui.transparentSheetFrame
 
 /**
@@ -182,7 +185,11 @@ class HomeGesturesController(
                 super.onDoubleClick()
                 DoubleTapActionManager.execute(
                     context,
-                    lockPhone = { lockPhone() },
+                    lockPhone = {
+                        lockPhone(onDecline = {
+                            DoubleTapActionManager.setAction(context, Constants.GestureAction.NONE)
+                        })
+                    },
                     toggleFlashlight = { toggleFlashlight() }
                 )
             }
@@ -260,7 +267,10 @@ class HomeGesturesController(
 
     private fun openSwipeRightApp() {
         if (!prefs.swipeRightEnabled) return
-        executeGestureAction(prefs.getEffectiveSwipeRightAction()) {
+        executeGestureAction(
+            prefs.getEffectiveSwipeRightAction(),
+            onLockDecline = { prefs.swipeRightAction = Constants.GestureAction.NONE },
+        ) {
             // Fallback for OPEN_APP action
             if (prefs.appPackageSwipeRight.isNotEmpty())
                 fragment.slotsController?.launchApp(
@@ -275,7 +285,10 @@ class HomeGesturesController(
 
     private fun openSwipeLeftApp() {
         if (!prefs.swipeLeftEnabled) return
-        executeGestureAction(prefs.getEffectiveSwipeLeftAction()) {
+        executeGestureAction(
+            prefs.getEffectiveSwipeLeftAction(),
+            onLockDecline = { prefs.swipeLeftAction = Constants.GestureAction.NONE },
+        ) {
             // Fallback for OPEN_APP action
             if (prefs.appPackageSwipeLeft.isNotEmpty())
                 fragment.slotsController?.launchApp(
@@ -288,12 +301,12 @@ class HomeGesturesController(
         }
     }
 
-    private fun executeGestureAction(action: Int, openAppFallback: () -> Unit) {
+    private fun executeGestureAction(action: Int, onLockDecline: () -> Unit, openAppFallback: () -> Unit) {
         when (action) {
             Constants.GestureAction.OPEN_APP -> openAppFallback()
             Constants.GestureAction.OPEN_NOTIFICATIONS -> expandNotificationDrawer(context)
             Constants.GestureAction.OPEN_SEARCH -> context.openSearch()
-            Constants.GestureAction.LOCK_SCREEN -> lockPhone()
+            Constants.GestureAction.LOCK_SCREEN -> lockPhone(onLockDecline)
             Constants.GestureAction.OPEN_CAMERA -> openCameraApp(context)
             Constants.GestureAction.TOGGLE_FLASHLIGHT -> toggleFlashlight()
             Constants.GestureAction.NONE -> { /* do nothing */ }
@@ -311,7 +324,20 @@ class HomeGesturesController(
         }
     }
 
-    private fun lockPhone() {
+    /** [onDecline] turns the triggering gesture off so a declined consent doesn't nag on every tap. */
+    private fun lockPhone(onDecline: () -> Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !isAccessServiceEnabled(context)) {
+            if (!fragment.isAdded) return
+            showLockConsent(
+                context,
+                onAccept = {
+                    if (fragment.isAdded)
+                        fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                },
+                onDecline = onDecline,
+            )
+            return
+        }
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isAccessServiceEnabled(context)) {
                 // Trap #1 (ARCHITECTURE.md): clicking the invisible lock view emits the

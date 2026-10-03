@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+- Lock screen gestures (double tap, swipe) now show a clear disclosure of what
+  the accessibility service sees and ask for consent before opening
+  Accessibility settings, from Settings and from the home screen; declining
+  leaves the lock off, and the service no longer reads screen content
+
 ## v5.7.0
 
 - The number-of-apps picker now knows how much room the home screen actually
