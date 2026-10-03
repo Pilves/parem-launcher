@@ -55,6 +55,7 @@
     <string name="dark_theme_from" translatable="false">Dark theme from</string>
     <string name="call_hint" translatable="false">↵  Call: %1$s</string>
     <string name="contact_hint" translatable="false">↵  Call %1$s · %2$s</string>
+    <string name="setting_hint" translatable="false">Settings › %1$s</string>
     <string name="currency_hint" translatable="false">≈ %1$s · ECB %2$s</string>
     <string name="currency_downloading" translatable="false">Downloading ECB rates…</string>
     <string name="currency_unavailable" translatable="false">ECB rates unavailable offline</string>

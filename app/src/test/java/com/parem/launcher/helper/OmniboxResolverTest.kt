@@ -124,4 +124,21 @@ class OmniboxResolverTest {
         assertEquals(OmniboxMode.None, resolve("chrome"))
         assertEquals(OmniboxMode.None, resolve("john", emptyList()))
     }
+
+    // --- settings rows rank last ---
+
+    private val settings = listOf(SettingsSearch.Row("Show icons", 7), SettingsSearch.Row("Johnny mode", 8))
+
+    @Test
+    fun setting_whenNothingElseResolves() {
+        assertEquals(OmniboxMode.Setting("Show icons", 7), OmniboxResolver.resolve("icons", contacts, null, settings))
+        assertEquals(OmniboxMode.None, OmniboxResolver.resolve("chrome", contacts, null, settings))
+    }
+
+    @Test
+    fun contactAndCalc_beatSetting() {
+        assertEquals(OmniboxMode.Contact("John Smith", "555 1000"), OmniboxResolver.resolve("john", contacts, null, settings))
+        assertEquals(OmniboxMode.Setting("Johnny mode", 8), OmniboxResolver.resolve("john", emptyList(), null, settings))
+        assertEquals(OmniboxMode.Calc("6"), OmniboxResolver.resolve("2*3", contacts, null, listOf(SettingsSearch.Row("2*3", 1))))
+    }
 }

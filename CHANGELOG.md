@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Settings search: type a setting's name in the drawer (e.g. "keyboard") and
+  tap the "Settings ›" line to open Settings at that row; Enter opens it too
+  when no app matches
 - Search history (Settings > Home Screen, off by default): when on, the empty
   drawer lists your last five drawer launches and searches; tap one to open it
   again. It stays on this phone (not in the settings export or cloud backup),

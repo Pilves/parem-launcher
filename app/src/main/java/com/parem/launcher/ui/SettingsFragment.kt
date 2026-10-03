@@ -10,12 +10,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
+import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.appUsagePermissionGranted
+import com.parem.launcher.helper.skipAnimations
 import com.parem.launcher.ui.settings.AppInfoSettingsCard
 import com.parem.launcher.ui.settings.AppearanceSettingsCard
 import com.parem.launcher.ui.settings.GesturesSettingsCard
@@ -109,6 +111,13 @@ class SettingsFragment : BaseFragment() {
 
         populateWellbeingSection()
 
+        // Consumed once: returning from a picker this screen opened rebuilds
+        // the view, and that must not jump back to the searched row.
+        arguments?.getInt(Constants.Key.SETTING)?.takeIf { it != 0 }?.let { anchor ->
+            arguments?.remove(Constants.Key.SETTING)
+            binding.scrollView.post { scrollToSetting(anchor) }
+        }
+
         // Focus mode / screen-time dialogs rank apps by today's usage; without this
         // the list is empty unless the app drawer happened to load first
         if (requireContext().appUsagePermissionGranted())
@@ -128,6 +137,30 @@ class SettingsFragment : BaseFragment() {
         binding.textSizesLayout.visibility = View.GONE
         if (clickedId != R.id.alignmentBottom)
             binding.alignmentSelectLayout.visibility = View.GONE
+    }
+
+    /**
+     * Puts the row an omnibox search named a third of the way down and fades
+     * it in once so the eye lands on it. The row is the anchor's ancestor
+     * directly inside its card, so a quiet sub-row hidden while the feature is
+     * off lands on the quiet group. A row this layout lacks (layout-land has
+     * fewer rows) leaves the screen at the top.
+     */
+    private fun scrollToSetting(anchorId: Int) {
+        val b = _binding ?: return
+        val anchor = b.root.findViewById<View>(anchorId) ?: return
+        // anchor … row, card — everything below scrollLayout
+        val chain = generateSequence(anchor) { it.parent as? View }.takeWhile { it !== b.scrollLayout }.toList()
+        val row = chain.getOrNull(chain.size - 2) ?: anchor
+        if (chain.dropWhile { it !== row }.any { it.visibility != View.VISIBLE }) return
+        val rect = android.graphics.Rect()
+        row.getDrawingRect(rect)
+        b.scrollView.offsetDescendantRectToMyCoords(row, rect)
+        b.scrollView.scrollTo(0, (rect.top - b.scrollView.height / 3).coerceAtLeast(0))
+        if (!requireContext().skipAnimations()) {
+            row.alpha = 0.2f
+            row.animate().alpha(1f).setDuration(700).start()
+        }
     }
 
     internal fun populateWellbeingSection() {

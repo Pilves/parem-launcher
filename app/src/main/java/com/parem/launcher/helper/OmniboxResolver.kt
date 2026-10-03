@@ -14,12 +14,13 @@ sealed interface OmniboxMode {
     data class Dial(val number: String) : OmniboxMode
     object WebSearch : OmniboxMode
     data class Contact(val name: String, val number: String) : OmniboxMode
+    data class Setting(val title: String, val anchor: Int) : OmniboxMode
 }
 
 /**
  * Decides which omnibox mode a drawer query puts the search field in. Pure, no
  * Android deps. Precedence: calc → conversion → currency → dial → web →
- * contact → none.
+ * contact → setting → none.
  * The first mode that both recognises *and* resolves the query wins, so a
  * query that looks like an expression but fails to evaluate falls through.
  */
@@ -33,6 +34,7 @@ object OmniboxResolver {
         query: String,
         contacts: List<ContactMatcher.Contact>,
         rates: CurrencyConverter.Rates? = null,
+        settings: List<SettingsSearch.Row> = emptyList(),
     ): OmniboxMode {
         val trimmed = query.trim()
 
@@ -70,6 +72,11 @@ object OmniboxResolver {
             ContactMatcher.match(trimmed, contacts).firstOrNull()?.let { top ->
                 return OmniboxMode.Contact(top.name, top.number)
             }
+        }
+        // Lowest of all: like a contact it only fills the tip line, so app
+        // results and auto-launch are untouched.
+        SettingsSearch.match(trimmed, settings)?.let { row ->
+            return OmniboxMode.Setting(row.title, row.anchor)
         }
         return OmniboxMode.None
     }

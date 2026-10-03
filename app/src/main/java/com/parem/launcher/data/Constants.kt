@@ -6,6 +6,8 @@ object Constants {
         const val FLAG = "flag"
         const val RENAME = "rename"
         const val QUERY = "query"
+        // View id of the settings row the omnibox opens Settings at
+        const val SETTING = "setting"
     }
 
     object Dialog {

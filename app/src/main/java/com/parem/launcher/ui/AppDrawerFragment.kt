@@ -30,6 +30,7 @@ import com.parem.launcher.helper.CurrencyRates
 import com.parem.launcher.helper.OmniboxHistory
 import com.parem.launcher.helper.OmniboxMode
 import com.parem.launcher.helper.OmniboxResolver
+import com.parem.launcher.helper.SettingsSearch
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.hideKeyboard
@@ -43,10 +44,12 @@ import com.parem.launcher.helper.privateProfile
 import com.parem.launcher.helper.showKeyboard
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.helper.uninstall
+import com.parem.launcher.ui.settings.SettingsSearchIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.lifecycle.lifecycleScope
+import androidx.core.os.bundleOf
 
 
 class AppDrawerFragment : BaseFragment() {
@@ -77,6 +80,9 @@ class AppDrawerFragment : BaseFragment() {
     // Loaded once per drawer session, only when contact search is enabled and
     // permitted (see loadContactsIfEnabled). Empty otherwise → no matching runs.
     private var contacts: List<ContactMatcher.Contact> = emptyList()
+
+    // Built on the first query; only the launch drawer resolves omnibox modes.
+    private var settingsRows: List<SettingsSearch.Row>? = null
 
     // At most one ECB rates fetch per drawer session, started by the first
     // currency query; the in-flight flag picks the CurrencyNoRates tip.
@@ -208,6 +214,8 @@ class AppDrawerFragment : BaseFragment() {
                     is OmniboxMode.Contact -> dial(ctx, mode.number)
                     OmniboxMode.WebSearch ->
                         ctx.openUrl(Constants.URL_GOOGLE_SEARCH + java.net.URLEncoder.encode(q.trim(), "UTF-8"))
+                    is OmniboxMode.Setting ->
+                        if (adapter.itemCount == 0) openSetting(mode.anchor) else adapter.launchFirstInList()
                     OmniboxMode.None -> when {
                         q.startsWith("!") ->
                             ctx.openUrl(Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(q, "UTF-8"))
@@ -255,7 +263,8 @@ class AppDrawerFragment : BaseFragment() {
         // Omnibox modes only make sense when the drawer is a launcher, not when
         // it is open as an app picker (set home app / swipe app / etc.)
         if (flag != Constants.FLAG_LAUNCH_APP) return
-        omniboxMode = OmniboxResolver.resolve(newText, contacts, CurrencyRates.cached(b.root.context))
+        val rows = settingsRows ?: SettingsSearchIndex.rows(b.root.context).also { settingsRows = it }
+        omniboxMode = OmniboxResolver.resolve(newText, contacts, CurrencyRates.cached(b.root.context), rows)
         if (omniboxMode is OmniboxMode.Currency || omniboxMode == OmniboxMode.CurrencyNoRates)
             fetchCurrencyRatesOnce()
         val tip = when (val mode = omniboxMode) {
@@ -268,6 +277,7 @@ class AppDrawerFragment : BaseFragment() {
             is OmniboxMode.Dial -> getString(R.string.call_hint, mode.number)
             OmniboxMode.WebSearch -> getString(R.string.google_search_hint, newText.trim())
             is OmniboxMode.Contact -> getString(R.string.contact_hint, mode.name, mode.number)
+            is OmniboxMode.Setting -> getString(R.string.setting_hint, mode.title)
             OmniboxMode.None -> null
         }
         if (tip != null) b.appDrawerTip.text = tip
@@ -530,6 +540,10 @@ class AppDrawerFragment : BaseFragment() {
                     dial(requireContext(), mode.number)
                     return@setOnClickListener
                 }
+                is OmniboxMode.Setting -> {
+                    openSetting(mode.anchor)
+                    return@setOnClickListener
+                }
                 else -> {}
             }
             binding.appDrawerTip.isSelected = false
@@ -581,6 +595,15 @@ class AppDrawerFragment : BaseFragment() {
     private fun checkMessageAndExit() {
         if (!isAdded) return
         findNavController().popBackStack()
+    }
+
+    // The action pops the drawer, so Back from Settings returns home
+    private fun openSetting(anchor: Int) {
+        if (!isAdded) return
+        findNavController().navigate(
+            R.id.action_appListFragment_to_settingsFragment2,
+            bundleOf(Constants.Key.SETTING to anchor),
+        )
     }
 
     private fun dial(ctx: android.content.Context, number: String) {
