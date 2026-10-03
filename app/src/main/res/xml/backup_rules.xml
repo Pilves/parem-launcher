@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
     <include domain="sharedpref" path="." />
+    <!--Keys of notifications the quiet filter hid; device-only, see QuietNotificationsManager-->
+    <exclude domain="sharedpref" path="com.parem.launcher.quiet_keys.xml" />
 </full-backup-content>

@@ -42,6 +42,7 @@ import com.parem.launcher.helper.isPackageInstalled
 import com.parem.launcher.helper.PackageChangeTracker
 import com.parem.launcher.helper.privateProfile
 import com.parem.launcher.helper.showToast
+import com.parem.launcher.helper.notifications.QuietNotificationsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -202,6 +203,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     pendingGestureLetter = null
                 }
             }
+
+            Constants.FLAG_PICK_SILENT_APP ->
+                QuietNotificationsManager.openAppNotificationSettings(appContext, appModel.appPackage)
         }
     }
 

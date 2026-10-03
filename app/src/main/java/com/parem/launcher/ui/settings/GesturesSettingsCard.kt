@@ -20,6 +20,7 @@ import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.isAccessServiceEnabled
+import com.parem.launcher.helper.notifications.QuietNotificationsManager
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.listener.DeviceAdmin
 import com.parem.launcher.ui.BottomSheetMenu
@@ -192,6 +193,7 @@ class GesturesSettingsCard(
             Constants.GestureAction.OPEN_CAMERA -> context.getString(R.string.camera)
             Constants.GestureAction.TOGGLE_FLASHLIGHT -> context.getString(R.string.flashlight)
             Constants.GestureAction.NONE -> context.getString(R.string.none)
+            Constants.GestureAction.QUIET_LIST -> context.getString(R.string.quiet_list)
             else -> appName
         }
     }
@@ -231,13 +233,18 @@ class GesturesSettingsCard(
         menu.show()
     }
 
-    private fun gestureActionChoices() = arrayOf(
+    private fun gestureActionChoices() = listOfNotNull(
         context.getString(R.string.open_app) to Constants.GestureAction.OPEN_APP,
         context.getString(R.string.notifications) to Constants.GestureAction.OPEN_NOTIFICATIONS,
         context.getString(R.string.search) to Constants.GestureAction.OPEN_SEARCH,
         context.getString(R.string.lock_screen) to Constants.GestureAction.LOCK_SCREEN,
         context.getString(R.string.camera) to Constants.GestureAction.OPEN_CAMERA,
         context.getString(R.string.flashlight) to Constants.GestureAction.TOGGLE_FLASHLIGHT,
+        // Offered only once the filter has been turned on; the gesture itself still handles Off
+        (context.getString(R.string.quiet_list) to Constants.GestureAction.QUIET_LIST).takeIf {
+            QuietNotificationsManager.isSupported() &&
+                QuietNotificationsManager.state(context) != QuietNotificationsManager.State.OFF
+        },
         context.getString(R.string.none) to Constants.GestureAction.NONE,
     )
 
@@ -263,6 +270,7 @@ class GesturesSettingsCard(
             .title(context.getString(R.string.double_tap_action))
         // Lock screen first: it is the double-tap default
         val choices = gestureActionChoices()
+            .filter { it.second != Constants.GestureAction.QUIET_LIST }
             .sortedByDescending { it.second == Constants.GestureAction.LOCK_SCREEN }
         for ((label, actionValue) in choices) {
             menu.option(label) {

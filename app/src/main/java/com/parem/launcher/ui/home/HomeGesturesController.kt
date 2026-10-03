@@ -31,6 +31,7 @@ import com.parem.launcher.helper.showToast
 import com.parem.launcher.listener.OnSwipeTouchListener
 import com.parem.launcher.listener.ViewSwipeTouchListener
 import com.parem.launcher.ui.HomeFragment
+import com.parem.launcher.ui.QuietListSheet
 import com.parem.launcher.ui.showLockConsent
 import com.parem.launcher.ui.showLockServiceOff
 import com.parem.launcher.ui.disableAnimationsOnEink
@@ -314,6 +315,10 @@ class HomeGesturesController(
             Constants.GestureAction.OPEN_CAMERA -> openCameraApp(context)
             Constants.GestureAction.TOGGLE_FLASHLIGHT -> toggleFlashlight()
             Constants.GestureAction.NONE -> { /* do nothing */ }
+            Constants.GestureAction.QUIET_LIST -> {
+                if (fragment.isAdded)
+                    QuietListSheet.openFromGesture(fragment, prefs, isAlive = { fragment.view != null })
+            }
         }
     }
 

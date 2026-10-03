@@ -366,4 +366,27 @@
     <string name="lock_service_off_title" translatable="false">Lock gesture is off</string>
     <string name="lock_service_off_body" translatable="false">Parem\'s accessibility service is no longer running, so your lock gesture cannot lock the screen. Android can turn it off after an app update, a crash, or when a security setting restricts accessibility services. Turn it back on in Accessibility settings, or pick another gesture action in Parem\'s gesture settings.</string>
     <string name="lock_service_off_toast" translatable="false">Can\'t lock: Parem\'s accessibility service is off</string>
+    <string name="quiet_notif" translatable="false">Hide from shade, keep for later</string>
+    <string name="quiet_needs_access" translatable="false">Needs access</string>
+    <string name="quiet_allowed_apps" translatable="false">Allowed apps</string>
+    <string name="quiet_make_silent" translatable="false">Make silent</string>
+    <string name="quiet_card_hint" translatable="false">A short sound or vibration may still play when a notification arrives. Use \'Make silent\' to stop it for an app. Open the quiet list with a swipe: Settings > Gestures.</string>
+    <string name="quiet_card_needs_access" translatable="false">Needs notification access. Tap \'Needs access\' to open settings.</string>
+    <string name="quiet_list" translatable="false">Quiet list</string>
+    <string name="quiet_list_empty" translatable="false">Nothing waiting</string>
+    <string name="quiet_list_dismiss_all" translatable="false">Dismiss all</string>
+    <string name="quiet_pick_title" translatable="false">Apps allowed to alert</string>
+    <string name="quiet_continue" translatable="false">Continue</string>
+    <string name="quiet_not_now" translatable="false">Not now</string>
+    <string name="quiet_disclosure_title" translatable="false">Hide notifications from other apps?</string>
+    <string name="quiet_disclosure_body" translatable="false">Notifications from apps you did not allow are moved out of the shade into a quiet list. Open it from home with the gesture you choose in Settings > Gestures.\n\nCalls, alarms, media, navigation and emergency alerts are never hidden.\n\nA short sound or vibration may still play when a notification arrives. Use \'Make silent\' to stop it for an app.\n\nParem reads notifications only on this phone. Nothing is stored or sent anywhere.\n\nTo undo: turn this off here, or remove Parem under Settings > Notification access. Hidden notifications come back within 8 h.</string>
+    <string name="quiet_needs_access_body" translatable="false">Parem no longer has notification access. Hidden notifications will come back to the shade within 8 h.</string>
+    <string name="quiet_starting" translatable="false">Notification filter is starting. Try again in a moment.</string>
+    <string name="quiet_open_settings" translatable="false">Open settings</string>
+    <string name="quiet_turn_off" translatable="false">Turn off filter</string>
+    <string name="quiet_turn_off_title" translatable="false">Dismiss waiting notifications?</string>
+    <string name="quiet_dismiss" translatable="false">Dismiss</string>
+    <string name="quiet_keep" translatable="false">Keep</string>
+    <string name="quiet_keep_info" translatable="false">Hidden notifications will come back to the shade within 8 h.</string>
+    <string name="quiet_not_supported" translatable="false">Not available on this Android version</string>
 </resources>

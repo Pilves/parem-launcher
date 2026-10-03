@@ -2,7 +2,11 @@ package com.parem.launcher.ui.settings
 
 import android.os.Build
 import android.view.View
+import androidx.core.os.bundleOf
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -10,14 +14,17 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.getAppsList
+import com.parem.launcher.helper.notifications.QuietNotificationsManager
+import com.parem.launcher.helper.notifications.QuietNotificationsManager.State
 import com.parem.launcher.ui.FocusModeDialog
+import com.parem.launcher.ui.QuietListSheet
 import com.parem.launcher.ui.ScreenTimeLimitDialog
 import com.parem.launcher.ui.SettingsFragment
 import kotlinx.coroutines.launch
 
 /**
  * Card 5 ("Digital Wellbeing"): screen-time permission status, per-app time
- * limits, and focus mode.
+ * limits, focus mode, and the notification filter ("Hide from shade, keep for later").
  *
  * Extracted from SettingsFragment; mirrors HomeWidgetController's shape.
  */
@@ -33,14 +40,22 @@ class WellbeingSettingsCard(
 
     fun bind() {
         populateScreenTimeOnOff()
+        populateQuietNotif()
 
         initClickListeners()
+        // The access grant happens in system settings; re-derive the state on return
+        fragment.viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && fragment.isBindingAlive()) populateQuietNotif()
+        })
     }
 
     private fun initClickListeners() {
         binding.screenTimeOnOff.setOnClickListener(this)
         binding.focusModeToggle?.setOnClickListener(this)
         binding.screenTimeLimitsToggle?.setOnClickListener(this)
+        binding.quietNotifToggle?.setOnClickListener(this)
+        binding.quietNotifAllowed?.setOnClickListener(this)
+        binding.quietNotifSilent?.setOnClickListener(this)
     }
 
     override fun onClick(view: View) {
@@ -49,6 +64,57 @@ class WellbeingSettingsCard(
             R.id.screenTimeOnOff -> viewModel.showDialog.postValue(Constants.Dialog.DIGITAL_WELLBEING)
             R.id.focusModeToggle -> showFocusModeFromSettings()
             R.id.screenTimeLimitsToggle -> showScreenTimeLimitsDialog()
+            R.id.quietNotifToggle -> onQuietNotifToggle()
+            R.id.quietNotifAllowed -> QuietListSheet.editAllowed(fragment, prefs, fragment::isBindingAlive)
+            R.id.quietNotifSilent -> {
+                viewModel.getAppList(true)
+                fragment.findNavController().navigate(
+                    R.id.action_settingsFragment_to_appListFragment,
+                    bundleOf(Constants.Key.FLAG to Constants.FLAG_PICK_SILENT_APP)
+                )
+            }
+        }
+    }
+
+    private fun onQuietNotifToggle() {
+        val onChanged = { if (fragment.isBindingAlive()) populateQuietNotif() }
+        when (QuietNotificationsManager.state(context)) {
+            State.OFF -> QuietListSheet.startTurnOn(fragment, prefs, fragment::isBindingAlive, onChanged)
+            State.NEEDS_ACCESS -> QuietListSheet.showNeedsAccess(context, starting = false, onChanged = onChanged)
+            State.ON -> QuietListSheet.confirmTurnOff(context, onChanged)
+        }
+    }
+
+    private fun populateQuietNotif() {
+        val layout = binding.quietNotifLayout ?: return
+        if (!QuietNotificationsManager.isSupported()) {
+            layout.visibility = View.GONE
+            return
+        }
+        val state = QuietNotificationsManager.state(context)
+        binding.quietNotifToggle?.text = context.getString(
+            when (state) {
+                State.OFF -> R.string.off
+                State.NEEDS_ACCESS -> R.string.quiet_needs_access
+                State.ON -> R.string.on
+            }
+        )
+        binding.quietNotifRows?.visibility = if (state == State.ON) View.VISIBLE else View.GONE
+        binding.quietNotifHint?.apply {
+            when (state) {
+                State.OFF -> visibility = View.GONE
+                State.NEEDS_ACCESS -> {
+                    var hint = context.getString(R.string.quiet_card_needs_access)
+                    if (Build.VERSION.SDK_INT >= 33)
+                        hint += " " + context.getString(R.string.lock_consent_restricted)
+                    text = hint
+                    visibility = View.VISIBLE
+                }
+                State.ON -> {
+                    text = context.getString(R.string.quiet_card_hint)
+                    visibility = View.VISIBLE
+                }
+            }
         }
     }
 

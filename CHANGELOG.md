@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+- Hide from shade, keep for later (Android 8+, off by default): pick the apps
+  allowed to alert; notifications from every other app leave the shade and wait
+  in a quiet list you open with a swipe gesture. Calls, alarms, media,
+  navigation and emergency alerts are never hidden, and hidden items come back
+  on their own within 8 hours. Needs notification access; no notification
+  content is stored or sent anywhere
 - Private space (Android 15+): with Parem as the default home app, private
   space apps appear in their own section at the bottom of the drawer, with a
   header to lock and unlock the space. Locked apps are not shown or searchable,

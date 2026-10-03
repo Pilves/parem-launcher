@@ -112,6 +112,22 @@
             </intent-filter>
         </service>
 
+        <!--Opt-in "Hide from shade, keep for later": disabled until the user turns it
+            on, so it is never bound and never listed in notification access before then-->
+        <service
+            android:name=".helper.notifications.QuietNotificationListener"
+            android:enabled="false"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.notification.default_filter_types"
+                android:value="conversations|alerting" />
+        </service>
+
     </application>
 
 </manifest>

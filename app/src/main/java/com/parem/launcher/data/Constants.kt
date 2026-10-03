@@ -46,6 +46,8 @@ object Constants {
         const val OPEN_CAMERA = 4
         const val TOGGLE_FLASHLIGHT = 5
         const val NONE = 6
+        // Swipe left/right only; the double-tap picker never offers it
+        const val QUIET_LIST = 7
     }
 
     object TextSize {
@@ -100,6 +102,8 @@ object Constants {
     const val FLAG_SET_SWIPE_UP_APP_8 = 28
     const val FLAG_SET_DOUBLE_TAP_APP = 30
     const val FLAG_SET_GESTURE_LETTER_APP = 40
+    // Opens the picked app's notification settings ("Make silent")
+    const val FLAG_PICK_SILENT_APP = 50
 
     const val APPWIDGET_HOST_ID = 1024
 

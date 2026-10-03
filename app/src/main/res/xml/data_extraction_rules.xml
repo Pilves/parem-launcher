@@ -2,8 +2,12 @@
 <data-extraction-rules>
     <cloud-backup>
         <include domain="sharedpref" path="." />
+        <!--Keys of notifications the quiet filter hid; device-only, see QuietNotificationsManager-->
+        <exclude domain="sharedpref" path="com.parem.launcher.quiet_keys.xml" />
     </cloud-backup>
     <device-transfer>
         <include domain="sharedpref" path="." />
+        <!--Keys of notifications the quiet filter hid; device-only, see QuietNotificationsManager-->
+        <exclude domain="sharedpref" path="com.parem.launcher.quiet_keys.xml" />
     </device-transfer>
 </data-extraction-rules>
