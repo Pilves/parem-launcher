@@ -166,5 +166,13 @@ Pricing: free, no ads, no accounts, donations only — the privacy story is the 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
   per commit since the last review, one WP row per pick. No blind merges.
   Log: 2026-07-03 (3 fixes ported, last port `bec09c7`), 2026-07-06 (nothing),
-  2026-07-09 (4 skipped, upstream ViewPager restructure incompatible).
-  Next: M2-WP2.
+  2026-07-09 (4 skipped, upstream ViewPager restructure incompatible),
+  2026-10-03 (M2-WP2, to upstream `66712f7`: 2 fixes ported — `7e69731`
+  drawer stuck with animations off, `fc5b37f` LTPO e-ink false positive;
+  `952d9e9` not needed, Parem applies text size on tap; planned: `33ea31e` →
+  M3-WP6, `4c210da` → M3-WP5, `a9da9d4` → M3-WP7, `14b89e9` → M4-WP7,
+  `2b117ed` → M2-WP1; skipped: `8bbea58` `e3fa863` `33e9b29` `51018c9`
+  settings popup/dialog-blur rework, `bf7cda5` swipe-down removal, `9e26070`
+  footer code Parem lacks, `c3ee696` README + `dependenciesInfo` (wanted
+  before the IzzyOnDroid request, not a fix), version bumps, README,
+  translations).
