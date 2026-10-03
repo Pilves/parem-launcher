@@ -13,7 +13,12 @@ class MyAccessibilityService : AccessibilityService() {
 
     override fun onServiceConnected() {
         lockDescription = getString(R.string.lock_layout_description)
-        Prefs(applicationContext).lockModeOn = true
+        Prefs(applicationContext).apply {
+            lockModeOn = true
+            lockServiceConnected = true
+            // Re-arm the one-time "service is off" explanation for the next time it goes away
+            lockServiceOffExplained = false
+        }
         super.onServiceConnected()
     }
 

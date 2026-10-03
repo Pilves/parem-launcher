@@ -33,3 +33,23 @@ fun showLockConsent(context: Context, onAccept: () -> Unit, onDecline: () -> Uni
         .onDismiss { if (!decided) onDecline() }
         .show()
 }
+
+/**
+ * Shown once when the lock service worked here before and Android has since
+ * turned it off. Unlike [showLockConsent], dismissing leaves the gesture set:
+ * the user already chose double-tap lock, Android undid it. It still carries
+ * the full disclosure and an explicit accept, because it routes into
+ * accessibility settings (M2-WP5: consent before every such route).
+ */
+fun showLockServiceOff(context: Context, onAccept: () -> Unit) {
+    var body = context.getString(R.string.lock_service_off_body) +
+        "\n\n" + context.getString(R.string.lock_consent_body)
+    if (Build.VERSION.SDK_INT >= 33)
+        body += "\n\n" + context.getString(R.string.lock_consent_restricted)
+    BottomSheetMenu(context)
+        .title(context.getString(R.string.lock_service_off_title))
+        .message(body)
+        .option(context.getString(R.string.lock_consent_accept), onClick = onAccept)
+        .option(context.getString(R.string.lock_consent_decline), dimmed = true) {}
+        .show()
+}

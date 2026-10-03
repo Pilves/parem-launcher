@@ -343,4 +343,7 @@
     <string name="lock_consent_accept" translatable="false">Agree and open settings</string>
     <string name="lock_consent_decline" translatable="false">Not now</string>
     <string name="lock_consent_restricted" translatable="false">If the switch is greyed out: App info > menu > Allow restricted settings.</string>
+    <string name="lock_service_off_title" translatable="false">Lock gesture is off</string>
+    <string name="lock_service_off_body" translatable="false">Parem\'s accessibility service is no longer running, so your lock gesture cannot lock the screen. Android can turn it off after an app update, a crash, or when a security setting restricts accessibility services. Turn it back on in Accessibility settings, or pick another gesture action in Parem\'s gesture settings.</string>
+    <string name="lock_service_off_toast" translatable="false">Can\'t lock: Parem\'s accessibility service is off</string>
 </resources>

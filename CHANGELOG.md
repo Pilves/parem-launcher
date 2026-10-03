@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- When Android turns off Parem's lock service after it has worked (an update,
+  a crash or a security setting), the lock gesture now explains that once
+  instead of doing nothing; later taps show a short note until it is back on
 - The screen-time sheet now compares this week with last week: daily average
   up or down against last week, and the app that rose and fell the most.
   Android keeps a limited usage history (often about ten days), so last week

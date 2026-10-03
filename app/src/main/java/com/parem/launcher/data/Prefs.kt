@@ -36,6 +36,8 @@ class Prefs(context: Context) {
     private val FIRST_OPEN_TIME = "FIRST_OPEN_TIME"
     private val FIRST_HIDE = "FIRST_HIDE"
     private val LOCK_MODE = "LOCK_MODE"
+    private val LOCK_SERVICE_CONNECTED = "LOCK_SERVICE_CONNECTED"
+    private val LOCK_SERVICE_OFF_EXPLAINED = "LOCK_SERVICE_OFF_EXPLAINED"
     private val HOME_APPS_NUM = "HOME_APPS_NUM"
     private val AUTO_SHOW_KEYBOARD = "AUTO_SHOW_KEYBOARD"
     private val KEYBOARD_MESSAGE = "KEYBOARD_MESSAGE"
@@ -107,6 +109,16 @@ class Prefs(context: Context) {
     var lockModeOn: Boolean
         get() = prefs.getBoolean(LOCK_MODE, false)
         set(value) = prefs.edit { putBoolean(LOCK_MODE, value) }
+
+    // Device-specific (export-excluded): an imported "connected" would turn the
+    // first-time consent sheet into a "your service was turned off" sheet.
+    var lockServiceConnected: Boolean
+        get() = prefs.getBoolean(LOCK_SERVICE_CONNECTED, false)
+        set(value) = prefs.edit { putBoolean(LOCK_SERVICE_CONNECTED, value) }
+
+    var lockServiceOffExplained: Boolean
+        get() = prefs.getBoolean(LOCK_SERVICE_OFF_EXPLAINED, false)
+        set(value) = prefs.edit { putBoolean(LOCK_SERVICE_OFF_EXPLAINED, value) }
 
     // Versioned so updates that add major features re-show onboarding once;
     // also immune to auto-backup restoring the old boolean flag
@@ -488,7 +500,8 @@ class Prefs(context: Context) {
         "CURRENCY_RATES", "CURRENCY_LAST_SUCCESS_MS", "CURRENCY_LAST_ATTEMPT_MS",
         "FOCUS_MODE_ENABLED", "FOCUS_MODE_END_TIME",
         "ONBOARDING_COMPLETE", ONBOARDING_VERSION_SEEN,
-        PERIODIC_SELF_RECREATE_ENABLED
+        PERIODIC_SELF_RECREATE_ENABLED,
+        LOCK_SERVICE_CONNECTED, LOCK_SERVICE_OFF_EXPLAINED
     )
 
     fun exportToJson(): JSONObject {

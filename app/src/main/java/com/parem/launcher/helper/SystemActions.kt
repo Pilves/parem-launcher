@@ -1,5 +1,6 @@
 package com.parem.launcher.helper
 
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -11,6 +12,7 @@ import android.provider.CalendarContract
 import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
+import android.view.accessibility.AccessibilityManager
 import com.parem.launcher.R
 
 /**
@@ -97,6 +99,22 @@ fun isAccessServiceEnabled(context: Context): Boolean {
         return enabledServicesString?.contains(context.packageName + "/" + MyAccessibilityService::class.java.name) ?: false
     }
     return false
+}
+
+/**
+ * True when the system has the service bound. The enabled-services setting can
+ * still list a service Android has stopped (crash, restriction), and then the
+ * lock click reaches nobody; this list only holds services that are running.
+ * Fails open (true) so a query error keeps the old click-and-hope behaviour.
+ */
+fun isAccessServiceBound(context: Context): Boolean = try {
+    val manager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+    manager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK).any {
+        val service = it.resolveInfo?.serviceInfo
+        service?.packageName == context.packageName && service.name == MyAccessibilityService::class.java.name
+    }
+} catch (e: Exception) {
+    true
 }
 
 fun Context.uninstall(packageName: String) {
