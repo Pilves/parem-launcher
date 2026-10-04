@@ -469,4 +469,11 @@
     <string name="onboarding_set_up" translatable="false">Set up</string>
     <string name="onboarding_footer" translatable="false">Change any of these later in Settings</string>
     <string name="onboarding_done" translatable="false">Done</string>
+    <!-- Screen-reader routes out of home (UX-2) -->
+    <string name="a11y_all_apps" translatable="false">All apps</string>
+    <string name="a11y_open_app" translatable="false">Open %1$s</string>
+    <string name="a11y_app_info" translatable="false">App info</string>
+    <string name="a11y_work_profile" translatable="false">Work profile</string>
+    <string name="a11y_screen_time_today" translatable="false">Screen time today, %1$s</string>
+    <string name="a11y_screen_time_under_minute" translatable="false">Screen time today, under 1 minute</string>
 </resources>

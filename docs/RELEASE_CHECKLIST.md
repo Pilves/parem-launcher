@@ -200,6 +200,27 @@ device. Delete it again once the tag is pushed.
 - [ ] Drawer typing with contact search on and a large address book is smooth
 - [ ] No periodic self-restart over a few hours of use (PAREM-108)
 
+## 6.0 UX device pass
+
+One subsection per UX package; each package appends its own lines (append-only,
+see DESIGN.md 13.2). Run with TalkBack on unless a line says otherwise.
+
+### UX-2 — TalkBack users can leave home (M4-WP32)
+
+- [ ] **Merge gate (trap #1):** TalkBack on, first swipe right on home lands on
+      the clock or a slot — never on "lock layout description…"; linear
+      navigation never reaches it at all
+- [ ] **Merge gate (trap #1):** TalkBack off, accessibility lock service on,
+      double tap on empty home still locks the phone
+- [ ] TalkBack on: the "All apps" row shows under the slots (portrait and
+      landscape) and opens the drawer; turning TalkBack off from the volume-key
+      shortcut while home is showing hides it again
+- [ ] TalkBack actions menu on a slot lists All apps, Settings, Notifications,
+      Add widget and the configured swipe apps; each one does what it says
+- [ ] Screen time reads "Screen time today, 1 minute" (not "1 m"); the settings
+      info icon reads "App info"; a work-profile app's dot reads "Work profile"
+- [ ] With the "All apps" row showing, no slot is cut off at the bottom
+
 ## Sign-off
 
 - [ ] Every box above ticked on: device / Android version ___

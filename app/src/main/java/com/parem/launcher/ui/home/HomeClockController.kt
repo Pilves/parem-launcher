@@ -1,6 +1,9 @@
 package com.parem.launcher.ui.home
 
 import android.content.Intent
+import android.icu.text.MeasureFormat
+import android.icu.util.Measure
+import android.icu.util.MeasureUnit
 import android.os.BatteryManager
 import android.text.Spannable
 import android.text.SpannableString
@@ -14,9 +17,11 @@ import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
+import com.parem.launcher.helper.ScreenTimeSpeech
 import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.WeatherStaleness
 import com.parem.launcher.helper.appUsagePermissionGranted
+import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.openAlarmApp
 import com.parem.launcher.helper.openCalendar
 import com.parem.launcher.ui.HomeFragment
@@ -101,6 +106,24 @@ class HomeClockController(
 
         viewModel.getTodaysScreenTime()
         binding.tvScreenTime.visibility = View.VISIBLE
+    }
+
+    fun showScreenTime(timeSpentMs: Long) {
+        binding.tvScreenTime.text = context.formattedTimeSpent(timeSpentMs)
+        // "1m" is read as "one metre"; give TalkBack words
+        binding.tvScreenTime.contentDescription = when (val spoken = ScreenTimeSpeech.of(timeSpentMs)) {
+            ScreenTimeSpeech.UnderAMinute -> context.getString(R.string.a11y_screen_time_under_minute)
+            is ScreenTimeSpeech.Duration -> {
+                val measures = listOfNotNull(
+                    spoken.hours?.let { Measure(it, MeasureUnit.HOUR) },
+                    spoken.minutes?.let { Measure(it, MeasureUnit.MINUTE) },
+                )
+                val duration = MeasureFormat
+                    .getInstance(context.resources.configuration.locales[0], MeasureFormat.FormatWidth.WIDE)
+                    .formatMeasures(*measures.toTypedArray())
+                context.getString(R.string.a11y_screen_time_today, duration)
+            }
+        }
     }
 
     fun openClockApp() {

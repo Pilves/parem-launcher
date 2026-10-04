@@ -8,6 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import androidx.core.os.bundleOf
+import androidx.core.view.AccessibilityDelegateCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -71,6 +74,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         slotsController?.setHomeAlignment(prefs.homeAlignment)
         gesturesController?.initSwipeTouchListener()
         initClickListeners()
+        gesturesController?.initAllAppsRow()
         gesturesController?.initGestureLetterOverlay()
         viewLifecycleOwner.lifecycleScope.launch {
             widgetController?.restoreWidgets()
@@ -86,6 +90,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         super.onResume()
         // Cancel any pending long-press timers from before the app was backgrounded
         widgetController?.cancelPendingLongPresses()
+        // Before populating: the "All apps" row's visibility feeds slot fitting
+        gesturesController?.refreshAccessibilityRoutes()
         slotsController?.populateHomeScreen(false)
         viewModel.isParemDefault()
         if (prefs.showStatusBar) showStatusBar()
@@ -169,7 +175,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             clockController?.populateDateTime()
         }
         viewModel.screenTimeValue.observe(viewLifecycleOwner) {
-            it?.let { binding.tvScreenTime.text = it }
+            it?.let { clockController?.showScreenTime(it) }
         }
         viewModel.weatherValue.observe(viewLifecycleOwner) {
             clockController?.populateDateTime()
@@ -178,6 +184,17 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
     private fun initClickListeners() {
         binding.lock.setOnClickListener(this)
+        // Trap #1: keep the view, its description and its click events, but take it out
+        // of the node tree so TalkBack never lands on it or offers it a double-tap.
+        // Not importantForAccessibility="no": that would also stop the click event
+        // reaching MyAccessibilityService, which lacks flagIncludeNotImportantViews.
+        ViewCompat.setAccessibilityDelegate(binding.lock, object : AccessibilityDelegateCompat() {
+            override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                super.onInitializeAccessibilityNodeInfo(host, info)
+                info.isVisibleToUser = false
+                info.removeAction(AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_CLICK)
+            }
+        })
         binding.clock.setOnClickListener(this)
         binding.date.setOnClickListener(this)
         binding.clock.setOnLongClickListener(this)

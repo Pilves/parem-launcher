@@ -193,6 +193,20 @@
                 android:tag="@string/tag_8"
                 android:visibility="gone"
                 tools:visibility="visible" />
+
+            <!-- Shown only while touch exploration (TalkBack) is on: a visible route to
+                 the drawer for people who can't swipe up (UX-2) -->
+            <TextView
+                android:id="@+id/homeAllApps"
+                style="@style/TextLarge"
+                android:background="@drawable/bg_focus_highlight"
+                android:focusable="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingVertical="@dimen/home_app_padding_vertical"
+                android:text="@string/a11y_all_apps"
+                android:textColor="?attr/primaryColorTrans50"
+                android:visibility="gone" />
         </LinearLayout>
 
         <!-- Widget column: both placement variants (above/below) live here so

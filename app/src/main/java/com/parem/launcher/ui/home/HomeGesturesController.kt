@@ -8,8 +8,11 @@ import android.provider.Settings
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.view.accessibility.AccessibilityManager
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.view.ViewCompat
+import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.MainActivity
@@ -20,6 +23,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
 import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.GestureLetterManager
+import com.parem.launcher.helper.HomeAccessibilityActions
 import com.parem.launcher.helper.SwipeUpAppManager
 import com.parem.launcher.helper.expandNotificationDrawer
 import com.parem.launcher.helper.LockServiceCheck
@@ -63,6 +67,8 @@ class HomeGesturesController(
     private val viewTouchListeners = mutableListOf<ViewSwipeTouchListener>()
     private var flashlightOn: Boolean = false
     private var torchCallback: android.hardware.camera2.CameraManager.TorchCallback? = null
+    private val accessibilityActionIds = mutableListOf<Pair<View, Int>>()
+    private var touchExplorationListener: AccessibilityManager.TouchExplorationStateChangeListener? = null
 
     // Track the real torch state so toggleFlashlight() can't desync when
     // another app (or quick settings) switches the torch
@@ -90,6 +96,10 @@ class HomeGesturesController(
     }
 
     fun cleanupListeners() {
+        touchExplorationListener?.let {
+            context.getSystemService(AccessibilityManager::class.java)?.removeTouchExplorationStateChangeListener(it)
+        }
+        touchExplorationListener = null
         screenTouchListener?.cleanup()
         screenTouchListener = null
         viewTouchListeners.forEach { it.cleanup() }
@@ -102,6 +112,81 @@ class HomeGesturesController(
         screenTouchListener = getSwipeGestureListener(context)
         binding.mainLayout.setOnTouchListener(screenTouchListener)
         fragment.slotsController?.homeAppViews?.forEach { it.setOnTouchListener(getViewSwipeTouchListener(context, it)) }
+    }
+
+    /**
+     * Non-gesture routes out of home (UX-2): TalkBack, Switch Access and Voice
+     * Access consume the swipes and the long-press, so mainLayout and every slot
+     * carry custom actions, and a visible "All apps" row appears while touch
+     * exploration is on. Called from onResume so changed swipe apps show up.
+     */
+    fun refreshAccessibilityRoutes() {
+        accessibilityActionIds.forEach { (view, id) -> ViewCompat.removeAccessibilityAction(view, id) }
+        accessibilityActionIds.clear()
+        val left = HomeAccessibilityActions.configuredApp(
+            prefs.swipeLeftEnabled,
+            prefs.getEffectiveSwipeLeftAction() == Constants.GestureAction.OPEN_APP,
+            prefs.appPackageSwipeLeft,
+            prefs.appNameSwipeLeft,
+        )
+        val right = HomeAccessibilityActions.configuredApp(
+            prefs.swipeRightEnabled,
+            prefs.getEffectiveSwipeRightAction() == Constants.GestureAction.OPEN_APP,
+            prefs.appPackageSwipeRight,
+            prefs.appNameSwipeRight,
+        )
+        addAccessibilityActions(binding.mainLayout, 0, HomeAccessibilityActions.forView(left, right))
+        fragment.slotsController?.homeAppViews?.forEach { view ->
+            val slot = view.tag.toString().toIntOrNull() ?: 0
+            val swipeUp = if (slot in 1..8 && SwipeUpAppManager.hasSwipeUpApp(context, slot))
+                SwipeUpAppManager.getSwipeUpAppName(context, slot)
+                    .ifEmpty { SwipeUpAppManager.getSwipeUpAppPackage(context, slot) }
+            else null
+            addAccessibilityActions(view, slot, HomeAccessibilityActions.forView(left, right, swipeUp))
+        }
+        binding.homeAllApps.isVisible =
+            context.getSystemService(AccessibilityManager::class.java)?.isTouchExplorationEnabled == true
+    }
+
+    /** Wires the "All apps" row and keeps it in step when TalkBack is toggled while home is showing. */
+    fun initAllAppsRow() {
+        binding.homeAllApps.setOnClickListener { fragment.showAppList(Constants.FLAG_LAUNCH_APP) }
+        val listener = AccessibilityManager.TouchExplorationStateChangeListener { enabled ->
+            if (!fragment.isAdded || touchExplorationListener == null) return@TouchExplorationStateChangeListener
+            binding.homeAllApps.isVisible = enabled
+            fragment.slotsController?.populateHomeScreen(false)
+        }
+        context.getSystemService(AccessibilityManager::class.java)?.addTouchExplorationStateChangeListener(listener)
+        touchExplorationListener = listener
+    }
+
+    private fun addAccessibilityActions(view: View, slot: Int, actions: List<HomeAccessibilityActions.Action>) {
+        actions.forEach { action ->
+            val label = when (action.kind) {
+                HomeAccessibilityActions.Kind.ALL_APPS -> context.getString(R.string.a11y_all_apps)
+                HomeAccessibilityActions.Kind.SETTINGS -> context.getString(R.string.settings)
+                HomeAccessibilityActions.Kind.NOTIFICATIONS -> context.getString(R.string.notifications)
+                HomeAccessibilityActions.Kind.ADD_WIDGET -> context.getString(R.string.add_widget)
+                HomeAccessibilityActions.Kind.SWIPE_LEFT_APP,
+                HomeAccessibilityActions.Kind.SWIPE_RIGHT_APP,
+                HomeAccessibilityActions.Kind.SWIPE_UP_APP -> context.getString(R.string.a11y_open_app, action.appName)
+            }
+            val id = ViewCompat.addAccessibilityAction(view, label) { _, _ ->
+                if (!fragment.isAdded) return@addAccessibilityAction false
+                when (action.kind) {
+                    HomeAccessibilityActions.Kind.ALL_APPS -> fragment.showAppList(Constants.FLAG_LAUNCH_APP)
+                    HomeAccessibilityActions.Kind.SETTINGS -> openSettings()
+                    HomeAccessibilityActions.Kind.NOTIFICATIONS -> expandNotificationDrawer(context)
+                    HomeAccessibilityActions.Kind.ADD_WIDGET -> fragment.widgetController?.showWidgetPicker()
+                    HomeAccessibilityActions.Kind.SWIPE_LEFT_APP -> openSwipeLeftApp()
+                    HomeAccessibilityActions.Kind.SWIPE_RIGHT_APP -> openSwipeRightApp()
+                    HomeAccessibilityActions.Kind.SWIPE_UP_APP -> launchSwipeUpApp(slot)
+                }
+                true
+            }
+            // View.NO_ID: the view has run out of custom action ids
+            if (id != View.NO_ID) accessibilityActionIds += view to id
+        }
     }
 
     fun initGestureLetterOverlay() {
@@ -230,12 +315,7 @@ class HomeGesturesController(
                 super.onSwipeUp()
                 val slot = try { view.tag.toString().toInt() } catch (_: Exception) { 0 }
                 if (slot in 1..8 && SwipeUpAppManager.hasSwipeUpApp(context, slot)) {
-                    fragment.slotsController?.launchApp(
-                        SwipeUpAppManager.getSwipeUpAppName(context, slot),
-                        SwipeUpAppManager.getSwipeUpAppPackage(context, slot),
-                        SwipeUpAppManager.getSwipeUpAppActivity(context, slot),
-                        SwipeUpAppManager.getSwipeUpAppUser(context, slot)
-                    )
+                    launchSwipeUpApp(slot)
                 } else {
                     fragment.showAppList(Constants.FLAG_LAUNCH_APP)
                 }
@@ -258,6 +338,15 @@ class HomeGesturesController(
         }
         viewTouchListeners.add(listener)
         return listener
+    }
+
+    private fun launchSwipeUpApp(slot: Int) {
+        fragment.slotsController?.launchApp(
+            SwipeUpAppManager.getSwipeUpAppName(context, slot),
+            SwipeUpAppManager.getSwipeUpAppPackage(context, slot),
+            SwipeUpAppManager.getSwipeUpAppActivity(context, slot),
+            SwipeUpAppManager.getSwipeUpAppUser(context, slot)
+        )
     }
 
     private fun textOnClick(view: View) = fragment.onClick(view)
@@ -396,6 +485,11 @@ class HomeGesturesController(
         }
     }
 
+    private fun openSettings() {
+        fragment.findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
+        viewModel.firstOpen(false)
+    }
+
     private fun showHomeLongPressMenu() {
         val dialog = BottomSheetDialog(context)
         val view = fragment.layoutInflater.inflate(R.layout.dialog_home_menu, null)
@@ -405,8 +499,7 @@ class HomeGesturesController(
         }
         view.findViewById<TextView>(R.id.menuSettings).setOnClickListener {
             dialog.dismiss()
-            fragment.findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
-            viewModel.firstOpen(false)
+            openSettings()
         }
         dialog.setContentView(view)
         dialog.transparentSheetFrame()

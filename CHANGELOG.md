@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+- TalkBack, Switch Access and Voice Access users can leave home: the home
+  screen and every app row offer All apps, Settings, Notifications, Add widget
+  and the configured swipe apps as actions, an "All apps" row appears under
+  the apps while TalkBack is on, and TalkBack no longer stops on the hidden
+  lock helper (where a double tap locked the phone). Screen time, the
+  settings info icon and the drawer's work-profile dot now have spoken labels
+
 - Onboarding stays until you finish or skip it, instead of never coming back
   if Parem was closed or restarted partway through
 

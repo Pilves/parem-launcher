@@ -156,7 +156,10 @@ class HomeSlotsController(
                         ?.takeIf { it.isVisible && it.parent === layout }
                         ?.height ?: 0
 
-                    val usableHeight = availableHeight - widgetHeight
+                    // The touch-exploration "All apps" row shares the column too
+                    val allAppsHeight = binding.homeAllApps.takeIf { it.isVisible }?.height ?: 0
+
+                    val usableHeight = availableHeight - widgetHeight - allAppsHeight
                     if (usableHeight <= 0) return@fitApps
 
                     // Measure height of a single app view

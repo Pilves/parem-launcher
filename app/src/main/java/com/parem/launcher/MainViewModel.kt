@@ -35,7 +35,6 @@ import com.parem.launcher.helper.ThemeScheduleManager
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.WallpaperWorker
 import com.parem.launcher.helper.WeatherManager
-import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.hasBeenMinutes
 import com.parem.launcher.helper.isParemDefault
@@ -66,7 +65,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val isParemDefault = MutableLiveData<Boolean>()
     val launcherResetFailed = MutableLiveData<Boolean>()
     val homeAppAlignment = MutableLiveData<Int>()
-    val screenTimeValue = MutableLiveData<String>()
+    val screenTimeValue = MutableLiveData<Long>()
     val perAppScreenTime = MutableLiveData<Map<String, Long>>()
     val weatherValue = MutableLiveData<String>()
 
@@ -441,8 +440,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // Total = sum of the shared per-app map, so the home screen, drawer
             // and limit checks all reuse one cached event-log scan (PAREM-115).
             val timeSpent = UsageStatsHelper.getPerAppUsageToday(appContext).values.sum()
-            val viewTimeSpent = appContext.formattedTimeSpent(timeSpent)
-            screenTimeValue.postValue(viewTimeSpent)
+            screenTimeValue.postValue(timeSpent)
             prefs.screenTimeLastUpdated = endTime
         }
     }
