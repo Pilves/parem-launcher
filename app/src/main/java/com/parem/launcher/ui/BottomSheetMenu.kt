@@ -7,6 +7,7 @@ import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.Lifecycle
@@ -25,6 +26,17 @@ import com.parem.launcher.helper.skipAnimations
 fun BottomSheetDialog.transparentSheetFrame() {
     findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
         ?.setBackgroundColor(Color.TRANSPARENT)
+}
+
+/**
+ * For BottomSheetDialog subclasses that call setContentView in onCreate, after
+ * that call. The decor is installed there, after BottomSheetDialog.onCreate set
+ * the window to MATCH_PARENT, and the floating dialog theme resets it to
+ * WRAP_CONTENT: on tablets the sheet then shrinks to its narrowest row.
+ * Sheets that set content before show() don't need it.
+ */
+fun BottomSheetDialog.matchParentSheetWindow() {
+    window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
 }
 
 /**

@@ -48,6 +48,7 @@ class FocusModeDialog(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.dialog_focus_mode)
+        matchParentSheetWindow()
         transparentSheetFrame()
         disableAnimationsOnEink()
         // Landscape's short default peek would open the sheet half-hidden;

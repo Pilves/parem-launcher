@@ -154,6 +154,7 @@ class ScreenTimeLimitDialog(
         // actually scrolled); expanded so landscape's short peek doesn't
         // open it half-hidden
         setContentView(ScrollView(context).apply { addView(rootLayout) })
+        matchParentSheetWindow()
         transparentSheetFrame()
         disableAnimationsOnEink()
         behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED

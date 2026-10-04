@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- On tablets the App limits and Focus mode sheets use the full sheet width
+  instead of shrinking to a narrow column, so their rows and Save are usable.
+
 - TalkBack, Switch Access and Voice Access users can leave home: the home
   screen and every app row offer All apps, Settings, Notifications, Add widget
   and the configured swipe apps as actions, an "All apps" row appears under
