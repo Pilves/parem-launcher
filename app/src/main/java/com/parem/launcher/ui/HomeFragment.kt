@@ -76,8 +76,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             widgetController?.restoreWidgets()
         }
 
+        // OnboardingFragment marks it seen when finished or skipped, not here
         if (prefs.onboardingVersionSeen < Constants.ONBOARDING_VERSION) {
-            prefs.onboardingVersionSeen = Constants.ONBOARDING_VERSION
             findNavController().navigate(R.id.action_mainFragment_to_onboardingFragment)
         }
     }

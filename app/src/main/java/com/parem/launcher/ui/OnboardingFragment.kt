@@ -49,8 +49,8 @@ class OnboardingFragment : BaseFragment() {
     private var askedForHome = false
     private val rows = mutableListOf<Row>()
 
-    private val backOnHomeScreen = object : OnBackPressedCallback(false) {
-        override fun handleOnBackPressed() = showCalm()
+    private val backPress = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() = if (showingCalm) finish() else showCalm()
     }
 
     private class Row(val view: View, val value: TextView, val state: (Context) -> String)
@@ -66,10 +66,10 @@ class OnboardingFragment : BaseFragment() {
         viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         askedForHome = savedInstanceState?.getBoolean(KEY_ASKED) ?: false
 
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backOnHomeScreen)
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPress)
         binding.btnSetHome.setOnClickListener { askForHome() }
         binding.btnNotNow.setOnClickListener { showCalm() }
-        binding.btnDone.setOnClickListener { findNavController().popBackStack() }
+        binding.btnDone.setOnClickListener { finish() }
         addCalmRows()
 
         if (savedInstanceState?.getBoolean(KEY_CALM) == true) showCalm() else showHome()
@@ -97,7 +97,6 @@ class OnboardingFragment : BaseFragment() {
         showingCalm = false
         binding.homeScreen.visibility = View.VISIBLE
         binding.calmScreen.visibility = View.GONE
-        backOnHomeScreen.isEnabled = true
     }
 
     private fun showCalm() {
@@ -105,8 +104,15 @@ class OnboardingFragment : BaseFragment() {
         showingCalm = true
         binding.homeScreen.visibility = View.GONE
         binding.calmScreen.visibility = View.VISIBLE
-        backOnHomeScreen.isEnabled = false
         refreshRows()
+    }
+
+    // Marked seen only on the way out: a kill or recreate mid-onboarding must bring it back
+    private fun finish() {
+        prefs.onboardingVersionSeen = Constants.ONBOARDING_VERSION
+        // A double tap on Done would otherwise pop home too
+        val nav = findNavController()
+        if (nav.currentDestination?.id == R.id.onboardingFragment) nav.popBackStack()
     }
 
     private fun askForHome() {

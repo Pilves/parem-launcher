@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Onboarding stays until you finish or skip it, instead of never coming back
+  if Parem was closed or restarted partway through
+
 - Pressing Home with a Settings sheet open closes the sheet instead of
   leaving it over the home screen, where using it could crash Parem; a fast
   double-tap on a Settings row that opens a list no longer crashes either
