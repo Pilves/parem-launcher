@@ -11,7 +11,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import com.parem.launcher.BuildConfig
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -25,6 +24,7 @@ import com.parem.launcher.helper.openUrl
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SettingsFragment
+import com.parem.launcher.ui.dismissOnDestroy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -115,7 +115,7 @@ class AppInfoSettingsCard(
             return
         }
         viewModel.getHiddenApps()
-        fragment.findNavController().navigate(
+        fragment.navigateFromSettings(
             R.id.action_settingsFragment_to_appListFragment,
             bundleOf(Constants.Key.FLAG to Constants.FLAG_HIDDEN_APPS)
         )
@@ -157,10 +157,12 @@ class AppInfoSettingsCard(
                     addCategory(Intent.CATEGORY_OPENABLE)
                     type = "application/json"
                 }
-                importSettingsLauncher.launch(intent)
+                // The launcher is unregistered once the fragment is destroyed
+                if (fragment.isAdded) importSettingsLauncher.launch(intent)
             }
             .option(context.getString(R.string.cancel), dimmed = true) {}
             .show()
+            .dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     /** Called from the fragment's registerForActivityResult callback. */

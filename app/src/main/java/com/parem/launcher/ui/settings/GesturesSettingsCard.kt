@@ -8,7 +8,6 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import androidx.core.os.bundleOf
-import androidx.navigation.fragment.findNavController
 import com.parem.launcher.MainActivity
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -24,6 +23,7 @@ import com.parem.launcher.helper.showToast
 import com.parem.launcher.listener.DeviceAdmin
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SettingsFragment
+import com.parem.launcher.ui.dismissOnDestroy
 import com.parem.launcher.ui.requestLockAdmin
 import com.parem.launcher.ui.showLockConsent
 
@@ -100,6 +100,7 @@ class GesturesSettingsCard(
                     GestureLetterConfigDialog(
                         context,
                         viewModel,
+                        fragment.viewLifecycleOwner,
                         onPickAppForLetter = { showAppListForSwipe(Constants.FLAG_SET_GESTURE_LETTER_APP) },
                         onDisabled = onWellbeingChanged,
                     ).show()
@@ -237,7 +238,7 @@ class GesturesSettingsCard(
                 populateLockMethod()
             }
         }
-        menu.show()
+        menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     private fun gestureActionChoices() = listOfNotNull(
@@ -298,7 +299,7 @@ class GesturesSettingsCard(
                 populateLockMethod()
             }
         }
-        menu.show()
+        menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     /**
@@ -363,7 +364,7 @@ class GesturesSettingsCard(
 
     private fun showAppListForSwipe(flag: Int) {
         viewModel.getAppList(true)
-        fragment.findNavController().navigate(
+        fragment.navigateFromSettings(
             R.id.action_settingsFragment_to_appListFragment,
             bundleOf(Constants.Key.FLAG to flag)
         )

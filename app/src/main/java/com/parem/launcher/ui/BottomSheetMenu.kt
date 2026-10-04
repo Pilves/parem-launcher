@@ -1,5 +1,6 @@
 package com.parem.launcher.ui
 
+import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
@@ -8,6 +9,9 @@ import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.R
 import com.parem.launcher.helper.dpToPx
@@ -31,6 +35,19 @@ fun BottomSheetDialog.transparentSheetFrame() {
  */
 fun BottomSheetDialog.disableAnimationsOnEink() {
     if (context.skipAnimations()) window?.setWindowAnimations(0)
+}
+
+/**
+ * Dismisses the dialog when [owner] is destroyed. Dialogs live in the
+ * activity's window, so a sheet opened from a fragment would otherwise stay
+ * up after Home pops the fragment, and its callbacks would then reach a
+ * fragment that is no longer attached.
+ */
+fun <T : Dialog> T.dismissOnDestroy(owner: LifecycleOwner): T {
+    owner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
+        if (event == Lifecycle.Event.ON_DESTROY) dismiss()
+    })
+    return this
 }
 
 /** Resolves the theme's selectableItemBackground for tap ripple on sheet rows. */

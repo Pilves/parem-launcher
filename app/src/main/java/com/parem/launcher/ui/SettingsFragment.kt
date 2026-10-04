@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -130,6 +131,7 @@ class SettingsFragment : BaseFragment() {
      * opening one picker should close whichever other one was left open.
      */
     internal fun resetOpenPickers(clickedId: Int) {
+        if (_binding == null) return
         binding.appsNumSelectLayout.visibility = View.GONE
         binding.dateTimeSelectLayout.visibility = View.GONE
         binding.swipeDownSelectLayout.visibility = View.GONE
@@ -137,6 +139,18 @@ class SettingsFragment : BaseFragment() {
         binding.textSizesLayout.visibility = View.GONE
         if (clickedId != R.id.alignmentBottom)
             binding.alignmentSelectLayout.visibility = View.GONE
+    }
+
+    /**
+     * Navigates only while Settings is still the current destination: a fast
+     * double-tap on a row would otherwise fire the settings action a second
+     * time from the app list, which has no such action, and crash.
+     */
+    internal fun navigateFromSettings(actionId: Int, args: Bundle? = null) {
+        if (!isAdded) return
+        val nav = findNavController()
+        if (nav.currentDestination?.id != R.id.settingsFragment) return
+        nav.navigate(actionId, args)
     }
 
     /**
@@ -164,6 +178,8 @@ class SettingsFragment : BaseFragment() {
     }
 
     internal fun populateWellbeingSection() {
+        // Also reached from sheet dismiss listeners, which can run after onDestroyView
+        if (_binding == null) return
         binding.focusModeToggle?.text = if (FocusModeManager.isActive(requireContext())) getString(R.string.on) else getString(R.string.off)
 
         binding.gestureLettersToggle?.text = if (GestureLetterManager.isEnabled(requireContext())) getString(R.string.on) else getString(R.string.off)

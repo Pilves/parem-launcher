@@ -8,7 +8,6 @@ import androidx.core.os.bundleOf
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -26,6 +25,7 @@ import com.parem.launcher.ui.GrayscaleSheet
 import com.parem.launcher.ui.QuietListSheet
 import com.parem.launcher.ui.ScreenTimeLimitDialog
 import com.parem.launcher.ui.SettingsFragment
+import com.parem.launcher.ui.dismissOnDestroy
 import kotlinx.coroutines.launch
 
 /**
@@ -84,7 +84,7 @@ class WellbeingSettingsCard(
             R.id.quietNotifAllowed -> QuietListSheet.editAllowed(fragment, prefs, fragment::isBindingAlive)
             R.id.quietNotifSilent -> {
                 viewModel.getAppList(true)
-                fragment.findNavController().navigate(
+                fragment.navigateFromSettings(
                     R.id.action_settingsFragment_to_appListFragment,
                     bundleOf(Constants.Key.FLAG to Constants.FLAG_PICK_SILENT_APP)
                 )
@@ -170,7 +170,7 @@ class WellbeingSettingsCard(
             val allApps = apps.map { it.appPackage to it.appLabel }.distinctBy { it.first }
             val dialog = FocusModeDialog(context, allApps)
             dialog.setOnDismissListener { onWellbeingChanged() }
-            dialog.show()
+            dialog.dismissOnDestroy(fragment.viewLifecycleOwner).show()
         }
     }
 
@@ -182,6 +182,6 @@ class WellbeingSettingsCard(
         // The async usage scan may not have landed on a fresh settings open;
         // fall back to the last persisted map rather than opening an empty sheet
         val usageMap = viewModel.perAppScreenTime.value ?: prefs.getCachedUsageStats()
-        ScreenTimeLimitDialog(context, usageMap).show()
+        ScreenTimeLimitDialog(context, usageMap).dismissOnDestroy(fragment.viewLifecycleOwner).show()
     }
 }

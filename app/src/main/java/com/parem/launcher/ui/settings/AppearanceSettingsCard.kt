@@ -21,6 +21,7 @@ import com.parem.launcher.helper.setPlainWallpaper
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SettingsFragment
+import com.parem.launcher.ui.dismissOnDestroy
 import java.util.Locale
 
 /**
@@ -92,7 +93,8 @@ class AppearanceSettingsCard(
                 if (WeatherManager.isEnabled(context)) {
                     WeatherManager.setEnabled(context, false)
                 } else {
-                    WeatherSettingsDialog(context, fragment.viewLifecycleOwner, onCityChosen = onWellbeingChanged).show()
+                    WeatherSettingsDialog(context, fragment.viewLifecycleOwner, onCityChosen = onWellbeingChanged)
+                        .dismissOnDestroy(fragment.viewLifecycleOwner).show()
                 }
                 onWellbeingChanged()
             }
@@ -182,7 +184,7 @@ class AppearanceSettingsCard(
     private fun updateTextSizeScale(sizeScale: Float) {
         if (prefs.textSizeScale == sizeScale) return
         prefs.textSizeScale = sizeScale
-        fragment.requireActivity().recreate()
+        fragment.activity?.recreate()
     }
 
     private fun populateTextSize() {
@@ -202,7 +204,7 @@ class AppearanceSettingsCard(
         prefs.boldFont = !prefs.boldFont
         populateBoldFont()
         // The font lives in a theme overlay applied in MainActivity.onCreate
-        fragment.requireActivity().recreate()
+        fragment.activity?.recreate()
     }
 
     private fun populateBoldFont() {
@@ -222,7 +224,7 @@ class AppearanceSettingsCard(
             setPlainWallpaper(theme)
             viewModel.setWallpaperWorker()
         }
-        fragment.requireActivity().recreate()
+        fragment.activity?.recreate()
     }
 
     private fun setPlainWallpaper(appTheme: Int) {
@@ -257,6 +259,7 @@ class AppearanceSettingsCard(
             .option(context.getString(R.string.scheduled)) { setScheduledTheme(Constants.ThemeScheduleMode.SCHEDULED) }
             .option(context.getString(R.string.sunrise_sunset)) { setScheduledTheme(Constants.ThemeScheduleMode.SUNRISE_SUNSET) }
             .show()
+            .dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     private fun setManualTheme(mode: Int) {
@@ -283,7 +286,7 @@ class AppearanceSettingsCard(
             AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
         if (AppCompatDelegate.getDefaultNightMode() != newTheme) {
             prefs.appTheme = newTheme
-            fragment.requireActivity().recreate()
+            fragment.activity?.recreate()
         } else {
             populateAppThemeText()
         }
@@ -296,6 +299,8 @@ class AppearanceSettingsCard(
             return (parts.getOrNull(0)?.toIntOrNull() ?: defH) to (parts.getOrNull(1)?.toIntOrNull() ?: 0)
         }
 
+        // Taken up front: the dark picker opens later, from the light one's callback
+        val owner = fragment.viewLifecycleOwner
         val (lightH, lightM) = parse(ThemeScheduleManager.getLightTime(ctx), 7)
         TimePickerDialog(ctx, { _, h, m ->
             ThemeScheduleManager.setLightTime(ctx, String.format(Locale.ROOT, "%02d:%02d", h, m))
@@ -303,7 +308,9 @@ class AppearanceSettingsCard(
             TimePickerDialog(ctx, { _, h2, m2 ->
                 ThemeScheduleManager.setDarkTime(ctx, String.format(Locale.ROOT, "%02d:%02d", h2, m2))
                 onDone()
-            }, darkH, darkM, true).apply { setTitle(ctx.getString(R.string.dark_theme_from)) }.show()
-        }, lightH, lightM, true).apply { setTitle(ctx.getString(R.string.light_theme_from)) }.show()
+            }, darkH, darkM, true).apply { setTitle(ctx.getString(R.string.dark_theme_from)) }
+                .dismissOnDestroy(owner).show()
+        }, lightH, lightM, true).apply { setTitle(ctx.getString(R.string.light_theme_from)) }
+            .dismissOnDestroy(owner).show()
     }
 }

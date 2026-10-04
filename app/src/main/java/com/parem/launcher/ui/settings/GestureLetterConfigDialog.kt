@@ -5,6 +5,7 @@ import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -12,6 +13,7 @@ import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.ui.BottomSheetMenu
+import com.parem.launcher.ui.dismissOnDestroy
 
 /**
  * Bottom sheet listing every supported gesture letter with its current app
@@ -20,6 +22,8 @@ import com.parem.launcher.ui.BottomSheetMenu
  * unchanged, including the dismiss-and-rebuild-self trick used after a
  * mapping is cleared.
  *
+ * @param lifecycleOwner The fragment's viewLifecycleOwner; the sheet, including
+ * the rebuilt copy, is dismissed when it is destroyed.
  * @param onPickAppForLetter Called (with the dialog already dismissed) after the
  * user taps an unmapped/mapped letter row; sets [MainViewModel.pendingGestureLetter]
  * and navigates to the app list.
@@ -29,6 +33,7 @@ import com.parem.launcher.ui.BottomSheetMenu
 class GestureLetterConfigDialog(
     private val context: Context,
     private val viewModel: MainViewModel,
+    private val lifecycleOwner: LifecycleOwner,
     private val onPickAppForLetter: (Char) -> Unit,
     private val onDisabled: () -> Unit,
 ) {
@@ -90,7 +95,7 @@ class GestureLetterConfigDialog(
             onDisabled()
         }
 
-        dialog = menu.show()
+        dialog = menu.show().dismissOnDestroy(lifecycleOwner)
         return dialog
     }
 }

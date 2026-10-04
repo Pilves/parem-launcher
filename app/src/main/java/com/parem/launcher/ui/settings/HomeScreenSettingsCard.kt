@@ -5,7 +5,6 @@ import android.view.Gravity
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
-import androidx.navigation.fragment.findNavController
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -17,6 +16,7 @@ import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SettingsFragment
+import com.parem.launcher.ui.dismissOnDestroy
 
 /**
  * Card 2 ("Home Screen"): number of home apps, date/time visibility, home
@@ -134,7 +134,7 @@ class HomeScreenSettingsCard(
         when (view.id) {
             R.id.alignment -> {
                 prefs.appLabelAlignment = prefs.homeAlignment
-                fragment.findNavController().navigate(R.id.action_settingsFragment_to_appListFragment)
+                fragment.navigateFromSettings(R.id.action_settingsFragment_to_appListFragment)
                 context.showToast(context.getString(R.string.alignment_changed))
             }
         }
@@ -232,7 +232,7 @@ class HomeScreenSettingsCard(
         for ((pkg, label) in packs) {
             menu.option(label) { applyIconPack(pkg) }
         }
-        menu.show()
+        menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     private fun applyIconPack(pkg: String) {
