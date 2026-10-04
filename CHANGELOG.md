@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Rotating the screen with Settings open no longer crashes Parem (which
+  could make Android drop it as the home app)
+
 - Release APKs no longer carry Google's encrypted dependency-info block, a
   step towards F-Droid
 

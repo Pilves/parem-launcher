@@ -6,6 +6,7 @@ import android.view.View
 import android.view.WindowInsets
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.doOnAttach
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -112,12 +113,13 @@ class AppearanceSettingsCard(
     }
 
     private fun populateStatusBar() {
-        if (prefs.showStatusBar) {
-            showStatusBar()
-            binding.statusBar.text = context.getString(R.string.on)
-        } else {
-            hideStatusBar()
-            binding.statusBar.text = context.getString(R.string.off)
+        binding.statusBar.text = context.getString(if (prefs.showStatusBar) R.string.on else R.string.off)
+        // On a rotation restore this runs while MainActivity is still inflating its
+        // layout, before setContentView installs the decor, and window.insetsController
+        // throws. Once the view is attached the decor exists.
+        binding.root.doOnAttach {
+            if (!fragment.isAdded) return@doOnAttach
+            if (prefs.showStatusBar) showStatusBar() else hideStatusBar()
         }
     }
 
