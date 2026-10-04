@@ -14,7 +14,8 @@ AutoName: Parem Launcher
 AntiFeatures:
   NonFreeNet:
     en-US: |-
-      Daily wallpapers are downloaded from Unsplash, and omnibox currency
+      Daily wallpapers are picked from a list hosted on GitHub Gist and
+      downloaded from Unsplash, and omnibox currency
       conversion fetches daily rates from the European Central Bank. Both only
       run once you turn on daily wallpapers or type a currency conversion.
       Weather uses Open-Meteo, which is open source.

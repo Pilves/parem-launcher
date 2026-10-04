@@ -33,12 +33,15 @@ jobs:
         if: inputs.tag != ''
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release download "${{ inputs.tag }}" --pattern 'ParemLauncher-*.apk' --dir release
+          TAG: ${{ inputs.tag }}
+        run: gh release download "$TAG" --pattern 'ParemLauncher-*.apk' --dir release
 
       - name: Build twice and compare
+        env:
+          TAG: ${{ inputs.tag }}
         run: |
-          if [ -n "${{ inputs.tag }}" ]; then
-            scripts/check-reproducible.sh "${{ inputs.tag }}" release/ParemLauncher-${{ inputs.tag }}.apk
+          if [ -n "$TAG" ]; then
+            scripts/check-reproducible.sh "$TAG" "release/ParemLauncher-$TAG.apk"
           else
             scripts/check-reproducible.sh HEAD
           fi

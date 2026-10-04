@@ -24,8 +24,8 @@ build (a bundle, re-signed by Play) stays a separate install either way.
 
 ## Anti-features
 
-`NonFreeNet`: daily wallpapers come from Unsplash and currency rates from the
-ECB, neither a free-software service. Both run only after the user opts in
+`NonFreeNet`: daily wallpapers come from Unsplash (picked from a list on a
+GitHub Gist inherited from Olauncher) and currency rates from the ECB, neither a free-software service. Both run only after the user opts in
 (daily wallpapers toggle, typing a currency conversion). Weather uses
 Open-Meteo, which is AGPL open source, so it does not count. Nothing else
 goes online: web search and the GitHub link open in the browser.
@@ -84,7 +84,11 @@ that still differs, compare with `diffoscope` on the kept build directories.
 > - Permissions worth explaining: the accessibility service is used only for
 >   double tap to lock the screen, off by default; `WRITE_SECURE_SETTINGS` (grayscale) is
 >   granted once over adb, through in-app wireless-debugging pairing on the
->   device itself, a WebUSB page or a plain adb command; `ACCESS_HIDDEN_PROFILES` is for Private Space support.
+>   device itself, a WebUSB page or a plain adb command; `ACCESS_HIDDEN_PROFILES` is for Private Space support;
+>   `PACKAGE_USAGE_STATS` powers screen time and app limits, read on the
+>   device only; the notification listener is disabled until the user turns
+>   on quiet notifications; device admin is an optional fallback for screen
+>   lock when the accessibility service is off.
 > - Fastlane metadata, screenshots and changelogs are in the repo.
 >
 > I am the developer and agree to the app being published in F-Droid.
