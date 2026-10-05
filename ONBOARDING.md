@@ -91,12 +91,14 @@ ARCHITECTURE.md under "Building on ARM64 hosts".
 
 ## How a change ships
 
-1. Pick a ticket from `TODO.md` (top-down within "Next up"). Read its scope
-   AND its out-of-scope — staying inside the box is the skill.
+1. Claim a work package: `scripts/claim-wp.sh next` (the queue is
+   `docs/ROADMAP.md`; workflow in `AGENTS.md`). Read its row AND what it
+   doesn't own — staying inside the box is the skill.
 2. Branch off master (`fix/…`, `feat/…`, `refactor/…`, `chore/…`).
 3. Make the change. Match surrounding style; comments explain *why*, not what.
 4. If behavior changed: add a line under `## [Unreleased]` in CHANGELOG.md.
-5. Tick the ticket's box in TODO.md as part of the branch.
+5. Add `docs/handoff/<WP-id>.md` and run `node scripts/build-handoff.mjs`
+   (format in `docs/handoff/README.md`) — never tick the roadmap by hand.
 6. Run the full verify loop above. Commits: plain imperative mood
    ("remove the cap", not "removed"), no signatures.
 7. Release process (version bump, fastlane, tag) is in ARCHITECTURE.md —
@@ -107,9 +109,9 @@ ARCHITECTURE.md under "Building on ARM64 hosts".
 1. **Read-only**: do the three traces above; write down one question each.
 2. **Docs**: fix anything this file or ARCHITECTURE.md got wrong — docs PRs
    are real PRs.
-3. **Dead code**: PAREM-113 in TODO.md (a confirmed-dead function) — small,
+3. **Dead code**: PAREM-113 in `docs/archive/TODO-pre-roadmap.md` (a confirmed-dead function) — small,
    real, teaches the verify loop and git archaeology.
 4. **Pure logic**: add a unit alias or category to `UnitConverter` + tests —
    no Android surface, tests prove you right.
-5. **UI change**: pick a P3+ ticket from TODO.md that touches one fragment,
+5. **UI change**: pick a roadmap package that touches one fragment,
    after doing 1-4.

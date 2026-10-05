@@ -1,0 +1,48 @@
+name: Work package
+description: One deliverable for one contributor (human or agent), sized for one PR.
+title: "[M?-WP?] "
+labels: ["work-package"]
+body:
+  - type: input
+    id: milestone
+    attributes:
+      label: Milestone and package id
+      placeholder: M1-WP3
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: What exists when this is done, in one or two sentences. Reference the roadmap row.
+    validations:
+      required: true
+  - type: textarea
+    id: owned
+    attributes:
+      label: Files owned
+      description: Directories and files this package may create or change. Anything else is off limits.
+    validations:
+      required: true
+  - type: textarea
+    id: forbidden
+    attributes:
+      label: Hot files not to touch
+      description: Shared files another package owns right now (see the hot-files table in docs/ROADMAP.md).
+  - type: textarea
+    id: contract
+    attributes:
+      label: Interface / contract
+      description: Function signatures, pref keys, flags or types that other packages depend on. Freeze these first.
+  - type: textarea
+    id: depends
+    attributes:
+      label: Depends on
+      description: Packages that must merge before this one starts.
+  - type: textarea
+    id: done
+    attributes:
+      label: Done criteria
+      description: Observable checks. Tests named. Verification limits allowed but stated.
+    validations:
+      required: true

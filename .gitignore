@@ -21,3 +21,6 @@ nul
 keystore.b64
 *.png
 !app/**/*.png
+
+# agent worktrees
+.claude/worktrees/
