@@ -24,7 +24,7 @@ import java.util.Locale
 
 /**
  * Card 3 ("Appearance"): theme mode (incl. scheduled/sunrise-sunset), text
- * size, daily wallpaper, notification bar, and weather (city picker).
+ * size, bold font, daily wallpaper, notification bar, and weather (city picker).
  *
  * Extracted from SettingsFragment; mirrors HomeWidgetController's shape.
  */
@@ -42,6 +42,7 @@ class AppearanceSettingsCard(
         populateWallpaperText()
         populateAppThemeText()
         populateTextSize()
+        populateBoldFont()
         populateStatusBar()
 
         initClickListeners()
@@ -50,6 +51,7 @@ class AppearanceSettingsCard(
     private fun initClickListeners() {
         binding.appThemeText.setOnClickListener(this)
         binding.textSizeValue.setOnClickListener(this)
+        binding.boldFont.setOnClickListener(this)
         binding.dailyWallpaperUrl.setOnClickListener(this)
         binding.dailyWallpaper.setOnClickListener(this)
         binding.statusBar.setOnClickListener(this)
@@ -75,6 +77,7 @@ class AppearanceSettingsCard(
             R.id.statusBar -> toggleStatusBar()
             R.id.appThemeText -> showThemePicker()
             R.id.textSizeValue -> binding.textSizesLayout.visibility = View.VISIBLE
+            R.id.boldFont -> toggleBoldFont()
 
             R.id.textSize1 -> updateTextSizeScale(Constants.TextSize.ONE)
             R.id.textSize2 -> updateTextSizeScale(Constants.TextSize.TWO)
@@ -191,6 +194,17 @@ class AppearanceSettingsCard(
             Constants.TextSize.SEVEN -> 7
             else -> "--"
         }.toString()
+    }
+
+    private fun toggleBoldFont() {
+        prefs.boldFont = !prefs.boldFont
+        populateBoldFont()
+        // The font lives in a theme overlay applied in MainActivity.onCreate
+        fragment.requireActivity().recreate()
+    }
+
+    private fun populateBoldFont() {
+        binding.boldFont.text = context.getString(if (prefs.boldFont) R.string.on else R.string.off)
     }
 
     private fun updateTheme(appTheme: Int) {

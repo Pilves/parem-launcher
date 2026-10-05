@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdk 35
+    compileSdk 36
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -16,9 +16,12 @@ android {
     defaultConfig {
         applicationId "com.parem.launcher"
         minSdkVersion 24
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode 102
         versionName "v5.7.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments clearPackageData: 'true'
 
         resourceConfigurations += ["en", "ar", "de", "es-rES", "es-rUS", "fr", "he", "hr", "hu", "in", "it", "ja", "pl", "pt-rBR", "ru-rRU", "sv", "tr", "uk", "zh"]
     }
@@ -50,6 +53,10 @@ android {
             applicationIdSuffix ".debug"
         }
     }
+    testOptions {
+        execution 'ANDROIDX_TEST_ORCHESTRATOR'
+        animationsDisabled true
+    }
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -75,5 +82,10 @@ dependencies {
     implementation libs.material
 
     testImplementation libs.junit
+
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.uiautomator
+    androidTestUtil libs.androidx.test.orchestrator
 
 }

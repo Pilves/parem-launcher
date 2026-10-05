@@ -2,6 +2,39 @@
 
 ## [Unreleased]
 
+- E-ink phones (Boox/Onyx, Hisense A-series, Mudita and other e-ink brands)
+  are now recognised and get no screen transitions, drawer or sheet animations;
+  light theme is only the first-run default there, so a dark-theme choice sticks.
+  With any system animation scale at 0, bottom sheets also open without sliding
+- Parem no longer asks to see every installed package (`QUERY_ALL_PACKAGES`);
+  it declares only the app kinds it uses: launchable apps, launchers, icon
+  packs and widget providers
+- Target Android 16 (API 36).
+- The widget picker lists work-profile widgets (under the badged app name) and,
+  on Android 15+, shows a live preview for widgets that publish one
+- Lock screen gestures (double tap, swipe) now show a clear disclosure of what
+  the accessibility service sees and ask for consent before opening
+  Accessibility settings, from Settings and from the home screen; declining
+  leaves the lock off, and the service no longer reads screen content
+- Fixed: with system animations turned off, the app drawer (and other
+  screens) could stay stuck on screen instead of closing (from Olauncher #713)
+- Fixed: phones with adaptive refresh rate (LTPO) screens could be mistaken
+  for e-ink displays when idle, forcing the light theme and turning off the
+  drawer animation (from Olauncher #724)
+- New "Bold font" toggle under Appearance swaps the light typeface for a
+  heavier one on home, drawer and settings text (from Olauncher)
+- The drawer search converts currencies ("10 eur in usd") using the European
+  Central Bank's daily reference rates, showing the rates' date. Typing a
+  currency conversion may make one anonymous download a day of the public
+  rates from www.ecb.europa.eu; nothing you type leaves the phone
+- New "Lock home layout" toggle under Home Screen: while on, long-pressing a
+  home app or folder no longer opens the change/folder/limit/delete menu, so
+  the layout can't be edited by accident (from Olauncher #726)
+- Keyboard and D-pad: home apps, clock and drawer rows can be reached with the
+  arrow keys and opened with Enter (long-press Enter for the menu); typing a
+  letter or digit on the home screen opens the drawer search with it, and the
+  Menu key opens the drawer (from Olauncher)
+
 ## v5.7.0
 
 - The number-of-apps picker now knows how much room the home screen actually

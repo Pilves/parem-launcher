@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -27,12 +26,14 @@ import com.parem.launcher.helper.ContactSearchManager
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
-import com.parem.launcher.helper.ExpressionEvaluator
-import com.parem.launcher.helper.UnitConverter
+import com.parem.launcher.helper.CurrencyRates
+import com.parem.launcher.helper.OmniboxMode
+import com.parem.launcher.helper.OmniboxResolver
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isEinkDisplay
+import com.parem.launcher.helper.skipAnimations
 import com.parem.launcher.helper.isSystemApp
 import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.openSearch
@@ -46,7 +47,7 @@ import kotlinx.coroutines.withContext
 import androidx.lifecycle.lifecycleScope
 
 
-class AppDrawerFragment : Fragment() {
+class AppDrawerFragment : BaseFragment() {
 
     private lateinit var prefs: Prefs
     private lateinit var adapter: AppDrawerAdapter
@@ -54,6 +55,13 @@ class AppDrawerFragment : Fragment() {
 
     private var flag = Constants.FLAG_LAUNCH_APP
     private var canRename = false
+    // Key typed on a hardware keyboard at home; seeds the search once the app
+    // list is in (filtering an empty list would flash "no apps found")
+    private var typedQuery = ""
+    // Opening the drawer also reloads the list, and setAppList shows it whole,
+    // so a seeded query is re-applied when the fresh list lands. Cleared on
+    // hide/rename: their reload could narrow to one match and auto-launch it.
+    private var reapplyQueryOnReload = false
     private var scrollListener: RecyclerView.OnScrollListener? = null
     private var searchTextView: TextView? = null
     private var cachedIsCjkKeyboard: Boolean? = null
@@ -67,11 +75,10 @@ class AppDrawerFragment : Fragment() {
     // permitted (see loadContactsIfEnabled). Empty otherwise → no matching runs.
     private var contacts: List<ContactMatcher.Contact> = emptyList()
 
-    companion object {
-        // Digits with optional leading + and spaces, at least 4 digits total.
-        // Hyphenated numbers lose to the calculator (they parse as subtraction).
-        private val DIAL_REGEX = Regex("^\\+?[0-9][0-9 ]{2,}[0-9]$")
-    }
+    // At most one ECB rates fetch per drawer session, started by the first
+    // currency query; the in-flight flag picks the CurrencyNoRates tip.
+    private var currencyFetchStarted = false
+    private var currencyFetchInFlight = false
 
     private val viewModel: MainViewModel by activityViewModels()
     private var _binding: FragmentAppDrawerBinding? = null
@@ -92,6 +99,8 @@ class AppDrawerFragment : Fragment() {
         arguments?.let {
             flag = it.getInt(Constants.Key.FLAG, Constants.FLAG_LAUNCH_APP)
             canRename = it.getBoolean(Constants.Key.RENAME, false)
+            if (savedInstanceState == null)
+                typedQuery = it.getString(Constants.Key.QUERY).orEmpty()
         }
         initViews()
         initSearch()
@@ -178,6 +187,11 @@ class AppDrawerFragment : Fragment() {
                         ctx.copyToClipboard(mode.result)
                         ctx.showToast(getString(R.string.copied))
                     }
+                    is OmniboxMode.Currency -> {
+                        ctx.copyToClipboard(mode.result)
+                        ctx.showToast(getString(R.string.copied))
+                    }
+                    OmniboxMode.CurrencyNoRates -> {}
                     is OmniboxMode.Dial -> dial(ctx, mode.number)
                     is OmniboxMode.Contact -> dial(ctx, mode.number)
                     OmniboxMode.WebSearch ->
@@ -228,52 +242,41 @@ class AppDrawerFragment : Fragment() {
         // Omnibox modes only make sense when the drawer is a launcher, not when
         // it is open as an app picker (set home app / swipe app / etc.)
         if (flag != Constants.FLAG_LAUNCH_APP) return
-        val trimmed = newText.trim()
+        omniboxMode = OmniboxResolver.resolve(newText, contacts, CurrencyRates.cached(b.root.context))
+        if (omniboxMode is OmniboxMode.Currency || omniboxMode == OmniboxMode.CurrencyNoRates)
+            fetchCurrencyRatesOnce()
+        val tip = when (val mode = omniboxMode) {
+            is OmniboxMode.Calc -> "= ${mode.result}"
+            is OmniboxMode.Conversion -> "= ${mode.result}"
+            is OmniboxMode.Currency -> getString(R.string.currency_hint, mode.result, mode.date)
+            OmniboxMode.CurrencyNoRates -> getString(
+                if (currencyFetchInFlight) R.string.currency_downloading else R.string.currency_unavailable
+            )
+            is OmniboxMode.Dial -> getString(R.string.call_hint, mode.number)
+            OmniboxMode.WebSearch -> getString(R.string.google_search_hint, newText.trim())
+            is OmniboxMode.Contact -> getString(R.string.contact_hint, mode.name, mode.number)
+            OmniboxMode.None -> null
+        }
+        if (tip != null) b.appDrawerTip.text = tip
+        b.appDrawerTip.visibility = if (tip != null) View.VISIBLE else View.GONE
+    }
 
-        if (ExpressionEvaluator.looksLikeExpression(trimmed)) {
-            ExpressionEvaluator.evaluate(trimmed)?.let { value ->
-                val result = ExpressionEvaluator.format(value)
-                omniboxMode = OmniboxMode.Calc(result)
-                b.appDrawerTip.text = "= $result"
-                b.appDrawerTip.visibility = View.VISIBLE
-                return
-            }
+    /** fetchIfDue is a no-op when the cache is fresh; the re-resolve shows new rates without retyping. */
+    private fun fetchCurrencyRatesOnce() {
+        if (currencyFetchStarted) return
+        currencyFetchStarted = true
+        currencyFetchInFlight = true
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            CurrencyRates.fetchIfDue(appContext)
+            currencyFetchInFlight = false
+            val b = _binding ?: return@launch
+            if (!isAdded) return@launch
+            // Only a still-showing currency tip is refreshed; other tips (e.g.
+            // "no apps found") are owned by the filter callback.
+            if (omniboxMode is OmniboxMode.Currency || omniboxMode == OmniboxMode.CurrencyNoRates)
+                updateOmniboxState(b.search.query.toString())
         }
-        // Letters-only unit tokens keep this disjoint from both the calculator
-        // (digits/operators only) and the dial matcher below (digits/spaces
-        // only), so there's no ordering conflict between the three.
-        if (UnitConverter.looksLikeConversion(trimmed)) {
-            UnitConverter.convert(trimmed)?.let { result ->
-                val formatted = result.format()
-                omniboxMode = OmniboxMode.Conversion(formatted)
-                b.appDrawerTip.text = "= $formatted"
-                b.appDrawerTip.visibility = View.VISIBLE
-                return
-            }
-        }
-        if (DIAL_REGEX.matches(trimmed) && trimmed.count { it.isDigit() } >= 4) {
-            omniboxMode = OmniboxMode.Dial(trimmed)
-            b.appDrawerTip.text = getString(R.string.call_hint, trimmed)
-            b.appDrawerTip.visibility = View.VISIBLE
-            return
-        }
-        if (newText.startsWith(" ") && trimmed.isNotEmpty()) {
-            omniboxMode = OmniboxMode.WebSearch
-            b.appDrawerTip.text = getString(R.string.google_search_hint, trimmed)
-            b.appDrawerTip.visibility = View.VISIBLE
-            return
-        }
-        // Contacts rank below every other mode and below the app list (which the
-        // filter still populates): the matching contact only fills the tip line.
-        if (contacts.isNotEmpty() && ContactMatcher.looksLikeContactQuery(trimmed)) {
-            ContactMatcher.match(trimmed, contacts).firstOrNull()?.let { top ->
-                omniboxMode = OmniboxMode.Contact(top.name, top.number)
-                b.appDrawerTip.text = getString(R.string.contact_hint, top.name, top.number)
-                b.appDrawerTip.visibility = View.VISIBLE
-                return
-            }
-        }
-        b.appDrawerTip.visibility = View.GONE
     }
 
     private fun initAdapter() {
@@ -317,6 +320,7 @@ class AppDrawerFragment : Fragment() {
             },
             appHideListener = { appModel, position ->
                 if (!isAdded) return@AppDrawerAdapter
+                reapplyQueryOnReload = false
                 adapter.removeApp(position)
 
                 val newSet = mutableSetOf<String>()
@@ -340,6 +344,7 @@ class AppDrawerFragment : Fragment() {
                 viewModel.getHiddenApps()
             },
             appRenameListener = { appModel, renameLabel ->
+                reapplyQueryOnReload = false
                 prefs.setAppRenameLabel(appModel.appPackage, renameLabel)
                 viewModel.getAppList()
             }
@@ -369,7 +374,10 @@ class AppDrawerFragment : Fragment() {
         scrollListener = getRecyclerViewOnScrollListener()
         binding.recyclerView.addOnScrollListener(scrollListener!!)
         binding.recyclerView.itemAnimator = null
-        if (requireContext().isEinkDisplay().not())
+        // The glow isn't an animator, so no system scale removes it; on e-ink it forces a partial refresh
+        if (requireContext().isEinkDisplay())
+            binding.recyclerView.overScrollMode = View.OVER_SCROLL_NEVER
+        if (requireContext().skipAnimations().not())
             binding.recyclerView.layoutAnimation =
                 AnimationUtils.loadLayoutAnimation(requireContext(), R.anim.layout_anim_from_bottom)
     }
@@ -402,6 +410,14 @@ class AppDrawerFragment : Fragment() {
             viewModel.appList.observe(viewLifecycleOwner) {
                 it?.let { appModels ->
                     adapter.setAppList(appModels.toMutableList())
+                    if (typedQuery.isNotEmpty()) {
+                        // Keys typed after the drawer took focus follow the first one
+                        binding.search.setQuery(typedQuery + binding.search.query, false)
+                        typedQuery = ""
+                        reapplyQueryOnReload = true
+                    } else if (reapplyQueryOnReload) {
+                        adapter.filter.filter(binding.search.query)
+                    }
                 }
             }
         }
@@ -426,6 +442,11 @@ class AppDrawerFragment : Fragment() {
                     return@setOnClickListener
                 }
                 is OmniboxMode.Conversion -> {
+                    requireContext().copyToClipboard(mode.result)
+                    requireContext().showToast(getString(R.string.copied))
+                    return@setOnClickListener
+                }
+                is OmniboxMode.Currency -> {
                     requireContext().copyToClipboard(mode.result)
                     requireContext().showToast(getString(R.string.copied))
                     return@setOnClickListener
@@ -473,7 +494,8 @@ class AppDrawerFragment : Fragment() {
                         if (!recyclerView.canScrollVertically(1))
                             _binding?.search?.hideKeyboard()
                         else if (!recyclerView.canScrollVertically(-1))
-                            if (!onTop && isRemoving.not())
+                            // A d-pad focused row reaching the top keeps its focus
+                            if (!onTop && isRemoving.not() && recyclerView.focusedChild == null)
                                 _binding?.search?.showKeyboard(prefs.autoShowKeyboard)
                     }
                 }
@@ -538,6 +560,8 @@ class AppDrawerFragment : Fragment() {
         super.onStart()
         cachedIsCjkKeyboard = null
         binding.search.showKeyboard(prefs.autoShowKeyboard)
+        // Further typing must land in the field even with keyboard auto-show off
+        if (typedQuery.isNotEmpty()) binding.search.requestFocus()
     }
 
     override fun onStop() {
@@ -552,17 +576,4 @@ class AppDrawerFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-}
-
-/**
- * The omnibox can be in exactly one mode at a time. [None] is ordinary app
- * search; the others each drive the tip line and the submit action.
- */
-sealed interface OmniboxMode {
-    object None : OmniboxMode
-    data class Calc(val result: String) : OmniboxMode
-    data class Conversion(val result: String) : OmniboxMode
-    data class Dial(val number: String) : OmniboxMode
-    object WebSearch : OmniboxMode
-    data class Contact(val name: String, val number: String) : OmniboxMode
 }

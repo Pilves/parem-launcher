@@ -86,7 +86,7 @@ date-driven yet — Parem is not listed — but all of it gates the 6.0 launch.
 |---|---|---|---|
 | M2-WP1 | **Design first.** targetSdk/compileSdk 36 — mandatory for Play updates. Proposal covers: edge-to-edge (opt-out removed at 36) on home, drawer, settings and every BottomSheetMenu sheet; predictive back in drawer/settings/sheets; any behaviour change list for API 36 that touches launchers (home intent, accessibility lock, usage stats, widgets) | `app/build.gradle` SDK lines, `MainActivity`, insets handling in layouts/fragments it names | Builds at 36; proposal's on-device checks listed as "not verified" until Patric runs them |
 | M2-WP2 | Upstream Olauncher review (since 2026-07-09, upstream HEAD `66712f7`): a shortlist with verdicts. Port *fixes* only: drawer not closing with animations off (`7e69731`, #713), pending text size applied on leaving settings (`952d9e9`), e-ink false detection on adaptive-refresh displays (`fc5b37f`; this fork has `isEinkDisplay()` in `helper/Extensions.kt`). Features go to M3. Skip: settings popup rework, dialog blur, swipe-down removal | Review notes in the PR; each accepted fix becomes `M2-WP2a`, `M2-WP2b`, … rows | Every upstream commit since the last review has a verdict; log line added to the recurring section below |
-| M2-WP3 | About + privacy wiring: fill `Constants.URL_ABOUT_PAREM` / `URL_PAREM_PRIVACY`, unhide their settings rows, remove the known-issue line. Blocked on Patric's privacy text (must cover READ_CONTACTS — read on-device only, opt-in, never transmitted — usage stats, weather requests to Open-Meteo) | `data/Constants.kt`, `ui/settings/AppInfoSettingsCard.kt`, `ARCHITECTURE.md` known issues | Rows visible and open the right URLs; Play Data safety answers listed in the PR for Patric |
+| M2-WP3 | About + privacy wiring: fill `Constants.URL_ABOUT_PAREM` / `URL_PAREM_PRIVACY`, unhide their settings rows, remove the known-issue line. Blocked on Patric's privacy text (must cover READ_CONTACTS — read on-device only, opt-in, never transmitted — usage stats, weather requests to Open-Meteo, and ECB rate downloads from `www.ecb.europa.eu` — only after a currency query is typed, a fixed URL carrying no user data, M3-WP4) | `data/Constants.kt`, `ui/settings/AppInfoSettingsCard.kt`, `ARCHITECTURE.md` known issues | Rows visible and open the right URLs; Play Data safety answers listed in the PR for Patric |
 | M2-WP5 | **Design first.** Accessibility disclosure + consent: a BottomSheetMenu sheet shown before sending the user to enable the lock service — what it does, that it reads nothing else, explicit accept/decline (Play accessibility-API policy). Also drop `canRetrieveWindowContent="true"` from the service config if the lock still works without `event.source` (trap #1 — device check) | lock-enable flow in `ui/settings/GesturesSettingsCard.kt` and the home double-tap path, `res/xml` accessibility config, strings | Consent shown before every route into accessibility settings; decline leaves lock off; Play declaration text drafted in the PR for Patric |
 | M2-WP6 | Spike: can `QUERY_ALL_PACKAGES` go? App list comes from `LauncherApps`; the icon-pack `queryIntentActivities` may only need a `<queries>` entry. Remove the permission, add `<queries>`, check hidden apps, usage-stat names, icon packs, omnibox | `AndroidManifest.xml`, a verdict in the PR | Verdict with evidence; if removable, the change ships; if not, the Play declaration text for keeping it |
 | M2-WP4 | Remove dead `setPlainWallpaperByTheme` (moved, not removed, in PAREM-122). Confirm dead yourself; remove only what the deletion orphans | `helper/WallpaperUtils.kt` | No references left; full build green |
@@ -94,7 +94,7 @@ date-driven yet — Parem is not listed — but all of it gates the 6.0 launch.
 **Owner tasks**
 - PAREM-113: remove dead `removeActiveAdmin()` (Patric's own ticket, spec in the archive).
 - PAREM-107: device repro of residual gesture-letter vs swipe conflicts; findings become an M2 row if anything misfires.
-- Write the privacy policy / about content for M2-WP3; update Play Data safety for READ_CONTACTS.
+- Write the privacy policy / about content for M2-WP3 (it must list `www.ecb.europa.eu` as a destination: triggered only by typing a currency query, no user data — M3-WP4); update Play Data safety for READ_CONTACTS.
 - Play Console accessibility declaration + demo video, using M2-WP5's text.
 - Device pass at targetSdk 36 (checklist + M2-WP1's list), bump version, tag `v5.8.0`.
 
@@ -116,6 +116,10 @@ Depends on: M2 shipped. WP2 and WP3 are prerequisites for M4.
 
 | M3-WP10 | Performance baseline + budget: cold start to interactive home, return-to-home, drawer scroll and omnibox typing frame timing (Macrobenchmark or `am start -W` + gfxinfo), run in the M3-WP1 emulator CI. Budgets: cold start < 300 ms mid-range, return home < 100 ms, < 1% janky frames, no frame > 32 ms | new benchmark module or scripts, CI workflow from M3-WP1 | Numbers recorded in `docs/RELEASE_CHECKLIST.md`; CI fails on a > 20% regression |
 | M3-WP11 | **Design first.** Opt-in crash reports (ACRA or equivalent, F-Droid-compatible, no network SDK): off by default; on crash, offer to send a report via email/share sheet. Play vitals cover the Play channel | `app/build.gradle` dep, `Application` class, a settings row, strings | Off = nothing collected; on = user sees and sends the report themselves |
+
+**Known limitations**
+- M3-WP8: widget restore is not profile-aware. `prefs.widgetProviders` stores only the component string, and `processNextWidgetRestore()` rebinds via `bindAppWidgetIdIfAllowed(newId, component)` / an `ACTION_APPWIDGET_BIND` intent without `EXTRA_APPWIDGET_PROVIDER_PROFILE`. If the OS invalidates a work-profile widget (work profile removed or re-provisioned), restore silently rebinds the personal-profile provider of the same component, or shows a bind dialog for it. Fixing it means storing the profile alongside the component — a Trap #2 widget-ID change, so it needs its own WP.
+- M3-WP8: the picker fetches every provider's generated preview up front on IO before the sheet opens. Fine for typical provider counts; if it shows up in memory or open latency, fetch lazily per visible row or cap the count.
 
 **Owner tasks**
 - Pick which of M3-WP5…WP11 make the release; unpicked rows move to a later milestone.
@@ -166,5 +170,13 @@ Pricing: free, no ads, no accounts, donations only — the privacy story is the 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
   per commit since the last review, one WP row per pick. No blind merges.
   Log: 2026-07-03 (3 fixes ported, last port `bec09c7`), 2026-07-06 (nothing),
-  2026-07-09 (4 skipped, upstream ViewPager restructure incompatible).
-  Next: M2-WP2.
+  2026-07-09 (4 skipped, upstream ViewPager restructure incompatible),
+  2026-10-03 (M2-WP2, to upstream `66712f7`: 2 fixes ported — `7e69731`
+  drawer stuck with animations off, `fc5b37f` LTPO e-ink false positive;
+  `952d9e9` not needed, Parem applies text size on tap; planned: `33ea31e` →
+  M3-WP6, `4c210da` → M3-WP5, `a9da9d4` → M3-WP7, `14b89e9` → M4-WP7,
+  `2b117ed` → M2-WP1; skipped: `8bbea58` `e3fa863` `33e9b29` `51018c9`
+  settings popup/dialog-blur rework, `bf7cda5` swipe-down removal, `9e26070`
+  footer code Parem lacks, `c3ee696` README + `dependenciesInfo` (wanted
+  before the IzzyOnDroid request, not a fix), version bumps, README,
+  translations).

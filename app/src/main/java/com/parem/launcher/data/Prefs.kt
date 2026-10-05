@@ -20,7 +20,9 @@ class Prefs(context: Context) {
             "SCREEN_TIME_LAST_UPDATED",
             KEY_LAUNCHER_RECREATE_TIMESTAMP,
             "WEATHER_LAST_FETCHED",
-            "WEATHER_LAST_SUCCESS_MS"
+            "WEATHER_LAST_SUCCESS_MS",
+            "CURRENCY_LAST_SUCCESS_MS",
+            "CURRENCY_LAST_ATTEMPT_MS"
         )
 
         private val FLOAT_PREF_KEYS = setOf(
@@ -41,6 +43,7 @@ class Prefs(context: Context) {
     private val DAILY_WALLPAPER_URL = "DAILY_WALLPAPER_URL"
     private val HOME_ALIGNMENT = "HOME_ALIGNMENT"
     private val HOME_BOTTOM_ALIGNMENT = "HOME_BOTTOM_ALIGNMENT"
+    private val HOME_LAYOUT_LOCKED = "HOME_LAYOUT_LOCKED"
     private val APP_LABEL_ALIGNMENT = "APP_LABEL_ALIGNMENT"
     private val STATUS_BAR = "STATUS_BAR"
     private val DATE_TIME_VISIBILITY = "DATE_TIME_VISIBILITY"
@@ -51,6 +54,7 @@ class Prefs(context: Context) {
     private val APP_THEME = KEY_APP_THEME
     private val SWIPE_DOWN_ACTION = "SWIPE_DOWN_ACTION"
     private val TEXT_SIZE_SCALE = "TEXT_SIZE_SCALE"
+    private val BOLD_FONT = "BOLD_FONT"
     private val HIDE_SET_DEFAULT_LAUNCHER = "HIDE_SET_DEFAULT_LAUNCHER"
     private val SCREEN_TIME_LAST_UPDATED = "SCREEN_TIME_LAST_UPDATED"
     private val PERIODIC_SELF_RECREATE_ENABLED = "PERIODIC_SELF_RECREATE_ENABLED"
@@ -138,6 +142,10 @@ class Prefs(context: Context) {
         get() = prefs.getBoolean(HOME_BOTTOM_ALIGNMENT, false)
         set(value) = prefs.edit { putBoolean(HOME_BOTTOM_ALIGNMENT, value) }
 
+    var homeLayoutLocked: Boolean
+        get() = prefs.getBoolean(HOME_LAYOUT_LOCKED, false)
+        set(value) = prefs.edit { putBoolean(HOME_LAYOUT_LOCKED, value) }
+
     var appLabelAlignment: Int
         get() = prefs.getInt(APP_LABEL_ALIGNMENT, Gravity.START)
         set(value) = prefs.edit { putInt(APP_LABEL_ALIGNMENT, value) }
@@ -162,9 +170,17 @@ class Prefs(context: Context) {
         get() = prefs.getInt(APP_THEME, AppCompatDelegate.MODE_NIGHT_YES)
         set(value) = prefs.edit { putInt(APP_THEME, value) }
 
+    /** False until the user (settings, theme schedule or import) has ever set a theme. */
+    val hasAppTheme: Boolean
+        get() = prefs.contains(APP_THEME)
+
     var textSizeScale: Float
         get() = prefs.getFloat(TEXT_SIZE_SCALE, 1.0f)
         set(value) = prefs.edit { putFloat(TEXT_SIZE_SCALE, value) }
+
+    var boldFont: Boolean
+        get() = prefs.getBoolean(BOLD_FONT, false)
+        set(value) = prefs.edit { putBoolean(BOLD_FONT, value) }
 
     var hideSetDefaultLauncher: Boolean
         get() = prefs.getBoolean(HIDE_SET_DEFAULT_LAUNCHER, false)
@@ -469,6 +485,7 @@ class Prefs(context: Context) {
         CACHED_USAGE_STATS,
         "OPEN_COUNTS", "OPEN_COUNTS_DAY",
         "WEATHER_CACHED_TEMP", "WEATHER_LAST_FETCHED", "WEATHER_LAST_SUCCESS_MS",
+        "CURRENCY_RATES", "CURRENCY_LAST_SUCCESS_MS", "CURRENCY_LAST_ATTEMPT_MS",
         "FOCUS_MODE_ENABLED", "FOCUS_MODE_END_TIME",
         "ONBOARDING_COMPLETE", ONBOARDING_VERSION_SEEN,
         PERIODIC_SELF_RECREATE_ENABLED

@@ -12,6 +12,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.R
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.helper.skipAnimations
 
 /**
  * The sheet frame behind a rounded-corner content view must be transparent,
@@ -20,6 +21,16 @@ import com.parem.launcher.helper.getColorFromAttr
 fun BottomSheetDialog.transparentSheetFrame() {
     findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
         ?.setBackgroundColor(Color.TRANSPARENT)
+}
+
+/**
+ * Drops the sheet's slide-in on e-ink (ghosting) and when any system animation
+ * scale is 0. The system zeroes window animations only at *window* scale 0, so
+ * without this a user who set only animator scale 0 would still see sheets slide.
+ * Call before show(); sheets built outside [BottomSheetMenu] must call it themselves.
+ */
+fun BottomSheetDialog.disableAnimationsOnEink() {
+    if (context.skipAnimations()) window?.setWindowAnimations(0)
 }
 
 /** Resolves the theme's selectableItemBackground for tap ripple on sheet rows. */
@@ -109,6 +120,7 @@ class BottomSheetMenu(private val context: Context) {
         }
         dialog.setContentView(scroller)
         dialog.transparentSheetFrame()
+        dialog.disableAnimationsOnEink()
         dialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
         dialog.behavior.skipCollapsed = true
         dialog.show()

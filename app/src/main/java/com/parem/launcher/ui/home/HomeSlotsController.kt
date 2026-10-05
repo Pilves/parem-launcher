@@ -92,14 +92,14 @@ class HomeSlotsController(
             if (folderManager.isFolderSlot(slot)) {
                 val folder = folderManager.getFolderGroup(slot)
                 view.text = folder?.name ?: ""
-                view.contentDescription = folder?.name ?: context.getString(R.string.long_press_to_select_app)
+                view.contentDescription = folder?.name ?: emptySlotHint()
             } else {
                 val appName = prefs.getHomeAppName(slot)
                 if (!setHomeAppText(view, appName, prefs.getHomeAppPackage(slot), prefs.getHomeAppUser(slot))) {
                     prefs.setHomeAppName(slot, "")
                     prefs.setHomeAppPackage(slot, "")
                 }
-                view.contentDescription = appName.ifEmpty { context.getString(R.string.long_press_to_select_app) }
+                view.contentDescription = appName.ifEmpty { emptySlotHint() }
             }
         }
 
@@ -277,6 +277,11 @@ class HomeSlotsController(
     }
 
     fun showHomeSlotMenu(slot: Int) {
+        // Locked: no edit menu at all, just say why, so a stray long-press can't change the layout
+        if (prefs.homeLayoutLocked) {
+            showLongPressToast()
+            return
+        }
         val hasApp = prefs.getHomeAppName(slot).isNotEmpty()
         val isFolder = folderManager.isFolderSlot(slot)
 
@@ -340,5 +345,9 @@ class HomeSlotsController(
         }
     }
 
-    private fun showLongPressToast() = context.showToast(context.getString(R.string.long_press_to_select_app))
+    private fun emptySlotHint(): String = context.getString(
+        if (prefs.homeLayoutLocked) R.string.home_layout_locked else R.string.long_press_to_select_app
+    )
+
+    private fun showLongPressToast() = context.showToast(emptySlotHint())
 }

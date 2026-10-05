@@ -20,6 +20,7 @@ import com.parem.launcher.helper.CityResult
 import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.ui.disableAnimationsOnEink
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -43,6 +44,7 @@ class WeatherSettingsDialog(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        disableAnimationsOnEink()
         val view = layoutInflater.inflate(R.layout.dialog_weather_settings, null)
         val searchInput = view.findViewById<EditText>(R.id.citySearchInput)
         val statusText = view.findViewById<TextView>(R.id.searchStatus)

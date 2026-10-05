@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.view.WindowInsets
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -25,7 +24,7 @@ import com.parem.launcher.ui.home.HomeGesturesController
 import com.parem.launcher.ui.home.HomeSlotsController
 import kotlinx.coroutines.launch
 
-class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener {
+class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListener {
 
     private lateinit var prefs: Prefs
     private lateinit var viewModel: MainViewModel
@@ -184,16 +183,28 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         binding.setDefaultLauncher.setOnClickListener(this)
         binding.setDefaultLauncher.setOnLongClickListener(this)
         binding.tvScreenTime.setOnClickListener(this)
+        // Slot taps and long-presses arrive through ViewSwipeTouchListener, which
+        // consumes touch; these fire only for d-pad/keyboard (and accessibility) clicks
+        slotsController?.homeAppViews?.forEach {
+            it.setOnClickListener(this)
+            it.setOnLongClickListener(this)
+        }
     }
 
-    internal fun showAppList(flag: Int, rename: Boolean = false, includeHiddenApps: Boolean = false) {
+    internal fun showAppList(
+        flag: Int,
+        rename: Boolean = false,
+        includeHiddenApps: Boolean = false,
+        query: String? = null,
+    ) {
         viewModel.getAppList(includeHiddenApps)
         try {
             findNavController().navigate(
                 R.id.action_mainFragment_to_appListFragment,
                 bundleOf(
                     Constants.Key.FLAG to flag,
-                    Constants.Key.RENAME to rename
+                    Constants.Key.RENAME to rename,
+                    Constants.Key.QUERY to query
                 )
             )
         } catch (e: Exception) {
@@ -201,7 +212,8 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 R.id.appListFragment,
                 bundleOf(
                     Constants.Key.FLAG to flag,
-                    Constants.Key.RENAME to rename
+                    Constants.Key.RENAME to rename,
+                    Constants.Key.QUERY to query
                 )
             )
             Log.e("HomeFragment", "Navigation to app list failed, using fallback", e)

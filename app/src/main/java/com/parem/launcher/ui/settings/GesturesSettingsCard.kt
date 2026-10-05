@@ -9,7 +9,6 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import androidx.core.os.bundleOf
-import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
 import com.parem.launcher.MainActivity
 import com.parem.launcher.MainViewModel
@@ -19,14 +18,13 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.GestureLetterManager
-import com.parem.launcher.helper.animateAlpha
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.isAccessServiceEnabled
-import com.parem.launcher.helper.openUrl
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.listener.DeviceAdmin
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SettingsFragment
+import com.parem.launcher.ui.showLockConsent
 
 /**
  * Card 4 ("Gestures"): swipe left/right/down actions, double-tap action
@@ -67,9 +65,6 @@ class GesturesSettingsCard(
         binding.swipeDownAction.setOnClickListener(this)
         binding.search.setOnClickListener(this)
         binding.notifications.setOnClickListener(this)
-        binding.actionAccessibility.setOnClickListener(this)
-        binding.closeAccessibility.setOnClickListener(this)
-        binding.notWorking.setOnClickListener(this)
         binding.gestureLettersToggle?.setOnClickListener(this)
         binding.tvGestures?.setOnClickListener(this)
 
@@ -87,10 +82,6 @@ class GesturesSettingsCard(
         fragment.resetOpenPickers(view.id)
         when (view.id) {
             R.id.autoShowKeyboard -> toggleKeyboardText()
-            R.id.actionAccessibility -> openAccessibilityService()
-            R.id.closeAccessibility -> toggleAccessibilityVisibility(false)
-            R.id.notWorking -> if (Constants.URL_DOUBLE_TAP.isNotEmpty()) context.openUrl(Constants.URL_DOUBLE_TAP)
-
             R.id.tvGestures -> binding.flSwipeDown.visibility = View.VISIBLE
 
             R.id.swipeLeftApp -> showSwipeActionPicker(isLeft = true)
@@ -161,21 +152,6 @@ class GesturesSettingsCard(
         else binding.autoShowKeyboard.text = context.getString(R.string.off)
     }
 
-    private fun toggleAccessibilityVisibility(show: Boolean) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-            binding.notWorking.visibility = View.VISIBLE
-        if (isAccessServiceEnabled(context))
-            binding.actionAccessibility.text = context.getString(R.string.disable)
-        binding.accessibilityLayout.isVisible = show
-        binding.scrollView.animateAlpha(if (show) 0.5f else 1f)
-    }
-
-    private fun openAccessibilityService() {
-        toggleAccessibilityVisibility(false)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-            fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-    }
-
     private fun removeActiveAdmin(toastMessage: String? = null) {
         try {
             deviceManager.removeActiveAdmin(componentName) // for backward compatibility
@@ -234,12 +210,21 @@ class GesturesSettingsCard(
             .title(context.getString(R.string.select_action))
         for ((label, actionValue) in gestureActionChoices()) {
             menu.option(label) {
+                val previous = if (isLeft) prefs.swipeLeftAction else prefs.swipeRightAction
                 if (isLeft) prefs.swipeLeftAction = actionValue
                 else prefs.swipeRightAction = actionValue
                 if (actionValue == Constants.GestureAction.OPEN_APP) {
                     showAppListForSwipe(if (isLeft) Constants.FLAG_SET_SWIPE_LEFT_APP else Constants.FLAG_SET_SWIPE_RIGHT_APP)
                 } else {
                     populateSwipeApps()
+                }
+                if (actionValue == Constants.GestureAction.LOCK_SCREEN) {
+                    ensureLockPermission(onDecline = {
+                        val reverted = revertedLockAction(previous)
+                        if (isLeft) prefs.swipeLeftAction = reverted
+                        else prefs.swipeRightAction = reverted
+                        if (fragment.isAdded) populateSwipeApps()
+                    })
                 }
             }
         }
@@ -281,12 +266,16 @@ class GesturesSettingsCard(
             .sortedByDescending { it.second == Constants.GestureAction.LOCK_SCREEN }
         for ((label, actionValue) in choices) {
             menu.option(label) {
+                val previous = DoubleTapActionManager.getAction(context)
                 DoubleTapActionManager.setAction(context, actionValue)
                 if (actionValue == Constants.GestureAction.OPEN_APP) {
                     showAppListForSwipe(Constants.FLAG_SET_DOUBLE_TAP_APP)
                 }
                 if (actionValue == Constants.GestureAction.LOCK_SCREEN) {
-                    ensureLockPermission()
+                    ensureLockPermission(onDecline = {
+                        DoubleTapActionManager.setAction(context, revertedLockAction(previous))
+                        if (fragment.isAdded) populateDoubleTapAction()
+                    })
                 }
                 populateDoubleTapAction()
             }
@@ -294,10 +283,26 @@ class GesturesSettingsCard(
         menu.show()
     }
 
-    private fun ensureLockPermission() {
+    /**
+     * Declining the lock consent must not leave LOCK_SCREEN stored with the
+     * service off. Restoring the prior action would do exactly that when the
+     * user re-picked Lock screen (double-tap defaults to it), so fall to NONE.
+     */
+    private fun revertedLockAction(previous: Int): Int =
+        if (previous == Constants.GestureAction.LOCK_SCREEN) Constants.GestureAction.NONE else previous
+
+    /** [onDecline] runs only on the P+ consent route; pre-P keeps the device-admin prompt. */
+    private fun ensureLockPermission(onDecline: () -> Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             if (!isAccessServiceEnabled(context)) {
-                toggleAccessibilityVisibility(true)
+                showLockConsent(
+                    context,
+                    onAccept = {
+                        if (fragment.isAdded)
+                            fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                    },
+                    onDecline = onDecline,
+                )
             }
         } else {
             if (!deviceManager.isAdminActive(componentName)) {

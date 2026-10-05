@@ -84,6 +84,7 @@ listener/
 
 - **Storage**: everything is SharedPreferences in the single file `"com.parem.launcher"` (`Prefs.PREFS_NAME`). Core launcher state goes through `data/Prefs.kt`; feature managers in `helper/` read/write their own keys directly. When adding a key that must survive settings export/import with a specific type, register it in `Prefs.LONG_PREF_KEYS`/`FLOAT_PREF_KEYS`, and add device-specific keys to `exportExcludeKeys`.
 - **Bottom sheets**: build them with `ui/BottomSheetMenu`. Don't hand-assemble LinearLayouts.
+  A sheet built outside `BottomSheetMenu` (a direct `BottomSheetDialog`) must call `disableAnimationsOnEink()` before it shows, or it slides on e-ink.
 - **App launching**: goes through `MainViewModel.selectedApp(appModel, flag)`; the `flag` constants in `Constants` say what the selection means (launch, set home slot N, set swipe app, …). The app drawer is reused for every "pick an app" flow via these flags.
 - **Fragments** hold `_binding` nullable + `binding` accessor; async callbacks must check `isAdded` / `_binding != null` (or `isActive()` in HomeWidgetController) before touching views.
 - **Home app slots** are 1-8, stored per-slot via `prefs.getHomeApp*(slot)` / `setHomeApp*(slot, …)`.
@@ -100,7 +101,7 @@ listener/
 
 - Debug: `./gradlew assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk` (package id gets a `.debug` suffix so it installs alongside release). CI: `.github/workflows/debug-build.yml` runs tests + build on every master push (or manually via workflow_dispatch) and uploads the APK as an artifact. Note the CI debug keystore differs per run — updating a CI-built debug install usually needs an uninstall first.
 - Every behavior-changing PR adds an entry under `## [Unreleased]` in CHANGELOG.md; at release time, rename that section to the version and prepend a fresh `## [Unreleased]`.
-- Release: bump `versionCode`/`versionName` in `app/build.gradle`, add `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` and a CHANGELOG.md entry, then push a tag matching `v*` → `.github/workflows/release.yml` builds a signed APK (keystore comes from repo secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) and attaches it to a GitHub release.
+- Release: run the device pass in [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) first. Then bump `versionCode`/`versionName` in `app/build.gradle`, add `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` and a CHANGELOG.md entry, then push a tag matching `v*` → `.github/workflows/release.yml` builds a signed APK (keystore comes from repo secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) and attaches it to a GitHub release.
 - Dependency versions live in `gradle/libs.versions.toml`. AGP 8.9.1 / Gradle 8.11.1 / Kotlin 2.1.20; JDK 17+ (21 works).
 
 ### Building on ARM64 hosts (Raspberry Pi etc.)
