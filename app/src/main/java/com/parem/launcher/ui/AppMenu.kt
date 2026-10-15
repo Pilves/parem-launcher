@@ -48,6 +48,8 @@ object AppMenu {
         if (fragment.view == null || app.appPackage.isEmpty() || app.shortcutId != null) return
         if (openMenu?.get()?.isShowing == true) return
         val personal = app.user == Process.myUserHandle()
+        val hiddenKey = app.appPackage + "|" + app.user.toString()
+        val isHidden = hidden || hiddenKey in prefs.hiddenApps || app.appPackage in prefs.hiddenApps
         val limit = AppLimitManager.getLimit(context, app.appPackage)
         val menu = BottomSheetMenu(context).title(BidiFormatter.getInstance().unicodeWrap(app.appLabel), prominent = true)
         val actions = AppMenuPolicy.actions(personal, app.isPrivate, hidden, homeSlot != null,
@@ -90,13 +92,12 @@ object AppMenu {
                 }
             }
             Action.HIDE, Action.SHOW -> menu.option(
-                context.getString(if (hidden) R.string.app_menu_show else R.string.app_menu_hide),
+                context.getString(if (isHidden) R.string.app_menu_show else R.string.app_menu_hide),
                 summary = if (homeSlot != null) context.getString(R.string.app_menu_stays_home) else null,
             ) {
                 if (fragment.isAdded && fragment.view != null) {
-                    val key = app.appPackage + "|" + app.user.toString()
                     prefs.hiddenApps = prefs.hiddenApps.toMutableSet().apply {
-                        if (hidden) { remove(app.appPackage); remove(key) } else add(key)
+                        if (isHidden) { remove(app.appPackage); remove(hiddenKey) } else add(hiddenKey)
                     }
                     onChanged()
                 }
