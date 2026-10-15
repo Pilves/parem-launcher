@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Typing a number, a sum, a unit or currency conversion or a phone number in
+  the drawer no longer auto-launches the one app that happens to match it
+
 - TalkBack, Switch Access and Voice Access users can leave home: the home
   screen and every app row offer All apps, Settings, Notifications, Add widget
   and the configured swipe apps as actions, an "All apps" row appears under

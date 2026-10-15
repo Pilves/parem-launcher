@@ -26,6 +26,7 @@ import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.DrawerRows
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.IconPackManager
+import com.parem.launcher.helper.OmniboxResolver
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.hideKeyboard
@@ -196,6 +197,7 @@ class AppDrawerAdapter(
                 && isBangSearch.not()
                 && flag == Constants.FLAG_LAUNCH_APP
                 && filteredSnapshot.isNotEmpty()
+                && !OmniboxResolver.blocksAutoLaunch(query)
                 && autoLaunchGuard()
             ) {
                 autoLaunchedQuery = query
