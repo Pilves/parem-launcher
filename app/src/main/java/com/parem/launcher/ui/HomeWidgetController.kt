@@ -26,6 +26,7 @@ import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
+import com.parem.launcher.helper.WidgetIdBookkeeping
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.showToast
@@ -74,10 +75,6 @@ class HomeWidgetController(
         released = true
         widgetGestureDetectors.clear()
         widgetRestoreQueue.clear()
-        mainActivity?.let {
-            it.onWidgetBindResult = null
-            it.onWidgetConfigureResult = null
-        }
         binding.widgetContainerAbove?.removeAllViews()
         binding.widgetContainerBelow?.removeAllViews()
     }
@@ -103,6 +100,74 @@ class HomeWidgetController(
     private val widgetRestoreQueue = mutableListOf<Pair<Int, String>>()
     private var isRestoringWidgets = false
 
+    /**
+     * Keys of MainActivity.pendingWidgetOp: the system bind/configure dialog the
+     * controller is waiting on. It outlives this controller (rotation, process
+     * death) and the result comes back through [onPendingWidgetResult].
+     */
+    private object PendingOp {
+        const val STAGE = "stage"
+        const val WIDGET_ID = "widgetId"
+        const val OLD_ID = "oldId"
+        const val REPLACE_INDEX = "replaceIndex"
+
+        const val BIND = 1          // add/swap: ACTION_APPWIDGET_BIND for WIDGET_ID
+        const val CONFIGURE = 2     // add/swap: configure activity for the bound WIDGET_ID
+        const val RESTORE_BIND = 3  // rebind of invalidated OLD_ID as WIDGET_ID
+    }
+
+    private fun setPendingOp(stage: Int, widgetId: Int, replaceIndex: Int = -1, oldId: Int = -1) {
+        mainActivity?.pendingWidgetOp = Bundle().apply {
+            putInt(PendingOp.STAGE, stage)
+            putInt(PendingOp.WIDGET_ID, widgetId)
+            putInt(PendingOp.REPLACE_INDEX, replaceIndex)
+            putInt(PendingOp.OLD_ID, oldId)
+        }
+    }
+
+    /** Bind/configure dialog result for the saved pending op, from MainActivity. */
+    fun onPendingWidgetResult(success: Boolean) {
+        val mainActivity = mainActivity ?: return
+        if (!isActive() || isRestoringWidgets) {
+            // restoreWidgets() rewrites WIDGET_IDS when it lands; it takes this result afterwards
+            mainActivity.pendingWidgetResult = success
+            return
+        }
+        val op = mainActivity.pendingWidgetOp ?: return
+        mainActivity.pendingWidgetOp = null
+        val widgetId = op.getInt(PendingOp.WIDGET_ID)
+        val replaceIndex = op.getInt(PendingOp.REPLACE_INDEX, -1)
+        // Null once a refused bind or a cancelled configure released the ID
+        val info = mainActivity.appWidgetManager.getAppWidgetInfo(widgetId)
+        when (op.getInt(PendingOp.STAGE)) {
+            PendingOp.BIND -> {
+                if (success && info != null) {
+                    onWidgetBound(widgetId, info, replaceIndex)
+                } else {
+                    mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+                    context.showToast(context.getString(R.string.widget_bind_permission_denied))
+                }
+            }
+            PendingOp.CONFIGURE -> {
+                // A cancelled configure still leaves a usable widget when the provider kept it bound
+                if (info != null) finishWidgetSetup(widgetId, info, replaceIndex)
+                else mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+            }
+            PendingOp.RESTORE_BIND -> {
+                val oldId = op.getInt(PendingOp.OLD_ID)
+                // A restore after recreation queued this old ID again; this result settles it
+                widgetRestoreQueue.removeAll { it.first == oldId }
+                if (success && info != null) {
+                    completeWidgetRestore(oldId, widgetId)
+                } else {
+                    mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+                    dropRestorable(oldId)
+                }
+                processNextWidgetRestore()
+            }
+        }
+    }
+
     suspend fun restoreWidgets() {
         if (isRestoringWidgets) return
         isRestoringWidgets = true
@@ -110,6 +175,7 @@ class HomeWidgetController(
             val mainActivity = mainActivity ?: return
             prefs.migrateWidgetIfNeeded(mainActivity.appWidgetManager)
             val ids = prefs.getWidgetIdList()
+            sweepOrphanIds(mainActivity, ids)
             if (ids.isEmpty()) return
             val savedProviders = prefs.getAllWidgetProviders()
             widgetRestoreQueue.clear()
@@ -153,16 +219,39 @@ class HomeWidgetController(
                     Log.e("HomeWidgetController", "restoreWidget failed for id=${restoreInfo.wid}", e)
                 }
             }
-            prefs.setWidgetIdList(validIds)
+            // Invalidated IDs with a known provider stay in WIDGET_IDS until their rebind
+            // completes or is refused, so an interrupted rebind is asked again next time
+            val restorable = widgetRestoreQueue.map { it.first }.toSet()
+            prefs.setWidgetIdList(WidgetIdBookkeeping.idsToKeep(ids, validIds.toSet(), restorable))
             updateWidgetContainerVisibility()
 
-            // Process queued widgets that need permission-based rebinding
-            if (widgetRestoreQueue.isNotEmpty()) {
-                processNextWidgetRestore()
-            }
+            // A bind dialog is still up, or its result is on its way back after a recreation:
+            // that result continues the queue; a second rebind started here would race it
+            if (mainActivity.pendingWidgetOp == null) processNextWidgetRestore()
         } finally {
             isRestoringWidgets = false
         }
+        mainActivity?.let { activity ->
+            activity.pendingWidgetResult?.let {
+                activity.pendingWidgetResult = null
+                onPendingWidgetResult(it)
+            }
+        }
+    }
+
+    // Host IDs an interrupted add or rebind allocated but never put on the home screen
+    private fun sweepOrphanIds(mainActivity: MainActivity, ids: List<Int>) {
+        val pendingId = mainActivity.pendingWidgetOp?.getInt(PendingOp.WIDGET_ID) ?: -1
+        WidgetIdBookkeeping.orphanIds(mainActivity.appWidgetHost.appWidgetIds, ids, pendingId)
+            .forEach { mainActivity.appWidgetHost.deleteAppWidgetId(it) }
+    }
+
+    // Give up on rebinding an invalidated widget: forget it in all three stores
+    private fun dropRestorable(oldId: Int) {
+        prefs.removeWidgetProvider(oldId)
+        prefs.removeWidgetHeight(oldId)
+        prefs.setWidgetIdList(prefs.getWidgetIdList().also { it.remove(oldId) })
+        updateWidgetContainerVisibility()
     }
 
     private fun processNextWidgetRestore() {
@@ -170,7 +259,7 @@ class HomeWidgetController(
         val (oldId, providerStr) = widgetRestoreQueue.removeAt(0)
         val component = android.content.ComponentName.unflattenFromString(providerStr)
         if (component == null) {
-            prefs.removeWidgetProvider(oldId)
+            dropRestorable(oldId)
             processNextWidgetRestore()
             return
         }
@@ -180,22 +269,13 @@ class HomeWidgetController(
 
         // Try silent bind first (works if app has system permission)
         if (mainActivity.appWidgetManager.bindAppWidgetIdIfAllowed(newId, component)) {
-            completeWidgetRestore(oldId, newId, providerStr)
+            completeWidgetRestore(oldId, newId)
+            processNextWidgetRestore()
             return
         }
 
-        // Need user permission — launch bind dialog
-        mainActivity.pendingWidgetId = newId
-        mainActivity.onWidgetBindResult = result@{ success ->
-            if (!isActive()) return@result
-            if (success) {
-                completeWidgetRestore(oldId, newId, providerStr)
-            } else {
-                mainActivity.appWidgetHost.deleteAppWidgetId(newId)
-                prefs.removeWidgetProvider(oldId)
-                processNextWidgetRestore()
-            }
-        }
+        // Need user permission — launch bind dialog; the result arrives in onPendingWidgetResult
+        setPendingOp(PendingOp.RESTORE_BIND, newId, oldId = oldId)
         val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, newId)
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, component)
@@ -203,34 +283,22 @@ class HomeWidgetController(
         mainActivity.bindWidgetLauncher.launch(intent)
     }
 
-    private fun completeWidgetRestore(oldId: Int, newId: Int, providerStr: String) {
+    private fun completeWidgetRestore(oldId: Int, newId: Int) {
         val mainActivity = mainActivity ?: return
         val info = mainActivity.appWidgetManager.getAppWidgetInfo(newId)
         if (info == null) {
             mainActivity.appWidgetHost.deleteAppWidgetId(newId)
-            prefs.removeWidgetProvider(oldId)
-            processNextWidgetRestore()
+            dropRestorable(oldId)
             return
         }
 
-        // Migrate saved height and provider to new ID
-        val height = prefs.getWidgetHeight(oldId)
-        prefs.setWidgetHeight(newId, height)
-        prefs.setWidgetProvider(newId, providerStr)
+        // Migrate saved height and provider to the new ID, in the old ID's position
+        prefs.setWidgetHeight(newId, prefs.getWidgetHeight(oldId))
+        prefs.removeWidgetHeight(oldId)
+        prefs.setWidgetProvider(newId, info.provider.flattenToString())
         prefs.removeWidgetProvider(oldId)
-
-        // Add to container and update ID list
-        val hostView = mainActivity.appWidgetHost.createView(
-            context.applicationContext, newId, info
-        )
-        addWidgetToContainer(hostView, newId)
-        val ids = prefs.getWidgetIdList()
-        ids.add(newId)
-        prefs.setWidgetIdList(ids)
-        updateWidgetContainerVisibility()
-
-        // Process next queued widget
-        processNextWidgetRestore()
+        prefs.setWidgetIdList(WidgetIdBookkeeping.replaceId(prefs.getWidgetIdList(), oldId, newId))
+        rebuildWidgetContainer()
     }
 
     private fun addWidgetToContainer(hostView: android.appwidget.AppWidgetHostView, widgetId: Int) {
@@ -493,7 +561,9 @@ class HomeWidgetController(
                 Log.e("HomeWidgetController", "rebuildWidget failed for id=$wid", e)
             }
         }
-        prefs.setWidgetIdList(validIds)
+        // Invalidated widgets awaiting a rebind keep their place (see restoreWidgets)
+        val restorable = prefs.getAllWidgetProviders().keys
+        prefs.setWidgetIdList(WidgetIdBookkeeping.idsToKeep(ids, validIds.toSet(), restorable))
         updateWidgetContainerVisibility()
     }
 
@@ -742,8 +812,6 @@ class HomeWidgetController(
         try {
             val mainActivity = mainActivity ?: return
             val widgetId = mainActivity.appWidgetHost.allocateAppWidgetId()
-            mainActivity.pendingWidgetId = widgetId
-            mainActivity.pendingWidgetInfo = providerInfo
 
             val allowed = mainActivity.appWidgetManager.bindAppWidgetIdIfAllowed(
                 widgetId, providerInfo.profile, providerInfo.provider, null
@@ -752,18 +820,7 @@ class HomeWidgetController(
             if (allowed) {
                 onWidgetBound(widgetId, providerInfo, replaceIndex)
             } else {
-                val capturedReplaceIndex = replaceIndex
-                mainActivity.onWidgetBindResult = result@{ success ->
-                    if (!isActive()) return@result
-                    if (success) {
-                        mainActivity.pendingWidgetInfo?.let { widgetInfo ->
-                            onWidgetBound(mainActivity.pendingWidgetId, widgetInfo, capturedReplaceIndex)
-                        }
-                    } else {
-                        mainActivity.appWidgetHost.deleteAppWidgetId(mainActivity.pendingWidgetId)
-                        context.showToast(context.getString(R.string.widget_bind_permission_denied))
-                    }
-                }
+                setPendingOp(PendingOp.BIND, widgetId, replaceIndex = replaceIndex)
                 val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
                     putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
                     putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, providerInfo.provider)
@@ -782,20 +839,7 @@ class HomeWidgetController(
             val mainActivity = mainActivity ?: return
 
             if (providerInfo.configure != null) {
-                val capturedReplaceIndex = replaceIndex
-                mainActivity.onWidgetConfigureResult = result@{ success ->
-                    if (!isActive()) return@result
-                    if (success) {
-                        finishWidgetSetup(widgetId, providerInfo, capturedReplaceIndex)
-                    } else {
-                        val stillValid = mainActivity.appWidgetManager.getAppWidgetInfo(widgetId)
-                        if (stillValid != null) {
-                            finishWidgetSetup(widgetId, providerInfo, capturedReplaceIndex)
-                        } else {
-                            mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
-                        }
-                    }
-                }
+                setPendingOp(PendingOp.CONFIGURE, widgetId, replaceIndex = replaceIndex)
                 if (providerInfo.profile != Process.myUserHandle()) {
                     // A configure activity in another profile can't be started by component from this
                     // user; the host routes it and the result comes back through onActivityResult

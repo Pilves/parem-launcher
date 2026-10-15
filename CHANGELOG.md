@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+- Fixed: rotating the tablet or losing the app in the background while a
+  widget's permission or setup screen is open no longer loses the widget;
+  a widget the system invalidated (reboot, app update) is asked for again
+  next time instead of vanishing, keeps its place and height, and leftover
+  widget IDs are released
+
 - TalkBack, Switch Access and Voice Access users can leave home: the home
   screen and every app row offer All apps, Settings, Notifications, Add widget
   and the configured swipe apps as actions, an "All apps" row appears under

@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetManager
-import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -60,11 +59,13 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var appWidgetHost: AppWidgetHost
     lateinit var appWidgetManager: AppWidgetManager
-    var pendingWidgetId: Int = -1
-    var pendingWidgetInfo: AppWidgetProviderInfo? = null
+    // The bind/configure step HomeWidgetController is waiting on (its keys, see
+    // HomeWidgetController.PendingOp). Saved state, not a callback: a rotation or
+    // process death under the system dialog must still finish or cancel the widget
+    var pendingWidgetOp: Bundle? = null
+    // A result that arrived while no HomeFragment was up to take it
+    var pendingWidgetResult: Boolean? = null
 
-    var onWidgetBindResult: ((Boolean) -> Unit)? = null
-    var onWidgetConfigureResult: ((Boolean) -> Unit)? = null
     var onAdminResult: ((Boolean) -> Unit)? = null
 
     lateinit var bindWidgetLauncher: ActivityResultLauncher<Intent>
@@ -98,28 +99,18 @@ class MainActivity : AppCompatActivity() {
         navController = this.findNavController(R.id.nav_host_fragment)
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
-        savedInstanceState?.let {
-            pendingWidgetId = it.getInt("pendingWidgetId", -1)
-            val providerStr = it.getString("pendingWidgetProvider")
-            if (providerStr != null && pendingWidgetId != -1) {
-                pendingWidgetInfo = appWidgetManager.getAppWidgetInfo(pendingWidgetId)
-            }
-        }
+        pendingWidgetOp = savedInstanceState?.getBundle("pendingWidgetOp")
 
         bindWidgetLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            val success = result.resultCode == Activity.RESULT_OK
-            onWidgetBindResult?.invoke(success)
-            onWidgetBindResult = null
+            deliverWidgetResult(result.resultCode == Activity.RESULT_OK)
         }
 
         configureWidgetLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            val success = result.resultCode == Activity.RESULT_OK
-            onWidgetConfigureResult?.invoke(success)
-            onWidgetConfigureResult = null
+            deliverWidgetResult(result.resultCode == Activity.RESULT_OK)
         }
 
         enableAdminLauncher = registerForActivityResult(
@@ -167,8 +158,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt("pendingWidgetId", pendingWidgetId)
-        outState.putString("pendingWidgetProvider", pendingWidgetInfo?.provider?.flattenToString())
+        outState.putBundle("pendingWidgetOp", pendingWidgetOp)
+    }
+
+    private fun homeFragment(): HomeFragment? =
+        supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+            ?.childFragmentManager?.primaryNavigationFragment as? HomeFragment
+
+    private fun deliverWidgetResult(success: Boolean) {
+        val controller = homeFragment()?.widgetController
+        if (controller != null) controller.onPendingWidgetResult(success)
+        else pendingWidgetResult = success
     }
 
     // AppWidgetHost.startAppWidgetConfigureActivityForResult (the only way to configure a
@@ -177,15 +177,11 @@ class MainActivity : AppCompatActivity() {
     @Suppress("DEPRECATION")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CONFIGURE_PROFILE_WIDGET) {
-            onWidgetConfigureResult?.invoke(resultCode == Activity.RESULT_OK)
-            onWidgetConfigureResult = null
-        }
+        if (requestCode == REQUEST_CONFIGURE_PROFILE_WIDGET)
+            deliverWidgetResult(resultCode == Activity.RESULT_OK)
     }
 
     override fun onDestroy() {
-        onWidgetBindResult = null
-        onWidgetConfigureResult = null
         onAdminResult = null
         super.onDestroy()
     }
@@ -238,8 +234,7 @@ class MainActivity : AppCompatActivity() {
                 unicodeChar = event.unicodeChar,
                 hasShortcutModifier = event.isCtrlPressed || event.isAltPressed || event.isMetaPressed
             )
-            val home = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
-                ?.childFragmentManager?.primaryNavigationFragment as? HomeFragment
+            val home = homeFragment()
             if (query != null && home != null && home.isAdded) {
                 home.showAppList(Constants.FLAG_LAUNCH_APP, query = query)
                 return true
