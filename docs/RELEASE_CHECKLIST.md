@@ -221,6 +221,22 @@ see DESIGN.md 13.2). Run with TalkBack on unless a line says otherwise.
       info icon reads "App info"; a work-profile app's dot reads "Work profile"
 - [ ] With the "All apps" row showing, no slot is cut off at the bottom
 
+### UX-3 — Touch is steady and consistent (M4-WP44)
+
+- [ ] On the Tab S8 and a phone: a 1-second press with about 5dp of drift on a
+      slot launches the app (no swipe, no menu until the long-press delay)
+- [ ] Long-press on a slot, on empty home, on a drawer row, on the clock and on
+      the date vibrates with system touch feedback on, and stays silent with it
+      off
+- [ ] Gesture letters: a recognised letter buzzes once and launches; a stroke
+      that turns but matches nothing (or a letter with no app) buzzes REJECT and
+      its trail fades out; with "Remove animations" on it clears instantly
+- [ ] With the home layout locked, long-press on a slot buzzes REJECT and only
+      shows the toast
+- [ ] Pressed labels dim on touch-down and are never left dimmed after a swipe
+      or a letter stroke; swipes fire at the same finger travel on phone and
+      tablet
+
 ## Sign-off
 
 - [ ] Every box above ticked on: device / Android version ___

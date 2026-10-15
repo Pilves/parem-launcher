@@ -17,6 +17,7 @@ import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.FolderManager
+import com.parem.launcher.helper.Haptics
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getAppsList
@@ -269,6 +270,7 @@ class HomeSlotsController(
     fun showHomeSlotMenu(slot: Int) {
         // Locked: no edit menu at all, just say why, so a stray long-press can't change the layout
         if (prefs.homeLayoutLocked) {
+            homeAppViews.getOrNull(slot - 1)?.let { Haptics.reject(it) }
             showLongPressToast()
             return
         }
