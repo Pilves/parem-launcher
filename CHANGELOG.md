@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Onboarding offers optional explanations for home, search, gestures, Calm tools, appearance and backup; setup states and spoken captions now explain what is enabled.
+
 - Usage access is named as the permission it is: setting an app limit without it asks for it instead of saving a limit that never fires, the App limits row reads "Needs access" when it is missing, and the Focus and Grayscale rows say "Scheduled" / "Automatic" instead of "Off" while a schedule or trigger is armed
 
 - Text follows the Android font size (up to 200%); the in-app text size is now

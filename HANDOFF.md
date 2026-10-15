@@ -237,5 +237,10 @@ per package; the rest of each of those fragments is still in
   Not verified: with TalkBack on the Tab S8, that typing "m" with one match leaves the drawer open and that the row reads "Open single match automatically, On"; appended to the UX device pass.
   Easy to get wrong: the screen-reader state is read when the filter publishes, not cached, so toggling TalkBack mid-session needs no listener; the setting is read from Prefs on every publish for the same reason.
   Verified: ADB on Nothing A069 / Android 16: disabling auto-launch leaves a sole Calculator result in the drawer; preference survives restart; at 200% system font the label wraps without overlapping Off and the row exposes its accessible title.
+- **M4-WP57 (PR #0):** Onboarding keeps its short setup and offers eight optional feature explanations before Done, including search tools, gestures, Calm, appearance, profiles and data.
+  Contract: the guide uses existing BottomSheetMenu sheets, saves expansion across recreation, and grants nothing merely by reading; captions are included in spoken row descriptions.
+  Setup states reuse WellbeingRowState; enabled screen time and lock explain themselves, and granting notification permission continues grayscale pairing.
+  Not verified: device/TalkBack/font-200% traversal, rotation and process death, permission-return flows, and live feature behavior; required build checks are recorded in the PR report.
+  Easy to get wrong: pause still requires a limit and the existing picker only lists used apps; onboarding explains this and avoids opening an empty list, while WP47 owns any-app setup.
 
 <!-- handoff:end -->
