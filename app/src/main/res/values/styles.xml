@@ -35,6 +35,7 @@
         <item name="primaryInverseColor">@color/blackInverse</item>
         <item name="primaryTextShadowColor">@color/blackInverseTrans50</item>
         <item name="primaryColorTrans50">@color/blackTrans50</item>
+        <item name="primaryColorTrans60">@color/blackTrans60</item>
         <item name="primaryColorTrans80">@color/blackTrans80</item>
         <item name="primaryColorInverseTrans50">@color/blackInverseTrans50</item>
         <item name="primaryColorInverseTrans80">@color/blackInverseTrans80</item>

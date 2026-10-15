@@ -60,7 +60,7 @@ class ScreenTimeGraphDialog(private val context: Context) {
         }
         val averageView = TextView(context).apply {
             textSize = 12f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans60))
             gravity = Gravity.END
             setPadding(24.dpToPx(), 2.dpToPx(), 24.dpToPx(), 4.dpToPx())
         }
@@ -226,7 +226,7 @@ class ScreenTimeGraphDialog(private val context: Context) {
         column.addView(TextView(context).apply {
             text = context.getString(R.string.weekly_review_title)
             textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans60))
             setTypeface(null, Typeface.BOLD)
             setPadding(24.dpToPx(), 12.dpToPx(), 24.dpToPx(), 4.dpToPx())
         })
@@ -269,7 +269,7 @@ class ScreenTimeGraphDialog(private val context: Context) {
         val header = TextView(context).apply {
             text = headerText
             textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans60))
             setTypeface(null, Typeface.BOLD)
             setPadding(24.dpToPx(), 12.dpToPx(), 24.dpToPx(), 8.dpToPx())
         }
@@ -298,7 +298,7 @@ class ScreenTimeGraphDialog(private val context: Context) {
             val timeView = TextView(context).apply {
                 text = context.formattedTimeSpent(ms)
                 textSize = 14f
-                setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+                setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans60))
             }
             row.addView(timeView)
             column.addView(row)

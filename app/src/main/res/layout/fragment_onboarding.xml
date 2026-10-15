@@ -72,7 +72,7 @@
                 android:paddingVertical="12dp"
                 android:shadowRadius="0"
                 android:text="@string/not_now"
-                android:textColor="?attr/primaryColorTrans50" />
+                android:textColor="?attr/primaryColorTrans60" />
 
         </LinearLayout>
     </ScrollView>

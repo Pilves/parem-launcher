@@ -486,4 +486,9 @@
     <string name="usage_access_open_settings" translatable="false">Open usage access settings</string>
     <string name="focus_scheduled" translatable="false">Scheduled</string>
     <string name="grayscale_automatic" translatable="false">Automatic</string>
+    <string name="screen_time_a11y_hours_minutes" translatable="false">%1$d hours %2$d minutes</string>
+    <string name="screen_time_a11y_hours" translatable="false">%1$d hours</string>
+    <string name="screen_time_a11y_minutes" translatable="false">%1$d minutes</string>
+    <string name="screen_time_a11y_day" translatable="false">%1$s, %2$s</string>
+    <string name="screen_time_a11y_day_today" translatable="false">%1$s, today, %2$s</string>
 </resources>
