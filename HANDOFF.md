@@ -4,7 +4,7 @@ Current state only. History is `git log`, `CHANGELOG.md` and
 `docs/archive/TODO-pre-roadmap.md`. Work queue: `docs/ROADMAP.md`.
 Rules: `AGENTS.md`. Code map and traps: `ARCHITECTURE.md`.
 
-**Last updated:** 2026-10-04 — latest handoff date
+**Last updated:** 2026-10-15 — latest handoff date
 
 ## Phase
 
@@ -180,6 +180,10 @@ per package; the rest of each of those fragments is still in
   Contract: a single back-press callback — back on the Calm screen finishes, back on the home-screen ask shows Calm; `Constants.ONBOARDING_VERSION = 3`.
   Not verified: the fresh-install flow on a device, before and after Parem is default home (the first-open HOME intent → `onNewIntent → backToHomeScreen()` path named in the roadmap row was not separately changed).
   Easy to get wrong: Done can be double-tapped — the destination check in `finish()` is what stops the second tap popping home; marking the version seen anywhere before the exit brings back the < 1 s dismissal.
+- **M4-WP29 (PR #0):** The home screen's date and battery % refresh while it stays visible: `HomeClockController` registers one receiver for ACTION_DATE_CHANGED, ACTION_TIME_TICK, ACTION_TIMEZONE_CHANGED and ACTION_BATTERY_CHANGED only between the fragment's onResume and onPause.
+  Contract: the controller watches `fragment.viewLifecycleOwner` itself via a DefaultLifecycleObserver, so HomeFragment needs no register/unregister call; the receiver guards on `isAdded && view != null` and calls `populateDateTime()`.
+  Not verified: no device run, so the actual midnight rollover, timezone change and battery-tick refresh were only checked by compile/assemble; BATTERY_CHANGED is sticky and also fires once on every resume (harmless, same render path as before).
+  Easy to get wrong: the controller must be constructed after the fragment's view exists (it is, in onViewCreated) or `viewLifecycleOwner` throws; registering in the fragment's own onResume instead would duplicate the receiver on a second controller.
 - **M4-WP31 (PR #0):** Every sheet opened from a Settings card is tied to the fragment with `Dialog.dismissOnDestroy(viewLifecycleOwner)` (new in `ui/BottomSheetMenu.kt`), so Home closes it instead of leaving it over the home screen with callbacks into a detached fragment; `populateWellbeingSection`/`resetOpenPickers` return when the binding is gone, `recreate()` goes through `activity?`, the import launcher checks `isAdded`, and settings navigation only fires while Settings is the current destination (fast double-tap).
   Contract: ARCHITECTURE.md convention — a sheet opened from a fragment must call `dismissOnDestroy`, because dialogs belong to the activity window, not the fragment.
   Not verified: open each sheet, press Home, interact, on a device (the roadmap's done criterion).
@@ -188,5 +192,14 @@ per package; the rest of each of those fragments is still in
   Contract: `helper/HomeAccessibilityActions.forView(swipeLeftApp, swipeRightApp, swipeUpApp)` lists the actions (JVM-tested); the lock view is hidden with `isVisibleToUser = false` plus ACTION_CLICK removed, never through `importantForAccessibility`; the UX-2 subsection of `docs/RELEASE_CHECKLIST.md` holds the merge gates.
   Not verified: the whole TalkBack device pass — the merge gates (first swipe right never lands on the lock view; TalkBack off and service on, double tap still locks) and that the "All apps" row cuts off no slot; this row BLOCKS 6.0 until those pass.
   Easy to get wrong: the lock view must stay clickable for the accessibility service's own event matching (M2-WP5) while being invisible to screen readers — two different mechanisms, and changing either breaks the other.
+- **M4-WP34 (PR #0):** Parem's text size is a relative step (Smaller 0.85 / Default 1.0 / Large 1.15 / Larger 1.3) multiplied onto the system font scale; `MainActivity.attachBaseContext` no longer replaces the system value, and the settings row shows the step name.
+  Contract: `helper/TextScale` owns the steps, `nearestStep(stored)` and `effective(system, step) = (system × step).coerceIn(0.85, max(system, 2.0))`; the pref key `TEXT_SIZE_SCALE` (float, exported) still stores the step value, so pre-6.0 installs (0.6..1.3) are read through `nearestStep` and only rewritten when the user picks a step.
+  Not verified: no device run — rendering at system 1.5x/2.0x, clipping of home, settings and sheet rows, and the capacity drop message are for the UX device pass.
+  Not verified: the "apps that drop off are announced" part is M4-WP26's message; fitting already measures the rendered row height, so capacity follows the effective scale, but nothing here adds an announcement.
+  Easy to get wrong: `Constants.TextSize` is gone and the picker has four buttons (`textSize1..4`) in both `layout/` and `layout-land/fragment_settings.xml`; `nearestStep` must be applied on read, not only on write, or an old 0.6 value falls through to the Default label while rendering at Smaller.
+- **M4-WP37 (PR #0):** Usage access is a named permission row ("Usage access", On/Off, tap opens a sheet that says what depends on it) and every limit entry point (drawer, home slot, Settings > App limits) goes through BadHabitDialogs.ensureUsageAccess, which asks for the permission instead of saving a limit that can never fire; the App limits row dims to "Needs access" and the limit dialog shows a tappable notice when access is missing; Focus reads "Scheduled" and Grayscale "Automatic" while armed.
+  Contract: helper/WellbeingRowState (pure, JVM-tested) decides the row labels; BadHabitDialogs.showUsageAccessSheet(context) / ensureUsageAccess(context): Boolean are the only usage-access prompts for limits; Constants.Dialog.DIGITAL_WELLBEING is still used by onboarding and the home screen-time tap, with app_usage_message reworded.
+  Not verified: no device run; the ON_RESUME refresh after granting access in system settings, the sheet rendering, and TalkBack reading of the dimmed row.
+  Easy to get wrong: a new path that calls AppLimitManager.setLimit directly bypasses the gate; the row value label still lives in strings reused from the quiet card (quiet_needs_access), so renaming that string changes this row too.
 
 <!-- handoff:end -->
