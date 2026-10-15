@@ -11,15 +11,20 @@ import com.parem.launcher.helper.SwipeThresholds
 import kotlin.math.hypot
 
 internal open class ViewSwipeTouchListener(c: Context?, v: View) : OnTouchListener {
-    private var longPressOn = false
     private var gestureDetector: GestureDetector?
     private val config = SwipeConfig.from(c)
+    private var velocityX = 0f
+    private var velocityY = 0f
+    private var swipeActive = false
     private var downX = 0f
     private var downY = 0f
 
     override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
         when (motionEvent.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                velocityX = 0f
+                velocityY = 0f
+                swipeActive = true
                 downX = motionEvent.x
                 downY = motionEvent.y
                 view.isPressed = true
@@ -30,12 +35,23 @@ internal open class ViewSwipeTouchListener(c: Context?, v: View) : OnTouchListen
                 if (view.isPressed && hypot(motionEvent.x - downX, motionEvent.y - downY) > config.touchSlop)
                     view.isPressed = false
             }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP, MotionEvent.ACTION_CANCEL -> {
+            MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_CANCEL -> {
                 view.isPressed = false
-                longPressOn = false
+                swipeActive = false
             }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> view.isPressed = false
         }
-        return gestureDetector?.onTouchEvent(motionEvent) ?: false
+        val detector = gestureDetector ?: return false
+        val handled = detector.onTouchEvent(motionEvent)
+        if (motionEvent.actionMasked == MotionEvent.ACTION_UP) {
+            val direction = if (swipeActive)
+                config.classify(motionEvent.x - downX, motionEvent.y - downY, velocityX, velocityY)
+            else null
+            swipeActive = false
+            dispatchSwipe(direction)
+            return handled || direction != null
+        }
+        return handled
     }
 
     fun cleanup() {
@@ -48,12 +64,13 @@ internal open class ViewSwipeTouchListener(c: Context?, v: View) : OnTouchListen
         }
 
         override fun onSingleTapUp(e: MotionEvent): Boolean {
+            swipeActive = false
             onClick(view)
             return super.onSingleTapUp(e)
         }
 
         override fun onLongPress(e: MotionEvent) {
-            longPressOn = true
+            swipeActive = false
             onLongClick(view)
         }
 
@@ -63,19 +80,25 @@ internal open class ViewSwipeTouchListener(c: Context?, v: View) : OnTouchListen
             velocityX: Float,
             velocityY: Float,
         ): Boolean {
-            try {
-                if (event1 == null) return false
-                when (config.classify(event2.x - event1.x, event2.y - event1.y, velocityX, velocityY)) {
-                    SwipeThresholds.Direction.RIGHT -> onSwipeRight()
-                    SwipeThresholds.Direction.LEFT -> onSwipeLeft()
-                    SwipeThresholds.Direction.UP -> onSwipeUp()
-                    SwipeThresholds.Direction.DOWN -> onSwipeDown()
-                    null -> {}
-                }
-            } catch (exception: Exception) {
-                Log.e("ParemLauncher", "onFling error", exception)
-            }
+            // GestureDetector supplies velocity only for flings. Slow releases keep
+            // zero velocity and still qualify through distance in ACTION_UP.
+            this@ViewSwipeTouchListener.velocityX = velocityX
+            this@ViewSwipeTouchListener.velocityY = velocityY
             return false
+        }
+    }
+
+    private fun dispatchSwipe(direction: SwipeThresholds.Direction?) {
+        try {
+            when (direction) {
+                SwipeThresholds.Direction.RIGHT -> onSwipeRight()
+                SwipeThresholds.Direction.LEFT -> onSwipeLeft()
+                SwipeThresholds.Direction.UP -> onSwipeUp()
+                SwipeThresholds.Direction.DOWN -> onSwipeDown()
+                null -> {}
+            }
+        } catch (exception: Exception) {
+            Log.e("ParemLauncher", "swipe error", exception)
         }
     }
 
