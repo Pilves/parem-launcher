@@ -1,5 +1,6 @@
 package com.parem.launcher.ui
 
+import android.Manifest
 import android.app.admin.DevicePolicyManager
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
@@ -12,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -23,6 +25,9 @@ import com.parem.launcher.databinding.FragmentOnboardingBinding
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.GrayscaleController
+import com.parem.launcher.helper.GrayscalePairing
+import com.parem.launcher.helper.WellbeingRowState
+import com.parem.launcher.helper.showToast
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.isDefaultLauncher
@@ -44,6 +49,14 @@ class OnboardingFragment : BaseFragment() {
 
     private lateinit var prefs: Prefs
     private lateinit var viewModel: MainViewModel
+
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        val ctx = context
+        if (isAdded && _binding != null && ctx != null) {
+            if (granted && GrayscalePairing.isSupported()) GrayscalePairing.start(ctx)
+            else ctx.showToast(R.string.grayscale_pair_needs_notif)
+        }
+    }
 
     private var showingCalm = false
     // The role dialog may stay suppressed after one denial, so the second tap goes to settings
@@ -73,6 +86,11 @@ class OnboardingFragment : BaseFragment() {
         binding.btnNotNow.setOnClickListener { showCalm() }
         binding.btnDone.setOnClickListener { finish() }
         addCalmRows()
+        addFeatureGuide()
+        setGuideExpanded(savedInstanceState?.getBoolean(KEY_GUIDE) == true)
+        binding.featureGuideToggle.setOnClickListener {
+            setGuideExpanded(binding.featureGuideRows.visibility != View.VISIBLE)
+        }
 
         if (savedInstanceState?.getBoolean(KEY_CALM) == true) showCalm() else showHome()
     }
@@ -87,6 +105,7 @@ class OnboardingFragment : BaseFragment() {
         super.onSaveInstanceState(outState)
         outState.putBoolean(KEY_CALM, showingCalm)
         outState.putBoolean(KEY_ASKED, askedForHome)
+        outState.putBoolean(KEY_GUIDE, binding.featureGuideRows.visibility == View.VISIBLE)
     }
 
     override fun onDestroyView() {
@@ -139,9 +158,10 @@ class OnboardingFragment : BaseFragment() {
     private fun addCalmRows() {
         val on = getString(R.string.on)
         val setUp = getString(R.string.onboarding_set_up)
-        addRow(R.string.screen_time, null, { if (it.appUsagePermissionGranted()) on else setUp }) {
-            if (context?.appUsagePermissionGranted() == false)
-                viewModel.showDialog.postValue(Constants.Dialog.DIGITAL_WELLBEING)
+        addRow(R.string.screen_time, R.string.onboarding_screen_time_caption, { if (it.appUsagePermissionGranted()) on else setUp }) {
+            val ctx = context ?: return@addRow
+            if (!ctx.appUsagePermissionGranted()) BadHabitDialogs.showUsageAccessSheet(ctx).dismissOnDestroy(viewLifecycleOwner)
+            else showExplanation(R.string.screen_time, R.string.onboarding_guide_calm_body)
         }
         addRow(R.string.onboarding_row_slow_down, R.string.onboarding_row_slow_down_caption,
             { ctx -> if (AppLimitManager.getAllLimits(ctx).keys.any { AppLimitManager.hasPause(ctx, it) }) on else setUp }
@@ -153,14 +173,60 @@ class OnboardingFragment : BaseFragment() {
                 State.ON -> on
             }
         }) { openQuietNotifications() }
-        addRow(R.string.double_tap_lock, null, { if (lockWorks(it)) on else setUp }) { openLock() }
+        addRow(R.string.double_tap_lock, R.string.onboarding_lock_caption, { if (lockWorks(it)) on else setUp }) { openLock() }
         addRow(R.string.grayscale, R.string.onboarding_row_grayscale_caption, { ctx ->
-            when {
-                !GrayscaleController.isGranted(ctx) -> setUp
-                GrayscaleController.isManual(ctx) -> on
+            when (WellbeingRowState.grayscale(
+                GrayscaleController.isGranted(ctx), GrayscaleController.isManual(ctx),
+                GrayscaleController.isOnFocus(ctx), GrayscaleController.isOnLimit(ctx),
+            )) {
+                WellbeingRowState.Row.SET_UP -> setUp
+                WellbeingRowState.Row.ON -> on
+                WellbeingRowState.Row.AUTOMATIC -> getString(R.string.grayscale_automatic)
                 else -> getString(R.string.off)
             }
-        }) { GrayscaleSheet.startSetup(this, onChanged = ::refreshRows) }
+        }) { GrayscaleSheet.open(this, onPair = ::startGrayscalePairing, onChanged = ::refreshRows) }
+    }
+
+    private fun startGrayscalePairing() {
+        val ctx = context ?: return
+        if (!GrayscalePairing.isSupported()) return
+        if (GrayscalePairing.canNotify(ctx)) GrayscalePairing.start(ctx)
+        else notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    private fun setGuideExpanded(expanded: Boolean) {
+        binding.featureGuideRows.visibility = if (expanded) View.VISIBLE else View.GONE
+        ViewCompat.setStateDescription(binding.featureGuideToggle, getString(
+            if (expanded) R.string.onboarding_guide_expanded else R.string.onboarding_guide_collapsed
+        ))
+    }
+
+    private fun addFeatureGuide() {
+        val topics = listOf(
+            R.string.onboarding_guide_home to R.string.onboarding_guide_home_body,
+            R.string.onboarding_guide_search to R.string.onboarding_guide_search_body,
+            R.string.onboarding_guide_tools to R.string.onboarding_guide_tools_body,
+            R.string.onboarding_guide_gestures to R.string.onboarding_guide_gestures_body,
+            R.string.onboarding_guide_calm to R.string.onboarding_guide_calm_body,
+            R.string.onboarding_guide_quiet to R.string.onboarding_guide_quiet_body,
+            R.string.onboarding_guide_appearance to R.string.onboarding_guide_appearance_body,
+            R.string.onboarding_guide_data to R.string.onboarding_guide_data_body,
+        )
+        for ((title, body) in topics) {
+            val row = layoutInflater.inflate(R.layout.item_onboarding_row, binding.featureGuideRows, false)
+            row.findViewById<TextView>(R.id.rowLabel).setText(title)
+            row.findViewById<TextView>(R.id.rowValue).setText(R.string.onboarding_guide_read)
+            row.contentDescription = getString(title)
+            row.setOnClickListener { showExplanation(title, body) }
+            binding.featureGuideRows.addView(row)
+        }
+    }
+
+    private fun showExplanation(title: Int, body: Int) {
+        val ctx = context ?: return
+        BottomSheetMenu(ctx).title(getString(title)).message(getString(body))
+            .option(getString(R.string.close)) {}
+            .show().dismissOnDestroy(viewLifecycleOwner)
     }
 
     private fun addRow(label: Int, caption: Int?, state: (Context) -> String, onClick: () -> Unit) {
@@ -172,7 +238,7 @@ class OnboardingFragment : BaseFragment() {
                 visibility = View.VISIBLE
             }
         }
-        view.contentDescription = getString(label)
+        view.contentDescription = listOfNotNull(getString(label), caption?.let { getString(it) }).joinToString(". ")
         view.setOnClickListener { onClick() }
         binding.calmRows.addView(view, binding.calmRows.indexOfChild(binding.calmFooter))
         rows += Row(view, view.findViewById(R.id.rowValue), state)
@@ -191,14 +257,24 @@ class OnboardingFragment : BaseFragment() {
     private fun openAppLimits() {
         val ctx = context ?: return
         if (!ctx.appUsagePermissionGranted()) {
-            viewModel.showDialog.postValue(Constants.Dialog.DIGITAL_WELLBEING)
+            BadHabitDialogs.showUsageAccessSheet(ctx).dismissOnDestroy(viewLifecycleOwner)
             return
         }
         val usageMap = viewModel.perAppScreenTime.value ?: prefs.getCachedUsageStats()
-        ScreenTimeLimitDialog(ctx, usageMap).apply {
-            setOnDismissListener { refreshRows() }
-            show()
-        }
+        val menu = BottomSheetMenu(ctx)
+            .title(getString(R.string.onboarding_row_slow_down))
+            .message(getString(R.string.onboarding_pause_steps))
+        if (usageMap.isNotEmpty()) {
+            menu.option(getString(R.string.onboarding_open_limits)) {
+                if (isAdded && _binding != null) {
+                    ScreenTimeLimitDialog(ctx, usageMap).apply {
+                        setOnDismissListener { refreshRows() }
+                    }.dismissOnDestroy(viewLifecycleOwner).show()
+                }
+            }
+        } else menu.message(getString(R.string.onboarding_pause_no_usage))
+        menu.option(getString(R.string.not_now), dimmed = true) {}
+            .show().dismissOnDestroy(viewLifecycleOwner)
     }
 
     private fun openQuietNotifications() {
@@ -214,7 +290,10 @@ class OnboardingFragment : BaseFragment() {
     /** Declining changes nothing; the double-tap keeps its own first-use consent. */
     private fun openLock() {
         val ctx = context ?: return
-        if (lockWorks(ctx)) return
+        if (lockWorks(ctx)) {
+            showExplanation(R.string.double_tap_lock, R.string.onboarding_lock_enabled_body)
+            return
+        }
         showLockConsent(
             ctx,
             onAccept = {
@@ -234,6 +313,7 @@ class OnboardingFragment : BaseFragment() {
     }
 
     private companion object {
+        const val KEY_GUIDE = "onboarding_guide"
         const val KEY_CALM = "onboarding_calm"
         const val KEY_ASKED = "onboarding_asked_home"
     }

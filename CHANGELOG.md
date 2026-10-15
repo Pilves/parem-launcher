@@ -4,6 +4,7 @@
 
 - Gesture letters match resampled shapes, tolerating drawing size, speed, modest slant and reversed strokes; ambiguous marks and straight swipes are rejected.
 - App actions use consistent labelled sheets on home and in the app list; home keeps its replacement actions, removal offers Undo, and a locked layout offers Unlock. Renames stay local to home or the personal app list, and package-only controls no longer affect work-profile copies.
+- Onboarding offers optional explanations for home, search, gestures, Calm tools, appearance and backup; setup states and spoken captions now explain what is enabled.
 
 - Usage access is named as the permission it is: setting an app limit without it asks for it instead of saving a limit that never fires, the App limits row reads "Needs access" when it is missing, and the Focus and Grayscale rows say "Scheduled" / "Automatic" instead of "Off" while a schedule or trigger is armed
 

@@ -250,5 +250,10 @@ per package; the rest of each of those fragments is still in
   Verified: Android 16 A069 ADB continuous strokes C, S, O and reversed L each launched Calculator with only that letter mapped; V also launched with all letters mapped. These are injected shapes, not a real handwriting accuracy study.
   Not verified: recognition accuracy across real people's handwriting, lowercase variants other than shared shapes, and multi-stroke letters; the user requested one continuous stroke.
   Easy to get wrong: do not rotate shapes freely (M/W and N/Z differ by orientation), train the matcher only on configured apps (that makes wrong launches easier), or lower ambiguity thresholds without negative fixtures.
+- **M4-WP57 (PR #0):** Onboarding keeps its short setup and offers eight optional feature explanations before Done, including search tools, gestures, Calm, appearance, profiles and data.
+  Contract: the guide uses existing BottomSheetMenu sheets, saves expansion across recreation, and grants nothing merely by reading; captions are included in spoken row descriptions.
+  Setup states reuse WellbeingRowState; enabled screen time and lock explain themselves, and granting notification permission continues grayscale pairing.
+  Not verified: device/TalkBack/font-200% traversal, rotation and process death, permission-return flows, and live feature behavior; required build checks are recorded in the PR report.
+  Easy to get wrong: pause still requires a limit and the existing picker only lists used apps; onboarding explains this and avoids opening an empty list, while WP47 owns any-app setup.
 
 <!-- handoff:end -->
