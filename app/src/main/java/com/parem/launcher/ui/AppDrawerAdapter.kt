@@ -1,16 +1,12 @@
 package com.parem.launcher.ui
 
-import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.os.UserHandle
 import android.util.Log
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.widget.Filter
 import android.widget.Filterable
 import androidx.core.view.isVisible
@@ -22,28 +18,19 @@ import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
 import com.parem.launcher.databinding.AdapterAppDrawerBinding
 import com.parem.launcher.helper.AppIconCache
-import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.DrawerRows
-import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.OmniboxResolver
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.formattedTimeSpent
-import com.parem.launcher.helper.hideKeyboard
-import com.parem.launcher.helper.isSystemApp
 import com.parem.launcher.helper.SearchMatcher
 import com.parem.launcher.helper.ShortcutMatcher
-import com.parem.launcher.helper.showKeyboard
 
 class AppDrawerAdapter(
     private var flag: Int,
     private val appLabelGravity: Int,
     private val appClickListener: (AppModel) -> Unit,
-    private val appInfoListener: (AppModel) -> Unit,
-    private val appDeleteListener: (AppModel) -> Unit,
-    private val appHideListener: (AppModel, Int) -> Unit,
-    private val appRenameListener: (AppModel, String) -> Unit,
-    private val appGrayscaleListener: (AppModel) -> Unit,
+    private val appLongPressListener: (AppModel) -> Unit,
 ) : ListAdapter<AppModel, AppDrawerAdapter.ViewHolder>(DIFF_CALLBACK), Filterable {
 
     companion object {
@@ -108,16 +95,11 @@ class AppDrawerAdapter(
             if (itemCount == 0 || position == RecyclerView.NO_POSITION) return
             val appModel = getItem(position)
             holder.bind(
-                flag,
                 appLabelGravity,
                 myUserHandle,
                 appModel,
                 appClickListener,
-                appDeleteListener,
-                appInfoListener,
-                appHideListener,
-                appRenameListener,
-                appGrayscaleListener,
+                appLongPressListener,
                 usageStats,
                 openCounts,
                 showIcons,
@@ -276,19 +258,12 @@ class AppDrawerAdapter(
 
     class ViewHolder(private val binding: AdapterAppDrawerBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        private var currentTextWatcher: TextWatcher? = null
-
         fun bind(
-            flag: Int,
             appLabelGravity: Int,
             myUserHandle: UserHandle,
             appModel: AppModel,
             clickListener: (AppModel) -> Unit,
-            appDeleteListener: (AppModel) -> Unit,
-            appInfoListener: (AppModel) -> Unit,
-            appHideListener: (AppModel, Int) -> Unit,
-            appRenameListener: (AppModel, String) -> Unit,
-            appGrayscaleListener: (AppModel) -> Unit,
+            longPressListener: (AppModel) -> Unit,
             usageStats: Map<String, Long> = emptyMap(),
             openCounts: Map<String, Int> = emptyMap(),
             showIcons: Boolean = false,
@@ -296,8 +271,6 @@ class AppDrawerAdapter(
         ) =
             with(binding) {
                 if (appModel.isPrivateHeader()) {
-                    appHideLayout.visibility = View.GONE
-                    renameLayout.visibility = View.GONE
                     appTitle.visibility = View.VISIBLE
                     appTitle.text = root.context.getString(R.string.private_space)
                     appTitle.gravity = appLabelGravity
@@ -316,12 +289,8 @@ class AppDrawerAdapter(
                     appUsageTime.visibility = View.GONE
                     appTitle.setCompoundDrawablesRelative(null, null, null, null)
                     otherProfileIndicator.isVisible = false
-                    appHideLayout.visibility = View.GONE
-                    renameLayout.visibility = View.GONE
                     return
                 }
-                appHideLayout.visibility = View.GONE
-                renameLayout.visibility = View.GONE
                 appTitle.visibility = View.VISIBLE
                 appTitle.text = appModel.appLabel + if (appModel.isNew == true) " ✦" else ""
                 appTitle.gravity = appLabelGravity
@@ -367,155 +336,10 @@ class AppDrawerAdapter(
 
                 appTitle.setOnClickListener { clickListener(appModel) }
                 appTitle.setOnLongClickListener {
-                    if (appModel.appPackage.isNotEmpty()) {
-                        appDelete.alpha = if (root.context.isSystemApp(appModel.appPackage)) 0.5f else 1.0f
-                        appHide.text = if (flag == Constants.FLAG_HIDDEN_APPS)
-                            root.context.getString(R.string.adapter_show)
-                        else
-                            root.context.getString(R.string.adapter_hide)
-                        appTitle.visibility = View.INVISIBLE
-                        appHideLayout.visibility = View.VISIBLE
-                        // Hide, rename and time limit key on package (rename, limit) or
-                        // write exported prefs; private rows offer none of them
-                        appHide.isVisible = !appModel.isPrivate
-                        appRename.isVisible = flag != Constants.FLAG_HIDDEN_APPS && !appModel.isPrivate
-                        appBadHabit.isVisible = flag != Constants.FLAG_HIDDEN_APPS && !appModel.isPrivate
-                        if (appBadHabit.isVisible) {
-                            appBadHabit.text = if (AppLimitManager.hasLimit(root.context, appModel.appPackage))
-                                root.context.getString(R.string.remove_time_limit)
-                            else
-                                root.context.getString(R.string.set_time_limit)
-                        }
-                        appGrayscale.isVisible = appBadHabit.isVisible
-                        if (appGrayscale.isVisible) {
-                            appGrayscale.text = root.context.getString(
-                                if (GrayscaleController.isAppMarked(root.context, appModel.appPackage)) R.string.grayscale_app_off
-                                else R.string.grayscale_app_on
-                            )
-                        }
-                    }
+                    longPressListener(appModel)
                     true
                 }
-                appRename.setOnClickListener {
-                    if (appModel.appPackage.isNotEmpty()) {
-                        val appNameHint = getAppName(etAppRename.context, appModel.appPackage)
-                        etAppRename.hint = appNameHint
-                        etAppRename.setText(appModel.appLabel)
-                        etAppRename.setSelectAllOnFocus(true)
-                        renameLayout.visibility = View.VISIBLE
-                        appHideLayout.visibility = View.GONE
-                        etAppRename.showKeyboard()
-                        etAppRename.imeOptions = EditorInfo.IME_ACTION_DONE;
-
-                        currentTextWatcher?.let { etAppRename.removeTextChangedListener(it) }
-                        val watcher = object : TextWatcher {
-                            override fun afterTextChanged(s: Editable?) {
-                                etAppRename.hint = appNameHint
-                            }
-
-                            override fun beforeTextChanged(
-                                s: CharSequence?,
-                                start: Int,
-                                count: Int,
-                                after: Int,
-                            ) {
-                            }
-
-                            override fun onTextChanged(
-                                s: CharSequence?,
-                                start: Int,
-                                before: Int,
-                                count: Int,
-                            ) {
-                                etAppRename.hint = ""
-                            }
-                        }
-                        currentTextWatcher = watcher
-                        etAppRename.addTextChangedListener(watcher)
-                    }
-                }
-                etAppRename.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
-                    if (hasFocus)
-                        appTitle.visibility = View.INVISIBLE
-                    else
-                        appTitle.visibility = View.VISIBLE
-                }
-                etAppRename.setOnEditorActionListener { _, actionCode, _ ->
-                    if (actionCode == EditorInfo.IME_ACTION_DONE) {
-                        val renameLabel = etAppRename.text.toString().trim()
-                        if (renameLabel.isNotBlank() && appModel.appPackage.isNotBlank()) {
-                            appRenameListener(appModel, renameLabel)
-                            renameLayout.visibility = View.GONE
-                        }
-                        true
-                    } else {
-                        false
-                    }
-                }
-                tvSaveRename.setOnClickListener {
-                    etAppRename.hideKeyboard()
-                    val renameLabel = etAppRename.text.toString().trim()
-                    if (renameLabel.isNotBlank() && appModel.appPackage.isNotBlank()) {
-                        appRenameListener(appModel, renameLabel)
-                        renameLayout.visibility = View.GONE
-                    } else {
-                        val fallbackLabel = try {
-                            val packageManager = etAppRename.context.packageManager
-                            packageManager.getApplicationLabel(
-                                packageManager.getApplicationInfo(appModel.appPackage, 0)
-                            ).toString()
-                        } catch (e: Exception) {
-                            appModel.appPackage
-                        }
-                        appRenameListener(appModel, fallbackLabel)
-                        renameLayout.visibility = View.GONE
-                    }
-                }
-                appInfo.setOnClickListener { appInfoListener(appModel) }
-                appBadHabit.setOnClickListener {
-                    if (appModel.appPackage.isNotEmpty()) {
-                        if (AppLimitManager.hasLimit(root.context, appModel.appPackage)) {
-                            AppLimitManager.removeLimit(root.context, appModel.appPackage)
-                            appHideLayout.visibility = View.GONE
-                            appTitle.visibility = View.VISIBLE
-                        } else {
-                            BadHabitDialogs.showTimeLimitPicker(root.context, appModel.appPackage) {
-                                appHideLayout.visibility = View.GONE
-                                appTitle.visibility = View.VISIBLE
-                            }
-                        }
-                    }
-                }
-                appGrayscale.setOnClickListener {
-                    if (appModel.appPackage.isNotEmpty()) {
-                        appGrayscaleListener(appModel)
-                        appHideLayout.visibility = View.GONE
-                        appTitle.visibility = View.VISIBLE
-                    }
-                }
-                appDelete.setOnClickListener { appDeleteListener(appModel) }
-                appMenuClose.setOnClickListener {
-                    appHideLayout.visibility = View.GONE
-                    appTitle.visibility = View.VISIBLE
-                }
-                appRenameClose.setOnClickListener {
-                    renameLayout.visibility = View.GONE
-                    appTitle.visibility = View.VISIBLE
-                }
-                appHide.setOnClickListener { appHideListener(appModel, bindingAdapterPosition) }
             }
-
-        private fun getAppName(context: Context, appPackage: String): String {
-            return try {
-                val packageManager = context.packageManager
-                packageManager.getApplicationLabel(
-                    packageManager.getApplicationInfo(appPackage, 0)
-                ).toString()
-            } catch (e: Exception) {
-                appPackage
-            }
-        }
-
     }
 }
 

@@ -492,4 +492,29 @@
     <string name="screen_time_a11y_day" translatable="false">%1$s, %2$s</string>
     <string name="screen_time_a11y_day_today" translatable="false">%1$s, today, %2$s</string>
     <string name="auto_launch_single_match" translatable="false">Open single match automatically</string>
+    <!-- Consistent app and home menus (M4-WP53). -->
+    <string name="app_menu_time_limit" translatable="false">Time limit</string>
+    <string name="app_menu_no_limit" translatable="false">No limit</string>
+    <string name="app_menu_mindful_pause" translatable="false">Mindful pause</string>
+    <string name="app_menu_hide" translatable="false">Hide from app list</string>
+    <string name="app_menu_show" translatable="false">Show in app list</string>
+    <string name="app_menu_stays_home" translatable="false">App stays on home</string>
+    <string name="app_menu_uninstall" translatable="false">Uninstall</string>
+    <string name="app_menu_home_slot" translatable="false">Home slot</string>
+    <string name="app_menu_add_home" translatable="false">Add to home</string>
+    <string name="app_menu_home" translatable="false">Home</string>
+    <string name="app_menu_wallpaper" translatable="false">Wallpaper</string>
+    <string name="app_menu_wallpaper_unavailable" translatable="false">No wallpaper app is available</string>
+    <string name="app_menu_remove_home" translatable="false">Remove from home</string>
+    <string name="app_menu_remove_folder" translatable="false">Remove folder from home</string>
+    <string name="app_menu_replace_folder" translatable="false">Replaces this folder after saving</string>
+    <string name="app_menu_rename_home" translatable="false">Rename on home</string>
+    <string name="app_menu_rename_list" translatable="false">Rename in app list</string>
+    <string name="app_menu_name" translatable="false">Name</string>
+    <string name="app_menu_enter_name" translatable="false">Enter a name</string>
+    <string name="app_menu_removed" translatable="false">%1$s removed from home</string>
+    <string name="app_menu_folder_removed" translatable="false">Folder removed from home</string>
+    <string name="app_menu_undo" translatable="false">Undo</string>
+    <string name="app_menu_unlock" translatable="false">Unlock</string>
+    <string name="app_menu_layout_locked" translatable="false">Home layout is locked</string>
 </resources>

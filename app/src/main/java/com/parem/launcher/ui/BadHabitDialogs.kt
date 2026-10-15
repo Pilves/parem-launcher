@@ -1,5 +1,6 @@
 package com.parem.launcher.ui
 
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
@@ -14,6 +15,7 @@ import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.helper.formattedTimeSpent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -171,9 +173,9 @@ object BadHabitDialogs {
      * The usage-access sheet, named as the permission it is. Without the grant it
      * says what the limit needs; with it, what revoking in Android switches off.
      */
-    fun showUsageAccessSheet(context: Context) {
+    fun showUsageAccessSheet(context: Context): BottomSheetDialog {
         val granted = context.appUsagePermissionGranted()
-        BottomSheetMenu(context)
+        return BottomSheetMenu(context)
             .title(context.getString(R.string.usage_access))
             .message(context.getString(if (granted) R.string.usage_access_granted_body else R.string.usage_access_limits_body))
             .option(context.getString(R.string.usage_access_open_settings)) {
@@ -190,17 +192,21 @@ object BadHabitDialogs {
         return false
     }
 
-    fun showTimeLimitPicker(context: Context, packageName: String, onSet: () -> Unit = {}) {
-        if (!ensureUsageAccess(context)) return
+    fun showTimeLimitPicker(context: Context, packageName: String, onSet: () -> Unit = {}): BottomSheetDialog? {
+        if (!ensureUsageAccess(context)) return null
         val menu = BottomSheetMenu(context)
             .title(context.getString(R.string.select_time_limit))
-        val options = listOf(15 to "15 minutes", 30 to "30 minutes", 60 to "1 hour", 120 to "2 hours")
-        for ((minutes, label) in options) {
-            menu.option(label) {
+        val current = AppLimitManager.getLimit(context, packageName)
+        for (minutes in listOf(15, 30, 60, 120)) {
+            menu.option(context.formattedTimeSpent(minutes * 60_000L), checked = current == minutes) {
                 AppLimitManager.setLimit(context, packageName, minutes)
                 onSet()
             }
         }
-        menu.show()
+        menu.gap().option(context.getString(R.string.app_menu_no_limit), checked = current == null) {
+            AppLimitManager.removeLimit(context, packageName)
+            onSet()
+        }
+        return menu.show()
     }
 }

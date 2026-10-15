@@ -27,7 +27,7 @@ class WebsiteDialog(
     private val onSave: (url: String, label: String) -> Unit,
 ) {
 
-    fun show() {
+    fun show(): BottomSheetDialog {
         val dialog = BottomSheetDialog(context)
         val container = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -89,5 +89,6 @@ class WebsiteDialog(
         dialog.behavior.skipCollapsed = true
         dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         dialog.show()
+        return dialog
     }
 }

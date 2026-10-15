@@ -120,22 +120,25 @@ class FolderManager(context: Context) {
     // so avoid re-parsing the JSON string each time. Guarded by `lock` like
     // every public method.
     private var cachedRoot: JSONObject? = null
+    private var cachedRaw: String? = null
 
     private fun readJson(): JSONObject {
-        cachedRoot?.let { return it }
         val raw = prefs.getString(KEY_FOLDER_DATA, null)
+        if (raw == cachedRaw) cachedRoot?.let { return it }
         val root = if (raw.isNullOrBlank()) JSONObject() else try {
             JSONObject(raw)
         } catch (_: Exception) {
             JSONObject()
         }
         cachedRoot = root
+        cachedRaw = raw
         return root
     }
 
     private fun writeJson(json: JSONObject) {
         cachedRoot = json
-        prefs.edit().putString(KEY_FOLDER_DATA, json.toString()).apply()
+        cachedRaw = json.toString()
+        prefs.edit().putString(KEY_FOLDER_DATA, cachedRaw).apply()
     }
 
     private fun parseFolderGroup(obj: JSONObject): FolderGroup {

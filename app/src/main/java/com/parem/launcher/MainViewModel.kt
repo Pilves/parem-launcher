@@ -140,6 +140,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             in Constants.FLAG_SET_HOME_APP_1..Constants.FLAG_SET_HOME_APP_8 -> {
+                // Replace only after a successful selection; cancellation keeps the folder.
+                com.parem.launcher.helper.FolderManager(getApplication()).removeFolder(flag)
                 prefs.setHomeAppName(flag, appModel.appLabel)
                 prefs.setHomeAppPackage(flag, appModel.appPackage)
                 prefs.setHomeAppUser(flag, appModel.user.toString())
