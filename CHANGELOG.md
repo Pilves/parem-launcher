@@ -20,6 +20,11 @@
   and display cutout instead of fixed guesses, the keyboard no longer covers
   drawer results, and Back outside home is delegated to Navigation for the
   upcoming predictive-back transitions
+- Fixed: rotating the tablet or losing the app in the background while a
+  widget's permission or setup screen is open no longer loses the widget;
+  a widget the system invalidated (reboot, app update) is asked for again
+  next time instead of vanishing, keeps its place and height, and leftover
+  widget IDs are released
 
 - TalkBack, Switch Access and Voice Access users can leave home: the home
   screen and every app row offer All apps, Settings, Notifications, Add widget
