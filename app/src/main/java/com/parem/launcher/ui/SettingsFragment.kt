@@ -16,6 +16,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GestureLetterManager
+import com.parem.launcher.helper.padForSystemBars
 import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.WellbeingRowState
 import com.parem.launcher.helper.appUsagePermissionGranted
@@ -95,6 +96,7 @@ class SettingsFragment : BaseFragment() {
             ViewModelProvider(this)[MainViewModel::class.java]
         } ?: throw Exception("Invalid Activity")
         viewModel.isParemDefault()
+        binding.scrollView.padForSystemBars()
 
         // Closes any open inline picker when the background is tapped
         binding.scrollLayout.setOnClickListener { resetOpenPickers(it.id) }

@@ -26,6 +26,7 @@ import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.isDefaultLauncher
+import com.parem.launcher.helper.padForSystemBars
 import com.parem.launcher.helper.notifications.QuietNotificationsManager
 import com.parem.launcher.helper.notifications.QuietNotificationsManager.State
 import com.parem.launcher.listener.DeviceAdmin
@@ -65,6 +66,7 @@ class OnboardingFragment : BaseFragment() {
         prefs = Prefs(requireContext())
         viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         askedForHome = savedInstanceState?.getBoolean(KEY_ASKED) ?: false
+        binding.root.padForSystemBars()
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPress)
         binding.btnSetHome.setOnClickListener { askForHome() }

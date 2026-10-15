@@ -13,13 +13,13 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
-import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 import androidx.appcompat.app.AlertDialog
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -145,13 +145,16 @@ class MainActivity : AppCompatActivity() {
                 resetLauncherViaFakeActivity()
         }
 
-        val onBackPressedCallback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (navController.currentDestination?.id != R.id.mainFragment)
-                    navController.popBackStack()
-            }
+        // Enabled only on home, where Back is swallowed (a launcher has nothing to go
+        // back to). Elsewhere it stays disabled so NavHostFragment's own callback pops
+        // the stack and the system can run the predictive-back peek
+        val onBackPressedCallback = object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {}
         }
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            onBackPressedCallback.isEnabled = destination.id == R.id.mainFragment
+        }
 
         if (prefs.firstOpen) {
             viewModel.firstOpen(true)
@@ -167,7 +170,8 @@ class MainActivity : AppCompatActivity() {
         viewModel.getAppList()
         setupOrientation()
 
-        window.addFlags(FLAG_LAYOUT_NO_LIMITS)
+        // Edge-to-edge on API 29-34 (35+ enforces it); fragments pad by WindowInsets
+        WindowCompat.setDecorFitsSystemWindows(window, false)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

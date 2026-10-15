@@ -46,6 +46,7 @@ import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.openSearch
 import com.parem.launcher.helper.openUrl
 import com.parem.launcher.helper.privateProfile
+import com.parem.launcher.helper.padForSystemBars
 import com.parem.launcher.helper.showKeyboard
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.helper.uninstall
@@ -116,6 +117,7 @@ class AppDrawerFragment : BaseFragment() {
             if (savedInstanceState == null)
                 typedQuery = it.getString(Constants.Key.QUERY).orEmpty()
         }
+        binding.root.padForSystemBars(ime = true)
         initViews()
         initSearch()
         initAdapter()

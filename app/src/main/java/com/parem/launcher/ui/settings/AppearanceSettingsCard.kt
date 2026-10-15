@@ -1,11 +1,11 @@
 package com.parem.launcher.ui.settings
 
 import android.app.TimePickerDialog
-import android.os.Build
 import android.view.View
-import android.view.WindowInsets
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.doOnAttach
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -121,26 +121,13 @@ class AppearanceSettingsCard(
     }
 
     private fun showStatusBar() {
-        val activity = fragment.requireActivity()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            activity.window.insetsController?.show(WindowInsets.Type.statusBars())
-        else
-            @Suppress("DEPRECATION", "InlinedApi")
-            activity.window.decorView.apply {
-                systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            }
+        val window = fragment.requireActivity().window
+        WindowInsetsControllerCompat(window, window.decorView).show(WindowInsetsCompat.Type.statusBars())
     }
 
     private fun hideStatusBar() {
-        val activity = fragment.requireActivity()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            activity.window.insetsController?.hide(WindowInsets.Type.statusBars())
-        else {
-            @Suppress("DEPRECATION")
-            activity.window.decorView.apply {
-                systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE or View.SYSTEM_UI_FLAG_FULLSCREEN
-            }
-        }
+        val window = fragment.requireActivity().window
+        WindowInsetsControllerCompat(window, window.decorView).hide(WindowInsetsCompat.Type.statusBars())
     }
 
     private fun removeWallpaper() {

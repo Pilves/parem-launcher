@@ -15,6 +15,12 @@
   keyboard D-pad/Enter selects a day, and secondary text (graph labels, sheet
   captions, onboarding caption) is darkened to 60% for 4.5:1 contrast in the
   light theme
+- Edge-to-edge done properly for Android 16: home, the app drawer, Settings,
+  onboarding and every bottom sheet pad by the real status bar, navigation bar
+  and display cutout instead of fixed guesses, the keyboard no longer covers
+  drawer results, and Back outside home is delegated to Navigation for the
+  upcoming predictive-back transitions
+
 - TalkBack, Switch Access and Voice Access users can leave home: the home
   screen and every app row offer All apps, Settings, Notifications, Add widget
   and the configured swipe apps as actions, an "All apps" row appears under

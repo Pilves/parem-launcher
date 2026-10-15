@@ -21,7 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="56dp"
+        android:layout_marginTop="24dp"
         android:orientation="vertical"
         android:visibility="gone"
         tools:visibility="visible">
@@ -83,8 +83,8 @@
         android:gravity="center_vertical"
         android:orientation="vertical"
         android:paddingHorizontal="20dp"
-        android:paddingTop="112dp"
-        android:paddingBottom="48dp">
+        android:paddingTop="80dp"
+        android:paddingBottom="16dp">
 
         <!-- Widget container above apps -->
         <ScrollView
@@ -261,7 +261,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginHorizontal="20dp"
-        android:layout_marginBottom="56dp"
+        android:layout_marginBottom="24dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:text="@string/set_as_default_launcher_u"

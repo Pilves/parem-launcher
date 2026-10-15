@@ -9,6 +9,8 @@ import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -134,6 +136,13 @@ class BottomSheetMenu(private val context: Context) {
         // unaffected — they still open at content height.
         val scroller = androidx.core.widget.NestedScrollView(context).apply {
             addView(container)
+        }
+        // Edge-to-edge dialog window: keep the last row above the navigation bar
+        val basePaddingBottom = container.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(container) { v, insets ->
+            val bottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, basePaddingBottom + bottom)
+            insets
         }
         dialog.setContentView(scroller)
         dialog.transparentSheetFrame()
