@@ -176,7 +176,6 @@ class HomeWidgetController(
             prefs.migrateWidgetIfNeeded(mainActivity.appWidgetManager)
             val ids = prefs.getWidgetIdList()
             sweepOrphanIds(mainActivity, ids)
-            if (ids.isEmpty()) return
             val savedProviders = prefs.getAllWidgetProviders()
             widgetRestoreQueue.clear()
 

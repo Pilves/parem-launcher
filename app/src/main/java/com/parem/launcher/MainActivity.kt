@@ -86,20 +86,16 @@ class MainActivity : AppCompatActivity() {
         // on e-ink (and on any misdetected phone)
         if (isEinkDisplay() && !prefs.hasAppTheme) prefs.appTheme = AppCompatDelegate.MODE_NIGHT_NO
         AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
+        // HomeFragment restores widgets during content inflation, so its orphan sweep
+        // and deferred-result delivery must already see the saved operation.
+        pendingWidgetOp = savedInstanceState?.getBundle("pendingWidgetOp")
+        pendingWidgetResult = savedInstanceState?.takeIf { it.containsKey("pendingWidgetResult") }
+            ?.getBoolean("pendingWidgetResult")
         super.onCreate(savedInstanceState)
         if (prefs.boldFont) theme.applyStyle(R.style.BoldFontOverlay, true)
 
         appWidgetManager = AppWidgetManager.getInstance(this)
         appWidgetHost = AppWidgetHost(this, Constants.APPWIDGET_HOST_ID)
-
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        CrashReporter.pending(this)?.let { showCrashReport(this, it) }
-
-        navController = this.findNavController(R.id.nav_host_fragment)
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
-
-        pendingWidgetOp = savedInstanceState?.getBundle("pendingWidgetOp")
 
         bindWidgetLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -131,6 +127,15 @@ class MainActivity : AppCompatActivity() {
                 resetLauncherViaFakeActivity()
         }
 
+        // A restored bind result can immediately launch configuration from HomeFragment.
+        // Register both launchers before inflating that fragment.
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        CrashReporter.pending(this)?.let { showCrashReport(this, it) }
+
+        navController = this.findNavController(R.id.nav_host_fragment)
+        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+
         val onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (navController.currentDestination?.id != R.id.mainFragment)
@@ -159,6 +164,7 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBundle("pendingWidgetOp", pendingWidgetOp)
+        pendingWidgetResult?.let { outState.putBoolean("pendingWidgetResult", it) }
     }
 
     private fun homeFragment(): HomeFragment? =
