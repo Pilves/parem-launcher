@@ -1205,7 +1205,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
-                        android:text="@string/screen_time"
+                        android:text="@string/usage_access"
                         android:textColor="?attr/primaryColor" />
 
                     <TextView

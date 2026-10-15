@@ -17,6 +17,7 @@ import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.WeatherManager
+import com.parem.launcher.helper.WellbeingRowState
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.skipAnimations
 import com.parem.launcher.ui.settings.AppInfoSettingsCard
@@ -180,7 +181,18 @@ class SettingsFragment : BaseFragment() {
     internal fun populateWellbeingSection() {
         // Also reached from sheet dismiss listeners, which can run after onDestroyView
         if (_binding == null) return
-        binding.focusModeToggle?.text = if (FocusModeManager.isActive(requireContext())) getString(R.string.on) else getString(R.string.off)
+        val ctx = requireContext()
+        binding.focusModeToggle?.text = getString(
+            when (WellbeingRowState.focus(
+                active = FocusModeManager.isActive(ctx),
+                scheduleEnabled = FocusModeManager.isScheduleEnabled(ctx),
+                hasWindows = FocusModeManager.getSchedule(ctx).isNotEmpty(),
+            )) {
+                WellbeingRowState.Row.ON -> R.string.on
+                WellbeingRowState.Row.SCHEDULED -> R.string.focus_scheduled
+                else -> R.string.off
+            }
+        )
 
         binding.gestureLettersToggle?.text = if (GestureLetterManager.isEnabled(requireContext())) getString(R.string.on) else getString(R.string.off)
         binding.weatherToggle?.text = if (WeatherManager.isEnabled(requireContext())) {

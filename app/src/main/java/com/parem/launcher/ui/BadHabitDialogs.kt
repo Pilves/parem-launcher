@@ -1,6 +1,8 @@
 package com.parem.launcher.ui
 
 import android.content.Context
+import android.content.Intent
+import android.provider.Settings
 import android.os.SystemClock
 import android.widget.TextView
 import com.parem.launcher.R
@@ -8,6 +10,7 @@ import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.MindfulPause
+import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
@@ -164,7 +167,31 @@ object BadHabitDialogs {
         }
     }
 
+    /**
+     * The usage-access sheet, named as the permission it is. Without the grant it
+     * says what the limit needs; with it, what revoking in Android switches off.
+     */
+    fun showUsageAccessSheet(context: Context) {
+        val granted = context.appUsagePermissionGranted()
+        BottomSheetMenu(context)
+            .title(context.getString(R.string.usage_access))
+            .message(context.getString(if (granted) R.string.usage_access_granted_body else R.string.usage_access_limits_body))
+            .option(context.getString(R.string.usage_access_open_settings)) {
+                context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+            }
+            .option(context.getString(R.string.not_now), dimmed = true) {}
+            .show()
+    }
+
+    /** False means the sheet asking for usage access is showing instead; a limit saved without it never fires. */
+    fun ensureUsageAccess(context: Context): Boolean {
+        if (context.appUsagePermissionGranted()) return true
+        showUsageAccessSheet(context)
+        return false
+    }
+
     fun showTimeLimitPicker(context: Context, packageName: String, onSet: () -> Unit = {}) {
+        if (!ensureUsageAccess(context)) return
         val menu = BottomSheetMenu(context)
             .title(context.getString(R.string.select_time_limit))
         val options = listOf(15 to "15 minutes", 30 to "30 minutes", 60 to "1 hour", 120 to "2 hours")

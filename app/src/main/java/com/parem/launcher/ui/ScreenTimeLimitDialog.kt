@@ -1,8 +1,10 @@
 package com.parem.launcher.ui
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.provider.Settings
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
@@ -10,6 +12,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import com.parem.launcher.R
 import com.parem.launcher.helper.AppLimitManager
+import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.getColorFromAttr
@@ -66,6 +69,22 @@ class ScreenTimeLimitDialog(
             setPadding(0, 0, 0, 8.dpToPx())
         }
         rootLayout.addView(titleView)
+
+        // Access can be revoked while the dialog's usage map is still cached:
+        // say so in the sheet instead of listing limits that can never fire
+        if (!context.appUsagePermissionGranted()) {
+            rootLayout.addView(TextView(context).apply {
+                text = context.getString(R.string.usage_access_limits_body)
+                textSize = 14f
+                setTextColor(secondaryTextColor)
+                setPadding(0, 8.dpToPx(), 0, 8.dpToPx())
+                setBackgroundResource(context.selectableBackgroundRes())
+                setOnClickListener {
+                    dismiss()
+                    context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+                }
+            })
+        }
 
         val listLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL

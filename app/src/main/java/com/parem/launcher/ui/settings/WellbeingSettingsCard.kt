@@ -15,7 +15,10 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.GrayscalePairing
+import com.parem.launcher.helper.WellbeingRowState
+import com.parem.launcher.helper.WellbeingRowState.Row
 import com.parem.launcher.helper.appUsagePermissionGranted
+import com.parem.launcher.ui.BadHabitDialogs
 import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.helper.notifications.QuietNotificationsManager
@@ -46,7 +49,7 @@ class WellbeingSettingsCard(
     private val context get() = binding.root.context
 
     fun bind() {
-        populateScreenTimeOnOff()
+        populateUsageAccess()
         populateQuietNotif()
         populateGrayscale()
 
@@ -54,6 +57,7 @@ class WellbeingSettingsCard(
         // The access grant happens in system settings; re-derive the state on return
         fragment.viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME && fragment.isBindingAlive()) {
+                populateUsageAccess()
                 populateQuietNotif()
                 // The grant can land from the pairing notification while Settings is open
                 populateGrayscale()
@@ -74,7 +78,7 @@ class WellbeingSettingsCard(
     override fun onClick(view: View) {
         fragment.resetOpenPickers(view.id)
         when (view.id) {
-            R.id.screenTimeOnOff -> viewModel.showDialog.postValue(Constants.Dialog.DIGITAL_WELLBEING)
+            R.id.screenTimeOnOff -> BadHabitDialogs.showUsageAccessSheet(context)
             R.id.focusModeToggle -> showFocusModeFromSettings()
             R.id.grayscaleToggle -> GrayscaleSheet.open(fragment, onPair = ::startPairing, onChanged = {
                 if (fragment.isBindingAlive()) populateGrayscale()
@@ -114,10 +118,17 @@ class WellbeingSettingsCard(
     }
 
     private fun populateGrayscale() {
+        val row = WellbeingRowState.grayscale(
+            granted = GrayscaleController.isGranted(context),
+            manual = GrayscaleController.isManual(context),
+            onFocus = GrayscaleController.isOnFocus(context),
+            onLimit = GrayscaleController.isOnLimit(context),
+        )
         binding.grayscaleToggle?.text = context.getString(
-            when {
-                !GrayscaleController.isGranted(context) -> R.string.grayscale_set_up
-                GrayscaleController.isManual(context) -> R.string.on
+            when (row) {
+                Row.SET_UP -> R.string.grayscale_set_up
+                Row.ON -> R.string.on
+                Row.AUTOMATIC -> R.string.grayscale_automatic
                 else -> R.string.off
             }
         )
@@ -152,9 +163,15 @@ class WellbeingSettingsCard(
         }
     }
 
-    private fun populateScreenTimeOnOff() {
-        if (context.appUsagePermissionGranted()) binding.screenTimeOnOff.text = context.getString(R.string.on)
-        else binding.screenTimeOnOff.text = context.getString(R.string.off)
+    /** The permission row and the limits row that depends on it, re-derived on every resume (the grant lands in system settings). */
+    private fun populateUsageAccess() {
+        val granted = context.appUsagePermissionGranted()
+        binding.screenTimeOnOff.text = context.getString(if (granted) R.string.on else R.string.off)
+        val needsAccess = WellbeingRowState.appLimits(granted) == Row.NEEDS_ACCESS
+        binding.screenTimeLimitsToggle?.apply {
+            text = context.getString(if (needsAccess) R.string.quiet_needs_access else R.string.configure)
+            alpha = if (needsAccess) 0.5f else 1f
+        }
     }
 
     private fun showFocusModeFromSettings() {
@@ -175,10 +192,7 @@ class WellbeingSettingsCard(
     }
 
     private fun showScreenTimeLimitsDialog() {
-        if (!context.appUsagePermissionGranted()) {
-            viewModel.showDialog.postValue(Constants.Dialog.DIGITAL_WELLBEING)
-            return
-        }
+        if (!BadHabitDialogs.ensureUsageAccess(context)) return
         // The async usage scan may not have landed on a fresh settings open;
         // fall back to the last persisted map rather than opening an empty sheet
         val usageMap = viewModel.perAppScreenTime.value ?: prefs.getCachedUsageStats()

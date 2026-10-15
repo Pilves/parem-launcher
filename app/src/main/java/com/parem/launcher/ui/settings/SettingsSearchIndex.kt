@@ -43,7 +43,7 @@ object SettingsSearchIndex {
         R.string.double_tap_action to R.id.doubleTapAction,
         R.string.auto_show_keyboard to R.id.autoShowKeyboard,
         R.string.gesture_letters to R.id.gestureLettersToggle,
-        R.string.screen_time to R.id.screenTimeOnOff,
+        R.string.usage_access to R.id.screenTimeOnOff,
         R.string.app_limits to R.id.screenTimeLimitsToggle,
         R.string.focus_mode to R.id.focusModeToggle,
         R.string.grayscale to R.id.grayscaleToggle,
