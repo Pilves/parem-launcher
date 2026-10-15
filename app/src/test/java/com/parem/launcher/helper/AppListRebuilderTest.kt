@@ -37,7 +37,7 @@ class AppListRebuilderTest {
         renameLabel: (String) -> String = { "" },
         now: Long = NOW,
     ) = AppListRebuilder.rebuild(
-        rawApps, OWN_PACKAGE, hiddenApps,
+        rawApps, OWN_PACKAGE, MAIN_USER, hiddenApps,
         includeRegularApps, includeHiddenApps, includePrivate, privateLocked, renameLabel, now, HOUR
     )
 
@@ -160,6 +160,17 @@ class AppListRebuilderTest {
             includeRegularApps = false, includeHiddenApps = true
         )
         assertEquals(listOf("org.signal"), result.map { it.app.packageName })
+    }
+
+    @Test
+    fun personalAlias_doesNotRenameOtherProfilesWithSamePackage() {
+        val result = rebuild(listOf(
+            raw("Signal", "org.signal"),
+            raw("Signal", "org.signal", user = WORK_USER),
+            raw("Signal", "org.signal", user = PRIVATE_USER, isPrivate = true),
+        ), includePrivate = true, renameLabel = { "Chat" })
+        assertEquals(mapOf(MAIN_USER to "Chat", WORK_USER to "Signal", PRIVATE_USER to "Signal"),
+            result.associate { it.app.user to it.shownLabel })
     }
 
     companion object {

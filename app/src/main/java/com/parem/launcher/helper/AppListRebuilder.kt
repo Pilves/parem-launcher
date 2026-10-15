@@ -37,6 +37,7 @@ object AppListRebuilder {
     fun <U> rebuild(
         rawApps: List<RawApp<U>>,
         ownPackageName: String,
+        personalUser: U,
         hiddenApps: Set<String>,
         includeRegularApps: Boolean,
         includeHiddenApps: Boolean,
@@ -60,7 +61,7 @@ object AppListRebuilder {
             }
             result.add(
                 Entry(
-                    shownLabel = renameLabel(app.packageName).ifBlank { app.label },
+                    shownLabel = if (app.user == personalUser && !app.isPrivate) renameLabel(app.packageName).ifBlank { app.label } else app.label,
                     isNew = (now - app.firstInstallTime) < newAppWindowMillis,
                     app = app,
                 )

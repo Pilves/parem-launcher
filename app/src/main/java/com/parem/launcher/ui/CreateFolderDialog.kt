@@ -44,7 +44,7 @@ class CreateFolderDialog(
         const val MAX_ITEMS = 4
     }
 
-    fun show() {
+    fun show(): BottomSheetDialog {
         val dialog = BottomSheetDialog(context)
         val container = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -206,5 +206,6 @@ class CreateFolderDialog(
         // Keep the filtered list visible above the keyboard, as the widget picker does
         dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         dialog.show()
+        return dialog
     }
 }

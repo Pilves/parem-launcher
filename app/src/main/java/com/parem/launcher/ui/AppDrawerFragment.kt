@@ -41,15 +41,12 @@ import com.parem.launcher.helper.getShortcutRaws
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isEinkDisplay
 import com.parem.launcher.helper.skipAnimations
-import com.parem.launcher.helper.isSystemApp
-import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.openSearch
 import com.parem.launcher.helper.openUrl
 import com.parem.launcher.helper.privateProfile
 import com.parem.launcher.helper.padForSystemBars
 import com.parem.launcher.helper.showKeyboard
 import com.parem.launcher.helper.showToast
-import com.parem.launcher.helper.uninstall
 import com.parem.launcher.ui.settings.SettingsSearchIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -404,60 +401,17 @@ class AppDrawerFragment : BaseFragment() {
             flag,
             prefs.appLabelAlignment,
             appClickListener = { onAppClick(it) },
-            appInfoListener = {
-                if (!isAdded) return@AppDrawerAdapter
-                val ctx = context ?: return@AppDrawerAdapter
-                openAppInfo(
-                    ctx,
-                    it.user,
-                    it.appPackage
-                )
-                findNavController().popBackStack(R.id.mainFragment, false)
-            },
-            appDeleteListener = {
-                val ctx = context ?: return@AppDrawerAdapter
-                when {
-                    // ACTION_DELETE can't target another profile; app info can
-                    // uninstall from there (upstream fix #446)
-                    it.user != android.os.Process.myUserHandle() ->
-                        openAppInfo(ctx, it.user, it.appPackage)
-                    ctx.isSystemApp(it.appPackage) ->
-                        ctx.showToast(getString(R.string.system_app_cannot_delete))
-                    else -> ctx.uninstall(it.appPackage)
-                }
-            },
-            appHideListener = { appModel, position ->
-                if (!isAdded) return@AppDrawerAdapter
-                reapplyQueryOnReload = false
-                adapter.removeApp(position)
-
-                val newSet = mutableSetOf<String>()
-                newSet.addAll(prefs.hiddenApps)
-                if (flag == Constants.FLAG_HIDDEN_APPS) {
-                    newSet.remove(appModel.appPackage) // for backward compatibility
-                    newSet.remove(appModel.appPackage + "|" + appModel.user.toString())
-                } else
-                    newSet.add(appModel.appPackage + "|" + appModel.user.toString())
-
-                prefs.hiddenApps = newSet
-                if (newSet.isEmpty())
-                    findNavController().popBackStack()
-                if (prefs.firstHide) {
+            appLongPressListener = { app ->
+                if (isAdded && _binding != null) {
                     _binding?.search?.hideKeyboard()
-                    prefs.firstHide = false
-                    viewModel.showDialog.postValue(Constants.Dialog.HIDDEN)
-                    findNavController().navigate(R.id.action_appListFragment_to_settingsFragment2)
+                    AppMenu.show(this, app, prefs, viewModel, hidden = flag == Constants.FLAG_HIDDEN_APPS) {
+                        if (isAdded && _binding != null) {
+                            reapplyQueryOnReload = false
+                            viewModel.getAppList()
+                            viewModel.getHiddenApps()
+                        }
+                    }
                 }
-                viewModel.getAppList()
-                viewModel.getHiddenApps()
-            },
-            appRenameListener = { appModel, renameLabel ->
-                reapplyQueryOnReload = false
-                prefs.setAppRenameLabel(appModel.appPackage, renameLabel)
-                viewModel.getAppList()
-            },
-            appGrayscaleListener = {
-                if (isAdded) GrayscaleSheet.toggleApp(this, it.appPackage) { dialog -> viewModel.showDialog.postValue(dialog) }
             }
         )
         adapter.showIcons = prefs.showIcons

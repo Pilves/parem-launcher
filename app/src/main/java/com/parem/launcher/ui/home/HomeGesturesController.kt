@@ -4,6 +4,7 @@ import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ActivityNotFoundException
 import android.provider.Settings
 import android.util.Log
 import android.view.MotionEvent
@@ -14,7 +15,6 @@ import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.MainActivity
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -38,13 +38,12 @@ import com.parem.launcher.listener.DeviceAdmin
 import com.parem.launcher.listener.OnSwipeTouchListener
 import com.parem.launcher.listener.ViewSwipeTouchListener
 import com.parem.launcher.ui.HomeFragment
+import com.parem.launcher.ui.BottomSheetMenu
+import com.parem.launcher.ui.dismissOnDestroy
 import com.parem.launcher.ui.QuietListSheet
 import com.parem.launcher.ui.requestLockAdmin
-import com.parem.launcher.ui.selectableBackgroundRes
 import com.parem.launcher.ui.showLockConsent
 import com.parem.launcher.ui.showLockServiceOff
-import com.parem.launcher.ui.disableAnimationsOnEink
-import com.parem.launcher.ui.transparentSheetFrame
 
 /**
  * Owns the home screen's touch input and gesture actions: the screen and
@@ -497,27 +496,27 @@ class HomeGesturesController(
     }
 
     private fun showHomeLongPressMenu() {
-        val dialog = BottomSheetDialog(context)
-        val view = fragment.layoutInflater.inflate(R.layout.dialog_home_menu, null)
-        // Same pressed feedback as BottomSheetMenu rows
-        val pressedBackground = context.selectableBackgroundRes()
-        view.findViewById<TextView>(R.id.menuAddWidget).apply {
-            setBackgroundResource(pressedBackground)
-            setOnClickListener {
-                dialog.dismiss()
-                fragment.widgetController?.showWidgetPicker()
+        BottomSheetMenu(context)
+            .title(context.getString(R.string.app_menu_home), prominent = true)
+            .option(context.getString(R.string.a11y_all_apps)) {
+                if (fragment.isAdded && fragment.view != null) fragment.showAppList(Constants.FLAG_LAUNCH_APP)
             }
-        }
-        view.findViewById<TextView>(R.id.menuSettings).apply {
-            setBackgroundResource(pressedBackground)
-            setOnClickListener {
-                dialog.dismiss()
-                openSettings()
+            .option(context.getString(R.string.notifications)) {
+                if (fragment.isAdded && fragment.view != null) expandNotificationDrawer(context)
             }
-        }
-        dialog.setContentView(view)
-        dialog.transparentSheetFrame()
-        dialog.disableAnimationsOnEink()
-        dialog.show()
+            .option(context.getString(R.string.add_widget)) {
+                if (fragment.isAdded && fragment.view != null) fragment.widgetController?.showWidgetPicker()
+            }
+            .option(context.getString(R.string.app_menu_wallpaper)) {
+                if (fragment.isAdded && fragment.view != null) try {
+                    fragment.startActivity(Intent(Intent.ACTION_SET_WALLPAPER))
+                } catch (_: ActivityNotFoundException) {
+                    context.showToast(context.getString(R.string.app_menu_wallpaper_unavailable))
+                }
+            }
+            .option(context.getString(R.string.settings)) {
+                if (fragment.isAdded && fragment.view != null) openSettings()
+            }
+            .show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 }

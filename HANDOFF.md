@@ -237,5 +237,11 @@ per package; the rest of each of those fragments is still in
   Not verified: with TalkBack on the Tab S8, that typing "m" with one match leaves the drawer open and that the row reads "Open single match automatically, On"; appended to the UX device pass.
   Easy to get wrong: the screen-reader state is read when the filter publishes, not cached, so toggling TalkBack mid-session needs no listener; the setting is read from Prefs on every publish for the same reason.
   Verified: ADB on Nothing A069 / Android 16: disabling auto-launch leaves a sole Calculator result in the drawer; preference survives restart; at 200% system font the label wraps without overlapping Off and the row exposes its accessible title.
+- **M4-WP53 (PR #0):** App and home menus use BottomSheetMenu: shared labelled app actions, a separate Home slot group, five background actions, local rename, Undo removal and Unlock refusal.
+  Contract: home rename edits one slot; legacy drawer aliases apply only to personal-profile rows; work/private menus omit unsafe package-only settings; all app selections still use selectedApp.
+  Contract: SlotSnapshot captures all home/swipe fields and FolderData; stale/superseded Undo cannot overwrite a newer slot; Material feedback has an instant local overlay under skipAnimations.
+  Not verified: Gradle checks await the shared build slot; phone/tablet menus, 200% fonts, actual TalkBack, IME, Snackbar appearance, e-ink and removal/Undo device round trips remain unverified.
+  Easy to get wrong: successful home selection clears FolderData, cancellation does not; FolderManager checks stored JSON before reusing its parsed cache; Website/CreateFolder expose dialogs so callers dismiss them with the fragment view.
+  Scope: minimal summary/check/group APIs and checked/no-limit picker choices landed here; global typography/width tokens, shared timing targets, settings redesign and predictive-back motion remain WP50/51/52/55.
 
 <!-- handoff:end -->

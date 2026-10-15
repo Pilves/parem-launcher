@@ -4,10 +4,16 @@ import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.StateListDrawable
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.ImageView
+import androidx.core.view.AccessibilityDelegateCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import androidx.core.widget.TextViewCompat
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -19,6 +25,7 @@ import com.parem.launcher.R
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.skipAnimations
+import com.parem.launcher.helper.isEinkDisplay
 
 /**
  * The sheet frame behind a rounded-corner content view must be transparent,
@@ -76,16 +83,23 @@ class BottomSheetMenu(private val context: Context) {
                 gravity = Gravity.CENTER_HORIZONTAL
                 bottomMargin = 16.dpToPx()
             }
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             setBackgroundColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
         })
     }
 
-    fun title(text: String): BottomSheetMenu {
+    fun title(text: String, prominent: Boolean = false): BottomSheetMenu {
         container.addView(TextView(context).apply {
             this.text = text
             textSize = 14f
             setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
             setTypeface(null, Typeface.BOLD)
+            if (prominent) {
+                TextViewCompat.setTextAppearance(this, R.style.TextLarge)
+                setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
+                setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+            }
+            ViewCompat.setAccessibilityHeading(this, true)
             setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 8.dpToPx())
         })
         return this
@@ -101,22 +115,86 @@ class BottomSheetMenu(private val context: Context) {
         return this
     }
 
-    /** A tappable row. The sheet dismisses before [onClick] runs. */
-    fun option(text: String, dimmed: Boolean = false, onClick: () -> Unit): BottomSheetMenu {
-        container.addView(TextView(context).apply {
-            this.text = text
-            textSize = 16f
-            setTextColor(
-                context.getColorFromAttr(if (dimmed) R.attr.primaryColorTrans50 else R.attr.primaryColor)
-            )
+    /** A whole tappable row; input validation may opt out of automatic dismissal. */
+    fun option(
+        text: String,
+        dimmed: Boolean = false,
+        summary: String? = null,
+        checked: Boolean? = null,
+        dismissOnClick: Boolean = true,
+        onClick: () -> Unit,
+    ): BottomSheetMenu {
+        val row = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = 48.dpToPx()
             setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-            setBackgroundResource(context.selectableBackgroundRes())
+            isFocusable = true
+            if (context.isEinkDisplay()) {
+                background = StateListDrawable().apply {
+                    addState(intArrayOf(android.R.attr.state_pressed), ColorDrawable(context.getColorFromAttr(R.attr.primaryShadeDarkColor)))
+                    addState(intArrayOf(android.R.attr.state_focused), ColorDrawable(context.getColorFromAttr(R.attr.primaryShadeDarkColor)))
+                    addState(intArrayOf(), ColorDrawable(Color.TRANSPARENT))
+                }
+            } else setBackgroundResource(context.selectableBackgroundRes())
+            contentDescription = listOfNotNull(text, summary).joinToString(", ")
+            ViewCompat.setScreenReaderFocusable(this, true)
+            isSelected = checked == true
+            if (checked != null) ViewCompat.setStateDescription(this, context.getString(if (checked) R.string.on else R.string.off))
+            ViewCompat.setAccessibilityDelegate(this, object : AccessibilityDelegateCompat() {
+                override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                    super.onInitializeAccessibilityNodeInfo(host, info)
+                    info.className = if (checked == null) "android.widget.Button" else "android.widget.CheckBox"
+                    if (checked != null) info.isSelected = false
+                    info.isCheckable = checked != null
+                    info.isChecked = checked == true
+                }
+            })
             setOnClickListener {
-                dialog.dismiss()
+                if (dismissOnClick) dialog.dismiss()
                 onClick()
             }
+        }
+        val labels = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+        }
+        labels.addView(TextView(context).apply {
+            TextViewCompat.setTextAppearance(this, R.style.TextSmall)
+            this.text = text
+            setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
+            setTextColor(context.getColorFromAttr(if (dimmed) R.attr.primaryColorTrans60 else R.attr.primaryColor))
         })
+        if (summary != null) labels.addView(TextView(context).apply {
+            TextViewCompat.setTextAppearance(this, androidx.appcompat.R.style.TextAppearance_AppCompat_Small)
+            this.text = summary
+            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans80))
+            setPadding(0, 4.dpToPx(), 0, 0)
+        })
+        row.addView(labels, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        if (checked != null) row.addView(ImageView(context).apply {
+            setImageResource(R.drawable.ic_check)
+            visibility = if (checked) View.VISIBLE else View.INVISIBLE
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }, LinearLayout.LayoutParams(24.dpToPx(), 24.dpToPx()).apply { marginStart = 8.dpToPx() })
+        container.addView(row)
         return this
+    }
+
+    fun gap(): BottomSheetMenu = customView(View(context).apply {
+        layoutParams = LinearLayout.LayoutParams(1, 24.dpToPx())
+        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+    })
+
+    fun sectionLabel(text: String): BottomSheetMenu {
+        gap()
+        return customView(TextView(context).apply {
+            TextViewCompat.setTextAppearance(this, androidx.appcompat.R.style.TextAppearance_AppCompat_Small)
+            this.text = text
+            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans80))
+            setPadding(24.dpToPx(), 0, 24.dpToPx(), 8.dpToPx())
+            ViewCompat.setAccessibilityHeading(this, true)
+        })
     }
 
     fun customView(view: View): BottomSheetMenu {

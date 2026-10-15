@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Only the Snackbar context uses this when animations are disabled or on e-ink. -->
+    <style name="ParemInstantFeedback" parent="">
+        <item name="motionDurationLong2">0</item>
+        <item name="motionDurationMedium1">0</item>
+    </style>
+</resources>

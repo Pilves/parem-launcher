@@ -65,6 +65,7 @@ suspend fun getAppsList(
             AppListRebuilder.rebuild(
                 rawApps,
                 ownPackageName = BuildConfig.APPLICATION_ID,
+                personalUser = android.os.Process.myUserHandle(),
                 hiddenApps = prefs.hiddenApps,
                 includeRegularApps = includeRegularApps,
                 includeHiddenApps = includeHiddenApps,
