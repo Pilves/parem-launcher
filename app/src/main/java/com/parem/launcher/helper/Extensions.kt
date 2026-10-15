@@ -19,6 +19,9 @@ import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.result.ActivityResultLauncher
+import androidx.core.graphics.Insets
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.parem.launcher.BuildConfig
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -209,4 +212,20 @@ fun Long.hasBeenMinutes(minutes: Int): Boolean =
 
 fun Int.dpToPx(): Int {
     return (this * Resources.getSystem().displayMetrics.density).toInt()
+}
+
+/**
+ * Pads [this] by the system bars and display cutout (and the keyboard when [ime]) on top
+ * of its layout padding: the window is edge-to-edge, so content would otherwise sit under
+ * them. Call once after inflation; the layout padding is the design spacing.
+ */
+fun View.padForSystemBars(ime: Boolean = false) {
+    val base = Insets.of(paddingLeft, paddingTop, paddingRight, paddingBottom)
+    var types = WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+    if (ime) types = types or WindowInsetsCompat.Type.ime()
+    ViewCompat.setOnApplyWindowInsetsListener(this) { v, insets ->
+        val i = insets.getInsets(types)
+        v.setPadding(base.left + i.left, base.top + i.top, base.right + i.right, base.bottom + i.bottom)
+        insets
+    }
 }

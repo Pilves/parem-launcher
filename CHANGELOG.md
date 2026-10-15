@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+- Edge-to-edge done properly for Android 16: home, the app drawer, Settings,
+  onboarding and every bottom sheet pad by the real status bar, navigation bar
+  and display cutout instead of fixed guesses, the keyboard no longer covers
+  drawer results, and Back in the drawer and Settings runs the system's
+  predictive-back peek on Android 14+
+
 - TalkBack, Switch Access and Voice Access users can leave home: the home
   screen and every app row offer All apps, Settings, Notifications, Add widget
   and the configured swipe apps as actions, an "All apps" row appears under

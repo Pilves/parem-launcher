@@ -22,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="24dp"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         android:visibility="gone"
@@ -64,7 +64,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="end"
         android:layout_marginHorizontal="10dp"
-        android:layout_marginTop="72dp"
+        android:layout_marginTop="48dp"
         android:gravity="center"
         android:padding="10dp"
         android:textSize="@dimen/date_size"
@@ -222,8 +222,8 @@
             android:layout_marginStart="24dp"
             android:gravity="top"
             android:orientation="vertical"
-            android:paddingTop="112dp"
-            android:paddingBottom="48dp">
+            android:paddingTop="80dp"
+            android:paddingBottom="16dp">
 
             <ScrollView
                 android:id="@+id/widgetScrollViewAbove"
@@ -273,7 +273,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginHorizontal="8dp"
-        android:layout_marginBottom="56dp"
+        android:layout_marginBottom="24dp"
         android:gravity="center"
         android:text="@string/swipe_up_for_apps" />
 
@@ -286,7 +286,7 @@
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="56dp"
+        android:layout_marginBottom="24dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:text="@string/set_as_default_launcher_u"

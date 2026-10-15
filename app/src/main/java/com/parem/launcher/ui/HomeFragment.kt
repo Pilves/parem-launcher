@@ -1,15 +1,15 @@
 package com.parem.launcher.ui
 
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
 import androidx.core.os.bundleOf
 import androidx.core.view.AccessibilityDelegateCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
@@ -22,6 +22,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GrayscaleController
+import com.parem.launcher.helper.padForSystemBars
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.home.HomeClockController
 import com.parem.launcher.ui.home.HomeGesturesController
@@ -56,6 +57,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         viewModel = activity?.run {
             ViewModelProvider(this)[MainViewModel::class.java]
         } ?: throw Exception("Invalid Activity")
+        binding.mainLayout.padForSystemBars()
 
         slotsController = HomeSlotsController(this, binding, prefs, viewModel)
         gesturesController = HomeGesturesController(this, binding, prefs, viewModel)
@@ -239,26 +241,13 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         }
     }
 
-    private fun showStatusBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            requireActivity().window.insetsController?.show(WindowInsets.Type.statusBars())
-        else
-            @Suppress("DEPRECATION", "InlinedApi")
-            requireActivity().window.decorView.apply {
-                systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            }
-    }
+    // The compat controller keeps the edge-to-edge layout flags on API 29, which the
+    // old raw systemUiVisibility writes used to clear
+    private fun showStatusBar() =
+        WindowInsetsControllerCompat(requireActivity().window, binding.root).show(WindowInsetsCompat.Type.statusBars())
 
-    private fun hideStatusBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            requireActivity().window.insetsController?.hide(WindowInsets.Type.statusBars())
-        else {
-            @Suppress("DEPRECATION")
-            requireActivity().window.decorView.apply {
-                systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE or View.SYSTEM_UI_FLAG_FULLSCREEN
-            }
-        }
-    }
+    private fun hideStatusBar() =
+        WindowInsetsControllerCompat(requireActivity().window, binding.root).hide(WindowInsetsCompat.Type.statusBars())
 
     override fun onDestroyView() {
         gesturesController?.unregisterTorchCallback()
