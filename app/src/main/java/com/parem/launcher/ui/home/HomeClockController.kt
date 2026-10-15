@@ -1,17 +1,24 @@
 package com.parem.launcher.ui.home
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.icu.text.MeasureFormat
 import android.icu.util.Measure
 import android.icu.util.MeasureUnit
+import android.content.IntentFilter
 import android.os.BatteryManager
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.View
+import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -35,8 +42,9 @@ import java.util.Locale
  * staleness dimming), the clock/calendar tap targets, and the screen-time row.
  *
  * Extracted from HomeFragment; mirrors HomeWidgetController's shape. Created
- * in HomeFragment.onViewCreated; holds no listeners or async state of its own,
- * so it needs no cleanup.
+ * in HomeFragment.onViewCreated. Its only listener is the date/battery
+ * broadcast receiver, which it registers and unregisters itself by watching
+ * the fragment's view lifecycle (resumed only), so it needs no cleanup call.
  */
 class HomeClockController(
     private val fragment: HomeFragment,
@@ -46,6 +54,32 @@ class HomeClockController(
 ) {
 
     private val context get() = binding.root.context
+
+    // Without this the date and battery % only refresh on resume, so a home
+    // screen left visible across midnight (or a timezone change) goes stale.
+    private val refreshReceiver = object : BroadcastReceiver() {
+        override fun onReceive(ctx: Context?, intent: Intent?) {
+            if (fragment.isAdded && fragment.view != null) populateDateTime()
+        }
+    }
+
+    init {
+        fragment.viewLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                val filter = IntentFilter().apply {
+                    addAction(Intent.ACTION_DATE_CHANGED)
+                    addAction(Intent.ACTION_TIME_TICK)
+                    addAction(Intent.ACTION_TIMEZONE_CHANGED)
+                    addAction(Intent.ACTION_BATTERY_CHANGED)
+                }
+                ContextCompat.registerReceiver(context, refreshReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+            }
+
+            override fun onPause(owner: LifecycleOwner) {
+                context.unregisterReceiver(refreshReceiver)
+            }
+        })
+    }
 
     companion object {
         private var cachedLocale: Locale? = null
