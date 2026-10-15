@@ -6,6 +6,7 @@
     <!--White-->
     <color name="white">#FFFFFF</color>
     <color name="whiteTrans80">#CCFFFFFF</color>
+    <color name="whiteTrans60">#99FFFFFF</color>
     <color name="whiteTrans50">#80FFFFFF</color>
     <color name="whiteInverse">#000000</color>
     <color name="whiteInverseTrans10">#1A000000</color>
@@ -17,6 +18,7 @@
     <!--Black-->
     <color name="black">#000000</color>
     <color name="blackTrans80">#CC000000</color>
+    <color name="blackTrans60">#99000000</color>
     <color name="blackTrans50">#80000000</color>
     <color name="blackInverse">#FFFFFF</color>
     <color name="blackInverseTrans10">#1AFFFFFF</color>

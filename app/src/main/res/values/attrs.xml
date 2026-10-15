@@ -4,6 +4,8 @@
     <attr name="primaryInverseColor" format="color" />
     <attr name="primaryTextShadowColor" format="color" />
     <attr name="primaryColorTrans50" format="color" />
+    <!-- Secondary text: 60% is the lightest tint that keeps 4.5:1 on the sheet background -->
+    <attr name="primaryColorTrans60" format="color" />
     <attr name="primaryColorTrans80" format="color" />
     <attr name="primaryColorInverseTrans90" format="color" />
     <attr name="primaryColorInverseTrans80" format="color" />

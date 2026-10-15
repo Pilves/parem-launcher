@@ -3,14 +3,21 @@ package com.parem.launcher.ui
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.os.Bundle
 import android.util.AttributeSet
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import androidx.customview.widget.ExploreByTouchHelper
 import kotlin.math.abs
 import com.parem.launcher.R
+import com.parem.launcher.helper.ScreenTimeGraphText
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 
@@ -21,6 +28,10 @@ import com.parem.launcher.helper.getColorFromAttr
  * Visual hierarchy: the LAST entry is treated as "today" and drawn at full
  * strength; earlier days are dimmed so the eye lands on the current day.
  * Callers must therefore supply data ordered oldest-first.
+ *
+ * Each day column is a virtual accessibility node (ExploreByTouchHelper), so
+ * TalkBack reads "Mon, 2 hours 18 minutes" per column and a keyboard can
+ * D-pad between columns and press Enter to select one.
  */
 class ScreenTimeGraphView @JvmOverloads constructor(
     context: Context,
@@ -44,9 +55,11 @@ class ScreenTimeGraphView @JvmOverloads constructor(
 
     private val primaryColor = context.getColorFromAttr(R.attr.primaryColor)
 
-    // ~35% strength for past days; today gets the full-strength variants below
-    private val dimAlpha = 90
-    private val textDimAlpha = 130
+    // Past days are dimmed, today gets the full-strength variants below.
+    // 60% text on the sheet background is 5.7:1 in the light theme (WCAG
+    // 1.4.3 needs 4.5:1); 45% bars are 3.4:1 (1.4.11 needs 3:1 for graphics).
+    private val dimAlpha = 115
+    private val textDimAlpha = 153
 
     private val barPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = primaryColor
@@ -94,7 +107,14 @@ class ScreenTimeGraphView @JvmOverloads constructor(
         strokeWidth = 1.dpToPx().toFloat()
     }
 
+    private val focusPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = primaryColor
+        style = Paint.Style.STROKE
+        strokeWidth = 2.dpToPx().toFloat()
+    }
+
     private val rect = RectF()
+    private val focusRect = RectF()
     private val topPadding = 24.dpToPx().toFloat()
     private val bottomPadding = 20.dpToPx().toFloat()
     private val sidePadding = 12.dpToPx().toFloat()
@@ -103,6 +123,14 @@ class ScreenTimeGraphView @JvmOverloads constructor(
     private val maxBarWidthPx = 32.dpToPx().toFloat()
     private val textAboveBarPadding = 6.dpToPx().toFloat()
     private val labelBelowBarPadding = 2.dpToPx().toFloat()
+    private val focusCornerRadius = 8.dpToPx().toFloat()
+
+    private val touchHelper = DayColumnTouchHelper()
+
+    init {
+        isFocusable = true
+        ViewCompat.setAccessibilityDelegate(this, touchHelper)
+    }
 
     /**
      * Set the data to display. Each pair is (dayLabel, milliseconds).
@@ -111,15 +139,15 @@ class ScreenTimeGraphView @JvmOverloads constructor(
     fun setData(data: List<Pair<String, Long>>) {
         this.data = data
         selectedIndex = null
-        precomputedLabels = data.map { (_, millis) ->
-            val hours = millis / 3_600_000.0
-            if (hours >= 1.0) {
-                String.format("%.1fh", hours)
-            } else {
-                val mins = millis / 60_000
-                "${mins}m"
-            }
-        }
+        precomputedLabels = data.map { (_, millis) -> ScreenTimeGraphText.barLabel(millis) }
+        touchHelper.invalidateRoot()
+        invalidate()
+    }
+
+    private fun toggleSelection(index: Int) {
+        selectedIndex = if (selectedIndex == index) null else index
+        onDaySelected?.invoke(selectedIndex)
+        touchHelper.invalidateRoot()
         invalidate()
     }
 
@@ -134,9 +162,7 @@ class ScreenTimeGraphView @JvmOverloads constructor(
             MotionEvent.ACTION_UP -> {
                 if (abs(event.x - downX) <= touchSlop && abs(event.y - downY) <= touchSlop) {
                     tappedIndex(event.x)?.let { index ->
-                        selectedIndex = if (selectedIndex == index) null else index
-                        onDaySelected?.invoke(selectedIndex)
-                        invalidate()
+                        toggleSelection(index)
                         performClick()
                     }
                 }
@@ -151,12 +177,30 @@ class ScreenTimeGraphView @JvmOverloads constructor(
         return true
     }
 
+    override fun dispatchHoverEvent(event: MotionEvent): Boolean =
+        touchHelper.dispatchHoverEvent(event) || super.dispatchHoverEvent(event)
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val handled = touchHelper.dispatchKeyEvent(event) || super.dispatchKeyEvent(event)
+        // Keyboard focus may have moved between columns; the ring is drawn in onDraw
+        if (handled) invalidate()
+        return handled
+    }
+
+    override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+        touchHelper.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+        invalidate()
+    }
+
     /** Hit-tests the whole day column, not just the bar — bars are thin. */
-    private fun tappedIndex(x: Float): Int? {
+    private fun tappedIndex(x: Float): Int? =
+        ScreenTimeGraphText.columnIndex(x, width, sidePadding, data.size)
+
+    private fun columnBounds(index: Int, out: Rect) {
         val slotWidth = (width - sidePadding * 2) / data.size
-        if (slotWidth <= 0f) return null
-        val index = ((x - sidePadding) / slotWidth).toInt()
-        return index.takeIf { x >= sidePadding && it in data.indices }
+        val left = sidePadding + slotWidth * index
+        out.set(left.toInt(), 0, (left + slotWidth).toInt(), height)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -191,6 +235,8 @@ class ScreenTimeGraphView @JvmOverloads constructor(
 
         // Emphasis follows the selection; with nothing selected it sits on today
         val emphasizedIndex = selectedIndex ?: data.lastIndex
+        val focusedIndex =
+            if (isFocused) touchHelper.keyboardFocusedVirtualViewId else ExploreByTouchHelper.INVALID_ID
 
         for (i in data.indices) {
             val (label, millis) = data[i]
@@ -221,6 +267,64 @@ class ScreenTimeGraphView @JvmOverloads constructor(
                 height.toFloat() - labelBelowBarPadding,
                 if (isToday) todayLabelPaint else labelPaint
             )
+
+            if (i == focusedIndex) {
+                val inset = focusPaint.strokeWidth
+                focusRect.set(
+                    sidePadding + slotWidth * i + inset, inset,
+                    sidePadding + slotWidth * (i + 1) - inset, height - inset
+                )
+                canvas.drawRoundRect(focusRect, focusCornerRadius, focusCornerRadius, focusPaint)
+            }
+        }
+    }
+
+    private inner class DayColumnTouchHelper : ExploreByTouchHelper(this) {
+
+        override fun getVirtualViewAt(x: Float, y: Float): Int =
+            tappedIndex(x) ?: INVALID_ID
+
+        override fun getVisibleVirtualViews(virtualViewIds: MutableList<Int>) {
+            for (i in data.indices) virtualViewIds.add(i)
+        }
+
+        override fun onPopulateNodeForVirtualView(virtualViewId: Int, node: AccessibilityNodeInfoCompat) {
+            val (label, millis) = data.getOrNull(virtualViewId) ?: run {
+                // Data changed under a cached id; the helper throws on a node
+                // with empty bounds or no text, so give it a placeholder
+                node.contentDescription = ""
+                node.setBoundsInParent(Rect(0, 0, 1, 1))
+                return
+            }
+            val (hours, minutes) = ScreenTimeGraphText.spokenDuration(millis)
+            val duration = when {
+                hours > 0 && minutes > 0 ->
+                    context.getString(R.string.screen_time_a11y_hours_minutes, hours, minutes)
+                hours > 0 -> context.getString(R.string.screen_time_a11y_hours, hours)
+                else -> context.getString(R.string.screen_time_a11y_minutes, minutes)
+            }
+            node.contentDescription = if (virtualViewId == data.lastIndex) {
+                context.getString(R.string.screen_time_a11y_day_today, label, duration)
+            } else {
+                context.getString(R.string.screen_time_a11y_day, label, duration)
+            }
+            node.isSelected = virtualViewId == selectedIndex
+            node.isClickable = true
+            node.addAction(AccessibilityNodeInfoCompat.ACTION_CLICK)
+            val bounds = Rect()
+            columnBounds(virtualViewId, bounds)
+            node.setBoundsInParent(bounds)
+        }
+
+        override fun onPerformActionForVirtualView(
+            virtualViewId: Int,
+            action: Int,
+            arguments: Bundle?
+        ): Boolean {
+            if (action != AccessibilityNodeInfoCompat.ACTION_CLICK) return false
+            if (virtualViewId !in data.indices) return false
+            toggleSelection(virtualViewId)
+            return true
         }
     }
 }

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Screen-time graph is accessible: TalkBack reads each day as its own item,
+  keyboard D-pad/Enter selects a day, and secondary text (graph labels, sheet
+  captions, onboarding caption) is darkened to 60% for 4.5:1 contrast in the
+  light theme
 - TalkBack, Switch Access and Voice Access users can leave home: the home
   screen and every app row offer All apps, Settings, Notifications, Add widget
   and the configured swipe apps as actions, an "All apps" row appears under

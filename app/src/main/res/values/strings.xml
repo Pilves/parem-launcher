@@ -476,4 +476,9 @@
     <string name="a11y_work_profile" translatable="false">Work profile</string>
     <string name="a11y_screen_time_today" translatable="false">Screen time today, %1$s</string>
     <string name="a11y_screen_time_under_minute" translatable="false">Screen time today, under 1 minute</string>
+    <string name="screen_time_a11y_hours_minutes" translatable="false">%1$d hours %2$d minutes</string>
+    <string name="screen_time_a11y_hours" translatable="false">%1$d hours</string>
+    <string name="screen_time_a11y_minutes" translatable="false">%1$d minutes</string>
+    <string name="screen_time_a11y_day" translatable="false">%1$s, %2$s</string>
+    <string name="screen_time_a11y_day_today" translatable="false">%1$s, today, %2$s</string>
 </resources>
