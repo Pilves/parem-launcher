@@ -237,5 +237,12 @@ per package; the rest of each of those fragments is still in
   Not verified: with TalkBack on the Tab S8, that typing "m" with one match leaves the drawer open and that the row reads "Open single match automatically, On"; appended to the UX device pass.
   Easy to get wrong: the screen-reader state is read when the filter publishes, not cached, so toggling TalkBack mid-session needs no listener; the setting is read from Prefs on every publish for the same reason.
   Verified: ADB on Nothing A069 / Android 16: disabling auto-launch leaves a sole Calculator result in the drawer; preference survives restart; at 200% system font the label wraps without overlapping Off and the row exposes its accessible title.
+- **M4-WP56 (PR #0):** Gesture letters use an Android-free shape matcher instead of exact eight-direction sequences; the same ten supported letters and existing app mappings remain.
+  Contract: GestureLetterRecognizer.recognize(List<Point>) resamples 64 equal-distance points, normalizes size/position, compares forward/reversed strokes within ±15 degrees and rejects weak or ambiguous matches; O supports different start points.
+  The overlay includes batched MotionEvent samples, thins long strokes rather than truncating their ends, resets candidate state on down, and cancels recognition on multitouch.
+  Verified: handwritten-style fixture tests cover size, translation, slant, uneven sampling, stroke reversal and loop start; dots, swipes, backtracks, U and a scribble are rejected; compile, all JVM tests and APK assembly exit 0.
+  Verified: Android 16 A069 ADB continuous strokes C, S, O and reversed L each launched Calculator with only that letter mapped; V also launched with all letters mapped. These are injected shapes, not a real handwriting accuracy study.
+  Not verified: recognition accuracy across real people's handwriting, lowercase variants other than shared shapes, and multi-stroke letters; the user requested one continuous stroke.
+  Easy to get wrong: do not rotate shapes freely (M/W and N/Z differ by orientation), train the matcher only on configured apps (that makes wrong launches easier), or lower ambiguity thresholds without negative fixtures.
 
 <!-- handoff:end -->
