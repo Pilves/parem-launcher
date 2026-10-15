@@ -29,8 +29,10 @@ Easy to get wrong: the fact that will burn whoever touches this next.
 ```
 
 - `wp` — the roadmap id, exactly as `docs/ROADMAP.md` spells it (`M1-WP3a`).
-- `pr` — the PR number, digits only.
-- `date` — the merge date, `YYYY-MM-DD`.
+- `pr` — the PR number, digits only. Work that landed on `next` by branch
+  merge without a PR uses `pr: 0` and records the evidence in extra `commit:`
+  and `branch:` lines; the generator ignores keys it does not know.
+- `date` — the merge date, `YYYY-MM-DD` (for `pr: 0`, the commit date).
 - Body lines are prose, one thought per line, no bullets and no headings. The
   generator joins them into a single bullet under the package's id.
 
