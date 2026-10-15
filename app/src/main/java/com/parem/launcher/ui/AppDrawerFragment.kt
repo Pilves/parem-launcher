@@ -194,6 +194,13 @@ class AppDrawerFragment : BaseFragment() {
         return isCjkKeyboard()
     }
 
+    /** TalkBack-like state: touch exploration, or any spoken-feedback service, is on. */
+    private fun isScreenReaderOn(): Boolean {
+        val am = context?.getSystemService(android.view.accessibility.AccessibilityManager::class.java) ?: return false
+        return am.isTouchExplorationEnabled ||
+            am.getEnabledAccessibilityServiceList(android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_SPOKEN).isNotEmpty()
+    }
+
     private fun isCjkKeyboard(): Boolean {
         cachedIsCjkKeyboard?.let { return it }
         val result = try {
@@ -458,7 +465,9 @@ class AppDrawerFragment : BaseFragment() {
         adapter.openCounts = AppOpenCounter.getCounts(requireContext())
         // Read when the filter publishes, so fast typing only makes it stricter
         adapter.autoLaunchGuard = {
-            !isSearchComposing() && !QuickActionParser.isActionPrefix(searchTextView?.text?.toString().orEmpty())
+            val text = searchTextView?.text?.toString().orEmpty()
+            !isSearchComposing() && !QuickActionParser.isActionPrefix(text) &&
+                OmniboxResolver.autoLaunchAllowed(text, prefs.autoLaunchSingleMatch, isScreenReaderOn())
         }
         if (flag == Constants.FLAG_LAUNCH_APP) {
             // Looked up once per drawer; the lock state is re-read on every rebuild

@@ -5,6 +5,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
+import androidx.core.view.ViewCompat
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -42,6 +43,7 @@ class HomeScreenSettingsCard(
         populateHomeLayoutLock()
         populateContactSearch()
         populateSearchHistory()
+        populateAutoLaunch()
         populateAlignment()
         populateDateTime()
 
@@ -58,6 +60,7 @@ class HomeScreenSettingsCard(
         binding.contactSearchToggle?.setOnClickListener(this)
         binding.searchHistoryToggle?.setOnClickListener(this)
         binding.searchHistoryClear?.setOnClickListener(this)
+        binding.autoLaunchRow.setOnClickListener(this)
         binding.alignment.setOnClickListener(this)
         binding.alignmentLeft.setOnClickListener(this)
         binding.alignmentCenter.setOnClickListener(this)
@@ -119,6 +122,10 @@ class HomeScreenSettingsCard(
             R.id.homeLayoutLockToggle -> toggleHomeLayoutLock()
             R.id.sortByUsage -> toggleSortByUsage()
             R.id.contactSearchToggle -> toggleContactSearch()
+            R.id.autoLaunchRow -> {
+                prefs.autoLaunchSingleMatch = !prefs.autoLaunchSingleMatch
+                populateAutoLaunch()
+            }
             R.id.searchHistoryToggle -> {
                 prefs.omniboxHistoryEnabled = !prefs.omniboxHistoryEnabled
                 populateSearchHistory()
@@ -309,6 +316,13 @@ class HomeScreenSettingsCard(
         val on = prefs.omniboxHistoryEnabled
         binding.searchHistoryToggle?.text = context.getString(if (on) R.string.on else R.string.off)
         binding.searchHistoryClear?.visibility = if (on) View.VISIBLE else View.GONE
+    }
+
+    // DESIGN 6.3: the row owns the spoken state, the label and value are silent
+    private fun populateAutoLaunch() {
+        val state = context.getString(if (prefs.autoLaunchSingleMatch) R.string.on else R.string.off)
+        binding.autoLaunchToggle.text = state
+        ViewCompat.setStateDescription(binding.autoLaunchRow, state)
     }
 
     private fun toggleWidgetPlacement() {

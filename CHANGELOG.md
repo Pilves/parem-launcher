@@ -25,6 +25,12 @@
   a widget the system invalidated (reboot, app update) is asked for again
   next time instead of vanishing, keeps its place and height, and leftover
   widget IDs are released
+- New setting "Open single match automatically" (on by default) turns off the
+  drawer's single-match auto-launch; it is also off while TalkBack or another
+  screen reader is on, so Enter or a tap always launches
+
+- Typing a number, a sum, a unit or currency conversion or a phone number in
+  the drawer no longer auto-launches the one app that happens to match it
 
 - TalkBack, Switch Access and Voice Access users can leave home: the home
   screen and every app row offer All apps, Settings, Notifications, Add widget

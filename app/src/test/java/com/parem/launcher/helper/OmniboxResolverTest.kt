@@ -2,6 +2,8 @@ package com.parem.launcher.helper
 
 import com.parem.launcher.helper.ContactMatcher.Contact
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OmniboxResolverTest {
@@ -172,5 +174,41 @@ class OmniboxResolverTest {
         assertEquals(OmniboxMode.Contact("John Smith", "555 1000"), OmniboxResolver.resolve("john", contacts, null, settings))
         assertEquals(OmniboxMode.Setting("Johnny mode", 8), OmniboxResolver.resolve("john", emptyList(), null, settings))
         assertEquals(OmniboxMode.Calc("6"), OmniboxResolver.resolve("2*3", contacts, null, listOf(SettingsSearch.Row("2*3", 1))))
+    }
+
+    // --- single-match auto-launch guard (M4-WP27) ---
+
+    @Test
+    fun blocksAutoLaunch_forValues() {
+        assertTrue(OmniboxResolver.blocksAutoLaunch("5"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("10"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("2+2"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("10/4"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("5 km in mi"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("10 eur in usd"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("+372"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("+372 555 1234"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("555 1234"))
+    }
+
+    @Test
+    fun blocksAutoLaunch_notForAppQueries() {
+        assertFalse(OmniboxResolver.blocksAutoLaunch(""))
+        assertFalse(OmniboxResolver.blocksAutoLaunch("m"))
+        assertFalse(OmniboxResolver.blocksAutoLaunch("maps"))
+        assertFalse(OmniboxResolver.blocksAutoLaunch("1p"))
+        assertFalse(OmniboxResolver.blocksAutoLaunch("m365"))
+        assertFalse(OmniboxResolver.blocksAutoLaunch("timer 10m"))
+    }
+
+    // --- setting x screen reader x value guard (M4-WP46) ---
+
+    @Test
+    fun autoLaunchAllowed_gating() {
+        assertTrue(OmniboxResolver.autoLaunchAllowed("maps", enabled = true, screenReaderOn = false))
+        assertFalse(OmniboxResolver.autoLaunchAllowed("maps", enabled = false, screenReaderOn = false))
+        assertFalse(OmniboxResolver.autoLaunchAllowed("maps", enabled = true, screenReaderOn = true))
+        assertFalse(OmniboxResolver.autoLaunchAllowed("maps", enabled = false, screenReaderOn = true))
+        assertFalse(OmniboxResolver.autoLaunchAllowed("5", enabled = true, screenReaderOn = false))
     }
 }

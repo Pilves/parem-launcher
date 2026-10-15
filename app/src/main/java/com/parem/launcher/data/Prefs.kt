@@ -41,6 +41,7 @@ class Prefs(context: Context) {
     private val CRASH_REPORTS_ENABLED = "CRASH_REPORTS_ENABLED"
     private val OMNIBOX_HISTORY_ENABLED = "OMNIBOX_HISTORY_ENABLED"
     private val OMNIBOX_HISTORY = "OMNIBOX_HISTORY"
+    private val AUTO_LAUNCH_SINGLE_MATCH = "AUTO_LAUNCH_SINGLE_MATCH"
     private val HOME_APPS_NUM = "HOME_APPS_NUM"
     private val AUTO_SHOW_KEYBOARD = "AUTO_SHOW_KEYBOARD"
     private val KEYBOARD_MESSAGE = "KEYBOARD_MESSAGE"
@@ -139,6 +140,12 @@ class Prefs(context: Context) {
             prefs.edit { putBoolean(OMNIBOX_HISTORY_ENABLED, value) }
             if (!value) omniboxHistory = ""
         }
+
+    // Default on (DECISIONS: "auto-launch stays king"); a plain boolean, so it
+    // exports and imports without type registration.
+    var autoLaunchSingleMatch: Boolean
+        get() = prefs.getBoolean(AUTO_LAUNCH_SINGLE_MATCH, true)
+        set(value) = prefs.edit { putBoolean(AUTO_LAUNCH_SINGLE_MATCH, value) }
 
     var omniboxHistory: String
         get() = historyPrefs.getString(OMNIBOX_HISTORY, "").orEmpty()

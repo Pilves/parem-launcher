@@ -469,6 +469,46 @@
 
                 </FrameLayout>
 
+                <!-- Single-match auto-launch (UX-4): whole row is the target, row carries the state -->
+                <LinearLayout
+                    android:id="@+id/autoLaunchRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:minHeight="48dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:contentDescription="@string/auto_launch_single_match">
+
+                    <TextView
+                        style="@style/TextSmall"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:paddingVertical="8dp"
+                        android:importantForAccessibility="no"
+                        android:text="@string/auto_launch_single_match"
+                        android:textColor="?attr/primaryColor" />
+
+                    <TextView
+                        android:id="@+id/autoLaunchToggle"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|bottom"
+                        android:layout_marginEnd="4dp"
+                        android:padding="8dp"
+                        android:importantForAccessibility="no"
+                        android:text="@string/on" />
+
+                </LinearLayout>
+
+
                 <FrameLayout
                     android:id="@+id/screenTimeLayout"
                     android:layout_width="match_parent"

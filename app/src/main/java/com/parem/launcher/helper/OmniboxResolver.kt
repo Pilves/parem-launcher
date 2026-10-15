@@ -33,6 +33,33 @@ object OmniboxResolver {
     // Hyphenated numbers lose to the calculator (they parse as subtraction).
     private val DIAL_REGEX = Regex("^\\+?[0-9][0-9 ]{2,}[0-9]$")
 
+    // A digit-led query made of digits, spaces and operator characters only:
+    // a number or sum still being typed ("5", "+372 5", "2+2"). Letters make
+    // it an app query again ("1p" for 1Password).
+    private val NUMERIC_QUERY = Regex("^\\+?[0-9][0-9 +\\-*/.,%^()]*$")
+
+    /**
+     * True when a drawer query reads as maths, a conversion, currency or a
+     * phone number, so a single matching app must not auto-launch (M4-WP27):
+     * the user is typing a value, not an app name.
+     */
+    fun blocksAutoLaunch(query: String): Boolean {
+        val trimmed = query.trim()
+        if (trimmed.isEmpty()) return false
+        return NUMERIC_QUERY.matches(trimmed)
+            || ExpressionEvaluator.looksLikeExpression(trimmed)
+            || UnitConverter.looksLikeConversion(trimmed)
+            || CurrencyConverter.looksLikeCurrency(trimmed)
+    }
+
+    /**
+     * The single-match auto-launch decision (M4-WP46): the setting must be on,
+     * no screen reader may be active (touch exploration or spoken feedback),
+     * and the query must not be a value (see [blocksAutoLaunch]).
+     */
+    fun autoLaunchAllowed(query: String, enabled: Boolean, screenReaderOn: Boolean): Boolean =
+        enabled && !screenReaderOn && !blocksAutoLaunch(query)
+
     fun resolve(
         query: String,
         contacts: List<ContactMatcher.Contact>,

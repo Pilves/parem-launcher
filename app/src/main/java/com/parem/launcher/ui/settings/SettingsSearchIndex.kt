@@ -30,6 +30,7 @@ object SettingsSearchIndex {
         R.string.sort_apps_by_usage to R.id.sortByUsage,
         R.string.contact_search to R.id.contactSearchToggle,
         R.string.search_history to R.id.searchHistoryToggle,
+        R.string.auto_launch_single_match to R.id.autoLaunchRow,
         R.string.widget_placement to R.id.widgetPlacement,
         R.string.theme_mode to R.id.appThemeText,
         R.string.text_size to R.id.textSizeValue,
