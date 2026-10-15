@@ -476,4 +476,8 @@
     <string name="a11y_work_profile" translatable="false">Work profile</string>
     <string name="a11y_screen_time_today" translatable="false">Screen time today, %1$s</string>
     <string name="a11y_screen_time_under_minute" translatable="false">Screen time today, under 1 minute</string>
+    <string name="text_size_smaller" translatable="false">Smaller</string>
+    <string name="text_size_default" translatable="false">Default</string>
+    <string name="text_size_large" translatable="false">Large</string>
+    <string name="text_size_larger" translatable="false">Larger</string>
 </resources>

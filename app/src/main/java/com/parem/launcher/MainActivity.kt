@@ -31,6 +31,7 @@ import com.parem.launcher.databinding.ActivityMainBinding
 import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.HomeKeyInput
+import com.parem.launcher.helper.TextScale
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.isDarkThemeOn
 import com.parem.launcher.helper.isDefaultLauncher
@@ -74,7 +75,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun attachBaseContext(context: Context) {
         val newConfig = Configuration(context.resources.configuration)
-        newConfig.fontScale = Prefs(context).textSizeScale
+        // Parem's step rides on top of the system font size; it never replaces it (DESIGN.md 3.1)
+        newConfig.fontScale = TextScale.effective(
+            context.resources.configuration.fontScale,
+            TextScale.nearestStep(Prefs(context).textSizeScale)
+        )
         applyOverrideConfiguration(newConfig)
         super.attachBaseContext(context)
     }

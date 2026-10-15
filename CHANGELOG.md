@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Text follows the Android font size (up to 200%); the in-app text size is now
+  a relative step on top of it (Smaller / Default / Large / Larger) instead of
+  replacing the system setting
+
 - Fixed: the home screen's date and battery % now refresh while it stays
   visible (midnight rollover, timezone change) instead of only on resume
 

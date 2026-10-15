@@ -12,6 +12,7 @@ import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
+import com.parem.launcher.helper.TextScale
 import com.parem.launcher.helper.ThemeScheduleManager
 import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.isDarkThemeOn
@@ -63,9 +64,6 @@ class AppearanceSettingsCard(
         binding.textSize2.setOnClickListener(this)
         binding.textSize3.setOnClickListener(this)
         binding.textSize4.setOnClickListener(this)
-        binding.textSize5.setOnClickListener(this)
-        binding.textSize6.setOnClickListener(this)
-        binding.textSize7.setOnClickListener(this)
 
         binding.dailyWallpaper.setOnLongClickListener(this)
         binding.appThemeText.setOnLongClickListener(this)
@@ -81,13 +79,10 @@ class AppearanceSettingsCard(
             R.id.textSizeValue -> binding.textSizesLayout.visibility = View.VISIBLE
             R.id.boldFont -> toggleBoldFont()
 
-            R.id.textSize1 -> updateTextSizeScale(Constants.TextSize.ONE)
-            R.id.textSize2 -> updateTextSizeScale(Constants.TextSize.TWO)
-            R.id.textSize3 -> updateTextSizeScale(Constants.TextSize.THREE)
-            R.id.textSize4 -> updateTextSizeScale(Constants.TextSize.FOUR)
-            R.id.textSize5 -> updateTextSizeScale(Constants.TextSize.FIVE)
-            R.id.textSize6 -> updateTextSizeScale(Constants.TextSize.SIX)
-            R.id.textSize7 -> updateTextSizeScale(Constants.TextSize.SEVEN)
+            R.id.textSize1 -> updateTextSizeScale(TextScale.SMALLER)
+            R.id.textSize2 -> updateTextSizeScale(TextScale.DEFAULT)
+            R.id.textSize3 -> updateTextSizeScale(TextScale.LARGE)
+            R.id.textSize4 -> updateTextSizeScale(TextScale.LARGER)
 
             R.id.weatherToggle -> {
                 if (WeatherManager.isEnabled(context)) {
@@ -181,23 +176,22 @@ class AppearanceSettingsCard(
         else binding.dailyWallpaper.text = context.getString(R.string.off)
     }
 
-    private fun updateTextSizeScale(sizeScale: Float) {
-        if (prefs.textSizeScale == sizeScale) return
-        prefs.textSizeScale = sizeScale
+    private fun updateTextSizeScale(step: Float) {
+        if (TextScale.nearestStep(prefs.textSizeScale) == step) return
+        prefs.textSizeScale = step
         fragment.activity?.recreate()
     }
 
     private fun populateTextSize() {
-        binding.textSizeValue.text = when (prefs.textSizeScale) {
-            Constants.TextSize.ONE -> 1
-            Constants.TextSize.TWO -> 2
-            Constants.TextSize.THREE -> 3
-            Constants.TextSize.FOUR -> 4
-            Constants.TextSize.FIVE -> 5
-            Constants.TextSize.SIX -> 6
-            Constants.TextSize.SEVEN -> 7
-            else -> "--"
-        }.toString()
+        // Pre-6.0 installs stored 0.6..1.3; show the step the activity actually applies
+        binding.textSizeValue.text = context.getString(
+            when (TextScale.nearestStep(prefs.textSizeScale)) {
+                TextScale.SMALLER -> R.string.text_size_smaller
+                TextScale.LARGE -> R.string.text_size_large
+                TextScale.LARGER -> R.string.text_size_larger
+                else -> R.string.text_size_default
+            }
+        )
     }
 
     private fun toggleBoldFont() {
