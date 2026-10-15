@@ -240,7 +240,8 @@ per package; the rest of each of those fragments is still in
 - **M4-WP53 (PR #0):** App and home menus use BottomSheetMenu: shared labelled app actions, a separate Home slot group, five background actions, local rename, Undo removal and Unlock refusal.
   Contract: home rename edits one slot; legacy drawer aliases apply only to personal-profile rows; work/private menus omit unsafe package-only settings; all app selections still use selectedApp.
   Contract: SlotSnapshot captures all home/swipe fields and FolderData; stale/superseded Undo cannot overwrite a newer slot; Material feedback has an instant local overlay under skipAnimations.
-  Not verified: Gradle checks await the shared build slot; phone/tablet menus, 200% fonts, actual TalkBack, IME, Snackbar appearance, e-ink and removal/Undo device round trips remain unverified.
+  Verified: required compile, 366 JVM tests, APK assembly and handoff harness pass; Android 16 A069 home/drawer menus, local rename with IME, app removal/Undo, locked-layout Unlock and Hide staying in the drawer pass; at 200% font the menu scrolls to its final action.
+  Not verified: tablet/work-profile menus, actual TalkBack speech, e-ink, folder Undo and real-world motion quality.
   Easy to get wrong: successful home selection clears FolderData, cancellation does not; FolderManager checks stored JSON before reusing its parsed cache; Website/CreateFolder expose dialogs so callers dismiss them with the fragment view.
   Scope: minimal summary/check/group APIs and checked/no-limit picker choices landed here; global typography/width tokens, shared timing targets, settings redesign and predictive-back motion remain WP50/51/52/55.
 - **M4-WP56 (PR #0):** Gesture letters use an Android-free shape matcher instead of exact eight-direction sequences; the same ten supported letters and existing app mappings remain.
@@ -253,7 +254,8 @@ per package; the rest of each of those fragments is still in
 - **M4-WP57 (PR #0):** Onboarding keeps its short setup and offers eight optional feature explanations before Done, including search tools, gestures, Calm, appearance, profiles and data.
   Contract: the guide uses existing BottomSheetMenu sheets, saves expansion across recreation, and grants nothing merely by reading; captions are included in spoken row descriptions.
   Setup states reuse WellbeingRowState; enabled screen time and lock explain themselves, and granting notification permission continues grayscale pairing.
-  Not verified: device/TalkBack/font-200% traversal, rotation and process death, permission-return flows, and live feature behavior; required build checks are recorded in the PR report.
+  Verified: required compile, 366 JVM tests, APK assembly and handoff harness pass; Android 16 A069 short setup, all eight guide sheets, spoken-caption hierarchy and Done surviving restart pass; 200% topic rows wrap without overlap and long guide sheets scroll to Close/Done.
+  Not verified: actual TalkBack speech, rotation/process-death recovery, permission-return flows and every described feature’s live behavior.
   Easy to get wrong: pause still requires a limit and the existing picker only lists used apps; onboarding explains this and avoids opening an empty list, while WP47 owns any-app setup.
 
 <!-- handoff:end -->
