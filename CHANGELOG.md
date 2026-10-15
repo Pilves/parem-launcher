@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- New setting "Open single match automatically" (on by default) turns off the
+  drawer's single-match auto-launch; it is also off while TalkBack or another
+  screen reader is on, so Enter or a tap always launches
+
 - Typing a number, a sum, a unit or currency conversion or a phone number in
   the drawer no longer auto-launches the one app that happens to match it
 

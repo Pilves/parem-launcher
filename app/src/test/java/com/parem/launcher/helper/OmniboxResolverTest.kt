@@ -200,4 +200,15 @@ class OmniboxResolverTest {
         assertFalse(OmniboxResolver.blocksAutoLaunch("m365"))
         assertFalse(OmniboxResolver.blocksAutoLaunch("timer 10m"))
     }
+
+    // --- setting x screen reader x value guard (M4-WP46) ---
+
+    @Test
+    fun autoLaunchAllowed_gating() {
+        assertTrue(OmniboxResolver.autoLaunchAllowed("maps", enabled = true, screenReaderOn = false))
+        assertFalse(OmniboxResolver.autoLaunchAllowed("maps", enabled = false, screenReaderOn = false))
+        assertFalse(OmniboxResolver.autoLaunchAllowed("maps", enabled = true, screenReaderOn = true))
+        assertFalse(OmniboxResolver.autoLaunchAllowed("maps", enabled = false, screenReaderOn = true))
+        assertFalse(OmniboxResolver.autoLaunchAllowed("5", enabled = true, screenReaderOn = false))
+    }
 }

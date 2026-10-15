@@ -52,6 +52,14 @@ object OmniboxResolver {
             || CurrencyConverter.looksLikeCurrency(trimmed)
     }
 
+    /**
+     * The single-match auto-launch decision (M4-WP46): the setting must be on,
+     * no screen reader may be active (touch exploration or spoken feedback),
+     * and the query must not be a value (see [blocksAutoLaunch]).
+     */
+    fun autoLaunchAllowed(query: String, enabled: Boolean, screenReaderOn: Boolean): Boolean =
+        enabled && !screenReaderOn && !blocksAutoLaunch(query)
+
     fun resolve(
         query: String,
         contacts: List<ContactMatcher.Contact>,
