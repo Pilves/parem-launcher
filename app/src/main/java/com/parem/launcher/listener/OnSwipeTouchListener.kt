@@ -7,7 +7,8 @@ import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
-import kotlin.math.abs
+import android.view.ViewConfiguration
+import com.parem.launcher.helper.SwipeThresholds
 
 /*
 Swipe, double tap and long press touch listener for a view
@@ -17,6 +18,7 @@ Source: https://www.tutorialspoint.com/how-to-handle-swipe-gestures-in-kotlin
 internal open class OnSwipeTouchListener(c: Context?) : OnTouchListener {
     private var longPressOn = false
     private var gestureDetector: GestureDetector?
+    private val config = SwipeConfig.from(c)
 
     override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
         when (motionEvent.action) {
@@ -32,9 +34,6 @@ internal open class OnSwipeTouchListener(c: Context?) : OnTouchListener {
     }
 
     private inner class GestureListener : SimpleOnGestureListener() {
-        private val SWIPE_THRESHOLD: Int = 100
-        private val SWIPE_VELOCITY_THRESHOLD: Int = 100
-
         override fun onDown(e: MotionEvent): Boolean {
             return true
         }
@@ -62,16 +61,12 @@ internal open class OnSwipeTouchListener(c: Context?) : OnTouchListener {
         ): Boolean {
             try {
                 if (event1 == null) return false
-                val diffY = event2.y - event1.y
-                val diffX = event2.x - event1.x
-                if (abs(diffX) > abs(diffY)) {
-                    if (abs(diffX) > SWIPE_THRESHOLD && abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
-                        if (diffX > 0) onSwipeRight() else onSwipeLeft()
-                    }
-                } else {
-                    if (abs(diffY) > SWIPE_THRESHOLD && abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
-                        if (diffY < 0) onSwipeUp() else onSwipeDown()
-                    }
+                when (config.classify(event2.x - event1.x, event2.y - event1.y, velocityX, velocityY)) {
+                    SwipeThresholds.Direction.RIGHT -> onSwipeRight()
+                    SwipeThresholds.Direction.LEFT -> onSwipeLeft()
+                    SwipeThresholds.Direction.UP -> onSwipeUp()
+                    SwipeThresholds.Direction.DOWN -> onSwipeDown()
+                    null -> {}
                 }
             } catch (exception: Exception) {
                 Log.e("ParemLauncher", "onFling error", exception)
@@ -90,5 +85,24 @@ internal open class OnSwipeTouchListener(c: Context?) : OnTouchListener {
 
     init {
         gestureDetector = GestureDetector(c, GestureListener())
+    }
+}
+
+/** The device's ViewConfiguration numbers both swipe listeners feed to [SwipeThresholds]. */
+internal class SwipeConfig(val touchSlop: Float, private val minFlingVelocity: Float, private val density: Float) {
+
+    fun classify(dx: Float, dy: Float, vx: Float, vy: Float): SwipeThresholds.Direction? =
+        SwipeThresholds.classify(dx, dy, vx, vy, touchSlop, minFlingVelocity, density)
+
+    companion object {
+        fun from(context: Context?): SwipeConfig {
+            // No context only happens in tests; fall back to Android's stock dp values at 1x
+            val vc = context?.let { ViewConfiguration.get(it) }
+            return SwipeConfig(
+                touchSlop = vc?.scaledTouchSlop?.toFloat() ?: 8f,
+                minFlingVelocity = vc?.scaledMinimumFlingVelocity?.toFloat() ?: 50f,
+                density = context?.resources?.displayMetrics?.density ?: 1f,
+            )
+        }
     }
 }

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+- Swipes and taps feel the same on every phone and tablet: swipe thresholds
+  now scale with the device's touch settings, a shaky or long tap no longer
+  turns into a swipe, pressed labels dim on touch and clear once a swipe
+  starts, and haptics (long-press, letter recognised or rejected, locked
+  layout) follow the system touch-feedback setting
+
 - TalkBack, Switch Access and Voice Access users can leave home: the home
   screen and every app row offer All apps, Settings, Notifications, Add widget
   and the configured swipe apps as actions, an "All apps" row appears under

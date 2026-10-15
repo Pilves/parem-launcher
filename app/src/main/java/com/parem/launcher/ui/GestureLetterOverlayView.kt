@@ -9,8 +9,10 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import com.parem.launcher.R
+import com.parem.launcher.helper.Haptics
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.helper.skipAnimations
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.hypot
@@ -31,8 +33,11 @@ class GestureLetterOverlayView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    /** Callback invoked when a letter is recognized. */
-    var onLetterDetected: ((Char) -> Unit)? = null
+    /**
+     * Invoked when a letter is recognized. Returns true when the letter was
+     * acted on; false (no app mapped) rejects it like an unrecognized stroke.
+     */
+    var onLetterDetected: ((Char) -> Boolean)? = null
 
     /** When false, all touch events pass through to views below. */
     var isGestureLettersEnabled: Boolean = false
@@ -56,8 +61,11 @@ class GestureLetterOverlayView @JvmOverloads constructor(
     private var anchorY = 0f
     private var startX = 0f
     private var startY = 0f
+    // Keeps the rejected trail drawable while it fades out after the finger lifts
+    private var trailVisible = false
 
     private val dragThreshold = 30.dpToPx().toFloat()
+    private val rejectFadeMs = 150L
 
     private val trailPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = context.getColorFromAttr(R.attr.primaryColor)
@@ -82,6 +90,8 @@ class GestureLetterOverlayView @JvmOverloads constructor(
 
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                animate().cancel()
+                alpha = 1f
                 startX = event.x
                 startY = event.y
                 points.clear()
@@ -90,6 +100,7 @@ class GestureLetterOverlayView @JvmOverloads constructor(
                 drawPath.moveTo(event.x, event.y)
                 isTracking = true
                 hasExceededThreshold = false
+                trailVisible = false
                 // Do not consume ACTION_DOWN yet; let parent also see it.
                 // We will consume subsequent events once the drag threshold is met.
                 return false
@@ -108,6 +119,7 @@ class GestureLetterOverlayView @JvmOverloads constructor(
                     val dy = event.y - startY
                     if (hypot(dx, dy) >= dragThreshold) {
                         hasExceededThreshold = true
+                        trailVisible = true
                         anchorX = event.x
                         anchorY = event.y
                         // Request that parent not intercept further events
@@ -142,20 +154,20 @@ class GestureLetterOverlayView @JvmOverloads constructor(
                 if (!isTracking) return false
                 isTracking = false
                 val wasExceeded = hasExceededThreshold
+                // A straight stroke is a swipe for the listeners, not a failed letter
+                val wasLetterAttempt = isLetterCandidate
 
+                var accepted = false
                 if (wasExceeded) {
                     points.add(PointF(event.x, event.y))
                     val letter = analyzeGesture(points)
-                    if (letter != null) {
-                        onLetterDetected?.invoke(letter)
-                    }
+                    accepted = letter != null && onLetterDetected?.invoke(letter) == true
                 }
 
                 points.clear()
-                drawPath.reset()
                 hasExceededThreshold = false
                 isLetterCandidate = false
-                invalidate()
+                if (wasLetterAttempt && !accepted) rejectTrail() else clearTrail()
                 return wasExceeded
             }
 
@@ -164,17 +176,35 @@ class GestureLetterOverlayView @JvmOverloads constructor(
                 hasExceededThreshold = false
                 isLetterCandidate = false
                 points.clear()
-                drawPath.reset()
-                invalidate()
+                clearTrail()
                 return false
             }
         }
         return false
     }
 
+    private fun clearTrail() {
+        trailVisible = false
+        drawPath.reset()
+        invalidate()
+    }
+
+    /** DESIGN 8: a rejected letter buzzes and its trail fades over 150 ms (instantly when animations are off). */
+    private fun rejectTrail() {
+        Haptics.reject(this)
+        if (context.skipAnimations()) {
+            clearTrail()
+            return
+        }
+        animate().alpha(0f).setDuration(rejectFadeMs).withEndAction {
+            clearTrail()
+            alpha = 1f
+        }.start()
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (isTracking && hasExceededThreshold && !drawPath.isEmpty) {
+        if (trailVisible && !drawPath.isEmpty) {
             canvas.drawPath(drawPath, trailPaint)
         }
     }

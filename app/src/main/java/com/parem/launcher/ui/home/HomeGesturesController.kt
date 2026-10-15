@@ -23,6 +23,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
 import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.GestureLetterManager
+import com.parem.launcher.helper.Haptics
 import com.parem.launcher.helper.HomeAccessibilityActions
 import com.parem.launcher.helper.SwipeUpAppManager
 import com.parem.launcher.helper.expandNotificationDrawer
@@ -39,6 +40,7 @@ import com.parem.launcher.listener.ViewSwipeTouchListener
 import com.parem.launcher.ui.HomeFragment
 import com.parem.launcher.ui.QuietListSheet
 import com.parem.launcher.ui.requestLockAdmin
+import com.parem.launcher.ui.selectableBackgroundRes
 import com.parem.launcher.ui.showLockConsent
 import com.parem.launcher.ui.showLockServiceOff
 import com.parem.launcher.ui.disableAnimationsOnEink
@@ -194,10 +196,13 @@ class HomeGesturesController(
             val mapping = GestureLetterManager.getMapping(context, letter)
             if (mapping != null) {
                 // Recognition tick: confirms the letter registered before the app appears
-                binding.gestureLetterOverlay?.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
+                binding.gestureLetterOverlay?.let { Haptics.confirm(it) }
                 fragment.slotsController?.launchApp("", mapping.first, mapping.second, mapping.third)
+                true
             } else {
+                // Returning false lets the overlay buzz REJECT and fade the trail
                 context.showToast(context.getString(R.string.no_app_for_letter, letter.toString()))
+                false
             }
         }
     }
@@ -265,7 +270,7 @@ class HomeGesturesController(
                 try {
                     // GestureDetector callbacks bypass the framework's long-press
                     // haptic, so fire it ourselves — silence here feels broken
-                    binding.mainLayout.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+                    Haptics.longPress(binding.mainLayout)
                     showHomeLongPressMenu()
                 } catch (e: Exception) {
                     Log.e("HomeFragment", "Failed to show home long press menu", e)
@@ -328,6 +333,7 @@ class HomeGesturesController(
 
             override fun onLongClick(view: View) {
                 super.onLongClick(view)
+                Haptics.longPress(view)
                 textOnLongClick(view)
             }
 
@@ -493,13 +499,21 @@ class HomeGesturesController(
     private fun showHomeLongPressMenu() {
         val dialog = BottomSheetDialog(context)
         val view = fragment.layoutInflater.inflate(R.layout.dialog_home_menu, null)
-        view.findViewById<TextView>(R.id.menuAddWidget).setOnClickListener {
-            dialog.dismiss()
-            fragment.widgetController?.showWidgetPicker()
+        // Same pressed feedback as BottomSheetMenu rows
+        val pressedBackground = context.selectableBackgroundRes()
+        view.findViewById<TextView>(R.id.menuAddWidget).apply {
+            setBackgroundResource(pressedBackground)
+            setOnClickListener {
+                dialog.dismiss()
+                fragment.widgetController?.showWidgetPicker()
+            }
         }
-        view.findViewById<TextView>(R.id.menuSettings).setOnClickListener {
-            dialog.dismiss()
-            openSettings()
+        view.findViewById<TextView>(R.id.menuSettings).apply {
+            setBackgroundResource(pressedBackground)
+            setOnClickListener {
+                dialog.dismiss()
+                openSettings()
+            }
         }
         dialog.setContentView(view)
         dialog.transparentSheetFrame()
