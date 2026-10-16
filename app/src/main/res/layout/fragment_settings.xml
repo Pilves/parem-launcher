@@ -116,6 +116,42 @@
                         android:text="@string/import_settings" />
                 </LinearLayout>
 
+                <!-- Explicit route to the hidden list; the title tap above stays as the legacy shortcut -->
+                <FrameLayout
+                    android:id="@+id/hiddenAppsRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/hidden_apps"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp">
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        style="@style/TextSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:paddingVertical="8dp"
+                        android:text="@string/hidden_apps"
+                        android:textColor="?attr/primaryColor" />
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        android:id="@+id/hiddenAppsCount"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|bottom"
+                        android:layout_marginEnd="4dp"
+                        android:padding="8dp"
+                        tools:text="2" />
+
+                </FrameLayout>
+
                 <!-- Crash reports (opt-in; saved on the phone, sent only by the user) -->
                 <FrameLayout
                     android:id="@+id/crashReportsRow"

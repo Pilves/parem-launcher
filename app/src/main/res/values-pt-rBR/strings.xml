@@ -50,8 +50,6 @@
     <string name="bottom_on">Fundo: Ativado</string>
     <string name="bottom_off">Fundo: Desligado</string>
     <string name="please_set_parem_as_default_first">Por favor, defina Parem Launcher como seu lançador padrão primeiro</string>
-    <string name="hidden_apps_message">Nota: Toque em \"Parem Launcher\" na parte superior desta página de Configurações para encontrar seus aplicativos ocultos.
-        \n\nMais detalhes disponíveis em nossa página Sobre abaixo.</string>
     <string name="swipe_down_for">Deslize para baixo para</string>
     <string name="search">Procurar</string>
     <string name="notifications">Notificações</string>

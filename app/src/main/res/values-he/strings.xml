@@ -46,7 +46,6 @@
     <string name="bottom_on">הצגה למטה: מופעל</string>
     <string name="bottom_off">הצגה למטה: כבוי</string>
     <string name="please_set_parem_as_default_first">ראשית, נא להגדיר את Parem Launcher בתור ברירת המחדל למסך בית.</string>
-    <string name="hidden_apps_message">הערה: בשביל להגיע ליישומים המוסתרים, יש ללחוץ על הכיתוב \'Parem Launcher\' שנמצא בראש עמוד ההגדרות.\n\nפרטים נוספים אפשר למצוא בעמוד ה"מידע כללי" שלנו למטה.</string>
     <string name="swipe_down_for">פעולה בעת החלקה למטה</string>
     <string name="search">חיפוש</string>
     <string name="notifications">התראות</string>

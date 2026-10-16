@@ -50,7 +50,6 @@
     <string name="bottom_on">Abajo: Sí</string>
     <string name="bottom_off">Abajo: No</string>
     <string name="please_set_parem_as_default_first">Por favor, primero configure Parem Launcher como su lanzador principal</string>
-    <string name="hidden_apps_message">Nota: Toque \'Parem Launcher\' en la parte superior de esta página de Configuración para encontrar sus aplicaciones ocultas. Más detalles disponibles en nuestra página Acerca de abajo.</string>
     <string name="swipe_down_for">Deslize el dedo hacia abajo para</string>
     <string name="search">Buscar</string>
     <string name="notifications">Notificaciones</string>

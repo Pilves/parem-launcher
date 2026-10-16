@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Settings has a "Hidden apps" row showing how many apps are hidden; tapping it opens the list (the title tap still works). Hiding an app keeps you in the drawer with a short confirmation instead of a Settings dialog, and a search that matches only a hidden app offers "Not in the list? Check hidden apps" (never naming the app, and not while Private Space is locked).
+
 ## v6.0.0-beta.1 — 2026-10-16
 
 - Fixed: with a fixed Dark or Light theme that disagreed with the system dark mode, home could render invisible text and rebuild itself in a loop (only the wallpaper visible); the text-size step no longer overrides the activity's theme configuration, and the theme-check retry cap now survives recreate()

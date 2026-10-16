@@ -49,7 +49,6 @@
     <string name="bottom_on">Botten: På</string>
     <string name="bottom_off">Botten: Av</string>
     <string name="please_set_parem_as_default_first">Vänligen ange Parem Launcher som förvald först</string>
-    <string name="hidden_apps_message">Observera: Tryck på \'Parem Launcher\' högst upp på denna Inställningar-sida för att hitta dina dolda appar.\n\nMer information finns på vår Om-sida nedan.</string>
     <string name="swipe_down_for">Svep nedåt för</string>
     <string name="search">Sök</string>
     <string name="notifications">Aviseringar</string>

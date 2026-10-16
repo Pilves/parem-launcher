@@ -28,6 +28,7 @@ import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isSystemApp
 import com.parem.launcher.helper.openAppInfo
+import com.parem.launcher.helper.showToast
 import com.parem.launcher.helper.uninstall
 import com.parem.launcher.ui.isAlive
 import java.lang.ref.WeakReference
@@ -101,6 +102,8 @@ object AppMenu {
                     prefs.hiddenApps = prefs.hiddenApps.toMutableSet().apply {
                         if (isHidden) { remove(app.appPackage); remove(hiddenKey) } else add(hiddenKey)
                     }
+                    // The user stays where they are; the toast says where the app went
+                    if (!isHidden) context.showToast(context.getString(R.string.hidden_apps_message))
                     onChanged()
                 }
             }

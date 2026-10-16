@@ -15,7 +15,7 @@ import com.parem.launcher.helper.appUsagePermissionGranted
 object SettingsSearchIndex {
 
     private val ROWS = listOf(
-        R.string.hidden_apps to R.id.paremHiddenApps,
+        R.string.hidden_apps to R.id.hiddenAppsCount,
         R.string.set_as_default_launcher to R.id.setLauncher,
         R.string.change_default_launcher to R.id.setLauncher,
         R.string.about_parem to R.id.aboutParem,

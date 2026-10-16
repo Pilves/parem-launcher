@@ -20,8 +20,6 @@
     <string name="long_press_to_enable">Zum Aktivieren lange drücken</string>
     <string name="no_hidden_apps">Keine versteckten Apps</string>
     <string name="hidden_apps">Versteckte Apps</string>
-    <string name="hidden_apps_message">Hinweis: Tippen Sie oben auf dieser Einstellungsseite auf „Parem Launcher“, um Ihre versteckten Apps zu finden.
-        \n\nWeitere Einzelheiten finden Sie auf der „Über“ Seite unten.</string>
     <string name="swipe_down_for">Wischen Sie nach unten für</string>
     <string name="search">Suchen</string>
     <string name="notifications">Benachrichtigungen</string>

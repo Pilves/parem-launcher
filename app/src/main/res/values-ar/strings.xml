@@ -22,7 +22,6 @@
     <string name="hidden_apps">تطبيقات مخفية</string>
     <string name="swipe_left_app_disabled">التمرير لليسار معطّل</string>
     <string name="swipe_right_app_disabled">التمرير لليمين معطّل</string>
-    <string name="hidden_apps_message">ملاحظة: اضغط على \"Parem Launcher\" أعلى الصفحة للعثور على تطبيقاتك المخفية.  المزيد من التفاصيل متوفرة في صفحة \"حول\" أدناه.</string>
     <string name="swipe_down_for">اسحب لأسفل من أجل</string>
     <string name="search">يبحث</string>
     <string name="notifications">إشعارات</string>

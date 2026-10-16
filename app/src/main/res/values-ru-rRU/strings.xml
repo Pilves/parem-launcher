@@ -50,8 +50,6 @@
     <string name="bottom_on">Внизу: Вкл</string>
     <string name="bottom_off">Внизу: Выкл</string>
     <string name="please_set_parem_as_default_first">Сначала установите Parem Launcher в качестве лаунчера по умолчанию.</string>
-    <string name="hidden_apps_message">Примечание: для доступа к скрытым приложениям, нажмите «Parem Launcher» в верхней части страницы настроек.
-        \n\nБолее подробная информация доступна на нашей странице «О нас» ниже.</string>
     <string name="swipe_down_for">Проведите вниз для</string>
     <string name="search">Поиск</string>
     <string name="notifications">Уведомления</string>

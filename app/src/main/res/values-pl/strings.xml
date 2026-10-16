@@ -20,8 +20,6 @@
     <string name="long_press_to_enable">Naciśnij długo, aby włączyć</string>
     <string name="no_hidden_apps">Brak ukrytych aplikacji</string>
     <string name="hidden_apps">Ukrytych aplikacji</string>
-    <string name="hidden_apps_message">Uwaga: Stuknij w „Parem Launcher” u góry tej strony ustawień, aby znaleźć ukryte aplikacje.
-        \n\nWięcej informacji znajduje się na stronie Informacje poniżej.</string>
     <string name="swipe_down_for">Przesuń w dół, aby</string>
     <string name="search">Szukaj</string>
     <string name="notifications">Powiadomienia</string>
