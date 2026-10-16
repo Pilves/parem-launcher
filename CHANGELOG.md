@@ -4,6 +4,8 @@
 
 - Settings, drawer and sheets use a warm monochrome palette with moss-teal actions, clearer type and tablet sizing; home keeps monochrome wallpaper text. E-ink stays monochrome.
 - Wallpaper dimming can be controlled independently of daily wallpaper.
+- Remove the inactive legacy lock toggle from landscape settings; the working lock controls are unchanged.
+
 - Remove the unfinished per-slot swipe-up binding; swiping up on any home slot opens all apps. Existing backup values remain transferable.
 
 - Preserve home slot names when an installed-app lookup fails; record recovered failures in opt-in crash diagnostics.
