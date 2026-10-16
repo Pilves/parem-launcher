@@ -1,32 +1,32 @@
 package com.parem.launcher.helper
 
-import android.content.res.Configuration
-import androidx.appcompat.app.AppCompatDelegate
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NightModeChangeTest {
 
-    private val night = Configuration.UI_MODE_NIGHT_YES
-    private val day = Configuration.UI_MODE_NIGHT_NO
+    // Configuration.UI_MODE_NIGHT_YES / _NO and AppCompatDelegate.MODE_NIGHT_YES / _NO
+    private val night = 0x20
+    private val day = 0x10
+    private val themeDark = 2
+    private val themeLight = 1
 
     @Test
     fun systemDefault_restylesWhenNightBitsFlip() {
-        assertTrue(NightModeChange.needsRestyle(day, night, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM))
-        assertTrue(NightModeChange.needsRestyle(night, day, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM))
+        assertTrue(NightModeChange.needsRestyle(day, night, NightModeChange.FOLLOW_SYSTEM))
+        assertTrue(NightModeChange.needsRestyle(night, day, NightModeChange.FOLLOW_SYSTEM))
     }
 
     @Test
-    fun systemDefault_ignoresOtherUiModeBits() {
-        val car = night or Configuration.UI_MODE_TYPE_CAR
-        assertFalse(NightModeChange.needsRestyle(night, car, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM))
-        assertFalse(NightModeChange.needsRestyle(day, day, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM))
+    fun systemDefault_staysPutWhenNightBitsAreUnchanged() {
+        assertFalse(NightModeChange.needsRestyle(night, night, NightModeChange.FOLLOW_SYSTEM))
+        assertFalse(NightModeChange.needsRestyle(day, day, NightModeChange.FOLLOW_SYSTEM))
     }
 
     @Test
     fun fixedTheme_neverRestyles() {
-        assertFalse(NightModeChange.needsRestyle(day, night, AppCompatDelegate.MODE_NIGHT_YES))
-        assertFalse(NightModeChange.needsRestyle(night, day, AppCompatDelegate.MODE_NIGHT_NO))
+        assertFalse(NightModeChange.needsRestyle(day, night, themeDark))
+        assertFalse(NightModeChange.needsRestyle(night, day, themeLight))
     }
 }
