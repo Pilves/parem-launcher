@@ -129,6 +129,26 @@ export function hasScreen(xml, pkg, resource) {
     && new RegExp(`resource-id="[^" ]+:id/${resource}"`).test(node));
 }
 
+// Pulling beyond the first row intentionally dismisses Parem's drawer. Keep
+// reverse drags below one row of travel and turn upward when the first row is visible.
+export function drawerScrollGesture(xml, pkg, topLabel, down, screenHeight) {
+  const nodes = [...xml.matchAll(/<node\b[^>]*>/g)].map(([node]) => node)
+    .filter((node) => node.includes(`package="${pkg}"`));
+  const list = nodes.find((node) => /resource-id="[^" ]+:id\/recyclerView"/.test(node));
+  const rows = nodes.filter((node) => /resource-id="[^" ]+:id\/appTitle"/.test(node));
+  const bounds = (node) => node?.match(/bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/)?.slice(1).map(Number);
+  const box = bounds(list);
+  if (!box || !rows.length) throw new Error('drawer has no measurable app rows');
+  const firstLabel = rows[0].match(/\btext="([^"]*)"/)?.[1];
+  const rowHeight = Math.max(...rows.map((row) => { const b = bounds(row); return b ? b[3] - b[1] : 0; }));
+  const reverse = down && firstLabel !== topLabel;
+  const clamp = (y) => Math.max(box[1] + 1, Math.min(box[3] - 1, Math.round(y)));
+  const from = clamp(screenHeight * (reverse ? 0.3 : 0.6));
+  const to = reverse ? clamp(from + rowHeight / 2) : clamp(screenHeight * 0.3);
+  if (from === to) throw new Error('drawer is too short for a scroll gesture');
+  return { firstLabel, x: Math.round((box[0] + box[2]) / 2), from, to };
+}
+
 export function measurementProblems(result) {
   return ['drawerScroll', 'omniboxTyping'].flatMap((phase) => {
     const value = result[phase];
@@ -209,7 +229,7 @@ function frames(pkg, open, act, shot) {
     if (shot) writeFileSync(shot.replace(/\.png$/, '.start.xml'), initialScreen);
     adb(`dumpsys gfxinfo ${pkg} reset`);
     stage = 'exercise drawer';
-    act();
+    act(initialScreen);
     sleepMs(1000);
     out = parseGfxinfo(adb(`dumpsys gfxinfo ${pkg}`));
     requireScreen(pkg, 'search_src_text');
@@ -254,14 +274,15 @@ export function measure(pkg, shotDir) {
   const coldStartMs = samples('cold start', RUNS, () => coldStart(pkg), (r) => r.launchState === 'COLD');
   const returnHomeMs = samples('return home', RUNS, returnHome, (r) => r.status === 'ok');
   const shot = (name) => shotDir && resolve(shotDir, name);
-  const drawerScroll = frames(pkg, openDrawer, () => {
-    // Stay above the keyboard the drawer opens with: a swipe across it is
-    // glide typing, not a scroll. The first drag at the top hides it. Too
-    // high and the swipe starts on the search field instead of the list.
+  const drawerScroll = frames(pkg, openDrawer, (initialScreen) => {
+    const topLabel = drawerScrollGesture(initialScreen, pkg, null, false, h).firstLabel;
+    let xml = initialScreen;
     for (let round = 0; round < 3; round++) {
-      for (const [from, to] of [[0.6, 0.3], [0.6, 0.3], [0.3, 0.6], [0.3, 0.6]]) {
-        adb(`input swipe ${x} ${Math.round(h * from)} ${x} ${Math.round(h * to)} 150`);
+      for (const down of [false, false, true, true]) {
+        const { x, from, to } = drawerScrollGesture(xml, pkg, topLabel, down, h);
+        adb(`input swipe ${x} ${from} ${x} ${to} 150`);
         sleepMs(700);
+        xml = requireScreen(pkg, 'search_src_text');
       }
     }
   }, shot('drawer-scroll.png'));

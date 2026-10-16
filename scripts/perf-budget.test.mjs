@@ -2,7 +2,7 @@
 // Run: node --test scripts/perf-budget.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { compare, enoughFrames, hasScreen, measurementProblems, median, overBudget, parseAmStart, parseGfxinfo } from './perf-budget.mjs';
+import { drawerScrollGesture, compare, enoughFrames, hasScreen, measurementProblems, median, overBudget, parseAmStart, parseGfxinfo } from './perf-budget.mjs';
 
 test('parses am start -W output', () => {
   const out = 'Starting: Intent { act=android.intent.action.MAIN }\nStatus: ok\nLaunchState: COLD\n'
@@ -92,4 +92,15 @@ test('invalid screen or insufficient frames cannot become a valid measurement', 
   // Invalid frame phases must not conceal independently measured start regressions.
   assert.ok(compare(run(500, 100, 5, 30), { coldStartMs: 1000, returnHomeMs: 200 })
     .some((problem) => problem.startsWith('coldStartMs: 1000')));
+});
+
+test('drawer reverse drags cannot pull past the first row', () => {
+  const xml = (label) => `<node package="test.app" resource-id="test.app:id/recyclerView" bounds="[0,500][1080,1500]" />
+    <node package="test.app" resource-id="test.app:id/appTitle" text="${label}" bounds="[0,500][1080,660]" />`;
+  const top = drawerScrollGesture(xml('Calendar'), 'test.app', 'Calendar', true, 2400);
+  assert.ok(top.to < top.from, 'turn upward when the first row is visible');
+  const middle = drawerScrollGesture(xml('Drive'), 'test.app', 'Calendar', true, 2400);
+  assert.equal(middle.to - middle.from, 80, 'reverse only half a visible row');
+  assert.ok(middle.from > 500 && middle.to < 1500);
+  assert.throws(() => drawerScrollGesture(xml('Drive'), 'other.app', 'Calendar', true, 2400));
 });
