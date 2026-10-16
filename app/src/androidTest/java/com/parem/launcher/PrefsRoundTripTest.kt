@@ -94,7 +94,8 @@ class PrefsRoundTripTest {
             "BAD_HABIT_APPS" to "com.example.app=15",
             "MINDFUL_PAUSE_APPS" to "com.example.app",
             "FOCUS_SCHEDULE" to "127,1320,420",
-            "FOCUS_MODE_WHITELIST" to setOf("com.example.a", "com.example.b"),
+            "FOCUS_MODE_WHITELIST" to "com.example.a,com.example.b",
+            "HIDDEN_APPS" to setOf("com.example.a|UserHandle{0}", "com.example.b|UserHandle{0}"),
         )
         val editor = sp.edit().clear()
         for ((key, value) in seeded) editor.put(key, value)
