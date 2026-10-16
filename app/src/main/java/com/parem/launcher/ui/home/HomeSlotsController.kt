@@ -30,7 +30,6 @@ import com.parem.launcher.helper.getUserHandleFromString
 import com.parem.launcher.helper.isPackageInstalledCached
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.helper.SlotSnapshot
-import com.parem.launcher.helper.SwipeUpAppManager
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.skipAnimations
 import com.parem.launcher.ui.AppMenu
@@ -400,8 +399,6 @@ class HomeSlotsController(
     private fun captureSlot(slot: Int) = SlotSnapshot(
         prefs.getHomeAppName(slot), prefs.getHomeAppPackage(slot), prefs.getHomeAppActivityClassName(slot),
         prefs.getHomeAppUser(slot), prefs.getHomeAppUrl(slot),
-        SwipeUpAppManager.getSwipeUpAppName(context, slot), SwipeUpAppManager.getSwipeUpAppPackage(context, slot),
-        SwipeUpAppManager.getSwipeUpAppActivity(context, slot), SwipeUpAppManager.getSwipeUpAppUser(context, slot),
         folderManager.getFolderGroup(slot)?.let { it.copy(apps = it.apps.toList()) },
     )
 
@@ -411,7 +408,6 @@ class HomeSlotsController(
         prefs.setHomeAppActivityClassName(slot, value.activity)
         prefs.setHomeAppUser(slot, value.user)
         prefs.setHomeAppUrl(slot, value.url)
-        SwipeUpAppManager.setSwipeUpApp(context, slot, value.swipeName, value.swipePackage, value.swipeActivity, value.swipeUser)
         if (value.folder == null) folderManager.removeFolder(slot)
         else folderManager.createFolder(slot, value.folder.name, value.folder.apps)
     }

@@ -7,12 +7,12 @@ package com.parem.launcher.helper
  */
 object HomeAccessibilityActions {
 
-    enum class Kind { ALL_APPS, SETTINGS, NOTIFICATIONS, ADD_WIDGET, SWIPE_LEFT_APP, SWIPE_RIGHT_APP, SWIPE_UP_APP }
+    enum class Kind { ALL_APPS, SETTINGS, NOTIFICATIONS, ADD_WIDGET, SWIPE_LEFT_APP, SWIPE_RIGHT_APP }
 
     data class Action(val kind: Kind, val appName: String = "")
 
     /** Pass null for a swipe app that isn't configured; see [configuredApp]. */
-    fun forView(swipeLeftApp: String?, swipeRightApp: String?, swipeUpApp: String? = null): List<Action> =
+    fun forView(swipeLeftApp: String?, swipeRightApp: String?): List<Action> =
         listOfNotNull(
             Action(Kind.ALL_APPS),
             Action(Kind.SETTINGS),
@@ -20,7 +20,6 @@ object HomeAccessibilityActions {
             Action(Kind.ADD_WIDGET),
             swipeLeftApp?.let { Action(Kind.SWIPE_LEFT_APP, it) },
             swipeRightApp?.let { Action(Kind.SWIPE_RIGHT_APP, it) },
-            swipeUpApp?.let { Action(Kind.SWIPE_UP_APP, it) },
         )
 
     /**

@@ -179,16 +179,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 prefs.calendarAppClassName = appModel.activityClassName
             }
 
-            in Constants.FLAG_SET_SWIPE_UP_APP_1..Constants.FLAG_SET_SWIPE_UP_APP_8 -> {
-                val slot = flag - Constants.FLAG_SET_SWIPE_UP_APP_1 + 1
-                com.parem.launcher.helper.SwipeUpAppManager.setSwipeUpApp(
-                    appContext, slot,
-                    appModel.appLabel, appModel.appPackage,
-                    appModel.activityClassName ?: "", appModel.user.toString()
-                )
-                refreshHome.postValue(false)
-            }
-
             Constants.FLAG_SET_DOUBLE_TAP_APP -> {
                 com.parem.launcher.helper.DoubleTapActionManager.setApp(
                     appContext,

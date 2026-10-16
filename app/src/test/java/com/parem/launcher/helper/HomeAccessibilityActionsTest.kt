@@ -21,9 +21,8 @@ class HomeAccessibilityActionsTest {
             always.map { Action(it) } + listOf(
                 Action(Kind.SWIPE_LEFT_APP, "Camera"),
                 Action(Kind.SWIPE_RIGHT_APP, "Phone"),
-                Action(Kind.SWIPE_UP_APP, "Maps"),
             ),
-            HomeAccessibilityActions.forView("Camera", "Phone", "Maps"),
+            HomeAccessibilityActions.forView("Camera", "Phone"),
         )
     }
 

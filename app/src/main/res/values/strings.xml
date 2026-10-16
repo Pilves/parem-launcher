@@ -193,8 +193,6 @@
 
     <!-- Screen Time Limits -->
 
-    <!-- Swipe Up Apps -->
-
     <!-- Double Tap -->
     <string name="double_tap_action" translatable="false">Double tap action</string>
 

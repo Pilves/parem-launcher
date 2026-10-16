@@ -24,7 +24,6 @@ import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.Haptics
 import com.parem.launcher.helper.HomeAccessibilityActions
-import com.parem.launcher.helper.SwipeUpAppManager
 import com.parem.launcher.helper.expandNotificationDrawer
 import com.parem.launcher.helper.LockServiceCheck
 import com.parem.launcher.helper.isAccessServiceBound
@@ -137,14 +136,9 @@ class HomeGesturesController(
             prefs.appPackageSwipeRight,
             prefs.appNameSwipeRight,
         )
-        addAccessibilityActions(binding.mainLayout, 0, HomeAccessibilityActions.forView(left, right))
+        addAccessibilityActions(binding.mainLayout, HomeAccessibilityActions.forView(left, right))
         fragment.slotsController?.homeAppViews?.forEach { view ->
-            val slot = view.tag.toString().toIntOrNull() ?: 0
-            val swipeUp = if (slot in 1..8 && SwipeUpAppManager.hasSwipeUpApp(context, slot))
-                SwipeUpAppManager.getSwipeUpAppName(context, slot)
-                    .ifEmpty { SwipeUpAppManager.getSwipeUpAppPackage(context, slot) }
-            else null
-            addAccessibilityActions(view, slot, HomeAccessibilityActions.forView(left, right, swipeUp))
+            addAccessibilityActions(view, HomeAccessibilityActions.forView(left, right))
         }
         binding.homeAllApps.isVisible =
             context.getSystemService(AccessibilityManager::class.java)?.isTouchExplorationEnabled == true
@@ -162,7 +156,7 @@ class HomeGesturesController(
         touchExplorationListener = listener
     }
 
-    private fun addAccessibilityActions(view: View, slot: Int, actions: List<HomeAccessibilityActions.Action>) {
+    private fun addAccessibilityActions(view: View, actions: List<HomeAccessibilityActions.Action>) {
         actions.forEach { action ->
             val label = when (action.kind) {
                 HomeAccessibilityActions.Kind.ALL_APPS -> context.getString(R.string.a11y_all_apps)
@@ -170,8 +164,7 @@ class HomeGesturesController(
                 HomeAccessibilityActions.Kind.NOTIFICATIONS -> context.getString(R.string.notifications)
                 HomeAccessibilityActions.Kind.ADD_WIDGET -> context.getString(R.string.add_widget)
                 HomeAccessibilityActions.Kind.SWIPE_LEFT_APP,
-                HomeAccessibilityActions.Kind.SWIPE_RIGHT_APP,
-                HomeAccessibilityActions.Kind.SWIPE_UP_APP -> context.getString(R.string.a11y_open_app, action.appName)
+                HomeAccessibilityActions.Kind.SWIPE_RIGHT_APP -> context.getString(R.string.a11y_open_app, action.appName)
             }
             val id = ViewCompat.addAccessibilityAction(view, label) { _, _ ->
                 if (!fragment.isAdded) return@addAccessibilityAction false
@@ -182,7 +175,6 @@ class HomeGesturesController(
                     HomeAccessibilityActions.Kind.ADD_WIDGET -> fragment.widgetController?.showWidgetPicker()
                     HomeAccessibilityActions.Kind.SWIPE_LEFT_APP -> openSwipeApp(isLeft = true)
                     HomeAccessibilityActions.Kind.SWIPE_RIGHT_APP -> openSwipeApp(isLeft = false)
-                    HomeAccessibilityActions.Kind.SWIPE_UP_APP -> launchSwipeUpApp(slot)
                 }
                 true
             }
@@ -319,12 +311,7 @@ class HomeGesturesController(
 
             override fun onSwipeUp() {
                 super.onSwipeUp()
-                val slot = view.tag?.toString()?.toIntOrNull() ?: 0
-                if (slot in 1..8 && SwipeUpAppManager.hasSwipeUpApp(context, slot)) {
-                    launchSwipeUpApp(slot)
-                } else {
-                    fragment.showAppList(Constants.FLAG_LAUNCH_APP)
-                }
+                fragment.showAppList(Constants.FLAG_LAUNCH_APP)
             }
 
             override fun onSwipeDown() {
@@ -345,15 +332,6 @@ class HomeGesturesController(
         }
         viewTouchListeners.add(listener)
         return listener
-    }
-
-    private fun launchSwipeUpApp(slot: Int) {
-        fragment.slotsController?.launchApp(
-            SwipeUpAppManager.getSwipeUpAppName(context, slot),
-            SwipeUpAppManager.getSwipeUpAppPackage(context, slot),
-            SwipeUpAppManager.getSwipeUpAppActivity(context, slot),
-            SwipeUpAppManager.getSwipeUpAppUser(context, slot)
-        )
     }
 
     private fun swipeDownAction() {

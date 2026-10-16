@@ -4,6 +4,7 @@
 
 - Settings, drawer and sheets use a warm monochrome palette with moss-teal actions, clearer type and tablet sizing; home keeps monochrome wallpaper text. E-ink stays monochrome.
 - Wallpaper dimming can be controlled independently of daily wallpaper.
+- Remove the unfinished per-slot swipe-up binding; swiping up on any home slot opens all apps. Existing backup values remain transferable.
 
 - Preserve home slot names when an installed-app lookup fails; record recovered failures in opt-in crash diagnostics.
 - Settings has a "Hidden apps" row showing how many apps are hidden; tapping it opens the list (the title tap still works). Hiding an app keeps you in the drawer with a short confirmation instead of a Settings dialog, and a search that matches only a hidden app offers "Not in the list? Check hidden apps" (never naming the app, and not while Private Space is locked).

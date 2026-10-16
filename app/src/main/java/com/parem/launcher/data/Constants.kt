@@ -77,8 +77,6 @@ object Constants {
     const val FLAG_SET_CLOCK_APP = 13
     const val FLAG_SET_CALENDAR_APP = 14
 
-    const val FLAG_SET_SWIPE_UP_APP_1 = 21
-    const val FLAG_SET_SWIPE_UP_APP_8 = 28
     const val FLAG_SET_DOUBLE_TAP_APP = 30
     const val FLAG_SET_GESTURE_LETTER_APP = 40
     // Opens the picked app's notification settings ("Make silent")
