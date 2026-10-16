@@ -297,5 +297,11 @@ per package; the rest of each of those fragments is still in
   Verification: rebased onto 504f17b; compileDebugKotlin, testDebugUnitTest (388 tests), assembleDebug, handoff harness and diff check exit 0. Section 6 has seven proposals only in docs/plans/2026-10-16-ponytail-pass2.md.
   Not verified: device behavior, OEM failure injection, opt-in crash-file UI and visual parity on hardware; no adb or devices used.
   Easy to get wrong: home clears only on an independent successful installed-app lookup reporting absence, not on an empty drawer list; never turn a lookup exception into false. Keep the uncaught-crash handler's guard and WP42's CSV whitespace behavior.
+- **M4-WP63 (PR #0):** Code health pass 3 implements approved items 58, 57, 66, 67 and 4: per-slot swipe-up is removed, one swipe listener serves home and slots, five sheets use BottomSheetMenu, and dead landscape theme/lock controls are gone.
+  Contract: swipe thresholds are unchanged; background double taps and slot pressed feedback retain their separate behavior. Five JVM dispatch regressions cover release, cancellation, double-tap roles, velocity reset and slop. Legacy swipe-up String preferences still import/export without clearing or exclusion.
+  Contract: sheet text, row order, validation and callback-before-dismiss order remain; keyboard resize is set before showing forms, and the widget picker retains its own weighted scrolling ListView. Focus's XML is removed; callers attach lifecycle/dismiss hooks to the returned dialog.
+  Not verified: device gestures, keyboard/landscape scrolling, visual parity and accessibility on hardware; no adb or devices used. This branch awaits review before merging.
+  Deferred: WIDGET_ID migration (65), portrait/landscape settings unification (WP51), and further section 5 work; architecture traps 1–5 are unchanged.
+  Easy to get wrong: a slot double tap keeps the detector's default callback, while a background double tap cancels swipe release; never wrap the widget ListView in the sheet's outer scroll view.
 
 <!-- handoff:end -->
