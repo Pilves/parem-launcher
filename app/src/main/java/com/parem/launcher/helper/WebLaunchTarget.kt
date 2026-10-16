@@ -1,9 +1,9 @@
 package com.parem.launcher.helper
 
 /**
- * Android-free rule for gating a web open (website shortcut, omnibox search,
- * search gesture): a web open is not an app launch, so it is gated only on the
- * app that will actually handle it.
+ * Android-free rule for a web open (website shortcut, omnibox search, search
+ * gesture): it always goes to one known app, so focus, the limit and the pause
+ * are checked against the app that actually receives the intent.
  */
 object WebLaunchTarget {
 
@@ -11,10 +11,14 @@ object WebLaunchTarget {
     const val CHOOSER = "android"
 
     /**
-     * The package the launch gate runs for, or "" when there is no single app to
-     * gate: no handler, or the chooser (focus pins a whitelisted browser later,
-     * in MainViewModel.launchUrl; limits cannot apply to a chooser).
+     * The package to gate and pin the intent on, "" when no app can handle it
+     * (nothing to gate; the launch fails with its own toast), or null when focus
+     * blocks it. A real default handler is used as is; without one the first
+     * focus-allowed [candidates] entry stands in for the chooser.
      */
-    fun gatedPackage(handler: String?): String =
-        if (handler.isNullOrEmpty() || handler == CHOOSER) "" else handler
+    fun target(handler: String?, candidates: List<String>, allowed: (String) -> Boolean): String? {
+        if (!handler.isNullOrEmpty() && handler != CHOOSER) return if (allowed(handler)) handler else null
+        if (candidates.isEmpty()) return ""
+        return candidates.firstOrNull(allowed)
+    }
 }

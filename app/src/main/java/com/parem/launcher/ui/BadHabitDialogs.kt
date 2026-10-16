@@ -102,30 +102,35 @@ object BadHabitDialogs {
 
     /**
      * The gate for a web open (website shortcut, omnibox search, search gesture):
-     * a web open is not an app launch, so it is gated only on the app that will
-     * handle [intent] — focus first, then that app's limit and pause through
-     * [gateLaunch]. With no single handler (chooser) nothing is gated here;
-     * MainViewModel.launchUrl still pins a whitelisted browser under focus.
+     * a web open is not an app launch, so it is gated on the one app that will
+     * receive [intent] per [WebLaunchTarget.target] — focus first, then that
+     * app's limit and pause through [gateLaunch]. [open] gets that package ("" when
+     * nothing handles the intent) and must send the intent to it.
      */
     fun gateWebOpen(
         context: Context,
         scope: CoroutineScope,
         isActive: () -> Boolean,
         intent: Intent,
-        open: () -> Unit,
+        open: (packageName: String) -> Unit,
     ) {
+        val pm = context.packageManager
         val handler = try {
-            context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
-                ?.activityInfo?.packageName
+            pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
         } catch (_: Exception) {
             null
         }
-        val packageName = WebLaunchTarget.gatedPackage(handler)
-        if (packageName.isNotEmpty() && !FocusModeManager.isAppAllowed(context, packageName)) {
+        val candidates = try {
+            pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY).map { it.activityInfo.packageName }
+        } catch (_: Exception) {
+            emptyList()
+        }
+        val packageName = WebLaunchTarget.target(handler, candidates) { FocusModeManager.isAppAllowed(context, it) }
+        if (packageName == null) {
             FocusModeManager.showBlocked(context)
             return
         }
-        gateLaunch(context, scope, isActive, "", packageName, open)
+        gateLaunch(context, scope, isActive, "", packageName, open = { open(packageName) })
     }
 
     /** Gesture letters pass no name; show the app's label rather than its package. */

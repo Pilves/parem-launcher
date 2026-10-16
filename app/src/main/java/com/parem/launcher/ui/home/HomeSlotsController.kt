@@ -250,17 +250,19 @@ class HomeSlotsController(
      */
     fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String? = null) {
         val ctx = fragment.context ?: return
-        val open = { openApp(appName, packageName, activityClassName, userString, url) }
         if (url != null) {
+            // The gated browser rides along as the package so selectedApp pins the intent to it
             BadHabitDialogs.gateWebOpen(
                 ctx, fragment.viewLifecycleOwner.lifecycleScope, { fragment.isAdded },
-                Intent(Intent.ACTION_VIEW, Uri.parse(url)), open,
+                Intent(Intent.ACTION_VIEW, Uri.parse(url)),
+                open = { browser -> openApp(appName, browser, activityClassName, userString, url) },
             )
             return
         }
         BadHabitDialogs.gateLaunch(
             ctx, fragment.viewLifecycleOwner.lifecycleScope, { fragment.isAdded },
-            appName, packageName, open,
+            appName, packageName,
+            open = { openApp(appName, packageName, activityClassName, userString, url) },
         )
     }
 
@@ -269,7 +271,7 @@ class HomeSlotsController(
         val ctx = fragment.context ?: return
         BadHabitDialogs.gateWebOpen(
             ctx, fragment.viewLifecycleOwner.lifecycleScope, { fragment.isAdded },
-            Intent(Intent.ACTION_WEB_SEARCH), open = { ctx.openSearch() },
+            Intent(Intent.ACTION_WEB_SEARCH), open = { browser -> ctx.openSearch(null, browser) },
         )
     }
 

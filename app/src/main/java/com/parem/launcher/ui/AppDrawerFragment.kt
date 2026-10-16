@@ -258,7 +258,7 @@ class AppDrawerFragment : BaseFragment() {
                             launchUrl(ctx, Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(q, "UTF-8"))
                         adapter.itemCount == 0 -> BadHabitDialogs.gateWebOpen(
                             ctx, viewLifecycleOwner.lifecycleScope, { isAdded },
-                            Intent(Intent.ACTION_WEB_SEARCH), open = { ctx.openSearch(q.trim()) },
+                            Intent(Intent.ACTION_WEB_SEARCH), open = { browser -> ctx.openSearch(q.trim(), browser) },
                         )
                         else -> adapter.launchFirstInList()
                     }
@@ -652,9 +652,9 @@ class AppDrawerFragment : BaseFragment() {
         BadHabitDialogs.gateWebOpen(
             ctx, viewLifecycleOwner.lifecycleScope, { isAdded },
             Intent(Intent.ACTION_VIEW, Uri.parse(url)),
-            open = {
+            open = { browser ->
                 if (isAdded) viewModel.selectedApp(
-                    AppModel(url, null, "", null, false, android.os.Process.myUserHandle(), url),
+                    AppModel(url, null, browser, null, false, android.os.Process.myUserHandle(), url),
                     Constants.FLAG_LAUNCH_APP
                 )
             },
