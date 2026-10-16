@@ -197,20 +197,24 @@ export const enoughFrames = (f) => (f.frames !== null && f.frames >= MIN_FRAMES 
 // too few frames can be diagnosed from the CI artifact
 function frames(pkg, open, act, shot) {
   let out;
+  let stage = 'open home';
   try {
     startHome();
     sleepMs(1500);
     requireScreen(pkg, 'homeAppsLayout');
+    stage = 'open drawer';
     open();
     sleepMs(1500);
-    requireScreen(pkg, 'search_src_text');
+    const initialScreen = requireScreen(pkg, 'search_src_text');
+    if (shot) writeFileSync(shot.replace(/\.png$/, '.start.xml'), initialScreen);
     adb(`dumpsys gfxinfo ${pkg} reset`);
+    stage = 'exercise drawer';
     act();
     sleepMs(1000);
     out = parseGfxinfo(adb(`dumpsys gfxinfo ${pkg}`));
     requireScreen(pkg, 'search_src_text');
   } catch (error) {
-    out = { error: error.message };
+    out = { error: `${stage}: ${error.message}` };
   } finally {
     // Preserve the failed screen instead of silently measuring another app.
     if (shot) {
@@ -221,6 +225,7 @@ function frames(pkg, open, act, shot) {
         closeSync(screenshot);
       }
       writeFileSync(shot.replace(/\.png$/, '.xml'), hierarchy());
+      if (out?.error) writeFileSync(shot.replace(/\.png$/, '.events.txt'), adb('logcat -b events -d -t 300'));
     }
     startHome();
   }
