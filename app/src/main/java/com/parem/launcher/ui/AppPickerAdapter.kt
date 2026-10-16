@@ -1,12 +1,15 @@
 package com.parem.launcher.ui
 
 import android.content.res.ColorStateList
+import android.graphics.Rect
 import android.text.InputType
 import android.util.TypedValue
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -112,6 +115,14 @@ fun LinearLayout.addAppPicker(adapter: AppPickerAdapter, searchPaddingLeft: Int 
         isSingleLine = true
         setPadding(searchPaddingLeft, searchPaddingTop, 0, 8.dpToPx())
         doAfterTextChanged { adapter.filter(it?.toString() ?: "") }
+        viewTreeObserver.addOnGlobalLayoutListener {
+            if (hasFocus() && ViewCompat.getRootWindowInsets(this)
+                    ?.isVisible(WindowInsetsCompat.Type.ime()) == true) {
+                // Resize keeps the field visible; also reveal the first result rows.
+                val rows = 2 * resources.getDimensionPixelSize(R.dimen.touch_target_min)
+                requestRectangleOnScreen(Rect(0, 0, width, height + rows), true)
+            }
+        }
     })
     addView(RecyclerView(context).apply {
         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 300.dpToPx())

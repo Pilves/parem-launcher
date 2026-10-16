@@ -1,6 +1,13 @@
 package com.parem.launcher
 
 import android.util.Log
+import android.widget.EditText
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
+import com.parem.launcher.ui.FocusModeDialog
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
@@ -108,6 +115,50 @@ class SmokeTest {
         } finally {
             if (originalScale == "null") device.executeShellCommand("settings delete system font_scale")
             else device.executeShellCommand("settings put system font_scale $originalScale")
+        }
+    }
+
+    @Test
+    fun focusSearchKeepsResultsAboveKeyboard() {
+        var sheet: BottomSheetDialog? = null
+        try {
+            device.setOrientationLandscape()
+            device.waitForIdle(TIMEOUT)
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                sheet = FocusModeDialog(activity, (1..12).map {
+                    "example.$it" to "Example $it"
+                }).show()
+            }
+            val search = device.wait(Until.findObject(By.clazz(EditText::class.java)
+                .text(context.getString(R.string.search_apps))), TIMEOUT)
+            assertNotNull("Focus app search missing", search)
+            search.click()
+            search.text = "Example"
+            val deadline = System.currentTimeMillis() + TIMEOUT
+            var visible = false
+            var bounds = ""
+            while (!visible && System.currentTimeMillis() < deadline) {
+                var keyboardTop = 0
+                instrumentation.runOnMainSync {
+                    val decor = sheet!!.window!!.decorView
+                    val insets = ViewCompat.getRootWindowInsets(decor)
+                    if (insets?.isVisible(WindowInsetsCompat.Type.ime()) == true) {
+                        keyboardTop = device.displayHeight -
+                            insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+                    }
+                }
+                val result = device.findObject(By.text("Example 1"))?.visibleBounds
+                bounds = "keyboardTop=$keyboardTop result=$result"
+                visible = keyboardTop > 0 && result != null && result.height() > 0 &&
+                    result.bottom <= keyboardTop
+                if (!visible) android.os.SystemClock.sleep(100)
+            }
+            assertTrue("Focus results hidden below keyboard: $bounds", visible)
+        } finally {
+            instrumentation.runOnMainSync { sheet?.dismiss() }
+            device.setOrientationNatural()
         }
     }
 
