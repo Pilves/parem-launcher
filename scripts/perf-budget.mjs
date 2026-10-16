@@ -14,7 +14,7 @@
 // its first-run prefs seeded through run-as; any other build must already be
 // past onboarding.
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, appendFileSync, openSync, closeSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -214,7 +214,12 @@ function frames(pkg, open, act, shot) {
   } finally {
     // Preserve the failed screen instead of silently measuring another app.
     if (shot) {
-      writeFileSync(shot, execFileSync('adb', ['exec-out', 'screencap', '-p']));
+      const screenshot = openSync(shot, 'w');
+      try {
+        execFileSync('adb', ['exec-out', 'screencap', '-p'], { stdio: ['ignore', screenshot, 'pipe'] });
+      } finally {
+        closeSync(screenshot);
+      }
       writeFileSync(shot.replace(/\.png$/, '.xml'), hierarchy());
     }
     startHome();
