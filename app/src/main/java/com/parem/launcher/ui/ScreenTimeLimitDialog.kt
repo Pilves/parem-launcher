@@ -155,6 +155,10 @@ class ScreenTimeLimitDialog(
         rootLayout.addView(listLayout)
 
         dialog = menu.customView(rootLayout).show()
+        dialog.window?.setLayout(
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+        )
         return dialog
     }
 

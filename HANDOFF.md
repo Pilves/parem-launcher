@@ -155,6 +155,10 @@ per package; the rest of each of those fragments is still in
   Contract: a single back-press callback — back on the Calm screen finishes, back on the home-screen ask shows Calm; `Constants.ONBOARDING_VERSION = 3`.
   Not verified: the fresh-install flow on a device, before and after Parem is default home (the first-open HOME intent → `onNewIntent → backToHomeScreen()` path named in the roadmap row was not separately changed).
   Easy to get wrong: Done can be double-tapped — the destination check in `finish()` is what stops the second tap popping home; marking the version seen anywhere before the exit brings back the < 1 s dismissal.
+- **M4-WP24 (PR #0):** App limits and Focus mode explicitly size their dialog windows to the available viewport after showing their shared BottomSheetMenu content.
+  Contract: only these two windows are widened; shared Material sheet width caps, keyboard resize, scrolling and accessibility semantics remain intact.
+  Integration: adapts the pending 4528e3e fix to WP63 instead of restoring its removed custom sheet implementations.
+  Not verified: final candidate physical-tablet width, keyboard and scheduled-focus saving; release device pass remains required.
 - **M4-WP25 (PR #0):** The empty-home long-press menu opens expanded in landscape: `HomeGesturesController.showHomeLongPressMenu` builds it with `BottomSheetMenu`, whose `show()` sets `STATE_EXPANDED` and `skipCollapsed`, so the landscape peek state that hid Settings no longer applies.
   Contract: the code change itself landed with M4-WP53's menu rebuild (`fbdee36`); this package verified that no other long-press path bypasses `BottomSheetMenu.show()` and closes the row with its changelog line, no further code.
   Not verified: no device run — the expanded open in landscape on a phone and on the Tab S8 is a device-pass item, as is that the sheet still scrolls to Settings at 200% font in landscape.

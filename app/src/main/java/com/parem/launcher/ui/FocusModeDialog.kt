@@ -59,6 +59,10 @@ class FocusModeDialog(
         dialog = menu.show(
             resizeForKeyboard = !active && allApps.isNotEmpty(),
         )
+        dialog.window?.setLayout(
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+        )
         return dialog
     }
 
