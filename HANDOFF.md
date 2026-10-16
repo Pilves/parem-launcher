@@ -158,7 +158,7 @@ per package; the rest of each of those fragments is still in
 - **M4-WP24 (PR #0):** App limits and Focus mode explicitly size their dialog windows to the available viewport after showing their shared BottomSheetMenu content.
   Contract: only these two windows are widened; shared Material sheet width caps, keyboard resize, scrolling and accessibility semantics remain intact.
   Integration: adapts the pending 4528e3e fix to WP63 instead of restoring its removed custom sheet implementations.
-  Not verified: final candidate physical-tablet width, keyboard and scheduled-focus saving; release device pass remains required.
+  Verified: tablet Focus opens in both orientations; search results stay above the keyboard at normal/200% fonts and the last action is reachable by scrolling. App limits large-font interaction and the full release device pass remain unverified.
 - **M4-WP25 (PR #0):** The empty-home long-press menu opens expanded in landscape: `HomeGesturesController.showHomeLongPressMenu` builds it with `BottomSheetMenu`, whose `show()` sets `STATE_EXPANDED` and `skipCollapsed`, so the landscape peek state that hid Settings no longer applies.
   Contract: the code change itself landed with M4-WP53's menu rebuild (`fbdee36`); this package verified that no other long-press path bypasses `BottomSheetMenu.show()` and closes the row with its changelog line, no further code.
   Not verified: no device run — the expanded open in landscape on a phone and on the Tab S8 is a device-pass item, as is that the sheet still scrolls to Settings at 200% font in landscape.
@@ -291,15 +291,15 @@ per package; the rest of each of those fragments is still in
   Not verified: the corrected foldable CI leg has not run yet; the old job failed before emulator creation or any application test.
   Easy to get wrong: Studio device names are not necessarily avdmanager profile IDs; rerun the workflow on the corrected commit, not the failed job at the old SHA.
 - **M4-WP60 (PR #0):** The perf driver validates home/drawer resource nodes and search focus, captures phase hierarchies with screenshots, and rejects wrong screens or fewer than 30 frames.
-  Contract: baseline, tolerance and scroll workload are unchanged; cold/return regressions remain reported even when a frame phase is invalid; invalid runs cannot overwrite the baseline.
+  Contract: 20% tolerance and absolute noise floors remain; CI measures pinned reference996ef0c and candidate on the same warmed emulator with the current bounded scroll driver. The historical baseline file is unchanged; invalid reference/candidate phases fail.
   Contract: new perf debug prefs disable single-match auto-launch; the functional launch test targets search_src_text and waits for Settings results before submitting Enter.
   Verified: parser/measurement guard tests cover wrong package/resource, missing frames and preserving cold-start failures; required repository checks pass.
   CI follow-up: run 38872505201 passed foldable and both tablet legs; the phone reached perf but its 1,058,378-byte PNG exceeded Node’s default output buffer. Screenshot stdout now writes directly to a file descriptor.
-  Not verified: CI on the screenshot-capture follow-up and physical-device performance measurements; observed drawer-close/notification-shade escapes may now fail explicitly and still need follow-up.
+  Verified: CI38893600140 passes all four functional legs and the paired performance gate. Physical tablet cold start/return/scroll meet budgets; typing jank21.74% misses the1% target. Tablet measurements used MENU and upward-only scrolls after reverse pulls correctly failed screen guards.
   Easy to get wrong: the CI functional reports previously contained no failure screen; Settings launch failures now include package and hierarchy, so diagnose that evidence before changing app behavior.
 - **M4-WP61 (PR #0):** Widget add, drag-resize and relayout share an API-gated size notification: API31+ uses the standard SizeF-list overload and API29/30 retains the legacy dimensions.
   Contract: pass full measured host dimensions; Android subtracts default widget padding and fills min/max plus a nonempty appWidgetSizes list. Widget IDs, provider storage, saved heights and configuration flow are unchanged.
-  Prerequisite: built on WP42 commit 4410686; its later uncommitted sizing-call cleanup touches these same sites, so integration must retain this helper and its three calls.
+  Integration retains the SizeF helper and all three calls alongside WP42 cleanup; beta.2 tablet upgrade102→104 preserves all four bound widgets and their stored settings.
   Verified: required compile, 366 JVM tests, debug assembly and handoff harness pass; separate normal and QA-suffix APKs are preserved.
   Verified: root's Samsung SM-X706B / Android 15 QA pass recovered existing Weather without re-adding; a fresh first Digital Clock variant renders after Save; portrait, landscape scrolling with running seconds and force-stop/relaunch render correctly. Device options show nonempty SizeF entries.
   Not verified: phone widgets or API29/30 fallback. Live seconds prevent UIAutomator idle, so final landscape/restart evidence is visual screenshots, not stale hierarchy XML.
@@ -313,7 +313,7 @@ per package; the rest of each of those fragments is still in
   Contract: swipe thresholds are unchanged; background double taps and slot pressed feedback retain their separate behavior. Five JVM dispatch regressions cover release, cancellation, double-tap roles, velocity reset and slop. Legacy swipe-up String preferences still import/export without clearing or exclusion.
   Contract: sheet text, row order, validation and callback-before-dismiss order remain; keyboard resize is set before showing forms, and the widget picker retains its own weighted scrolling ListView. Focus's XML is removed; callers attach lifecycle/dismiss hooks to the returned dialog.
   Verified: rebased onto next5282500, retaining the merged colour roles and sheet width cap; compile, 403 JVM tests, debug assembly and handoff harness pass.
-  Not verified: device gestures, keyboard/landscape scrolling, visual parity and accessibility on hardware; no adb or devices used. This branch awaits review before merging.
+  Integration approved by Patric. Release candidate passes 403 JVM tests and four CI device configurations; tablet Focus search passes at normal/200% fonts, and the owner confirms TalkBack home navigation and double-tap lock. Full gesture/visual parity and the remaining release checklist are not claimed complete.
   Deferred: WIDGET_ID migration (65), portrait/landscape settings unification (WP51), and further section 5 work; architecture traps 1–5 are unchanged.
   Easy to get wrong: a slot double tap keeps the detector's default callback, while a background double tap cancels swipe release; never wrap the widget ListView in the sheet's outer scroll view.
 
