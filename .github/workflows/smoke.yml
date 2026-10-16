@@ -21,7 +21,7 @@ jobs:
       matrix:
         include:
           - { profile: pixel_6,      api-level: 34, perf: true }
-          - { profile: pixel_fold,   api-level: 34 }
+          - { profile: '7.6in Foldable',   api-level: 34 }
           - { profile: pixel_tablet, api-level: 34 }
           - { profile: pixel_tablet, api-level: 36 }
     steps:
