@@ -52,39 +52,39 @@ class AppearanceSettingsCard(
     }
 
     private fun initClickListeners() {
-        binding.appThemeText.setOnClickListener(this)
-        binding.textSizeValue.setOnClickListener(this)
-        binding.boldFont.setOnClickListener(this)
+        binding.appThemeRow.setOnClickListener(this)
+        binding.textSizeRow.setOnClickListener(this)
+        binding.boldFontRow.setOnClickListener(this)
         binding.dailyWallpaperUrl.setOnClickListener(this)
-        binding.dailyWallpaper.setOnClickListener(this)
-        binding.statusBar.setOnClickListener(this)
-        binding.weatherToggle?.setOnClickListener(this)
+        binding.dailyWallpaperRow.setOnClickListener(this)
+        binding.statusBarRow.setOnClickListener(this)
+        binding.weatherRow?.setOnClickListener(this)
 
         binding.textSize1.setOnClickListener(this)
         binding.textSize2.setOnClickListener(this)
         binding.textSize3.setOnClickListener(this)
         binding.textSize4.setOnClickListener(this)
 
-        binding.dailyWallpaper.setOnLongClickListener(this)
-        binding.appThemeText.setOnLongClickListener(this)
+        binding.dailyWallpaperRow.setOnLongClickListener(this)
+        binding.appThemeRow.setOnLongClickListener(this)
     }
 
     override fun onClick(view: View) {
         fragment.resetOpenPickers(view.id)
         when (view.id) {
             R.id.dailyWallpaperUrl -> context.openUrl(prefs.dailyWallpaperUrl)
-            R.id.dailyWallpaper -> toggleDailyWallpaperUpdate()
-            R.id.statusBar -> toggleStatusBar()
-            R.id.appThemeText -> showThemePicker()
-            R.id.textSizeValue -> binding.textSizesLayout.visibility = View.VISIBLE
-            R.id.boldFont -> toggleBoldFont()
+            R.id.dailyWallpaperRow -> toggleDailyWallpaperUpdate()
+            R.id.statusBarRow -> toggleStatusBar()
+            R.id.appThemeRow -> showThemePicker()
+            R.id.textSizeRow -> binding.textSizesLayout.visibility = View.VISIBLE
+            R.id.boldFontRow -> toggleBoldFont()
 
             R.id.textSize1 -> updateTextSizeScale(TextScale.SMALLER)
             R.id.textSize2 -> updateTextSizeScale(TextScale.DEFAULT)
             R.id.textSize3 -> updateTextSizeScale(TextScale.LARGE)
             R.id.textSize4 -> updateTextSizeScale(TextScale.LARGER)
 
-            R.id.weatherToggle -> {
+            R.id.weatherRow -> {
                 if (WeatherManager.isEnabled(context)) {
                     WeatherManager.setEnabled(context, false)
                 } else {
@@ -98,8 +98,8 @@ class AppearanceSettingsCard(
 
     override fun onLongClick(view: View): Boolean {
         when (view.id) {
-            R.id.dailyWallpaper -> removeWallpaper()
-            R.id.appThemeText -> showThemePicker()
+            R.id.dailyWallpaperRow -> removeWallpaper()
+            R.id.appThemeRow -> showThemePicker()
         }
         return true
     }
@@ -111,6 +111,7 @@ class AppearanceSettingsCard(
 
     private fun populateStatusBar() {
         binding.statusBar.text = context.onOff(prefs.showStatusBar)
+        binding.statusBarRow.bindSwitchRow(prefs.showStatusBar)
         // On a rotation restore this runs while MainActivity is still inflating its
         // layout, before setContentView installs the decor, and window.insetsController
         // throws. Once the view is attached the decor exists.
@@ -151,6 +152,7 @@ class AppearanceSettingsCard(
     private fun populateWallpaperText() {
         if (prefs.dailyWallpaper) binding.dailyWallpaper.text = context.getString(R.string.on)
         else binding.dailyWallpaper.text = context.getString(R.string.off)
+        binding.dailyWallpaperRow.bindSwitchRow(prefs.dailyWallpaper)
     }
 
     private fun updateTextSizeScale(step: Float) {
@@ -169,6 +171,7 @@ class AppearanceSettingsCard(
                 else -> R.string.text_size_default
             }
         )
+        binding.textSizeRow.bindValueRow(binding.textSizeValue.text)
     }
 
     private fun toggleBoldFont() {
@@ -180,6 +183,7 @@ class AppearanceSettingsCard(
 
     private fun populateBoldFont() {
         binding.boldFont.text = context.onOff(prefs.boldFont)
+        binding.boldFontRow.bindSwitchRow(prefs.boldFont)
     }
 
     private fun updateTheme(appTheme: Int) {
@@ -219,6 +223,7 @@ class AppearanceSettingsCard(
             appTheme == AppCompatDelegate.MODE_NIGHT_NO -> context.getString(R.string.light)
             else -> context.getString(R.string.system_default)
         }
+        binding.appThemeRow.bindValueRow(binding.appThemeText.text)
     }
 
     private fun showThemePicker() {

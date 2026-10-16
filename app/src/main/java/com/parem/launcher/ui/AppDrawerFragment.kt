@@ -171,6 +171,8 @@ class AppDrawerFragment : BaseFragment() {
         try {
             searchTextView = binding.search.findViewById(R.id.search_src_text)
             searchTextView?.gravity = prefs.appLabelAlignment
+            // The rotating omnibox hint is an example, not a label; TalkBack needs the field's purpose
+            searchTextView?.contentDescription = getString(R.string.search_apps)
         } catch (e: Exception) {
             Log.e("AppDrawerFragment", "Failed to set search text alignment", e)
         }

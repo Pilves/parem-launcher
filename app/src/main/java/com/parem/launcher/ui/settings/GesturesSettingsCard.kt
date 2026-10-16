@@ -60,19 +60,19 @@ class GesturesSettingsCard(
     }
 
     private fun initClickListeners() {
-        binding.autoShowKeyboard.setOnClickListener(this)
-        binding.doubleTapAction?.setOnClickListener(this)
-        binding.swipeLeftApp.setOnClickListener(this)
-        binding.swipeRightApp.setOnClickListener(this)
-        binding.swipeDownAction.setOnClickListener(this)
+        binding.autoShowKeyboardRow.setOnClickListener(this)
+        binding.doubleTapRow?.setOnClickListener(this)
+        binding.swipeLeftRow.setOnClickListener(this)
+        binding.swipeRightRow.setOnClickListener(this)
+        binding.flSwipeDown.setOnClickListener(this)
         binding.search.setOnClickListener(this)
         binding.notifications.setOnClickListener(this)
-        binding.gestureLettersToggle?.setOnClickListener(this)
+        binding.gestureLettersRow?.setOnClickListener(this)
         binding.tvGestures?.setOnClickListener(this)
         binding.lockMethod.setOnClickListener(this)
 
-        binding.swipeLeftApp.setOnLongClickListener(this)
-        binding.swipeRightApp.setOnLongClickListener(this)
+        binding.swipeLeftRow.setOnLongClickListener(this)
+        binding.swipeRightRow.setOnLongClickListener(this)
     }
 
     private fun initObservers() {
@@ -84,18 +84,18 @@ class GesturesSettingsCard(
     override fun onClick(view: View) {
         fragment.resetOpenPickers(view.id)
         when (view.id) {
-            R.id.autoShowKeyboard -> toggleKeyboardText()
+            R.id.autoShowKeyboardRow -> toggleKeyboardText()
             R.id.tvGestures -> binding.flSwipeDown.visibility = View.VISIBLE
 
-            R.id.swipeLeftApp -> showSwipeActionPicker(isLeft = true)
-            R.id.swipeRightApp -> showSwipeActionPicker(isLeft = false)
-            R.id.swipeDownAction -> binding.swipeDownSelectLayout.visibility = View.VISIBLE
+            R.id.swipeLeftRow -> showSwipeActionPicker(isLeft = true)
+            R.id.swipeRightRow -> showSwipeActionPicker(isLeft = false)
+            R.id.flSwipeDown -> binding.swipeDownSelectLayout.visibility = View.VISIBLE
             R.id.notifications -> updateSwipeDownAction(Constants.SwipeDownAction.NOTIFICATIONS)
             R.id.search -> updateSwipeDownAction(Constants.SwipeDownAction.SEARCH)
 
-            R.id.doubleTapAction -> showDoubleTapActionPicker()
+            R.id.doubleTapRow -> showDoubleTapActionPicker()
             R.id.lockMethod -> toggleLockAdmin()
-            R.id.gestureLettersToggle -> {
+            R.id.gestureLettersRow -> {
                 if (GestureLetterManager.isEnabled(context)) {
                     GestureLetterConfigDialog(
                         context,
@@ -114,8 +114,8 @@ class GesturesSettingsCard(
 
     override fun onLongClick(view: View): Boolean {
         when (view.id) {
-            R.id.swipeLeftApp -> toggleSwipe(isLeft = true)
-            R.id.swipeRightApp -> toggleSwipe(isLeft = false)
+            R.id.swipeLeftRow -> toggleSwipe(isLeft = true)
+            R.id.swipeRightRow -> toggleSwipe(isLeft = false)
         }
         return true
     }
@@ -146,6 +146,7 @@ class GesturesSettingsCard(
     private fun populateKeyboardText() {
         if (prefs.autoShowKeyboard) binding.autoShowKeyboard.text = context.getString(R.string.on)
         else binding.autoShowKeyboard.text = context.getString(R.string.off)
+        binding.autoShowKeyboardRow.bindSwitchRow(prefs.autoShowKeyboard)
     }
 
     private fun removeActiveAdmin(toastMessage: String? = null) {
@@ -162,6 +163,7 @@ class GesturesSettingsCard(
             Constants.SwipeDownAction.NOTIFICATIONS -> context.getString(R.string.notifications)
             else -> context.getString(R.string.search)
         }
+        binding.flSwipeDown.bindValueRow(binding.swipeDownAction.text)
     }
 
     private fun updateSwipeDownAction(swipeDownFor: Int) {
@@ -173,6 +175,8 @@ class GesturesSettingsCard(
     private fun populateSwipeApps() {
         binding.swipeLeftApp.text = gestureActionLabel(prefs.getEffectiveSwipeLeftAction(), prefs.appNameSwipeLeft)
         binding.swipeRightApp.text = gestureActionLabel(prefs.getEffectiveSwipeRightAction(), prefs.appNameSwipeRight)
+        binding.swipeLeftRow.bindValueRow(binding.swipeLeftApp.text)
+        binding.swipeRightRow.bindValueRow(binding.swipeRightApp.text)
         if (!prefs.swipeLeftEnabled)
             binding.swipeLeftApp.setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
         if (!prefs.swipeRightEnabled)
@@ -257,6 +261,7 @@ class GesturesSettingsCard(
 
     private fun populateDoubleTapAction() {
         binding.doubleTapAction?.text = getDoubleTapLabel()
+        binding.doubleTapRow?.bindValueRow(binding.doubleTapAction?.text)
     }
 
     private fun showDoubleTapActionPicker() {

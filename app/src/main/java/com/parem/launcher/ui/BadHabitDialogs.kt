@@ -6,6 +6,7 @@ import android.content.Intent
 import android.provider.Settings
 import android.os.SystemClock
 import android.widget.TextView
+import androidx.core.view.ViewCompat
 import com.parem.launcher.R
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
@@ -116,6 +117,7 @@ object BadHabitDialogs {
             textSize = 16f
             setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
             setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
+            minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
         }
         val menu = BottomSheetMenu(context)
             .message(context.getString(R.string.mindful_pause_question, appName))
@@ -138,6 +140,8 @@ object BadHabitDialogs {
                     openRow.postDelayed(this, MindfulPause.msUntilNextTick(elapsed))
                     return
                 }
+                // Live only for this one change: the countdown ticks above stay silent
+                ViewCompat.setAccessibilityLiveRegion(openRow, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE)
                 openRow.text = context.getString(R.string.mindful_pause_open, appName)
                 openRow.setTextColor(context.getColorFromAttr(R.attr.primaryColor))
                 openRow.setBackgroundResource(context.selectableBackgroundRes())

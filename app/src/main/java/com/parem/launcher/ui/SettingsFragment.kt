@@ -26,6 +26,8 @@ import com.parem.launcher.ui.settings.AppearanceSettingsCard
 import com.parem.launcher.ui.settings.GesturesSettingsCard
 import com.parem.launcher.ui.settings.HomeScreenSettingsCard
 import com.parem.launcher.ui.settings.WellbeingSettingsCard
+import com.parem.launcher.ui.settings.bindSwitchRow
+import com.parem.launcher.ui.settings.bindValueRow
 
 /**
  * Settings screen. Split into per-card helper classes under ui/settings/
@@ -195,12 +197,16 @@ class SettingsFragment : BaseFragment() {
                 else -> R.string.off
             }
         )
+        binding.focusModeRow?.bindValueRow(binding.focusModeToggle?.text)
 
         binding.gestureLettersToggle?.text = if (GestureLetterManager.isEnabled(requireContext())) getString(R.string.on) else getString(R.string.off)
         binding.weatherToggle?.text = if (WeatherManager.isEnabled(requireContext())) {
             val city = WeatherManager.getCityName(requireContext())
             city.ifEmpty { getString(R.string.on) }
         } else getString(R.string.off)
+        // Not a switch: tapping while on opens the letter config, not off
+        binding.gestureLettersRow?.bindValueRow(binding.gestureLettersToggle?.text)
+        binding.weatherRow?.bindValueRow(binding.weatherToggle?.text)
     }
 
     override fun onDestroyView() {

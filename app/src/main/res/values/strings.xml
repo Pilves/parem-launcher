@@ -378,6 +378,11 @@
     <string name="a11y_work_profile" translatable="false">Work profile</string>
     <string name="a11y_screen_time_today" translatable="false">Screen time today, %1$s</string>
     <string name="a11y_screen_time_under_minute" translatable="false">Screen time today, under 1 minute</string>
+    <string name="a11y_widget" translatable="false">Widget</string>
+    <string name="a11y_wallpaper_source" translatable="false">Wallpaper source, opens in browser</string>
+    <string name="a11y_app_limit_row" translatable="false">%1$s, %2$s today, %3$s</string>
+    <string name="a11y_app_limit_value" translatable="false">limit %1$s</string>
+    <string name="a11y_picker_cap" translatable="false">Only %1$d apps can be selected</string>
     <string name="text_size_smaller" translatable="false">Smaller</string>
     <string name="text_size_default" translatable="false">Default</string>
     <string name="text_size_large" translatable="false">Large</string>

@@ -335,7 +335,7 @@ class HomeWidgetController(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
-            contentDescription = "Widget"
+            contentDescription = context.getString(R.string.a11y_widget)
             setOnTouchListener { _, event ->
                 when (event.actionMasked) {
                     MotionEvent.ACTION_DOWN -> longPressDetected = false

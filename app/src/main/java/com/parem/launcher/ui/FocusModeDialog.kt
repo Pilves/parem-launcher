@@ -13,6 +13,9 @@ import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.ViewCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.parem.launcher.R
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.FocusSchedule
@@ -144,6 +147,7 @@ class FocusModeDialog(
                 buttonTintList = ColorStateList.valueOf(primaryColor)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
                 setPadding(8.dpToPx(), 4.dpToPx(), 0, 4.dpToPx())
+                minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
             }
             radioGroup.addView(radioButton)
         }
@@ -364,6 +368,7 @@ class FocusModeDialog(
             setTypeface(typeface, android.graphics.Typeface.BOLD)
             gravity = Gravity.START
             setPadding(0, 0, 0, 8.dpToPx())
+            ViewCompat.setAccessibilityHeading(this, true)
         }
     }
 

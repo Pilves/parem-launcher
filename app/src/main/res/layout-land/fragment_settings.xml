@@ -45,6 +45,7 @@
                     <TextView
                         android:id="@+id/paremHiddenApps"
                         style="@style/TextLarge"
+                        android:accessibilityHeading="true"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
@@ -53,15 +54,17 @@
                     <ImageView
                         android:id="@+id/appInfo"
                         android:contentDescription="@string/a11y_app_info"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="@dimen/touch_target_min"
+                        android:layout_height="@dimen/touch_target_min"
                         android:layout_gravity="end|center_vertical"
-                        android:padding="4dp"
+                        android:padding="12dp"
                         android:src="@drawable/ic_info" />
                 </FrameLayout>
 
                 <TextView
                     android:id="@+id/setLauncher"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:gravity="center_vertical"
                     style="@style/TextSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -72,6 +75,7 @@
 
                 <TextView
                     android:id="@+id/aboutParem"
+                    android:minHeight="@dimen/touch_target_min"
                     style="@style/TextSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -84,11 +88,19 @@
 
                 <!-- Crash reports (opt-in; saved on the phone, sent only by the user) -->
                 <FrameLayout
+                    android:id="@+id/crashReportsRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/crash_reports"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -98,6 +110,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/crashReportsToggle"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -123,6 +136,7 @@
 
                 <TextView
                     style="@style/TextLarge"
+                    android:accessibilityHeading="true"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -131,6 +145,13 @@
                     android:textColor="?attr/primaryColor" />
 
                 <FrameLayout
+                    android:id="@+id/homeAppsNumRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/apps_on_home_screen"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -139,6 +160,7 @@
                     android:clipToPadding="false">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -148,6 +170,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/homeAppsNum"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -172,6 +195,7 @@
 
                         <TextView
                             android:id="@+id/maxApps0"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -182,6 +206,7 @@
 
                         <TextView
                             android:id="@+id/maxApps1"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -192,6 +217,7 @@
 
                         <TextView
                             android:id="@+id/maxApps2"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -202,6 +228,7 @@
 
                         <TextView
                             android:id="@+id/maxApps3"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -212,6 +239,7 @@
 
                         <TextView
                             android:id="@+id/maxApps4"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -222,6 +250,7 @@
 
                         <TextView
                             android:id="@+id/maxApps5"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -232,6 +261,7 @@
 
                         <TextView
                             android:id="@+id/maxApps6"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -242,6 +272,7 @@
 
                         <TextView
                             android:id="@+id/maxApps7"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -252,6 +283,7 @@
 
                         <TextView
                             android:id="@+id/maxApps8"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -265,12 +297,20 @@
                 </FrameLayout>
 
                 <FrameLayout
+                    android:id="@+id/dateTimeRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/show_date_time"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:animateLayoutChanges="true">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -280,6 +320,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/dateTime"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -312,6 +353,7 @@
 
                         <TextView
                             android:id="@+id/dateTimeOn"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -322,6 +364,7 @@
 
                         <TextView
                             android:id="@+id/dateTimeOff"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -333,6 +376,7 @@
 
                         <TextView
                             android:id="@+id/dateOnly"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -345,6 +389,13 @@
                 </FrameLayout>
 
                 <FrameLayout
+                    android:id="@+id/alignmentRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/home_layout_alignment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -353,6 +404,7 @@
                     android:clipToPadding="false">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -362,6 +414,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/alignment"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -394,6 +447,8 @@
 
                         <TextView
                             android:id="@+id/alignmentBottom"
+                            android:minHeight="@dimen/touch_target_min"
+                            android:gravity="center_vertical"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -410,6 +465,7 @@
 
                         <TextView
                             android:id="@+id/alignmentLeft"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -420,6 +476,7 @@
 
                         <TextView
                             android:id="@+id/alignmentCenter"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -431,6 +488,7 @@
 
                         <TextView
                             android:id="@+id/alignmentRight"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -444,11 +502,19 @@
 
                 <!-- Lock home layout: long-press on a home slot no longer edits it -->
                 <FrameLayout
+                    android:id="@+id/homeLayoutLockRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/lock_home_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -458,6 +524,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/homeLayoutLockToggle"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -510,6 +577,12 @@
 
 
                 <FrameLayout
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/usage_access"
                     android:id="@+id/screenTimeLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -519,6 +592,7 @@
                     android:clipToPadding="false">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -528,6 +602,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/screenTimeOnOff"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -553,6 +628,7 @@
 
                 <TextView
                     style="@style/TextLarge"
+                    android:accessibilityHeading="true"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -561,12 +637,20 @@
                     android:textColor="?attr/primaryColor" />
 
                 <FrameLayout
+                    android:id="@+id/autoShowKeyboardRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/auto_show_keyboard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:animateLayoutChanges="true">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -576,6 +660,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/autoShowKeyboard"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -587,13 +672,25 @@
                 </FrameLayout>
 
                 <FrameLayout
+                    android:id="@+id/dailyWallpaperRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/daily_wallpaper_update"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:animateLayoutChanges="true">
 
+                    <!-- Its own node: the label is a link to the wallpaper source, the row is the switch -->
                     <TextView
                         android:id="@+id/dailyWallpaperUrl"
+                        android:contentDescription="@string/a11y_wallpaper_source"
+                        android:focusable="true"
+                        android:minHeight="@dimen/touch_target_min"
+                        android:gravity="center_vertical"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -602,6 +699,7 @@
                         android:text="@string/daily_wallpaper_update" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/dailyWallpaper"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -613,12 +711,20 @@
                 </FrameLayout>
 
                 <FrameLayout
+                    android:id="@+id/statusBarRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/status_bar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:animateLayoutChanges="true">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -628,6 +734,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/statusBar"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -639,12 +746,20 @@
                 </FrameLayout>
 
                 <FrameLayout
+                    android:id="@+id/appThemeRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/theme_mode"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:animateLayoutChanges="true">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -654,6 +769,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/appThemeText"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -686,6 +802,7 @@
 
                         <TextView
                             android:id="@+id/themeSystem"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -696,6 +813,7 @@
 
                         <TextView
                             android:id="@+id/themeLight"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -706,6 +824,7 @@
 
                         <TextView
                             android:id="@+id/themeDark"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -718,6 +837,13 @@
                 </FrameLayout>
 
                 <FrameLayout
+                    android:id="@+id/textSizeRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/text_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -726,6 +852,7 @@
                     android:clipToPadding="false">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -735,6 +862,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/textSizeValue"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -763,6 +891,7 @@
 
                         <TextView
                             android:id="@+id/textSize1"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -773,6 +902,7 @@
 
                         <TextView
                             android:id="@+id/textSize2"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -783,6 +913,7 @@
 
                         <TextView
                             android:id="@+id/textSize3"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -793,6 +924,7 @@
 
                         <TextView
                             android:id="@+id/textSize4"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -809,12 +941,20 @@
 
                 <!-- Bold font -->
                 <FrameLayout
+                    android:id="@+id/boldFontRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/bold_font"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:layout_marginBottom="4dp">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -824,6 +964,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/boldFont"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -848,6 +989,7 @@
                 <TextView
                     android:id="@+id/tvGestures"
                     style="@style/TextLarge"
+                    android:accessibilityHeading="true"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -855,12 +997,20 @@
                     android:textColor="?attr/primaryColor" />
 
                 <LinearLayout
+                    android:id="@+id/swipeLeftRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/swipe_left_app"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:orientation="horizontal">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -873,6 +1023,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/swipeLeftApp"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -884,12 +1035,20 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/swipeRightRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/swipe_right_app"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:orientation="horizontal">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -902,6 +1061,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/swipeRightApp"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -913,6 +1073,12 @@
                 </LinearLayout>
 
                 <FrameLayout
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/swipe_down_for"
                     android:id="@+id/flSwipeDown"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -921,6 +1087,7 @@
                     android:visibility="gone">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -932,6 +1099,7 @@
                         android:textColor="?attr/primaryColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/swipeDownAction"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -964,6 +1132,7 @@
 
                         <TextView
                             android:id="@+id/notifications"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -974,6 +1143,7 @@
 
                         <TextView
                             android:id="@+id/search"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -1013,6 +1183,8 @@
                 <!-- Device-admin lock fallback (M4-WP18); shown by GesturesSettingsCard -->
                 <TextView
                     android:id="@+id/lockMethod"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:gravity="center_vertical"
                     style="@style/TextSmall"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -1033,6 +1205,8 @@
 
                 <TextView
                     android:id="@+id/github"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:gravity="center_vertical"
                     style="@style/TextSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -1042,6 +1216,8 @@
 
                 <TextView
                     android:id="@+id/privacy"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:gravity="center_vertical"
                     style="@style/TextSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

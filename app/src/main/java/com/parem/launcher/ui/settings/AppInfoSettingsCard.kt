@@ -72,7 +72,7 @@ class AppInfoSettingsCard(
         binding.aboutParem.setOnClickListener(this)
         binding.github.setOnClickListener(this)
         binding.privacy.setOnClickListener(this)
-        binding.crashReportsToggle.setOnClickListener(this)
+        binding.crashReportsRow.setOnClickListener(this)
     }
 
     private fun initObservers() {
@@ -94,7 +94,7 @@ class AppInfoSettingsCard(
             R.id.aboutParem -> context.openUrl(Constants.URL_ABOUT_PAREM)
             R.id.github -> context.openUrl(Constants.URL_PAREM_GITHUB)
             R.id.privacy -> context.openUrl(Constants.URL_PAREM_PRIVACY)
-            R.id.crashReportsToggle -> toggleCrashReports()
+            R.id.crashReportsRow -> toggleCrashReports()
         }
     }
 
@@ -108,6 +108,7 @@ class AppInfoSettingsCard(
     private fun populateCrashReports() {
         binding.crashReportsToggle.text =
             context.onOff(prefs.crashReportsEnabled)
+        binding.crashReportsRow.bindSwitchRow(prefs.crashReportsEnabled)
     }
 
     private fun showHiddenApps() {
