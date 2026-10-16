@@ -45,5 +45,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
+          body_path: docs/plans/2026-10-16-release-notes-v6.0.0-beta.1.md
+          generate_release_notes: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
           files: ParemLauncher-*.apk

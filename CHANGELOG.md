@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## v6.0.0-beta.1 — 2026-10-16
+
 - Fixed: with a fixed Dark or Light theme that disagreed with the system dark mode, home could render invisible text and rebuild itself in a loop (only the wallpaper visible); the text-size step no longer overrides the activity's theme configuration, and the theme-check retry cap now survives recreate()
 - TalkBack reads every settings row once as label, role and state, section titles are headings, and settings rows, sheet rows, limit rows and the info icon are at least 48dp; the drawer search field says what it is, "No apps found" is announced, app-limit rows name their app with usage and limit, the focus picker says why a sixth app will not tick, and the mindful-pause "Open" row is announced when it becomes available.
 - Every launch route now runs the same gate: double-tap "Open app", opening a notification from the quiet list, website shortcuts, omnibox web search / "!bang" / no-results search and the search gestures all honour Focus mode, app limits and the mindful pause (web opens are gated on the browser that receives them; under Focus with no default browser, the first allowed browser opens instead of the chooser).
