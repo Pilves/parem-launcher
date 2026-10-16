@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Manual CI diagnosis only. Installs into the disposable workflow emulator.
 set -euo pipefail
-for variant in reference candidate without-strictmode; do
+for variant in candidate reference without-strictmode; do
   if adb shell pm path com.parem.launcher.debug | grep -q '^package:'; then
     adb uninstall com.parem.launcher.debug
   fi
