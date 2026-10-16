@@ -112,8 +112,12 @@ int, string, boolean, string set) intact and leaves excluded keys local.
 
 The smoke workflow also runs `scripts/perf-budget.mjs` on the emulator and
 fails when a gated metric is more than 20% (and more than its noise floor)
-worse than `scripts/perf-baseline.json`. The run's numbers, and a screenshot
-of each frame phase, are in its `perf-result` artifact and job summary.
+worse than the pinned reference (996ef0c), measured on the same emulator after
+functional tests warm Android. Both APKs use the current scroll driver. The
+reference and candidate numbers, and screenshots of each frame phase, are in
+its `perf-result` artifact and job summary. Invalid measurements fail the gate.
+`scripts/perf-baseline.json` remains the historical default for manual runs;
+CI passes its same-runner reference with `--baseline`.
 
 Emulator baseline (CI, debug APK, 2026-10-03, medians of four runs on the
 same app code; the spread also covers a fifth run, which passed the gate,
@@ -129,9 +133,10 @@ references, not quality numbers: a software-rendered emulator is no phone.
 | omnibox typing, janky frames | 55.8% of ~118 | 50–62.7% | yes (5 points) | < 1% |
 | omnibox typing, worst frame | 150 ms | — | no | ≤ 32 ms |
 
-When a change makes things legitimately slower (or faster), rerun the
-workflow a few times and update the baseline file with the medians in the
-same PR, saying why.
+The table above is historical: its runner state and scroll workload differ
+from the current driver. Do not overwrite it to make a failing run pass. A
+change to the pinned reference or regression thresholds needs explicit evidence
+and review; paired CI measurements keep runner drift out of that decision.
 
 Budgets are checked on a device, release build:
 
