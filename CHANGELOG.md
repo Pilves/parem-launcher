@@ -2,11 +2,10 @@
 
 ## [Unreleased]
 
-- App-picker search keeps the first matching rows above the keyboard, including in Focus mode.
-
-- Landscape Settings now includes App limits, Focus mode, Grayscale and quiet-notification controls.
-
 ## v6.0.0-beta.2 — 2026-10-16
+
+- App-picker search keeps the first matching rows above the keyboard, including in Focus mode.
+- Landscape Settings now includes App limits, Focus mode, Grayscale and quiet-notification controls.
 
 - Drawer suggestions stay below the search field instead of overlapping typed text, including with large fonts.
 
