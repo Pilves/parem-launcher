@@ -75,14 +75,17 @@ class MainActivity : AppCompatActivity() {
     lateinit var launcherSelectorLauncher: ActivityResultLauncher<Intent>
 
     override fun attachBaseContext(context: Context) {
-        val newConfig = Configuration(context.resources.configuration)
+        // Only fontScale is set: a full Configuration copy carried the system uiMode
+        // into the activity's override, which bypassed AppCompat DayNight and made
+        // checkTheme() recreate() the activity in a loop whenever Parem's fixed theme
+        // disagreed with the system dark mode (home showed only the wallpaper).
+        val delta = Configuration()
         // Parem's step rides on top of the system font size; it never replaces it (DESIGN.md 3.1)
-        newConfig.fontScale = TextScale.effective(
+        delta.fontScale = TextScale.effective(
             context.resources.configuration.fontScale,
             TextScale.nearestStep(Prefs(context).textSizeScale)
         )
-        applyOverrideConfiguration(newConfig)
-        super.attachBaseContext(context)
+        super.attachBaseContext(context.createConfigurationContext(delta))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,6 +97,8 @@ class MainActivity : AppCompatActivity() {
         // HomeFragment restores widgets during content inflation, so its orphan sweep
         // and deferred-result delivery must already see the saved operation.
         pendingWidgetOp = savedInstanceState?.getBundle("pendingWidgetOp")
+        // recreate() makes a new instance, so the cap only holds if it survives in state
+        themeCheckRetries = savedInstanceState?.getInt("themeCheckRetries") ?: 0
         pendingWidgetResult = savedInstanceState?.takeIf { it.containsKey("pendingWidgetResult") }
             ?.getBoolean("pendingWidgetResult")
         super.onCreate(savedInstanceState)
@@ -170,6 +175,7 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBundle("pendingWidgetOp", pendingWidgetOp)
+        outState.putInt("themeCheckRetries", themeCheckRetries)
         pendingWidgetResult?.let { outState.putBoolean("pendingWidgetResult", it) }
     }
 
