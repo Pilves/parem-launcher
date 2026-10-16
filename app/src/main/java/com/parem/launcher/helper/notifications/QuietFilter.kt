@@ -33,9 +33,10 @@ object QuietFilter {
         NEVER_TOUCH + listOfNotNull(ownPackage, defaultDialer, defaultSms).filter { it.isNotEmpty() }
 
     /**
-     * True only when every rule lets the notification be hidden. The two
-     * lookups are lambdas, checked last: each costs a binder call, and an
-     * ongoing notification can repost every second.
+     * True only when every rule lets the notification be hidden. The
+     * allowlist and the two lookups are lambdas, checked last: the lookups
+     * each cost a binder call, the allowlist a prefs parse, and an ongoing
+     * notification can repost every second.
      */
     fun shouldSilence(
         pkg: String,
@@ -45,14 +46,14 @@ object QuietFilter {
         isGroupSummary: Boolean,
         isMedia: Boolean,
         hasLauncherActivity: () -> Boolean,
-        allowed: Set<String>,
+        allowed: () -> Set<String>,
         alwaysAllowed: () -> Set<String>,
     ): Boolean {
         if (category != null && category in EXEMPT_CATEGORIES) return false
         if (isMedia) return false
         if (isOngoing || !isClearable) return false
         if (isGroupSummary) return false
-        if (pkg in allowed) return false
+        if (pkg in allowed()) return false
         if (pkg in alwaysAllowed()) return false
         return hasLauncherActivity()
     }

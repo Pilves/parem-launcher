@@ -34,6 +34,14 @@ object GrayscalePolicy {
     /** Per-app marks (M4-WP21), stored as a CSV of package names like the mindful-pause list. */
     fun isMarked(csv: String?, pkg: String): Boolean = pkg in MindfulPause.parse(csv)
 
+    /**
+     * Delay to the next per-app watch tick. With the screen off nothing can
+     * switch apps that the catch-up query on the next tick would miss, so the
+     * tick slows down: every second it costs a binder call in a process the
+     * system keeps out of the cached range while Parem is home.
+     */
+    fun watchTickMs(interactive: Boolean): Long = if (interactive) 1_000L else 5_000L
+
     fun toggle(csv: String?, pkg: String): String {
         val marked = MindfulPause.parse(csv)
         return MindfulPause.serialize(if (pkg in marked) marked - pkg else marked + pkg)

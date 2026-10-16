@@ -69,7 +69,9 @@ class HomeClockController(
                     addAction(Intent.ACTION_DATE_CHANGED)
                     addAction(Intent.ACTION_TIME_TICK)
                     addAction(Intent.ACTION_TIMEZONE_CHANGED)
-                    addAction(Intent.ACTION_BATTERY_CHANGED)
+                    // Fires on every level/temperature step (seconds apart while
+                    // charging); only worth a re-render when the % is drawn
+                    if (!prefs.showStatusBar) addAction(Intent.ACTION_BATTERY_CHANGED)
                 }
                 ContextCompat.registerReceiver(context, refreshReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
             }

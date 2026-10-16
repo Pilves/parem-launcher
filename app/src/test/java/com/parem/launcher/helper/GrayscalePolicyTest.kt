@@ -7,6 +7,7 @@ import com.parem.launcher.helper.GrayscalePolicy.desired
 import com.parem.launcher.helper.GrayscalePolicy.isMarked
 import com.parem.launcher.helper.GrayscalePolicy.plan
 import com.parem.launcher.helper.GrayscalePolicy.toggle
+import com.parem.launcher.helper.GrayscalePolicy.watchTickMs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -98,5 +99,11 @@ class GrayscalePolicyTest {
         // No prefix matches
         assertFalse(isMarked("a.bc", "a.b"))
         assertEquals("", toggle("a.b", "a.b"))
+    }
+
+    @Test
+    fun watchTicksEverySecondOnScreenAndBacksOffWithTheScreenOff() {
+        assertEquals(1_000L, watchTickMs(interactive = true))
+        assertTrue(watchTickMs(interactive = false) >= 5_000L)
     }
 }

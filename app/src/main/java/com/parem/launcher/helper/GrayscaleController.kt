@@ -190,7 +190,6 @@ object GrayscaleController {
 
     // ---- Per-app grayscale (M4-WP21): grey while a marked app is in front ----
 
-    private const val TICK_MS = 1_000L
     private val handler by lazy { Handler(Looper.getMainLooper()) }
     // Main thread only
     private var watch: Runnable? = null
@@ -234,8 +233,9 @@ object GrayscaleController {
         val tick = object : Runnable {
             override fun run() {
                 if (watch !== this) return
-                // Screen off: no query and no wakelock, the next tick catches up
-                if (power.isInteractive) {
+                // Screen off: no query, no wakelock, a slower tick; the next tick catches up
+                val interactive = power.isInteractive
+                if (interactive) {
                     if (!app.appUsagePermissionGranted()) {
                         // Lost access: fall back to colour, never stay grey blind
                         watch = null
@@ -261,7 +261,7 @@ object GrayscaleController {
                         if (marked != app.paremPrefs().getBoolean(KEY_APP_FG, false)) setAppForeground(app, marked)
                     }
                 }
-                handler.postDelayed(this, TICK_MS)
+                handler.postDelayed(this, GrayscalePolicy.watchTickMs(interactive))
             }
         }
         watch = tick

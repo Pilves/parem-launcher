@@ -83,7 +83,7 @@ class QuietNotificationListener : NotificationListenerService() {
             isGroupSummary = n.flags and Notification.FLAG_GROUP_SUMMARY != 0,
             isMedia = n.extras?.containsKey(Notification.EXTRA_MEDIA_SESSION) == true,
             hasLauncherActivity = { hasLauncherActivity(pkg, sbn) },
-            allowed = QuietNotificationsManager.getAllowed(this),
+            allowed = { QuietNotificationsManager.getAllowed(this) },
             alwaysAllowed = {
                 QuietFilter.alwaysAllowed(
                     packageName,

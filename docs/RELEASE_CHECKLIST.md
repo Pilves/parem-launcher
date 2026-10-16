@@ -143,21 +143,25 @@ Budgets are checked on a device, release build:
 
 ## Battery soak (24 h)
 
-What the code holds (M4-WP11 audit, 2026-10-03), so anything else in the
-numbers is a bug:
+What the code holds (M4-WP11 audit, 2026-10-03, re-read 2026-10-16 in
+`docs/plans/2026-10-16-battery-audit.md`), so anything else in the numbers
+is a bug:
 
 - No `WAKE_LOCK` use of Parem's own, no `AlarmManager`, no foreground service.
   The only wake locks are WorkManager's while a job runs: scheduled theme
   (every 3 h, battery not low), daily wallpaper (every 8 h, network + battery
   not low) and the one-shot grayscale focus-end job.
 - Weather and scheduled focus are evaluated only when home resumes (weather
-  at most every 30 min, 10 min backoff after a failure). Nothing polls them.
+  at most once an hour, 10 min backoff after a failure). Nothing polls them.
 - Quiet notifications: the listener is disabled until the user turns it on;
   per notification it does cheap checks first and binder lookups only for a
   candidate it might hide.
 - Per-app grayscale (M4-WP21): a 1 s main-thread tick while Parem is stopped
-  and an app is marked. With the screen off it skips the query and holds no
-  wake lock; its handler clock stops while the device sleeps.
+  and an app is marked. With the screen off it skips the query, slows to one
+  tick per 5 s and holds no wake lock; its handler clock stops while the
+  device sleeps.
+- Home's clock receiver (`TIME_TICK`, date/timezone, and `BATTERY_CHANGED`
+  only when the battery % is drawn) exists only while home is resumed.
 
 Setup: release APK, Parem default home, and every background feature on —
 weather, scheduled or sunrise theme, daily wallpaper, a focus schedule with
@@ -176,7 +180,9 @@ charging resets the stats, so use wireless adb (or
 - [ ] Wake locks for Parem's uid: only `*job*/…SystemJobService` entries,
       under a minute in total; no `*alarm*` wakeups; no foreground-service time
 - [ ] `adb shell dumpsys alarm | grep com.parem` prints nothing;
-      `adb shell dumpsys power | grep -i parem` shows no held wake lock
+      `adb shell dumpsys power | grep -i parem` shows no held wake lock;
+      `adb shell dumpsys jobscheduler | grep -A3 com.parem.launcher` lists only
+      the theme, wallpaper and focus-end WorkManager jobs
 - [ ] Grayscale tick cost: `--reset`, 30 min screen-on in the marked app, then
       30 min in the same app unmarked; Parem's CPU delta between the two runs
       is under 1% of device CPU
