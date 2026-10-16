@@ -237,6 +237,21 @@ see DESIGN.md 13.2). Run with TalkBack on unless a line says otherwise.
       or a letter stroke; swipes fire at the same finger travel on phone and
       tablet
 
+### UX-5 — Accessibility semantics (M4-WP35)
+
+- [ ] TalkBack walk of Settings reads each row once as "label, role, state"
+      ("Bold text, switch, off"; "Theme mode, Dark"); no orphan "Off" nodes
+- [ ] Heading navigation jumps between the settings sections and the
+      BottomSheetMenu titles
+- [ ] App limits: each row names its app, usage today and limit; picking a
+      limit updates what the row says
+- [ ] Mindful pause: "Open X" is spoken exactly once, when the countdown ends
+- [ ] Focus allowed apps: ticking a 6th app is announced and stays unticked
+- [ ] Drawer: the search field reads "Search apps"; a no-match query announces
+      "No apps found"
+- [ ] At 200% font, settings rows, sheet rows and the limit rows still fit
+      their text with no clipping (rows grow past 48dp)
+
 ## Sign-off
 
 - [ ] Every box above ticked on: device / Android version ___

@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- TalkBack reads every settings row once as label, role and state, section titles are headings, and settings rows, sheet rows, limit rows and the info icon are at least 48dp; the drawer search field says what it is, "No apps found" is announced, app-limit rows name their app with usage and limit, the focus picker says why a sixth app will not tick, and the mindful-pause "Open" row is announced when it becomes available.
 - Gesture letters match resampled shapes, tolerating drawing size, speed, modest slant and reversed strokes; ambiguous marks and straight swipes are rejected.
 - App actions use consistent labelled sheets on home and in the app list; home keeps its replacement actions, removal offers Undo, and a locked layout offers Unlock. Renames stay local to home or the personal app list, and package-only controls no longer affect work-profile copies.
 - Onboarding offers optional explanations for home, search, gestures, Calm tools, appearance and backup; setup states and spoken captions now explain what is enabled.
