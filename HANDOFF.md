@@ -4,7 +4,7 @@ Current state only. History is `git log`, `CHANGELOG.md` and
 `docs/archive/TODO-pre-roadmap.md`. Work queue: `docs/ROADMAP.md`.
 Rules: `AGENTS.md`. Code map and traps: `ARCHITECTURE.md`.
 
-**Last updated:** 2026-10-15 — latest handoff date
+**Last updated:** 2026-10-16 — latest handoff date
 
 ## Phase
 
@@ -257,5 +257,10 @@ per package; the rest of each of those fragments is still in
   Verified: required compile, 366 JVM tests, APK assembly and handoff harness pass; Android 16 A069 short setup, all eight guide sheets, spoken-caption hierarchy and Done surviving restart pass; 200% topic rows wrap without overlap and long guide sheets scroll to Close/Done.
   Not verified: actual TalkBack speech, rotation/process-death recovery, permission-return flows and every described feature’s live behavior.
   Easy to get wrong: pause still requires a limit and the existing picker only lists used apps; onboarding explains this and avoids opening an empty list, while WP47 owns any-app setup.
+- **M4-WP58 (PR #0):** The Fable/Codex task split is in docs/plans/2026-10-16-work-split.md, with a copy/paste Fable kickoff and explicit source ownership.
+  Contract: Fable takes WP35 then WP45; Codex reviews WP24 read-only until WP35 lands, then finishes WP24 before WP47; later visual packages retain their approval and dependency gates.
+  Coordination: isolated worktrees, live package claims, one Gradle lock and one phone operator; app-menu/onboarding follow-ups are assigned to the packages changing their behavior.
+  Not verified: this is a coordination document, not implementation or a reservation of those future packages; existing live claims must be checked at kickoff.
+  Easy to get wrong: WP35 and WP24 share dialogs, and WP53 approval does not approve the later first-run, typography or settings designs.
 
 <!-- handoff:end -->
