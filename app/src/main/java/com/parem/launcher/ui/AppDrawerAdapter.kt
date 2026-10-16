@@ -3,7 +3,6 @@ package com.parem.launcher.ui
 import android.os.Handler
 import android.os.Looper
 import android.os.UserHandle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +12,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.R
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
@@ -106,7 +106,7 @@ class AppDrawerAdapter(
                 iconPackPackage
             )
         } catch (e: Exception) {
-            Log.e("AppDrawerAdapter", "Error binding view holder", e)
+            CrashReporter.reportNonFatal("AppDrawerAdapter: Error binding view holder", e)
         }
     }
 
@@ -184,11 +184,15 @@ class AppDrawerAdapter(
             ) {
                 autoLaunchedQuery = query
                 Handler(Looper.getMainLooper()).post {
-                    try { firstApp(filteredSnapshot, includeShortcuts = false)?.let(appClickListener) } catch (_: Exception) {}
+                    try {
+                        firstApp(filteredSnapshot, includeShortcuts = false)?.let(appClickListener)
+                    } catch (e: Exception) {
+                        CrashReporter.reportNonFatal("AppDrawerAdapter.autoLaunch", e)
+                    }
                 }
             }
         } catch (e: Exception) {
-            Log.e("AppDrawerAdapter", "Error during auto launch", e)
+            CrashReporter.reportNonFatal("AppDrawerAdapter: Error during auto launch", e)
         }
     }
 

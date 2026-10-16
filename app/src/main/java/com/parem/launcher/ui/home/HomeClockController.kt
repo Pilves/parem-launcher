@@ -11,7 +11,6 @@ import android.os.BatteryManager
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
@@ -19,6 +18,7 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -175,7 +175,7 @@ class HomeClockController(
         try {
             ScreenTimeGraphDialog(context, fragment.viewLifecycleOwner).show()
         } catch (e: Exception) {
-            Log.e("HomeFragment", "Failed to show screen time graph", e)
+            CrashReporter.reportNonFatal("HomeFragment: Failed to show screen time graph", e)
             // Fallback to Digital Wellbeing
             val intent = Intent()
             try {
@@ -185,7 +185,7 @@ class HomeClockController(
                 )
                 fragment.startActivity(intent)
             } catch (e2: Exception) {
-                Log.e("HomeFragment", "Failed to open Digital Wellbeing", e2)
+                CrashReporter.reportNonFatal("HomeFragment: Failed to open Digital Wellbeing", e2)
             }
         }
     }

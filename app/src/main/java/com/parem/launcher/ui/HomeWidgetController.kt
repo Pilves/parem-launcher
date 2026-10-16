@@ -22,6 +22,7 @@ import android.widget.Toast
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.MainActivity
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -182,7 +183,7 @@ class HomeWidgetController(
                     val info = try {
                         mainActivity.appWidgetManager.getAppWidgetInfo(wid)
                     } catch (e: Exception) {
-                        Log.e("HomeWidgetController", "restoreWidget: failed to get info for id=$wid", e)
+                        CrashReporter.reportNonFatal("HomeWidgetController: restoreWidget: failed to get info for id=$wid", e)
                         null
                     }
                     WidgetRestoreInfo(wid, info, savedProviders[wid])
@@ -208,7 +209,7 @@ class HomeWidgetController(
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("HomeWidgetController", "restoreWidget failed for id=${restoreInfo.wid}", e)
+                    CrashReporter.reportNonFatal("HomeWidgetController: restoreWidget failed for id=${restoreInfo.wid}", e)
                 }
             }
             // Invalidated IDs with a known provider stay in WIDGET_IDS until their rebind
@@ -524,7 +525,7 @@ class HomeWidgetController(
                 addWidgetToContainer(hostView, wid)
                 validIds.add(wid)
             } catch (e: Exception) {
-                Log.e("HomeWidgetController", "rebuildWidget failed for id=$wid", e)
+                CrashReporter.reportNonFatal("HomeWidgetController: rebuildWidget failed for id=$wid", e)
             }
         }
         // Invalidated widgets awaiting a rebind keep their place (see restoreWidgets)
@@ -786,7 +787,7 @@ class HomeWidgetController(
                 mainActivity.bindWidgetLauncher.launch(intent)
             }
         } catch (e: Exception) {
-            Log.e("HomeWidgetController", "bindWidget failed", e)
+            CrashReporter.reportNonFatal("HomeWidgetController: bindWidget failed", e)
             context.showToast(context.getString(R.string.couldnt_bind_widget, e.message))
         }
     }
@@ -814,7 +815,7 @@ class HomeWidgetController(
                 finishWidgetSetup(widgetId, providerInfo, replaceIndex)
             }
         } catch (e: Exception) {
-            Log.e("HomeWidgetController", "onWidgetBound failed", e)
+            CrashReporter.reportNonFatal("HomeWidgetController: onWidgetBound failed", e)
             context.showToast(context.getString(R.string.widget_setup_failed, e.message))
         }
     }
@@ -839,7 +840,7 @@ class HomeWidgetController(
 
             rebuildWidgetContainer()
         } catch (e: Exception) {
-            Log.e("HomeWidgetController", "finishWidgetSetup failed", e)
+            CrashReporter.reportNonFatal("HomeWidgetController: finishWidgetSetup failed", e)
             context.showToast(context.getString(R.string.couldnt_add_widget, e.message))
         }
     }

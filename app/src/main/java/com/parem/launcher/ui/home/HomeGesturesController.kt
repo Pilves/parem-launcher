@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ActivityNotFoundException
 import android.provider.Settings
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.accessibility.AccessibilityManager
@@ -15,6 +14,7 @@ import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.MainActivity
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -82,7 +82,7 @@ class HomeGesturesController(
                 }
             }.also { cameraManager.registerTorchCallback(it, null) }
         } catch (e: Exception) {
-            Log.e("HomeFragment", "Failed to register torch callback", e)
+            CrashReporter.reportNonFatal("HomeFragment: Failed to register torch callback", e)
         }
     }
 
@@ -91,7 +91,9 @@ class HomeGesturesController(
             try {
                 val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as android.hardware.camera2.CameraManager
                 cameraManager.unregisterTorchCallback(it)
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                CrashReporter.reportNonFatal("HomeGesturesController.unregisterTorch", e)
+            }
         }
         torchCallback = null
     }
@@ -272,7 +274,7 @@ class HomeGesturesController(
                     Haptics.longPress(binding.mainLayout)
                     showHomeLongPressMenu()
                 } catch (e: Exception) {
-                    Log.e("HomeFragment", "Failed to show home long press menu", e)
+                    CrashReporter.reportNonFatal("HomeFragment: Failed to show home long press menu", e)
                 }
             }
 
@@ -407,7 +409,7 @@ class HomeGesturesController(
             flashlightOn = !flashlightOn
             cameraManager.setTorchMode(cameraId, flashlightOn)
         } catch (e: Exception) {
-            Log.e("HomeFragment", "Failed to toggle flashlight", e)
+            CrashReporter.reportNonFatal("HomeFragment: Failed to toggle flashlight", e)
         }
     }
 

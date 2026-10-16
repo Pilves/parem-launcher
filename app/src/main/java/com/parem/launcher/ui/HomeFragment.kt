@@ -1,7 +1,6 @@
 package com.parem.launcher.ui
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +12,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -118,7 +118,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                     val appLocation = view.tag.toString().toInt()
                     slotsController?.homeAppClicked(appLocation)
                 } catch (e: Exception) {
-                    Log.e("HomeFragment", "Failed to launch app", e)
+                    CrashReporter.reportNonFatal("HomeFragment: Failed to launch app", e)
                 }
             }
         }
@@ -225,8 +225,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         try {
             findNavController().navigate(R.id.action_mainFragment_to_appListFragment, args)
         } catch (e: Exception) {
+            CrashReporter.reportNonFatal("HomeFragment: Navigation to app list failed, using fallback", e)
             findNavController().navigate(R.id.appListFragment, args)
-            Log.e("HomeFragment", "Navigation to app list failed, using fallback", e)
         }
     }
 

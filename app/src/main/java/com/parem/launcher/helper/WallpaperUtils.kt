@@ -108,6 +108,7 @@ suspend fun setWallpaper(appContext: Context, url: String): Boolean {
             wallpaperManager.setBitmap(scaledBitmap, null, false, WallpaperManager.FLAG_SYSTEM)
             wallpaperManager.setBitmap(scaledBitmap, null, false, WallpaperManager.FLAG_LOCK)
         } catch (e: Exception) {
+            CrashReporter.reportNonFatal("WallpaperUtils", e)
             return@withContext false
         } finally {
             try { if (scaledBitmap != originalImageBitmap) scaledBitmap.recycle() } catch (_: Exception) {}
@@ -160,6 +161,7 @@ suspend fun getTodaysWallpaper(wallType: String, firstOpenTime: Long): String {
             wallpaperUrl
 
         } catch (e: Exception) {
+            CrashReporter.reportNonFatal("WallpaperUtils", e)
             wallpaperUrl = getBackupWallpaper(wallType)
             wallpaperUrl
         } finally {

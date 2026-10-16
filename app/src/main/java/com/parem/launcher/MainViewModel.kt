@@ -23,6 +23,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
@@ -309,14 +310,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (!isPrivate) AppOpenCounter.increment(appContext, packageName)
             true
         } catch (e: SecurityException) {
+            CrashReporter.reportNonFatal("MainViewModel", e)
             try {
                 launcherApps.startMainActivity(component, android.os.Process.myUserHandle(), null, null)
                 if (!isPrivate) AppOpenCounter.increment(appContext, packageName)
                 true
             } catch (e: Exception) {
+                CrashReporter.reportNonFatal("MainViewModel", e)
                 false
             }
         } catch (e: Exception) {
+            CrashReporter.reportNonFatal("MainViewModel", e)
             false
         }
         // Grey before the app draws, so there is no colour flash; only after a

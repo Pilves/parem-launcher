@@ -111,7 +111,8 @@ object IconPackManager {
             val drawable = packResources.getDrawable(resId, null)
             drawable?.constantState?.let { iconStateCache[cacheKey] = it }
             drawable
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            CrashReporter.reportNonFatal("IconPackManager", e)
             null
         }
     }
@@ -141,7 +142,8 @@ object IconPackManager {
 
             val parser = packResources.getXml(resId)
             parseAppFilterXml(parser, result)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            CrashReporter.reportNonFatal("IconPackManager", e)
             // Not installed, malformed XML or other issue — return whatever we parsed so far.
         }
 
@@ -211,7 +213,8 @@ object IconPackManager {
                 parseAppFilterXml(parser, result)
                 result
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            CrashReporter.reportNonFatal("IconPackManager", e)
             null
         }
     }

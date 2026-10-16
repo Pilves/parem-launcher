@@ -71,6 +71,7 @@ fun openCalendar(context: Context) {
             .build()
         context.startActivity(Intent(Intent.ACTION_VIEW, calendarUri))
     } catch (e: Exception) {
+        CrashReporter.reportNonFatal("SystemActions", e)
         try {
             val intent = Intent(Intent.ACTION_MAIN)
             intent.addCategory(Intent.CATEGORY_APP_CALENDAR)
@@ -154,6 +155,7 @@ fun isAccessServiceEnabled(context: Context): Boolean {
     val enabled = try {
         Settings.Secure.getInt(context.applicationContext.contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED)
     } catch (e: Exception) {
+        CrashReporter.reportNonFatal("SystemActions", e)
         0
     }
     if (enabled == 1) {
@@ -176,6 +178,7 @@ fun isAccessServiceBound(context: Context): Boolean = try {
         service?.packageName == context.packageName && service.name == MyAccessibilityService::class.java.name
     }
 } catch (e: Exception) {
+    CrashReporter.reportNonFatal("SystemActions", e)
     true
 }
 

@@ -170,7 +170,9 @@ object FocusModeManager {
         try {
             val telecom = context.getSystemService(Context.TELECOM_SERVICE) as? android.telecom.TelecomManager
             if (telecom?.defaultDialerPackage == packageName) return true
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            CrashReporter.reportNonFatal("FocusModeManager.defaultDialer", e)
+        }
         return packageName in MindfulPause.parse(p.getString(KEY_WHITELIST, ""))
     }
 

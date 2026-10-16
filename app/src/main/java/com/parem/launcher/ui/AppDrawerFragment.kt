@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +16,7 @@ import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Recycler
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -178,7 +178,7 @@ class AppDrawerFragment : BaseFragment() {
             // The rotating omnibox hint is an example, not a label; TalkBack needs the field's purpose
             searchTextView?.contentDescription = getString(R.string.search_apps)
         } catch (e: Exception) {
-            Log.e("AppDrawerFragment", "Failed to set search text alignment", e)
+            CrashReporter.reportNonFatal("AppDrawerFragment: Failed to set search text alignment", e)
         }
     }
 
@@ -216,6 +216,7 @@ class AppDrawerFragment : BaseFragment() {
             }
             language.startsWith("zh") || language.startsWith("ja") || language.startsWith("ko")
         } catch (e: Exception) {
+            CrashReporter.reportNonFatal("AppDrawerFragment", e)
             false
         }
         cachedIsCjkKeyboard = result
@@ -280,7 +281,7 @@ class AppDrawerFragment : BaseFragment() {
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("AppDrawerFragment", "Error filtering app list", e)
+                    CrashReporter.reportNonFatal("AppDrawerFragment: Error filtering app list", e)
                 }
                 return true
             }
@@ -635,6 +636,7 @@ class AppDrawerFragment : BaseFragment() {
                 )
             )
         } catch (e: Exception) {
+            CrashReporter.reportNonFatal("AppDrawerFragment", e)
             ctx.showToast(getString(R.string.unable_to_open_app))
         }
     }
@@ -660,6 +662,7 @@ class AppDrawerFragment : BaseFragment() {
         (requireContext().getSystemService(android.content.Context.USER_SERVICE) as android.os.UserManager)
             .isQuietModeEnabled(profile)
     } catch (e: Exception) {
+        CrashReporter.reportNonFatal("AppDrawerFragment", e)
         true
     }
 

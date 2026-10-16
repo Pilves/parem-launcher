@@ -1,7 +1,6 @@
 package com.parem.launcher.helper
 
 import android.content.Context
-import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import androidx.work.CoroutineWorker
@@ -23,7 +22,7 @@ class ThemeScheduleWorker(appContext: Context, workerParams: WorkerParameters) :
         val shouldBeDark = try {
             ThemeScheduleManager.shouldBeDark(applicationContext)
         } catch (e: Exception) {
-            Log.e("ThemeScheduleWorker", "Failed to determine theme schedule", e)
+            CrashReporter.reportNonFatal("ThemeScheduleWorker: Failed to determine theme schedule", e)
             return Result.success()
         }
 

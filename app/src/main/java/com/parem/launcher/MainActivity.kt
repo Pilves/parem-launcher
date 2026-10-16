@@ -10,7 +10,6 @@ import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.KeyEvent
 import androidx.appcompat.app.AlertDialog
 import androidx.activity.OnBackPressedCallback
@@ -24,10 +23,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.ActivityMainBinding
-import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.HomeKeyInput
 import com.parem.launcher.helper.NightModeChange
@@ -211,7 +210,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        try { appWidgetHost.startListening() } catch (e: Exception) { Log.e("MainActivity", "Widget host error", e) }
+        try { appWidgetHost.startListening() } catch (e: Exception) { CrashReporter.reportNonFatal("MainActivity: Widget host error", e) }
         GrayscaleController.onLauncherStarted(this)
         checkTheme()
     }
@@ -230,7 +229,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        try { appWidgetHost.stopListening() } catch (e: Exception) { Log.e("MainActivity", "Widget host error", e) }
+        try { appWidgetHost.stopListening() } catch (e: Exception) { CrashReporter.reportNonFatal("MainActivity: Widget host error", e) }
         GrayscaleController.onLauncherStopped(this)
         if (GrayscaleController.hasMarkedApps(this) && GrayscaleController.appModeReady(this))
             GrayscaleController.startAppWatch(this, lastPauseMs)

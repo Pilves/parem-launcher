@@ -1,13 +1,13 @@
 package com.parem.launcher.listener
 
 import android.content.Context
-import android.util.Log
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.ViewConfiguration
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.helper.SwipeThresholds
 
 /*
@@ -99,7 +99,7 @@ internal open class OnSwipeTouchListener(c: Context?) : OnTouchListener {
                 null -> {}
             }
         } catch (exception: Exception) {
-            Log.e("ParemLauncher", "swipe error", exception)
+            CrashReporter.reportNonFatal("ParemLauncher: swipe error", exception)
         }
     }
 

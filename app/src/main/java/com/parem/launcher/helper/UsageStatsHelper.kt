@@ -43,6 +43,7 @@ object UsageStatsHelper {
                 val foregroundStats = wrapper.getForegroundStatsByRelativeDay(0)
                 wrapper.aggregateForegroundStats(foregroundStats)
             } catch (e: Exception) {
+                CrashReporter.reportNonFatal("UsageStatsHelper", e)
                 emptyMap()
             }
             cachedAt = now
