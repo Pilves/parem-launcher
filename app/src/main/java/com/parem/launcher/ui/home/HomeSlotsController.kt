@@ -22,6 +22,7 @@ import com.parem.launcher.databinding.FragmentHomeBinding
 import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.FolderManager
 import com.parem.launcher.helper.Haptics
+import com.parem.launcher.helper.HomeCapacity
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getAppsList
@@ -74,6 +75,38 @@ class HomeSlotsController(
     private var undoBar: Snackbar? = null
     private var noticeBar: Snackbar? = null
     private var pendingRemoval: Pair<Int, SlotSnapshot>? = null
+    private var announcedHidden: List<String> = emptyList()
+
+    /**
+     * Pixels left in the app column after the configured rows, measured by the
+     * last fitting pass; -1 until one has run. HomeWidgetController checks a
+     * new widget against it so adding one never hides an app.
+     */
+    var widgetRoomPx: Int = -1
+        private set
+
+    /**
+     * Whether the active widget scroll view shares the app column (portrait);
+     * the landscape layout gives widgets their own column, so they never cost rows.
+     */
+    val widgetsShareColumn: Boolean
+        get() = activeWidgetScroll()?.parent === binding.homeAppsLayout
+
+    private fun activeWidgetScroll() =
+        if (prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE) binding.widgetScrollViewAbove
+        else binding.widgetScrollViewBelow
+
+    init {
+        // The root is padded by the system-bar insets (padForSystemBars), which
+        // can arrive or change after a fitting pass (status-bar toggle, nav mode);
+        // re-fit when the column's height changes so no row ends under a bar.
+        binding.homeAppsLayout.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            val oldHeight = oldBottom - oldTop
+            if (oldHeight > 0 && bottom - top != oldHeight) binding.homeAppsLayout.post {
+                if (isActive()) populateHomeScreen(false)
+            }
+        }
+    }
 
     private fun isActive(): Boolean = fragment.isAdded && !released
 
@@ -164,12 +197,7 @@ class HomeSlotsController(
                     // actually share this vertical column (portrait). The landscape
                     // layout puts them in their own column beside the apps, where
                     // their height must not shrink the app rows.
-                    val activeWidgetScroll =
-                        if (prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE)
-                            binding.widgetScrollViewAbove
-                        else
-                            binding.widgetScrollViewBelow
-                    val widgetHeight = activeWidgetScroll
+                    val widgetHeight = activeWidgetScroll()
                         ?.takeIf { it.isVisible && it.parent === layout }
                         ?.height ?: 0
 
@@ -184,8 +212,9 @@ class HomeSlotsController(
                     val singleAppHeight = firstVisible?.height ?: return@fitApps
                     if (singleAppHeight <= 0) return@fitApps
 
-                    val maxFitting = usableHeight / singleAppHeight
+                    val maxFitting = HomeCapacity.fitting(usableHeight, singleAppHeight)
                     viewModel.homeAppsCapacity = maxFitting.coerceIn(1, 8)
+                    widgetRoomPx = HomeCapacity.room(usableHeight, singleAppHeight, homeAppsNum)
                     if (maxFitting < homeAppsNum) {
                         // Hide excess apps from the bottom
                         for (j in homeAppViews.indices.reversed()) {
@@ -194,6 +223,8 @@ class HomeSlotsController(
                             }
                         }
                     }
+                    announceHidden(maxFitting, HomeCapacity.hiddenLabels(
+                        homeAppViews.map { it.text.toString() }, homeAppsNum, maxFitting))
                 }
             }
         }
@@ -421,6 +452,20 @@ class HomeSlotsController(
         })
         undoBar = bar
         bar.show()
+    }
+
+    /**
+     * Names the apps the fitting pass just hid, once per change of that set,
+     * so a widget, a resize or a font-size change never removes an app silently.
+     */
+    private fun announceHidden(capacity: Int, hidden: List<String>) {
+        if (hidden == announcedHidden) return
+        announcedHidden = hidden
+        if (hidden.isEmpty()) return
+        val names = BidiFormatter.getInstance().unicodeWrap(hidden.joinToString(", "))
+        noticeBar?.dismiss()
+        noticeBar = feedback(context.getString(R.string.home_apps_hidden, capacity, names))
+            .also { it.show() }
     }
 
     private fun showLockedLayout() {

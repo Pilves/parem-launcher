@@ -767,6 +767,10 @@ class HomeWidgetController(
             context.showToast(context.getString(R.string.max_widgets_reached), Toast.LENGTH_SHORT)
             return
         }
+        if (replaceIndex == -1 && !newWidgetFits()) {
+            context.showToast(context.getString(R.string.widget_doesnt_fit, prefs.homeAppsNum))
+            return
+        }
         try {
             val mainActivity = mainActivity ?: return
             val widgetId = mainActivity.appWidgetHost.allocateAppWidgetId()
@@ -790,6 +794,21 @@ class HomeWidgetController(
             CrashReporter.reportNonFatal("HomeWidgetController: bindWidget failed", e)
             context.showToast(context.getString(R.string.couldnt_bind_widget, e.message))
         }
+    }
+
+    /**
+     * Like the apps-count picker refuses counts the widgets leave no room for,
+     * adding a widget refuses when its default height would push a home app
+     * off screen. Only portrait shares the column; -1 means not measured yet.
+     */
+    private fun newWidgetFits(): Boolean {
+        val slots = fragment.slotsController ?: return true
+        if (!slots.widgetsShareColumn || slots.widgetRoomPx < 0) return true
+        val density = context.resources.displayMetrics.density
+        // Prefs.getWidgetHeight default (200dp) plus the scroll view's 8dp margin the first widget brings in
+        val firstWidget = prefs.getWidgetIdList().isEmpty()
+        val widgetPx = (200 * density).toInt() + if (firstWidget) (8 * density).toInt() else 0
+        return widgetPx <= slots.widgetRoomPx
     }
 
     private fun onWidgetBound(widgetId: Int, providerInfo: AppWidgetProviderInfo, replaceIndex: Int) {

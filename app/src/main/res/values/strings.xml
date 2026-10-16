@@ -282,6 +282,8 @@
     <string name="weekly_review_riser" translatable="false">Most up: %1$s, +%2$s/day</string>
     <string name="weekly_review_faller" translatable="false">Most down: %1$s, \u2212%2$s/day</string>
     <string name="apps_dont_fit" translatable="false">Only %1$d apps fit — resize or remove widgets first</string>
+    <string name="home_apps_hidden" translatable="false">Only %1$d apps fit — hidden: %2$s. Resize or remove widgets, or lower Apps on home screen</string>
+    <string name="widget_doesnt_fit" translatable="false">No room for a widget with %1$d apps on home — lower Apps on home screen in Settings first</string>
     <string name="folder_name_hint" translatable="false">Social, Work, etc.</string>
     <string name="folder_needs_name_and_app" translatable="false">Enter a name and select at least one app</string>
     <string name="unable_to_open_link" translatable="false">Unable to open link</string>
