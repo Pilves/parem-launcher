@@ -1,6 +1,6 @@
 name: Compare performance on one runner
 on:
-  workflow_dispatch:
+  workflow_call:
 permissions:
   contents: read
 jobs:

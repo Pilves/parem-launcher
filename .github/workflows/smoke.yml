@@ -8,12 +8,21 @@ on:
   pull_request:
     branches: [master]
   workflow_dispatch:
+    inputs:
+      investigate_performance:
+        description: Compare baseline, candidate and StrictMode overhead on one emulator
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
+  investigate:
+    if: inputs.investigate_performance == true
+    uses: ./.github/workflows/perf-investigation.yml
   smoke:
+    if: inputs.investigate_performance != true
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
