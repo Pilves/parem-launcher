@@ -16,7 +16,8 @@ import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.usageStats.EventLogWrapper
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -33,7 +34,10 @@ import kotlin.math.abs
  * data loads via EventLogWrapper on a background thread after the sheet is
  * visible.
  */
-class ScreenTimeGraphDialog(private val context: Context) {
+class ScreenTimeGraphDialog(
+    private val context: Context,
+    private val lifecycleOwner: LifecycleOwner,
+) {
 
     companion object {
         // Completed days can never change, so each historical day's per-app
@@ -96,7 +100,9 @@ class ScreenTimeGraphDialog(private val context: Context) {
         if (!context.appUsagePermissionGranted()) return
 
         val appContext = context.applicationContext
-        loadJob = CoroutineScope(Dispatchers.Main + Job()).launch {
+        // Scoped to the owner so a recreate mid-scan (rotation, theme change)
+        // cancels it; the window goes away without onDismiss in that case
+        loadJob = lifecycleOwner.lifecycleScope.launch {
             data class WeekData(
                 val days: List<Pair<String, Long>>,
                 val topApps: List<Triple<String, String, Long>>, // pkg, label, ms

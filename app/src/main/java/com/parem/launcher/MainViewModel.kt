@@ -67,7 +67,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val perAppScreenTime = MutableLiveData<Map<String, Long>>()
     val weatherValue = MutableLiveData<String>()
 
-    var pendingGestureLetter: Char? = null
     private var lastWeatherFetch: Long = 0L
 
     val showDialog = SingleLiveEvent<String>()
@@ -118,7 +117,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         super.onCleared()
     }
 
-    fun selectedApp(appModel: AppModel, flag: Int) {
+    fun selectedApp(appModel: AppModel, flag: Int, gestureLetter: Char? = null) {
         when (flag) {
             Constants.FLAG_LAUNCH_APP, Constants.FLAG_HIDDEN_APPS -> {
                 // Before the package check: a website's package is the browser the
@@ -199,14 +198,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             Constants.FLAG_SET_GESTURE_LETTER_APP -> {
-                pendingGestureLetter?.let { letter ->
+                gestureLetter?.let { letter ->
                     GestureLetterManager.setMapping(
                         appContext, letter,
                         appModel.appPackage,
                         appModel.activityClassName ?: "",
                         appModel.user.toString()
                     )
-                    pendingGestureLetter = null
                 }
             }
 

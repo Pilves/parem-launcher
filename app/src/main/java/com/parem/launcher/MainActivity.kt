@@ -30,6 +30,7 @@ import com.parem.launcher.databinding.ActivityMainBinding
 import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.HomeKeyInput
+import com.parem.launcher.helper.NightModeChange
 import com.parem.launcher.helper.TextScale
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.isDarkThemeOn
@@ -49,6 +50,9 @@ class MainActivity : AppCompatActivity() {
 
     private var themeCheckRetries = 0
     private var isRecreating = false
+    // Night bits of the last uiMode seen; the manifest handles uiMode, so a
+    // system dark-mode flip reaches onConfigurationChanged instead of recreating
+    private var nightMode = 0
 
     private lateinit var prefs: Prefs
     private lateinit var navController: NavController
@@ -102,6 +106,7 @@ class MainActivity : AppCompatActivity() {
         pendingWidgetResult = savedInstanceState?.takeIf { it.containsKey("pendingWidgetResult") }
             ?.getBoolean("pendingWidgetResult")
         super.onCreate(savedInstanceState)
+        nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         if (prefs.boldFont) theme.applyStyle(R.style.BoldFontOverlay, true)
 
         appWidgetManager = AppWidgetManager.getInstance(this)
@@ -264,12 +269,15 @@ class MainActivity : AppCompatActivity() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
-        if (!isRecreating && prefs.dailyWallpaper && AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
-            isRecreating = true
+        val previousNightMode = nightMode
+        nightMode = newConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        if (isRecreating || !NightModeChange.needsRestyle(previousNightMode, nightMode, prefs.appTheme)) return
+        isRecreating = true
+        if (prefs.dailyWallpaper) {
             setPlainWallpaper()
             viewModel.setWallpaperWorker()
-            recreate()
         }
+        recreate()
     }
 
     private fun initObservers(viewModel: MainViewModel) {

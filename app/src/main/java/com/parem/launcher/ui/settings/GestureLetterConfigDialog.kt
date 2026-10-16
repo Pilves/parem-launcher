@@ -7,7 +7,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.appLabelOrNull
@@ -26,14 +25,13 @@ import com.parem.launcher.ui.dismissOnDestroy
  * @param lifecycleOwner The fragment's viewLifecycleOwner; the sheet, including
  * the rebuilt copy, is dismissed when it is destroyed.
  * @param onPickAppForLetter Called (with the dialog already dismissed) after the
- * user taps an unmapped/mapped letter row; sets [MainViewModel.pendingGestureLetter]
- * and navigates to the app list.
+ * user taps an unmapped/mapped letter row; navigates to the app list with the
+ * letter as a navigation argument.
  * @param onDisabled Called after gesture letters are turned off, so the caller can
  * refresh its "Wellbeing" row texts.
  */
 class GestureLetterConfigDialog(
     private val context: Context,
-    private val viewModel: MainViewModel,
     private val lifecycleOwner: LifecycleOwner,
     private val onPickAppForLetter: (Char) -> Unit,
     private val onDisabled: () -> Unit,
@@ -62,7 +60,6 @@ class GestureLetterConfigDialog(
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
                 setOnClickListener {
                     dialog.dismiss()
-                    viewModel.pendingGestureLetter = letter
                     onPickAppForLetter(letter)
                 }
             }
