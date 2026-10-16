@@ -295,8 +295,9 @@ per package; the rest of each of those fragments is still in
 - **M4-WP61 (PR #0):** Widget add, drag-resize and relayout share an API-gated size notification: API31+ uses the standard SizeF-list overload and API29/30 retains the legacy dimensions.
   Contract: pass full measured host dimensions; Android subtracts default widget padding and fills min/max plus a nonempty appWidgetSizes list. Widget IDs, provider storage, saved heights and configuration flow are unchanged.
   Prerequisite: built on WP42 commit 4410686; its later uncommitted sizing-call cleanup touches these same sites, so integration must retain this helper and its three calls.
-  Verified: required compile, JVM tests, debug assembly and handoff harness pass; a separate QA-suffix APK is prepared for the existing tablet installation.
-  Not verified: Samsung Digital Clock rendering/recovery, Calendar regression, rotation/process restart and API29/30 fallback on a device; those need root's tablet QA.
+  Verified: required compile, 366 JVM tests, debug assembly and handoff harness pass; separate normal and QA-suffix APKs are preserved.
+  Verified: root's Samsung SM-X706B / Android 15 QA pass recovered existing Weather without re-adding; a fresh first Digital Clock variant renders after Save; portrait, landscape scrolling with running seconds and force-stop/relaunch render correctly. Device options show nonempty SizeF entries.
+  Not verified: phone widgets or API29/30 fallback. Live seconds prevent UIAutomator idle, so final landscape/restart evidence is visual screenshots, not stale hierarchy XML.
   Easy to get wrong: the legacy integer overload clears appWidgetSizes even if a caller sets it manually; do not pre-subtract padding or reintroduce that overload on API31+.
 - **M4-WP62 (PR #0):** Code health pass 2 reports the audit's recovered failures through CrashReporter, preserves saved home slots when installed-app lookup throws, and removes proven unused contact payload/resources and duplicate normalization/night styles.
   Contract: diagnostics always Log.e and write only with crash reporting enabled, bounded to the existing 64 KiB file; original fallbacks, UI and architecture traps remain. Contact provider lookup keys still deduplicate contacts; no dependencies or new exported prefs.
