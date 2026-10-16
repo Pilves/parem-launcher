@@ -49,7 +49,6 @@
     <string name="bottom_on">Bas : Activé</string>
     <string name="bottom_off">Bas : Désactivé</string>
     <string name="please_set_parem_as_default_first">Veuillez d\'abord définir Parem Launcher comme lanceur par défaut.</string>
-    <string name="hidden_apps_message">Remarque : Appuyez sur \"Parem Launcher\" en haut de cette page pour trouver vos applications cachées.\n\nPlus de détails sont disponibles dans notre page \"À propos\" ci-dessous.</string>
     <string name="swipe_down_for">Balayer vers le bas pour</string>
     <string name="search">Rechercher</string>
     <string name="notifications">Notifications</string>

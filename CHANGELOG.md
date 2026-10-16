@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Preserve home slot names when an installed-app lookup fails; record recovered failures in opt-in crash diagnostics.
+- Settings has a "Hidden apps" row showing how many apps are hidden; tapping it opens the list (the title tap still works). Hiding an app keeps you in the drawer with a short confirmation instead of a Settings dialog, and a search that matches only a hidden app offers "Not in the list? Check hidden apps" (never naming the app, and not while Private Space is locked).
 
 ## v6.0.0-beta.1 — 2026-10-16
 

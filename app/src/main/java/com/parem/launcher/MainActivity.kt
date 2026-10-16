@@ -288,14 +288,6 @@ class MainActivity : AppCompatActivity() {
         viewModel.showDialog.observe(this) {
             if (isFinishing || isDestroyed) return@observe
             when (it) {
-                Constants.Dialog.HIDDEN -> {
-                    AlertDialog.Builder(this)
-                        .setTitle(R.string.hidden_apps)
-                        .setMessage(R.string.hidden_apps_message)
-                        .setPositiveButton(R.string.okay, null)
-                        .show()
-                }
-
                 Constants.Dialog.KEYBOARD -> {
                     AlertDialog.Builder(this)
                         .setTitle(R.string.app_name)

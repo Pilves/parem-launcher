@@ -39,6 +39,7 @@ import com.parem.launcher.helper.SettingsSearch
 import com.parem.launcher.helper.fireQuickAction
 import com.parem.launcher.helper.quickActionPreview
 import com.parem.launcher.helper.getShortcutRaws
+import com.parem.launcher.helper.HiddenAppHint
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isEinkDisplay
 import com.parem.launcher.helper.skipAnimations
@@ -87,6 +88,10 @@ class AppDrawerFragment : BaseFragment() {
 
     // Built on the first query; only the launch drawer resolves omnibox modes.
     private var settingsRows: List<SettingsSearch.Row>? = null
+
+    // Labels of installed hidden apps, for the empty-result hint only; never shown
+    private var hiddenLabels: List<String> = emptyList()
+    private var hiddenHintShown = false
 
     // At most one ECB rates fetch per drawer session, started by the first
     // currency query; the in-flight flag picks the CurrencyNoRates tip.
@@ -270,8 +275,10 @@ class AppDrawerFragment : BaseFragment() {
                     adapter.filter.filter(newText) {
                         _binding?.let { b ->
                             if (omniboxMode != OmniboxMode.None) return@let
+                            hiddenHintShown = flag == Constants.FLAG_LAUNCH_APP &&
+                                HiddenAppHint.show(newText, adapter.itemCount, isPrivateSpaceLocked(), hiddenLabels)
                             if (adapter.itemCount == 0 && newText.isNotBlank()) {
-                                b.appDrawerTip.text = getString(R.string.no_apps_found)
+                                b.appDrawerTip.text = getString(if (hiddenHintShown) R.string.hidden_apps_hint else R.string.no_apps_found)
                                 b.appDrawerTip.visibility = View.VISIBLE
                             } else {
                                 b.appDrawerTip.visibility = View.GONE
@@ -317,6 +324,18 @@ class AppDrawerFragment : BaseFragment() {
         }
         if (tip != null) b.appDrawerTip.text = tip
         b.appDrawerTip.visibility = if (tip != null) View.VISIBLE else View.GONE
+    }
+
+    /** Locked means a private profile exists and is in quiet mode; no profile is not locked. */
+    private fun isPrivateSpaceLocked(): Boolean {
+        val profile = context?.let { privateProfile(it) } ?: return false
+        return isQuietMode(profile)
+    }
+
+    private fun openHiddenApps() {
+        if (!isAdded) return
+        viewModel.getHiddenApps()
+        findNavController().navigate(R.id.appListFragment, bundleOf(Constants.Key.FLAG to Constants.FLAG_HIDDEN_APPS))
     }
 
     /** fetchIfDue is a no-op when the cache is fresh; the re-resolve shows new rates without retyping. */
@@ -496,6 +515,12 @@ class AppDrawerFragment : BaseFragment() {
                 }
             }
         } else {
+            if (flag == Constants.FLAG_LAUNCH_APP) {
+                viewModel.hiddenApps.observe(viewLifecycleOwner) { apps ->
+                    hiddenLabels = apps?.map { it.appLabel }.orEmpty()
+                }
+                if (prefs.hiddenApps.isNotEmpty()) viewModel.getHiddenApps()
+            }
             viewModel.appList.observe(viewLifecycleOwner) {
                 it?.let { appModels ->
                     adapter.setAppList(appModels.toMutableList())
@@ -546,6 +571,10 @@ class AppDrawerFragment : BaseFragment() {
                 }
                 is OmniboxMode.Setting -> {
                     openSetting(mode.anchor)
+                    return@setOnClickListener
+                }
+                OmniboxMode.None -> if (hiddenHintShown) {
+                    openHiddenApps()
                     return@setOnClickListener
                 }
                 else -> {}

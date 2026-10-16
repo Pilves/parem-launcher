@@ -59,12 +59,14 @@ class AppInfoSettingsCard(
         binding.github.isVisible = Constants.URL_PAREM_GITHUB.isNotEmpty()
 
         populateCrashReports()
+        populateHiddenApps(prefs.hiddenApps.size)
         initClickListeners()
         initObservers()
     }
 
     private fun initClickListeners() {
         binding.paremHiddenApps.setOnClickListener(this)
+        binding.hiddenAppsRow.setOnClickListener(this)
         binding.appInfo.setOnClickListener(this)
         binding.setLauncher.setOnClickListener(this)
         binding.exportSettings?.setOnClickListener(this)
@@ -81,12 +83,15 @@ class AppInfoSettingsCard(
                 binding.setLauncher.text = context.getString(R.string.change_default_launcher)
             }
         }
+        // Installed hidden apps, so the count agrees with the list it opens
+        viewModel.hiddenApps.observe(fragment.viewLifecycleOwner) { it?.let { populateHiddenApps(it.size) } }
+        viewModel.getHiddenApps()
     }
 
     override fun onClick(view: View) {
         fragment.resetOpenPickers(view.id)
         when (view.id) {
-            R.id.paremHiddenApps -> showHiddenApps()
+            R.id.paremHiddenApps, R.id.hiddenAppsRow -> showHiddenApps()
             R.id.appInfo -> openAppInfo(context, Process.myUserHandle(), BuildConfig.APPLICATION_ID)
             R.id.setLauncher -> viewModel.resetLauncherLiveData.call()
             R.id.exportSettings -> exportSettings()
@@ -109,6 +114,11 @@ class AppInfoSettingsCard(
         binding.crashReportsToggle.text =
             context.onOff(prefs.crashReportsEnabled)
         binding.crashReportsRow.bindSwitchRow(prefs.crashReportsEnabled)
+    }
+
+    private fun populateHiddenApps(count: Int) {
+        binding.hiddenAppsCount.text = count.toString()
+        binding.hiddenAppsRow.bindValueRow(count.toString())
     }
 
     private fun showHiddenApps() {

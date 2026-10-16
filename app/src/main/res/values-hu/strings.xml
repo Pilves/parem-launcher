@@ -48,8 +48,6 @@
     <string name="bottom_on">Alsó: Be</string>
     <string name="bottom_off">Alsó: Ki</string>
     <string name="please_set_parem_as_default_first">Kérjük, állítsa be az Parem Launcher-t alapértelmezett indítóként</string>
-    <string name="hidden_apps_message">Megjegyzés: A rejtett alkalmazások megtalálásához érintse meg az "Parem Launcher" elemet ennek a beállítás oldalnak a tetején.
-    \n\nTöbb részlet elérhető az alábbi, Névjegy oldalon.</string>
     <string name="swipe_down_for">Simítson lefelé a következőért</string>
     <string name="search">Keresés</string>
     <string name="notifications">Értesítések</string>

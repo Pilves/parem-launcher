@@ -49,8 +49,6 @@
     <string name="bottom_on">In basso: acceso</string>
     <string name="bottom_off">In basso: spento</string>
     <string name="please_set_parem_as_default_first">Imposta Parem Launcher come launcher predefinito</string>
-    <string name="hidden_apps_message">Nota: tocca \'Parem Launcher\' nella parte superiore di questa pagina per trovare le tue app nascoste.
-        \n\nUlteriori dettagli sono disponibili nella pagina Informazioni di seguito.</string>
     <string name="swipe_down_for">Scorri verso il basso per</string>
     <string name="search">Ricerca</string>
     <string name="notifications">Notifiche</string>
