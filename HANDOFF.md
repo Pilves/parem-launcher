@@ -316,5 +316,12 @@ per package; the rest of each of those fragments is still in
   Integration approved by Patric. Release candidate passes 403 JVM tests and four CI device configurations; tablet Focus search passes at normal/200% fonts, and the owner confirms TalkBack home navigation and double-tap lock. Full gesture/visual parity and the remaining release checklist are not claimed complete.
   Deferred: WIDGET_ID migration (65), portrait/landscape settings unification (WP51), and further section 5 work; architecture traps 1–5 are unchanged.
   Easy to get wrong: a slot double tap keeps the detector's default callback, while a background double tap cancels swipe release; never wrap the widget ListView in the sheet's outer scroll view.
+- **M4-WP64 (PR #0):** v6.0.0-beta.2 (104) is prepared on next with approved WP63 and WP24/WP60/WP61 integration, corrected release notes, landscape Calm controls and keyboard-visible Focus search results.
+  Contract: existing Parem package/signing identity and preference storage remain; isolated tablet upgrades from versions 100/101/102 preserve settings, and version 102 retains four widgets. Old app.olauncher packages are separate installs.
+  Verified: compile, 403 JVM tests, debug/release assembly and 11 script tests exit0; CI 38893600140 passes 9 instrumentation tests on each of four configurations and the unchanged 20% same-runner performance gate.
+  Verified: Focus keyboard at normal/200% fonts, UI settings export/import, actual theme/Focus-end workers; owner confirms TalkBack home navigation and double-tap lock. Original release data is untouched.
+  Not verified: full final-release device matrix and battery soak; owner cancelled the overnight collector in favour of ordinary-use beta testing. Tablet typing misses the absolute 1% jank target (21.74%, worst 18 ms); startup and scrolling meet their budgets.
+  Easy to get wrong: QA accessibility tests need the QA package in an external XML filter override; production lock XML remains unchanged. Historical perf timings use a different workload; CI measures pinned 996ef0c on the same warmed emulator instead of weakening thresholds.
+  Release: evidence and limitations are in docs/releases/v6.0.0-beta.2-validation.md; release notes include the accepted no-default-browser gap. The owner tags after accepting beta limitations; the agent has not tagged or published.
 
 <!-- handoff:end -->
