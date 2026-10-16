@@ -2,4 +2,6 @@
 <resources>
     <!-- Caps the reading width of settings and the drawer; w<N>dp outranks land -->
     <dimen name="content_side_padding">0dp</dimen>
+    <!-- DESIGN 4: minHeight/minWidth of anything tappable -->
+    <dimen name="touch_target_min">48dp</dimen>
 </resources>

@@ -66,27 +66,27 @@ class WellbeingSettingsCard(
     }
 
     private fun initClickListeners() {
-        binding.screenTimeOnOff.setOnClickListener(this)
-        binding.focusModeToggle?.setOnClickListener(this)
-        binding.grayscaleToggle?.setOnClickListener(this)
-        binding.screenTimeLimitsToggle?.setOnClickListener(this)
-        binding.quietNotifToggle?.setOnClickListener(this)
-        binding.quietNotifAllowed?.setOnClickListener(this)
-        binding.quietNotifSilent?.setOnClickListener(this)
+        binding.screenTimeLayout.setOnClickListener(this)
+        binding.focusModeRow?.setOnClickListener(this)
+        binding.grayscaleRow?.setOnClickListener(this)
+        binding.screenTimeLimitsRow?.setOnClickListener(this)
+        binding.quietNotifRow?.setOnClickListener(this)
+        binding.quietNotifAllowedRow?.setOnClickListener(this)
+        binding.quietNotifSilentRow?.setOnClickListener(this)
     }
 
     override fun onClick(view: View) {
         fragment.resetOpenPickers(view.id)
         when (view.id) {
-            R.id.screenTimeOnOff -> BadHabitDialogs.showUsageAccessSheet(context)
-            R.id.focusModeToggle -> showFocusModeFromSettings()
-            R.id.grayscaleToggle -> GrayscaleSheet.open(fragment, onPair = ::startPairing, onChanged = {
+            R.id.screenTimeLayout -> BadHabitDialogs.showUsageAccessSheet(context)
+            R.id.focusModeRow -> showFocusModeFromSettings()
+            R.id.grayscaleRow -> GrayscaleSheet.open(fragment, onPair = ::startPairing, onChanged = {
                 if (fragment.isBindingAlive()) populateGrayscale()
             })
-            R.id.screenTimeLimitsToggle -> showScreenTimeLimitsDialog()
-            R.id.quietNotifToggle -> onQuietNotifToggle()
-            R.id.quietNotifAllowed -> QuietListSheet.editAllowed(fragment, prefs, fragment::isBindingAlive)
-            R.id.quietNotifSilent -> {
+            R.id.screenTimeLimitsRow -> showScreenTimeLimitsDialog()
+            R.id.quietNotifRow -> onQuietNotifToggle()
+            R.id.quietNotifAllowedRow -> QuietListSheet.editAllowed(fragment, prefs, fragment::isBindingAlive)
+            R.id.quietNotifSilentRow -> {
                 viewModel.getAppList(true)
                 fragment.navigateFromSettings(
                     R.id.action_settingsFragment_to_appListFragment,
@@ -132,6 +132,7 @@ class WellbeingSettingsCard(
                 else -> R.string.off
             }
         )
+        binding.grayscaleRow?.bindValueRow(binding.grayscaleToggle?.text)
     }
 
     private fun populateQuietNotif() {
@@ -144,6 +145,9 @@ class WellbeingSettingsCard(
                 State.ON -> R.string.on
             }
         )
+        binding.quietNotifRow?.bindValueRow(binding.quietNotifToggle?.text)
+        binding.quietNotifAllowedRow?.bindValueRow(binding.quietNotifAllowed?.text)
+        binding.quietNotifSilentRow?.bindValueRow(binding.quietNotifSilent?.text)
         binding.quietNotifRows?.visibility = if (state == State.ON) View.VISIBLE else View.GONE
         binding.quietNotifHint?.apply {
             when (state) {
@@ -167,11 +171,13 @@ class WellbeingSettingsCard(
     private fun populateUsageAccess() {
         val granted = context.appUsagePermissionGranted()
         binding.screenTimeOnOff.text = context.getString(if (granted) R.string.on else R.string.off)
+        binding.screenTimeLayout.bindValueRow(binding.screenTimeOnOff.text)
         val needsAccess = WellbeingRowState.appLimits(granted) == Row.NEEDS_ACCESS
         binding.screenTimeLimitsToggle?.apply {
             text = context.getString(if (needsAccess) R.string.quiet_needs_access else R.string.configure)
             alpha = if (needsAccess) 0.5f else 1f
         }
+        binding.screenTimeLimitsRow?.bindValueRow(binding.screenTimeLimitsToggle?.text)
     }
 
     private fun showFocusModeFromSettings() {
