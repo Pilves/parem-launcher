@@ -1,7 +1,5 @@
 package com.parem.launcher.helper
 
-import java.text.Normalizer
-
 /**
  * Matching and ranking for omnibox contact search. Pure functions, no Android
  * deps (the actual provider query lives in [ContactSearchManager]).
@@ -22,8 +20,6 @@ object ContactMatcher {
     }
 
     private val LETTER = Regex("\\p{L}")
-    private val DIACRITICS = Regex("\\p{InCombiningDiacriticalMarks}+")
-    private val SEPARATORS = Regex("[-_+,.·:&()\\s]+")
 
     /**
      * A query is worth searching contacts for only when it has 2+ characters and
@@ -39,19 +35,19 @@ object ContactMatcher {
     fun match(query: String, contacts: List<Contact>, limit: Int = 5): List<Contact> {
         if (!looksLikeContactQuery(query)) return emptyList()
         val q = query.trim()
+        val normalizedQuery = SearchMatcher.key(q).normalized
         return contacts
             .mapNotNull { contact ->
                 val key = contact.searchKey
                 if (!SearchMatcher.matches(contact.name, key, q)) return@mapNotNull null
-                contact to rank(key, q)
+                contact to rank(key, normalizedQuery)
             }
             .sortedWith(compareBy({ it.second }, { it.first.name.lowercase() }))
             .map { it.first }
             .take(limit)
     }
 
-    private fun rank(key: SearchMatcher.LabelKey, query: String): Int {
-        val nq = normalize(query)
+    private fun rank(key: SearchMatcher.LabelKey, nq: String): Int {
         return when {
             nq.isEmpty() -> 3
             key.normalized.startsWith(nq) -> 0        // whole name starts with the query
@@ -60,9 +56,4 @@ object ContactMatcher {
         }
     }
 
-    private fun normalize(s: String): String =
-        Normalizer.normalize(s, Normalizer.Form.NFD)
-            .replace(DIACRITICS, "")
-            .lowercase()
-            .replace(SEPARATORS, "")
 }

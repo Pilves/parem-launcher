@@ -9,7 +9,6 @@ import android.provider.Settings
 import android.view.MotionEvent
 import android.view.View
 import android.view.accessibility.AccessibilityManager
-import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible

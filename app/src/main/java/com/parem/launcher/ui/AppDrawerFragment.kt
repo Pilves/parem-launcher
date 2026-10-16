@@ -36,10 +36,8 @@ import com.parem.launcher.helper.OmniboxResolver
 import com.parem.launcher.helper.QuickAction
 import com.parem.launcher.helper.QuickActionParser
 import com.parem.launcher.helper.SettingsSearch
-import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.fireQuickAction
 import com.parem.launcher.helper.quickActionPreview
-import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.getShortcutRaws
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isEinkDisplay

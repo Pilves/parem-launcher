@@ -38,7 +38,6 @@ import com.parem.launcher.helper.isEinkDisplay
 import com.parem.launcher.helper.resetLauncherViaFakeActivity
 import com.parem.launcher.helper.setPlainWallpaper
 import com.parem.launcher.helper.showLauncherSelector
-import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.HomeFragment
 import com.parem.launcher.ui.showCrashReport
 import kotlinx.coroutines.Job
