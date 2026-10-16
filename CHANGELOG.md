@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-- Every launch route now runs the same gate: double-tap "Open app", opening a notification from the quiet list, website shortcuts, omnibox web search / "!bang" / no-results search and the search gestures all honour Focus mode, app limits and the mindful pause (web opens are gated on the browser that receives them; without a default browser the first browser Focus allows is used instead of the chooser).
+- Every launch route now runs the same gate: double-tap "Open app", opening a notification from the quiet list, website shortcuts, omnibox web search / "!bang" / no-results search and the search gestures all honour Focus mode, app limits and the mindful pause (web opens are gated on the browser that receives them; under Focus with no default browser, the first allowed browser opens instead of the chooser).
 - Gesture letters match resampled shapes, tolerating drawing size, speed, modest slant and reversed strokes; ambiguous marks and straight swipes are rejected.
 - App actions use consistent labelled sheets on home and in the app list; home keeps its replacement actions, removal offers Undo, and a locked layout offers Unlock. Renames stay local to home or the personal app list, and package-only controls no longer affect work-profile copies.
 - Onboarding offers optional explanations for home, search, gestures, Calm tools, appearance and backup; setup states and spoken captions now explain what is enabled.

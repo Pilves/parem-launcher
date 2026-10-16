@@ -10,6 +10,7 @@ class WebLaunchTargetTest {
 
     @Test
     fun defaultHandlerIsTheTarget() {
+        assertEquals("com.google.android.youtube", WebLaunchTarget.target("com.google.android.youtube", browsers, null))
         assertEquals("com.google.android.youtube", WebLaunchTarget.target("com.google.android.youtube", browsers) { true })
     }
 
@@ -19,18 +20,25 @@ class WebLaunchTargetTest {
     }
 
     @Test
-    fun chooserPinsTheFirstAllowedBrowser() {
+    fun chooserWithoutFocusIsLeftAlone() {
+        assertEquals("", WebLaunchTarget.target(WebLaunchTarget.CHOOSER, browsers, null))
+        assertEquals("", WebLaunchTarget.target(null, browsers, null))
+    }
+
+    @Test
+    fun chooserUnderFocusPinsTheFirstAllowedBrowser() {
         assertEquals("org.mozilla.firefox", WebLaunchTarget.target(WebLaunchTarget.CHOOSER, browsers) { it == "org.mozilla.firefox" })
         assertEquals("com.android.chrome", WebLaunchTarget.target(null, browsers) { true })
     }
 
     @Test
-    fun chooserWithNoAllowedBrowserIsBlocked() {
+    fun chooserUnderFocusWithNoAllowedBrowserIsBlocked() {
         assertNull(WebLaunchTarget.target(WebLaunchTarget.CHOOSER, browsers) { false })
     }
 
     @Test
     fun noBrowserAtAllIsNotGated() {
-        assertEquals("", WebLaunchTarget.target(null, emptyList()) { false })
+        assertEquals("", WebLaunchTarget.target(null, emptyList(), null))
+        assertEquals("", WebLaunchTarget.target(null, emptyList()) { true })
     }
 }

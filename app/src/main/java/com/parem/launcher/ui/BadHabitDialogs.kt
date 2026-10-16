@@ -104,8 +104,9 @@ object BadHabitDialogs {
      * The gate for a web open (website shortcut, omnibox search, search gesture):
      * a web open is not an app launch, so it is gated on the one app that will
      * receive [intent] per [WebLaunchTarget.target] — focus first, then that
-     * app's limit and pause through [gateLaunch]. [open] gets that package ("" when
-     * nothing handles the intent) and must send the intent to it.
+     * app's limit and pause through [gateLaunch]. [open] gets that package and must
+     * pin the intent to it; "" means no single app (the chooser, or nothing) — the
+     * receiver is unknown, so nothing is gated and the intent goes out unpinned.
      */
     fun gateWebOpen(
         context: Context,
@@ -120,12 +121,16 @@ object BadHabitDialogs {
         } catch (_: Exception) {
             null
         }
-        val candidates = try {
+        // Candidates matter only under focus, where the chooser must not offer a blocked browser
+        val focusActive = FocusModeManager.isActive(context)
+        val candidates = if (!focusActive) emptyList() else try {
             pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY).map { it.activityInfo.packageName }
         } catch (_: Exception) {
             emptyList()
         }
-        val packageName = WebLaunchTarget.target(handler, candidates) { FocusModeManager.isAppAllowed(context, it) }
+        val allowed: ((String) -> Boolean)? =
+            if (focusActive) { pkg -> FocusModeManager.isAppAllowed(context, pkg) } else null
+        val packageName = WebLaunchTarget.target(handler, candidates, allowed)
         if (packageName == null) {
             FocusModeManager.showBlocked(context)
             return

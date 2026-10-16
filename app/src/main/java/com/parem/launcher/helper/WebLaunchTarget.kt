@@ -2,8 +2,8 @@ package com.parem.launcher.helper
 
 /**
  * Android-free rule for a web open (website shortcut, omnibox search, search
- * gesture): it always goes to one known app, so focus, the limit and the pause
- * are checked against the app that actually receives the intent.
+ * gesture): focus, the limit and the pause are checked against the app that
+ * receives the intent when that app is known.
  */
 object WebLaunchTarget {
 
@@ -11,14 +11,17 @@ object WebLaunchTarget {
     const val CHOOSER = "android"
 
     /**
-     * The package to gate and pin the intent on, "" when no app can handle it
-     * (nothing to gate; the launch fails with its own toast), or null when focus
-     * blocks it. A real default handler is used as is; without one the first
-     * focus-allowed [candidates] entry stands in for the chooser.
+     * The package to gate and pin the intent on, "" when there is no single app
+     * to gate, or null when focus blocks the open. A default handler is used as
+     * is. Without one the system chooser shows and nothing is gated — the
+     * receiver is unknown, an accepted gap — unless focus is active ([allowed]
+     * non-null): then the first allowed [candidates] entry stands in for the
+     * chooser so a blocked browser is never offered.
      */
-    fun target(handler: String?, candidates: List<String>, allowed: (String) -> Boolean): String? {
-        if (!handler.isNullOrEmpty() && handler != CHOOSER) return if (allowed(handler)) handler else null
-        if (candidates.isEmpty()) return ""
+    fun target(handler: String?, candidates: List<String>, allowed: ((String) -> Boolean)?): String? {
+        val isAllowed = allowed ?: { _: String -> true }
+        if (!handler.isNullOrEmpty() && handler != CHOOSER) return if (isAllowed(handler)) handler else null
+        if (allowed == null || candidates.isEmpty()) return ""
         return candidates.firstOrNull(allowed)
     }
 }
