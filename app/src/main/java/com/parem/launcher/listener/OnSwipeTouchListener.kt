@@ -9,40 +9,38 @@ import android.view.View.OnTouchListener
 import android.view.ViewConfiguration
 import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.helper.SwipeThresholds
+import com.parem.launcher.helper.SwipeDispatch
 
 /*
 Swipe, double tap and long press touch listener for a view
 Source: https://www.tutorialspoint.com/how-to-handle-swipe-gestures-in-kotlin
 */
 
-internal open class OnSwipeTouchListener(c: Context?) : OnTouchListener {
+internal open class OnSwipeTouchListener(c: Context?, private val target: View? = null) : OnTouchListener {
     private var gestureDetector: GestureDetector?
     private val config = SwipeConfig.from(c)
-    private var velocityX = 0f
-    private var velocityY = 0f
-    private var swipeActive = false
-
-    private var downX = 0f
-    private var downY = 0f
+    private val swipe = SwipeDispatch(config.touchSlop, config.minFlingVelocity, config.density)
 
     override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
         when (motionEvent.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                downX = motionEvent.x
-                downY = motionEvent.y
-                velocityX = 0f
-                velocityY = 0f
-                swipeActive = true
+                swipe.down(motionEvent.x, motionEvent.y)
+                if (target != null) view.isPressed = true
             }
-            MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_CANCEL -> swipeActive = false
+            MotionEvent.ACTION_MOVE -> {
+                if (target != null && view.isPressed && swipe.movedPastSlop(motionEvent.x, motionEvent.y))
+                    view.isPressed = false
+            }
+            MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_CANCEL -> {
+                if (target != null) view.isPressed = false
+                swipe.cancel()
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> if (target != null) view.isPressed = false
         }
         val detector = gestureDetector ?: return false
         val handled = detector.onTouchEvent(motionEvent)
         if (motionEvent.actionMasked == MotionEvent.ACTION_UP) {
-            val direction = if (swipeActive)
-                config.classify(motionEvent.x - downX, motionEvent.y - downY, velocityX, velocityY)
-            else null
-            swipeActive = false
+            val direction = swipe.release(motionEvent.x, motionEvent.y)
             dispatchSwipe(direction)
             return handled || direction != null
         }
@@ -59,19 +57,18 @@ internal open class OnSwipeTouchListener(c: Context?) : OnTouchListener {
         }
 
         override fun onSingleTapUp(e: MotionEvent): Boolean {
-            swipeActive = false
+            swipe.cancel()
             onClick()
             return super.onSingleTapUp(e)
         }
 
         override fun onDoubleTap(e: MotionEvent): Boolean {
-            swipeActive = false
-            onDoubleClick()
+            if (swipe.doubleTap(target == null)) onDoubleClick()
             return super.onDoubleTap(e)
         }
 
         override fun onLongPress(e: MotionEvent) {
-            swipeActive = false
+            swipe.cancel()
             onLongClick()
         }
 
@@ -83,8 +80,7 @@ internal open class OnSwipeTouchListener(c: Context?) : OnTouchListener {
         ): Boolean {
             // GestureDetector supplies velocity only for flings. Slow releases keep
             // zero velocity and still qualify through distance in ACTION_UP.
-            this@OnSwipeTouchListener.velocityX = velocityX
-            this@OnSwipeTouchListener.velocityY = velocityY
+            swipe.fling(velocityX, velocityY)
             return false
         }
     }
@@ -116,11 +112,8 @@ internal open class OnSwipeTouchListener(c: Context?) : OnTouchListener {
     }
 }
 
-/** The device's ViewConfiguration numbers both swipe listeners feed to [SwipeThresholds]. */
-internal class SwipeConfig(val touchSlop: Float, private val minFlingVelocity: Float, private val density: Float) {
-
-    fun classify(dx: Float, dy: Float, vx: Float, vy: Float): SwipeThresholds.Direction? =
-        SwipeThresholds.classify(dx, dy, vx, vy, touchSlop, minFlingVelocity, density)
+/** The device's ViewConfiguration numbers the swipe listener feeds to [SwipeThresholds]. */
+internal class SwipeConfig(val touchSlop: Float, val minFlingVelocity: Float, val density: Float) {
 
     companion object {
         fun from(context: Context?): SwipeConfig {

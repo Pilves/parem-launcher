@@ -33,7 +33,6 @@ import com.parem.launcher.helper.openDialerApp
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.listener.DeviceAdmin
 import com.parem.launcher.listener.OnSwipeTouchListener
-import com.parem.launcher.listener.ViewSwipeTouchListener
 import com.parem.launcher.ui.HomeFragment
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.dismissOnDestroy
@@ -63,7 +62,7 @@ class HomeGesturesController(
     private val context get() = binding.root.context
 
     private var screenTouchListener: OnSwipeTouchListener? = null
-    private val viewTouchListeners = mutableListOf<ViewSwipeTouchListener>()
+    private val viewTouchListeners = mutableListOf<OnSwipeTouchListener>()
     private var flashlightOn: Boolean = false
     private var torchCallback: android.hardware.camera2.CameraManager.TorchCallback? = null
     private val accessibilityActionIds = mutableListOf<Pair<View, Int>>()
@@ -112,7 +111,7 @@ class HomeGesturesController(
         viewTouchListeners.clear()
         screenTouchListener = getSwipeGestureListener(context)
         binding.mainLayout.setOnTouchListener(screenTouchListener)
-        fragment.slotsController?.homeAppViews?.forEach { it.setOnTouchListener(getViewSwipeTouchListener(context, it)) }
+        fragment.slotsController?.homeAppViews?.forEach { it.setOnTouchListener(getOnSwipeTouchListener(context, it)) }
     }
 
     /**
@@ -289,8 +288,8 @@ class HomeGesturesController(
         }
     }
 
-    private fun getViewSwipeTouchListener(context: Context, view: View): ViewSwipeTouchListener {
-        val listener = object : ViewSwipeTouchListener(context, view) {
+    private fun getOnSwipeTouchListener(context: Context, view: View): OnSwipeTouchListener {
+        val listener = object : OnSwipeTouchListener(context, view) {
             override fun onTouch(v: View, motionEvent: MotionEvent): Boolean {
                 if (forwardToLetterOverlay(v, motionEvent)) {
                     v.isPressed = false
@@ -319,14 +318,14 @@ class HomeGesturesController(
                 swipeDownAction()
             }
 
-            override fun onLongClick(view: View) {
-                super.onLongClick(view)
+            override fun onLongClick() {
+                super.onLongClick()
                 Haptics.longPress(view)
                 fragment.onLongClick(view)
             }
 
-            override fun onClick(view: View) {
-                super.onClick(view)
+            override fun onClick() {
+                super.onClick()
                 fragment.onClick(view)
             }
         }

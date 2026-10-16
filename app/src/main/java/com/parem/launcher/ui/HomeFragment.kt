@@ -204,7 +204,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         binding.setDefaultLauncher.setOnClickListener(this)
         binding.setDefaultLauncher.setOnLongClickListener(this)
         binding.tvScreenTime.setOnClickListener(this)
-        // Slot taps and long-presses arrive through ViewSwipeTouchListener, which
+        // Slot taps and long-presses arrive through OnSwipeTouchListener, which
         // consumes touch; these fire only for d-pad/keyboard (and accessibility) clicks
         slotsController?.homeAppViews?.forEach {
             it.setOnClickListener(this)
