@@ -63,6 +63,7 @@ class AppDrawerFragment : BaseFragment() {
     private lateinit var linearLayoutManager: LinearLayoutManager
 
     private var flag = Constants.FLAG_LAUNCH_APP
+    private var gestureLetter: Char? = null
     private var canRename = false
     // Key typed on a hardware keyboard at home; seeds the search once the app
     // list is in (filtering an empty list would flash "no apps found")
@@ -111,6 +112,7 @@ class AppDrawerFragment : BaseFragment() {
         arguments?.let {
             flag = it.getInt(Constants.Key.FLAG, Constants.FLAG_LAUNCH_APP)
             canRename = it.getBoolean(Constants.Key.RENAME, false)
+            gestureLetter = if (it.containsKey(Constants.Key.LETTER)) it.getChar(Constants.Key.LETTER) else null
             if (savedInstanceState == null)
                 typedQuery = it.getString(Constants.Key.QUERY).orEmpty()
         }
@@ -352,7 +354,7 @@ class AppDrawerFragment : BaseFragment() {
             // Bad habit check is handling launch asynchronously
         } else {
             recordLaunch(app)
-            viewModel.selectedApp(app, flag)
+            viewModel.selectedApp(app, flag, gestureLetter)
             if (flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
                 findNavController().popBackStack(R.id.mainFragment, false)
             else
@@ -488,6 +490,9 @@ class AppDrawerFragment : BaseFragment() {
         }
 
         if (flag == Constants.FLAG_HIDDEN_APPS) {
+            // A recreated ViewModel (process death, "Don't keep activities") has
+            // never loaded this list; only Settings fills it before navigating
+            if (viewModel.hiddenApps.value == null) viewModel.getHiddenApps()
             viewModel.hiddenApps.observe(viewLifecycleOwner) {
                 it?.let {
                     adapter.setAppList(it.toMutableList())

@@ -6,6 +6,8 @@ object Constants {
         const val FLAG = "flag"
         const val RENAME = "rename"
         const val QUERY = "query"
+        // Letter a FLAG_SET_GESTURE_LETTER_APP pick maps; travels with the flag so it survives process death
+        const val LETTER = "letter"
         // View id of the settings row the omnibox opens Settings at
         const val SETTING = "setting"
     }

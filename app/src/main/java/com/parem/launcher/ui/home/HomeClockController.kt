@@ -186,7 +186,7 @@ class HomeClockController(
 
     fun openScreenTimeDigitalWellbeing() {
         try {
-            ScreenTimeGraphDialog(context).show()
+            ScreenTimeGraphDialog(context, fragment.viewLifecycleOwner).show()
         } catch (e: Exception) {
             Log.e("HomeFragment", "Failed to show screen time graph", e)
             // Fallback to Digital Wellbeing

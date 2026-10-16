@@ -99,9 +99,8 @@ class GesturesSettingsCard(
                 if (GestureLetterManager.isEnabled(context)) {
                     GestureLetterConfigDialog(
                         context,
-                        viewModel,
                         fragment.viewLifecycleOwner,
-                        onPickAppForLetter = { showAppListForSwipe(Constants.FLAG_SET_GESTURE_LETTER_APP) },
+                        onPickAppForLetter = { showAppListForSwipe(Constants.FLAG_SET_GESTURE_LETTER_APP, it) },
                         onDisabled = onWellbeingChanged,
                     ).show()
                 } else {
@@ -362,11 +361,10 @@ class GesturesSettingsCard(
         }
     }
 
-    private fun showAppListForSwipe(flag: Int) {
+    private fun showAppListForSwipe(flag: Int, letter: Char? = null) {
         viewModel.getAppList(true)
-        fragment.navigateFromSettings(
-            R.id.action_settingsFragment_to_appListFragment,
-            bundleOf(Constants.Key.FLAG to flag)
-        )
+        val args = bundleOf(Constants.Key.FLAG to flag)
+        letter?.let { args.putChar(Constants.Key.LETTER, it) }
+        fragment.navigateFromSettings(R.id.action_settingsFragment_to_appListFragment, args)
     }
 }
