@@ -132,6 +132,8 @@ class SmokeTest {
     }
 
     private fun openDrawer() {
+        // A visible home node can precede the last startup/rotation layout pass.
+        device.waitForIdle(TIMEOUT)
         val w = device.displayWidth
         val h = device.displayHeight
         device.swipe(w / 2, h * 3 / 4, w / 2, h / 4, 20)
