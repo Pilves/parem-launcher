@@ -229,17 +229,20 @@ Rewrite this section for each release from `[Unreleased]` in CHANGELOG.md and
 the roadmap rows that landed: one line per change, saying what to try on the
 device. Delete it again once the tag is pushed.
 
-**v5.7.0 (candidate `f4b55cf`)** — the home screen was split into
-`ui/home/` controllers, so sections 1–5 are the new risk; run them twice
-(portrait, then landscape). Also:
+**v6.0.0-beta.2 (versionCode 104)** — record the exact candidate SHA and results in `docs/releases/v6.0.0-beta.2-validation.md`. Physical testing is tablet-only by owner instruction; phone-specific checks remain unverified.
 
-- [ ] Capacity picker (section 6) — new in this release
-- [ ] Landscape widgets below the clock; tall sheets scroll (sections 5, 11)
-- [ ] Gesture letters in tablet landscape (PAREM-120)
-- [ ] Removing an app limit shows "No limit" at once
-- [ ] Import applies app limits at once; import file picker returns to settings
-- [ ] Drawer typing with contact search on and a large address book is smooth
-- [ ] No periodic self-restart over a few hours of use (PAREM-108)
+- [ ] Upgrade the same package without clearing data; retain folders, home slots, widgets and app limits; export/import all preference types including wallpaper dimming
+- [ ] Existing and newly added widgets render after resize, portrait/landscape rotation and process restart; API31+ options include nonempty size lists
+- [ ] At 200% font, light/dark/system themes and keyboard open, Focus, App limits, folder, website and widget sheets reach their last action; no tiny tablet column
+- [ ] Home gestures retain thresholds and double-tap lock; per-slot swipe-up opens all apps; TalkBack cannot focus the invisible lock view
+- [ ] Hidden-only searches offer the hint; locked Private Space never exposes a hidden-app hint; unlock refreshes the list
+- [ ] App-limit and Focus gates work for home, folders, gestures, notification opens and web routes; test default browser, blocked default, and no default
+- [ ] Accepted gap: with no default browser and Focus off, system chooser selection is not subject to a browser-specific limit/pause; record this as an accepted limitation, not a passing gate test
+- [ ] Midnight, timezone changes and Focus expiry refresh enforcement; deny/revoke usage, contacts, notification and accessibility permissions without a crash
+- [ ] Schedule theme/wallpaper and Focus-end grayscale work, restart the process, and confirm on-demand WorkManager still runs each enabled job
+- [ ] Screen-off grayscale polling resumes correctly on unlock; disabling the feature cancels its work; run the battery soak above
+- [ ] Wallpaper dim toggles independently, survives import/restart, and remains suppressed in e-ink mode; new colours remain readable with TalkBack and large fonts
+- [ ] Final candidate smoke CI passes; release APK builds with R8; tablet release performance and crash/ANR observations are recorded
 
 ## 6.0 UX device pass
 

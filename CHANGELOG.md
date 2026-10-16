@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## v6.0.0-beta.2 — 2026-10-16
+
 - App limits and Focus mode use the available tablet window width while retaining sheet width limits.
 
 - Widgets on Android 12 and later receive their actual size list instead of legacy minimum and maximum dimensions alone.
