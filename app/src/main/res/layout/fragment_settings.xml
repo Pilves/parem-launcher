@@ -1029,9 +1029,13 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp">
 
+                    <!-- Its own node: the label is a link to the wallpaper source, the row is the switch -->
                     <TextView
-                        android:importantForAccessibility="no"
                         android:id="@+id/dailyWallpaperUrl"
+                        android:contentDescription="@string/a11y_wallpaper_source"
+                        android:focusable="true"
+                        android:minHeight="@dimen/touch_target_min"
+                        android:gravity="center_vertical"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

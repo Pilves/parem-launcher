@@ -204,7 +204,8 @@ class SettingsFragment : BaseFragment() {
             val city = WeatherManager.getCityName(requireContext())
             city.ifEmpty { getString(R.string.on) }
         } else getString(R.string.off)
-        binding.gestureLettersRow?.bindSwitchRow(GestureLetterManager.isEnabled(ctx))
+        // Not a switch: tapping while on opens the letter config, not off
+        binding.gestureLettersRow?.bindValueRow(binding.gestureLettersToggle?.text)
         binding.weatherRow?.bindValueRow(binding.weatherToggle?.text)
     }
 
