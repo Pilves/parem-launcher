@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 import com.parem.launcher.data.FolderApp
 import com.parem.launcher.data.FolderGroup
+import com.parem.launcher.data.paremPrefs
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -27,7 +28,6 @@ class FolderManager(context: Context) {
 
     companion object {
         private val lock = Any()
-        private const val PREFS_NAME = "com.parem.launcher"
         private const val KEY_FOLDER_DATA = "FOLDER_DATA"
         private const val MAX_APPS_PER_FOLDER = 4
 
@@ -40,7 +40,7 @@ class FolderManager(context: Context) {
         private const val JSON_URL = "url"
     }
 
-    private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, 0)
+    private val prefs = context.applicationContext.paremPrefs()
 
     /** Returns true if the given home-app [slot] is currently occupied by a folder. */
     fun isFolderSlot(slot: Int): Boolean {

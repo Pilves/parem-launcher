@@ -7,6 +7,9 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import org.json.JSONObject
 
+/** The single SharedPreferences file every feature manager reads and writes. */
+fun Context.paremPrefs(): SharedPreferences = getSharedPreferences(Prefs.PREFS_NAME, 0)
+
 class Prefs(context: Context) {
     companion object {
         const val PREFS_NAME = "com.parem.launcher"

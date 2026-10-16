@@ -8,6 +8,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
+import com.parem.launcher.data.paremPrefs
 
 class ThemeScheduleWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
@@ -26,7 +27,7 @@ class ThemeScheduleWorker(appContext: Context, workerParams: WorkerParameters) :
             return Result.success()
         }
 
-        val prefs = applicationContext.getSharedPreferences(Prefs.PREFS_NAME, 0)
+        val prefs = applicationContext.paremPrefs()
         val currentTheme = prefs.getInt(Prefs.KEY_APP_THEME, AppCompatDelegate.MODE_NIGHT_YES)
 
         val isDark = currentTheme == AppCompatDelegate.MODE_NIGHT_YES

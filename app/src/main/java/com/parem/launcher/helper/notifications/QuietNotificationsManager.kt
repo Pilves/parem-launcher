@@ -12,6 +12,7 @@ import android.telecom.TelecomManager
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.edit
+import com.parem.launcher.data.paremPrefs
 import com.parem.launcher.helper.MindfulPause
 
 /**
@@ -30,7 +31,6 @@ object QuietNotificationsManager {
 
     enum class State { OFF, NEEDS_ACCESS, ON }
 
-    private const val PREFS_NAME = "com.parem.launcher"
     private const val KEY_ALLOWED = "QUIET_NOTIF_ALLOWED"
 
     // Excluded from backup in data_extraction_rules.xml / backup_rules.xml by file name
@@ -79,11 +79,11 @@ object QuietNotificationsManager {
     }
 
     fun getAllowed(context: Context): Set<String> {
-        return MindfulPause.parse(context.getSharedPreferences(PREFS_NAME, 0).getString(KEY_ALLOWED, ""))
+        return MindfulPause.parse(context.paremPrefs().getString(KEY_ALLOWED, ""))
     }
 
     fun setAllowed(context: Context, packages: Set<String>) {
-        context.getSharedPreferences(PREFS_NAME, 0)
+        context.paremPrefs()
             .edit { putString(KEY_ALLOWED, packages.joinToString(",")) }
     }
 

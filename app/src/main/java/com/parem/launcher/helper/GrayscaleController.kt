@@ -18,6 +18,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.parem.launcher.data.paremPrefs
 import com.parem.launcher.helper.GrayscalePolicy.Action
 import com.parem.launcher.helper.GrayscalePolicy.State
 import java.util.concurrent.TimeUnit
@@ -34,7 +35,6 @@ import java.util.concurrent.TimeUnit
 object GrayscaleController {
 
     private const val TAG = "Grayscale"
-    private const val PREFS_NAME = "com.parem.launcher"
 
     // Exported: the user's choices
     const val KEY_ON_FOCUS = "GRAYSCALE_ON_FOCUS"
@@ -61,18 +61,16 @@ object GrayscaleController {
     private const val FOCUS_END_WORK = "grayscale_focus_end"
     private const val KEY_FOCUS_END_TIME = "FOCUS_MODE_END_TIME"
 
-    private fun prefs(context: Context): SharedPreferences = context.getSharedPreferences(PREFS_NAME, 0)
-
     fun isGranted(context: Context): Boolean =
         context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
 
-    fun isManual(context: Context) = prefs(context).getBoolean(KEY_MANUAL, false)
-    fun isOnFocus(context: Context) = prefs(context).getBoolean(KEY_ON_FOCUS, false)
-    fun isOnLimit(context: Context) = prefs(context).getBoolean(KEY_ON_LIMIT, false)
+    fun isManual(context: Context) = context.paremPrefs().getBoolean(KEY_MANUAL, false)
+    fun isOnFocus(context: Context) = context.paremPrefs().getBoolean(KEY_ON_FOCUS, false)
+    fun isOnLimit(context: Context) = context.paremPrefs().getBoolean(KEY_ON_LIMIT, false)
 
     /** "Now" is an explicit choice inside Parem, so it also lifts a user override. */
     fun setManual(context: Context, on: Boolean) {
-        prefs(context).edit(commit = true) {
+        context.paremPrefs().edit(commit = true) {
             putBoolean(KEY_MANUAL, on)
             putBoolean(KEY_SUPPRESSED, false)
         }
@@ -80,17 +78,17 @@ object GrayscaleController {
     }
 
     fun setOnFocus(context: Context, on: Boolean) {
-        prefs(context).edit(commit = true) { putBoolean(KEY_ON_FOCUS, on) }
+        context.paremPrefs().edit(commit = true) { putBoolean(KEY_ON_FOCUS, on) }
         reconcile(context)
     }
 
     fun setOnLimit(context: Context, on: Boolean) {
-        prefs(context).edit(commit = true) { putBoolean(KEY_ON_LIMIT, on) }
+        context.paremPrefs().edit(commit = true) { putBoolean(KEY_ON_LIMIT, on) }
         reconcile(context)
     }
 
     fun reconcile(context: Context) {
-        val p = prefs(context)
+        val p = context.paremPrefs()
         val cr = context.contentResolver
         val current = read(cr)
         val focusActive = FocusModeManager.isActive(context)
@@ -166,7 +164,7 @@ object GrayscaleController {
 
     fun onLimitOverride(context: Context) {
         if (!isOnLimit(context)) return
-        prefs(context).edit(commit = true) {
+        context.paremPrefs().edit(commit = true) {
             putBoolean(KEY_LIMIT_OVERRIDE, true)
             putBoolean(KEY_LEFT_SINCE_OVERRIDE, false)
         }
@@ -175,13 +173,13 @@ object GrayscaleController {
 
     /** MainActivity.onStop. In prefs, not a field, so it survives process death. */
     fun onLauncherStopped(context: Context) {
-        val p = prefs(context)
+        val p = context.paremPrefs()
         if (p.getBoolean(KEY_LIMIT_OVERRIDE, false)) p.edit { putBoolean(KEY_LEFT_SINCE_OVERRIDE, true) }
     }
 
     /** MainActivity.onStart. Not HomeFragment.onResume: the drawer's pop back home resumes it mid-launch. */
     fun onLauncherStarted(context: Context) {
-        val p = prefs(context)
+        val p = context.paremPrefs()
         if (!p.getBoolean(KEY_LIMIT_OVERRIDE, false) || !p.getBoolean(KEY_LEFT_SINCE_OVERRIDE, false)) return
         p.edit(commit = true) {
             putBoolean(KEY_LIMIT_OVERRIDE, false)
@@ -197,12 +195,12 @@ object GrayscaleController {
     // Main thread only
     private var watch: Runnable? = null
 
-    fun isAppMarked(context: Context, pkg: String) = GrayscalePolicy.isMarked(prefs(context).getString(KEY_APPS, ""), pkg)
+    fun isAppMarked(context: Context, pkg: String) = GrayscalePolicy.isMarked(context.paremPrefs().getString(KEY_APPS, ""), pkg)
 
-    fun hasMarkedApps(context: Context) = !prefs(context).getString(KEY_APPS, "").isNullOrBlank()
+    fun hasMarkedApps(context: Context) = !context.paremPrefs().getString(KEY_APPS, "").isNullOrBlank()
 
     fun toggleAppMark(context: Context, pkg: String) {
-        val p = prefs(context)
+        val p = context.paremPrefs()
         p.edit { putString(KEY_APPS, GrayscalePolicy.toggle(p.getString(KEY_APPS, ""), pkg)) }
     }
 
@@ -215,7 +213,7 @@ object GrayscaleController {
         isGranted(context) && context.appUsagePermissionGranted() && isParemDefault(context)
 
     fun setAppForeground(context: Context, on: Boolean) {
-        val p = prefs(context)
+        val p = context.paremPrefs()
         if (p.getBoolean(KEY_APP_FG, false) != on) p.edit(commit = true) { putBoolean(KEY_APP_FG, on) }
         reconcile(context)
     }
@@ -260,7 +258,7 @@ object GrayscaleController {
                     }
                     if (front != null) {
                         val marked = isAppMarked(app, front)
-                        if (marked != prefs(app).getBoolean(KEY_APP_FG, false)) setAppForeground(app, marked)
+                        if (marked != app.paremPrefs().getBoolean(KEY_APP_FG, false)) setAppForeground(app, marked)
                     }
                 }
                 handler.postDelayed(this, TICK_MS)
@@ -278,7 +276,7 @@ object GrayscaleController {
     // ---- Focus end while the user is in another app ----
 
     private fun focusEndMs(context: Context): Long? = when (val label = FocusModeManager.getActiveLabel(context)) {
-        is FocusModeManager.ActiveLabel.Timed -> prefs(context).getLong(KEY_FOCUS_END_TIME, -1L).takeIf { it > 0 }
+        is FocusModeManager.ActiveLabel.Timed -> context.paremPrefs().getLong(KEY_FOCUS_END_TIME, -1L).takeIf { it > 0 }
         is FocusModeManager.ActiveLabel.ScheduledUntil -> label.epochMs
         else -> null
     }

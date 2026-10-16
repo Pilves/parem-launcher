@@ -7,6 +7,7 @@ import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.parem.launcher.data.paremPrefs
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -14,7 +15,6 @@ import java.util.concurrent.TimeUnit
 
 object ThemeScheduleManager {
 
-    private const val PREFS_NAME = "com.parem.launcher"
     private const val THEME_SCHEDULE_MODE = "THEME_SCHEDULE_MODE"
     private const val THEME_LIGHT_TIME = "THEME_LIGHT_TIME"
     private const val THEME_DARK_TIME = "THEME_DARK_TIME"
@@ -23,28 +23,25 @@ object ThemeScheduleManager {
 
     private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
-    private fun prefs(context: Context) =
-        context.getSharedPreferences(PREFS_NAME, 0)
-
     fun getMode(context: Context): Int =
-        prefs(context).getInt(THEME_SCHEDULE_MODE, Constants.ThemeScheduleMode.MANUAL)
+        context.paremPrefs().getInt(THEME_SCHEDULE_MODE, Constants.ThemeScheduleMode.MANUAL)
 
     fun setMode(context: Context, mode: Int) {
-        prefs(context).edit { putInt(THEME_SCHEDULE_MODE, mode) }
+        context.paremPrefs().edit { putInt(THEME_SCHEDULE_MODE, mode) }
     }
 
     fun getLightTime(context: Context): String =
-        prefs(context).getString(THEME_LIGHT_TIME, "07:00") ?: "07:00"
+        context.paremPrefs().getString(THEME_LIGHT_TIME, "07:00") ?: "07:00"
 
     fun setLightTime(context: Context, time: String) {
-        prefs(context).edit { putString(THEME_LIGHT_TIME, time) }
+        context.paremPrefs().edit { putString(THEME_LIGHT_TIME, time) }
     }
 
     fun getDarkTime(context: Context): String =
-        prefs(context).getString(THEME_DARK_TIME, "19:00") ?: "19:00"
+        context.paremPrefs().getString(THEME_DARK_TIME, "19:00") ?: "19:00"
 
     fun setDarkTime(context: Context, time: String) {
-        prefs(context).edit { putString(THEME_DARK_TIME, time) }
+        context.paremPrefs().edit { putString(THEME_DARK_TIME, time) }
     }
 
     fun startWorker(context: Context) {

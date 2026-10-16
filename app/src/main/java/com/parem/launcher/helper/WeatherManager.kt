@@ -3,6 +3,7 @@ package com.parem.launcher.helper
 import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
+import com.parem.launcher.data.paremPrefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -27,7 +28,6 @@ data class CityResult(
 
 object WeatherManager {
 
-    private const val PREFS_NAME = "com.parem.launcher"
     private const val WEATHER_ENABLED = "WEATHER_ENABLED"
     private const val WEATHER_LAT = "WEATHER_LAT"
     private const val WEATHER_LNG = "WEATHER_LNG"
@@ -41,25 +41,22 @@ object WeatherManager {
 
     private const val FETCH_INTERVAL_MS = 60 * 60 * 1000L // 1 hour
 
-    private fun prefs(context: Context) =
-        context.getSharedPreferences(PREFS_NAME, 0)
-
     fun isEnabled(context: Context): Boolean =
-        prefs(context).getBoolean(WEATHER_ENABLED, false)
+        context.paremPrefs().getBoolean(WEATHER_ENABLED, false)
 
     fun setEnabled(context: Context, enabled: Boolean) {
-        prefs(context).edit { putBoolean(WEATHER_ENABLED, enabled) }
+        context.paremPrefs().edit { putBoolean(WEATHER_ENABLED, enabled) }
     }
 
     fun setLocation(context: Context, lat: String, lng: String) {
-        prefs(context).edit {
+        context.paremPrefs().edit {
             putString(WEATHER_LAT, lat)
             putString(WEATHER_LNG, lng)
         }
     }
 
     fun getLocation(context: Context): Pair<String, String> {
-        val p = prefs(context)
+        val p = context.paremPrefs()
         return Pair(
             p.getString(WEATHER_LAT, "") ?: "",
             p.getString(WEATHER_LNG, "") ?: ""
@@ -67,14 +64,14 @@ object WeatherManager {
     }
 
     fun getCityName(context: Context): String =
-        prefs(context).getString(WEATHER_CITY_NAME, "") ?: ""
+        context.paremPrefs().getString(WEATHER_CITY_NAME, "") ?: ""
 
     fun setCityName(context: Context, name: String) {
-        prefs(context).edit { putString(WEATHER_CITY_NAME, name) }
+        context.paremPrefs().edit { putString(WEATHER_CITY_NAME, name) }
     }
 
     fun getCachedTemp(context: Context): String =
-        prefs(context).getString(WEATHER_CACHED_TEMP, "") ?: ""
+        context.paremPrefs().getString(WEATHER_CACHED_TEMP, "") ?: ""
 
 
     /**
@@ -85,7 +82,7 @@ object WeatherManager {
      * flashing an unverified reading as trustworthy or disappearing outright.
      */
     fun getStaleness(context: Context): WeatherStaleness.Level {
-        val p = prefs(context)
+        val p = context.paremPrefs()
         if (!p.contains(WEATHER_LAST_SUCCESS)) return WeatherStaleness.classify(null)
         val lastSuccess = p.getLong(WEATHER_LAST_SUCCESS, 0L)
         val age = System.currentTimeMillis() - lastSuccess
@@ -138,7 +135,7 @@ object WeatherManager {
     }
 
     suspend fun fetchWeather(context: Context): String? = withContext(Dispatchers.IO) {
-        val p = prefs(context)
+        val p = context.paremPrefs()
         val lastFetched = p.getLong(WEATHER_LAST_FETCHED, 0L)
         val now = System.currentTimeMillis()
 

@@ -3,6 +3,7 @@ package com.parem.launcher.helper
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.parem.launcher.data.paremPrefs
 import java.util.Calendar
 
 /**
@@ -14,7 +15,6 @@ import java.util.Calendar
  */
 object FocusModeManager {
 
-    private const val PREFS_NAME = "com.parem.launcher"
     private const val KEY_ENABLED = "FOCUS_MODE_ENABLED"
     private const val KEY_END_TIME = "FOCUS_MODE_END_TIME"
     private const val KEY_WHITELIST = "FOCUS_MODE_WHITELIST"
@@ -31,7 +31,7 @@ object FocusModeManager {
      * session is running, or a schedule window contains now and isn't paused.
      */
     fun isActive(context: Context): Boolean =
-        activeNow(context.getSharedPreferences(PREFS_NAME, 0))
+        activeNow(context.paremPrefs())
 
     private fun activeNow(p: SharedPreferences): Boolean {
         val now = Calendar.getInstance()
@@ -54,18 +54,18 @@ object FocusModeManager {
     private fun schedule(p: SharedPreferences) = FocusSchedule.parse(p.getString(KEY_SCHEDULE, ""))
 
     fun getSchedule(context: Context): List<FocusSchedule.Window> =
-        schedule(context.getSharedPreferences(PREFS_NAME, 0))
+        schedule(context.paremPrefs())
 
     fun setSchedule(context: Context, windows: List<FocusSchedule.Window>) {
-        context.getSharedPreferences(PREFS_NAME, 0)
+        context.paremPrefs()
             .edit { putString(KEY_SCHEDULE, FocusSchedule.serialize(windows)) }
     }
 
     fun isScheduleEnabled(context: Context): Boolean =
-        context.getSharedPreferences(PREFS_NAME, 0).getBoolean(KEY_SCHEDULE_ENABLED, false)
+        context.paremPrefs().getBoolean(KEY_SCHEDULE_ENABLED, false)
 
     fun setScheduleEnabled(context: Context, enabled: Boolean) {
-        context.getSharedPreferences(PREFS_NAME, 0)
+        context.paremPrefs()
             .edit { putBoolean(KEY_SCHEDULE_ENABLED, enabled) }
     }
 
@@ -77,7 +77,7 @@ object FocusModeManager {
      * ([checkAndExpire]) would silently pause the schedule.
      */
     fun pauseSchedule(context: Context) {
-        val p = context.getSharedPreferences(PREFS_NAME, 0)
+        val p = context.paremPrefs()
         val now = Calendar.getInstance()
         if (!scheduleActive(p, now)) return
         val windows = schedule(p)
@@ -113,7 +113,7 @@ object FocusModeManager {
      * otherwise whichever of the timed session and the schedule run ends later.
      */
     fun getActiveLabel(context: Context): ActiveLabel? {
-        val p = context.getSharedPreferences(PREFS_NAME, 0)
+        val p = context.paremPrefs()
         val now = Calendar.getInstance()
         val timed = timedActive(p, now.timeInMillis)
         val timedEnd = p.getLong(KEY_END_TIME, END_TIME_UNLIMITED)
@@ -138,7 +138,7 @@ object FocusModeManager {
         } else {
             System.currentTimeMillis() + durationMinutes * 60_000L
         }
-        context.getSharedPreferences(PREFS_NAME, 0)
+        context.paremPrefs()
             .edit {
                 putBoolean(KEY_ENABLED, true)
                 putLong(KEY_END_TIME, endTime)
@@ -149,7 +149,7 @@ object FocusModeManager {
      * Disables focus mode and resets the end time.
      */
     fun disable(context: Context) {
-        context.getSharedPreferences(PREFS_NAME, 0)
+        context.paremPrefs()
             .edit {
                 putBoolean(KEY_ENABLED, false)
                 putLong(KEY_END_TIME, END_TIME_UNLIMITED)
@@ -162,7 +162,7 @@ object FocusModeManager {
      * Reads SharedPreferences once to avoid redundant lookups from isActive() + getWhitelist().
      */
     fun isAppAllowed(context: Context, packageName: String): Boolean {
-        val p = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val p = context.paremPrefs()
         if (!activeNow(p)) return true
         // Never block the phone app, whitelisted or not: being unable to place a call
         // is worse than a broken focus session
@@ -177,7 +177,7 @@ object FocusModeManager {
      * Returns the current whitelist as a set of package names.
      */
     fun getWhitelist(context: Context): Set<String> {
-        val prefs = context.getSharedPreferences(PREFS_NAME, 0)
+        val prefs = context.paremPrefs()
         return MindfulPause.parse(prefs.getString(KEY_WHITELIST, ""))
     }
 
@@ -187,7 +187,7 @@ object FocusModeManager {
     fun setWhitelist(context: Context, packages: Set<String>) {
         val limited = packages.take(MAX_WHITELIST_SIZE)
         val csv = limited.joinToString(",")
-        context.getSharedPreferences(PREFS_NAME, 0)
+        context.paremPrefs()
             .edit { putString(KEY_WHITELIST, csv) }
     }
 
@@ -197,7 +197,7 @@ object FocusModeManager {
      */
     fun getRemainingTimeFormatted(context: Context): String? {
         if (!isActive(context)) return null
-        val prefs = context.getSharedPreferences(PREFS_NAME, 0)
+        val prefs = context.paremPrefs()
         val endTime = prefs.getLong(KEY_END_TIME, END_TIME_UNLIMITED)
         if (endTime == END_TIME_UNLIMITED) return null
 
@@ -216,7 +216,7 @@ object FocusModeManager {
      * Call this from onResume to ensure expired sessions are cleaned up.
      */
     fun checkAndExpire(context: Context) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, 0)
+        val prefs = context.paremPrefs()
         if (!prefs.getBoolean(KEY_ENABLED, false)) return
         val endTime = prefs.getLong(KEY_END_TIME, END_TIME_UNLIMITED)
         if (endTime == END_TIME_UNLIMITED) return

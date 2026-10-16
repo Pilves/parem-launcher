@@ -2,6 +2,7 @@ package com.parem.launcher.helper
 
 import android.content.Context
 import androidx.core.content.edit
+import com.parem.launcher.data.paremPrefs
 import java.time.LocalDate
 
 /**
@@ -11,16 +12,12 @@ import java.time.LocalDate
  */
 object AppOpenCounter {
 
-    private const val PREFS_NAME = "com.parem.launcher"
     private const val KEY_DAY = "OPEN_COUNTS_DAY"
     private const val KEY_COUNTS = "OPEN_COUNTS"
 
-    private fun prefs(context: Context) =
-        context.getSharedPreferences(PREFS_NAME, 0)
-
     fun increment(context: Context, packageName: String) {
         if (packageName.isBlank()) return
-        val p = prefs(context)
+        val p = context.paremPrefs()
         val today = LocalDate.now().toEpochDay()
         val counts = if (p.getLong(KEY_DAY, -1L) == today)
             parse(p.getString(KEY_COUNTS, "") ?: "")
@@ -34,7 +31,7 @@ object AppOpenCounter {
     }
 
     fun getCounts(context: Context): Map<String, Int> {
-        val p = prefs(context)
+        val p = context.paremPrefs()
         if (p.getLong(KEY_DAY, -1L) != LocalDate.now().toEpochDay()) return emptyMap()
         return parse(p.getString(KEY_COUNTS, "") ?: "")
     }
