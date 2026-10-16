@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.view.ViewGroup
 import android.widget.CheckBox
 import androidx.recyclerview.widget.RecyclerView
+import com.parem.launcher.R
 import com.parem.launcher.helper.SearchMatcher
 import com.parem.launcher.helper.dpToPx
 
@@ -55,6 +56,7 @@ class AppPickerAdapter(
             // the launcher's mono palette
             buttonTintList = ColorStateList.valueOf(textColor)
             setPadding(8.dpToPx(), 2.dpToPx(), 0, 2.dpToPx())
+            minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
             layoutParams = RecyclerView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -74,7 +76,10 @@ class AppPickerAdapter(
             setOnCheckedChangeListener { _, checked ->
                 if (checked) {
                     if (selectedIds.size < maxSelected) selectedIds.add(entry.id)
-                    else isChecked = false // cap reached: reject, as the old pickers did
+                    else {
+                        isChecked = false // cap reached: reject, as the old pickers did
+                        announceForAccessibility(context.getString(R.string.a11y_picker_cap, maxSelected))
+                    }
                 } else {
                     selectedIds.remove(entry.id)
                 }

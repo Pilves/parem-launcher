@@ -127,7 +127,7 @@ class BottomSheetMenu(private val context: Context) {
         val row = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = 48.dpToPx()
+            minimumHeight = context.resources.getDimensionPixelSize(R.dimen.touch_target_min)
             setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
             isFocusable = true
             if (context.isEinkDisplay()) {

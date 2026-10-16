@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.core.view.ViewCompat
 import com.parem.launcher.R
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.appUsagePermissionGranted
@@ -57,6 +58,7 @@ class ScreenTimeLimitDialog(
                 gravity = Gravity.CENTER_HORIZONTAL
                 bottomMargin = 16.dpToPx()
             }
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             setBackgroundColor(secondaryTextColor)
         })
 
@@ -67,6 +69,7 @@ class ScreenTimeLimitDialog(
             setTextColor(secondaryTextColor)
             setTypeface(null, android.graphics.Typeface.BOLD)
             setPadding(0, 0, 0, 8.dpToPx())
+            ViewCompat.setAccessibilityHeading(this, true)
         }
         rootLayout.addView(titleView)
 
@@ -110,6 +113,7 @@ class ScreenTimeLimitDialog(
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(0, 8.dpToPx(), 0, 8.dpToPx())
+                minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
@@ -122,6 +126,7 @@ class ScreenTimeLimitDialog(
                 textSize = 15f
                 setTextColor(textColor)
                 isSingleLine = true
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 layoutParams = LinearLayout.LayoutParams(
                     0,
                     LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -136,6 +141,7 @@ class ScreenTimeLimitDialog(
                 textSize = 13f
                 setTextColor(secondaryTextColor)
                 setPadding(8.dpToPx(), 0, 8.dpToPx(), 0)
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             }
             row.addView(usageView)
 
@@ -156,11 +162,18 @@ class ScreenTimeLimitDialog(
                 setPadding(8.dpToPx(), 4.dpToPx(), 8.dpToPx(), 4.dpToPx())
                 gravity = Gravity.CENTER
                 minWidth = 72.dpToPx()
+                minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
                 setBackgroundResource(context.selectableBackgroundRes())
             }
+            // The only tappable node in the row speaks the whole row: app, usage today, limit
+            fun describe(limit: String) {
+                val limitText = if (limit == "No limit" || limit == "Unlimited") limit else context.getString(R.string.a11y_app_limit_value, limit)
+                limitView.contentDescription = context.getString(R.string.a11y_app_limit_row, appName, usageView.text, limitText)
+            }
+            describe(limitLabel)
 
             limitView.setOnClickListener {
-                showLimitPicker(packageName, limitView)
+                showLimitPicker(packageName, limitView) { describe(it) }
             }
 
             row.addView(limitView)
@@ -181,7 +194,7 @@ class ScreenTimeLimitDialog(
 
     // A themed sheet instead of the system PopupMenu, whose Material styling
     // clashed with the launcher's mono look
-    private fun showLimitPicker(packageName: String, limitView: TextView) {
+    private fun showLimitPicker(packageName: String, limitView: TextView, onChanged: (String) -> Unit) {
         val menu = BottomSheetMenu(context)
             .title(context.getString(R.string.select_time_limit))
         for (option in limitOptions) {
@@ -191,9 +204,11 @@ class ScreenTimeLimitDialog(
                     // matching what a reopened dialog would display
                     AppLimitManager.removeLimit(context, packageName)
                     limitView.text = "No limit"
+                    onChanged("No limit")
                 } else {
                     AppLimitManager.setLimit(context, packageName, option.minutes)
                     limitView.text = option.label
+                    onChanged(option.label)
                 }
             }
         }
