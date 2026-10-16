@@ -61,43 +61,22 @@ class ScreenTimeGraphView @JvmOverloads constructor(
     private val dimAlpha = 115
     private val textDimAlpha = 153
 
+    // Alpha and typeface are swapped per bar in onDraw (today vs. past days)
     private val barPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = primaryColor
-        alpha = dimAlpha
-        style = Paint.Style.FILL
-    }
-
-    private val todayBarPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = primaryColor
         style = Paint.Style.FILL
     }
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = primaryColor
-        alpha = textDimAlpha
         textSize = 10f * resources.displayMetrics.scaledDensity
         textAlign = Paint.Align.CENTER
-    }
-
-    private val todayTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = primaryColor
-        textSize = 10f * resources.displayMetrics.scaledDensity
-        textAlign = Paint.Align.CENTER
-        typeface = Typeface.DEFAULT_BOLD
     }
 
     private val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = primaryColor
-        alpha = textDimAlpha
         textSize = 12f * resources.displayMetrics.scaledDensity
         textAlign = Paint.Align.CENTER
-    }
-
-    private val todayLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = primaryColor
-        textSize = 12f * resources.displayMetrics.scaledDensity
-        textAlign = Paint.Align.CENTER
-        typeface = Typeface.DEFAULT_BOLD
     }
 
     private val baselinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -241,6 +220,11 @@ class ScreenTimeGraphView @JvmOverloads constructor(
         for (i in data.indices) {
             val (label, millis) = data[i]
             val isToday = i == emphasizedIndex
+            barPaint.alpha = if (isToday) 255 else dimAlpha
+            textPaint.alpha = if (isToday) 255 else textDimAlpha
+            labelPaint.alpha = if (isToday) 255 else textDimAlpha
+            textPaint.typeface = if (isToday) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
+            labelPaint.typeface = if (isToday) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
             val centerX = sidePadding + slotWidth * i + slotWidth / 2f
 
             // Minimum stub height so zero-usage days stay visible on the axis
@@ -249,23 +233,20 @@ class ScreenTimeGraphView @JvmOverloads constructor(
 
             val barTop = baselineY - barHeight
             rect.set(centerX - barWidth / 2f, barTop, centerX + barWidth / 2f, baselineY)
-            canvas.drawRoundRect(
-                rect, barCornerRadius, barCornerRadius,
-                if (isToday) todayBarPaint else barPaint
-            )
+            canvas.drawRoundRect(rect, barCornerRadius, barCornerRadius, barPaint)
 
             canvas.drawText(
                 precomputedLabels.getOrElse(i) { "" },
                 centerX,
                 barTop - textAboveBarPadding,
-                if (isToday) todayTextPaint else textPaint
+                textPaint
             )
 
             canvas.drawText(
                 label,
                 centerX,
                 height.toFloat() - labelBelowBarPadding,
-                if (isToday) todayLabelPaint else labelPaint
+                labelPaint
             )
 
             if (i == focusedIndex) {

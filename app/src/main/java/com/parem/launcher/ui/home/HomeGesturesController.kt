@@ -41,6 +41,7 @@ import com.parem.launcher.ui.HomeFragment
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.dismissOnDestroy
 import com.parem.launcher.ui.QuietListSheet
+import com.parem.launcher.ui.isAlive
 import com.parem.launcher.ui.requestLockAdmin
 import com.parem.launcher.ui.showLockConsent
 import com.parem.launcher.ui.showLockServiceOff
@@ -179,8 +180,8 @@ class HomeGesturesController(
                     HomeAccessibilityActions.Kind.SETTINGS -> openSettings()
                     HomeAccessibilityActions.Kind.NOTIFICATIONS -> expandNotificationDrawer(context)
                     HomeAccessibilityActions.Kind.ADD_WIDGET -> fragment.widgetController?.showWidgetPicker()
-                    HomeAccessibilityActions.Kind.SWIPE_LEFT_APP -> openSwipeLeftApp()
-                    HomeAccessibilityActions.Kind.SWIPE_RIGHT_APP -> openSwipeRightApp()
+                    HomeAccessibilityActions.Kind.SWIPE_LEFT_APP -> openSwipeApp(isLeft = true)
+                    HomeAccessibilityActions.Kind.SWIPE_RIGHT_APP -> openSwipeApp(isLeft = false)
                     HomeAccessibilityActions.Kind.SWIPE_UP_APP -> launchSwipeUpApp(slot)
                 }
                 true
@@ -246,12 +247,12 @@ class HomeGesturesController(
 
             override fun onSwipeLeft() {
                 super.onSwipeLeft()
-                openSwipeLeftApp()
+                openSwipeApp(isLeft = true)
             }
 
             override fun onSwipeRight() {
                 super.onSwipeRight()
-                openSwipeRightApp()
+                openSwipeApp(isLeft = false)
             }
 
             override fun onSwipeUp() {
@@ -304,12 +305,12 @@ class HomeGesturesController(
 
             override fun onSwipeLeft() {
                 super.onSwipeLeft()
-                openSwipeLeftApp()
+                openSwipeApp(isLeft = true)
             }
 
             override fun onSwipeRight() {
                 super.onSwipeRight()
-                openSwipeRightApp()
+                openSwipeApp(isLeft = false)
             }
 
             override fun onSwipeUp() {
@@ -358,39 +359,25 @@ class HomeGesturesController(
         }
     }
 
-    private fun openSwipeRightApp() {
-        if (!prefs.swipeRightEnabled) return
+    private fun openSwipeApp(isLeft: Boolean) {
+        if (!(if (isLeft) prefs.swipeLeftEnabled else prefs.swipeRightEnabled)) return
         executeGestureAction(
-            prefs.getEffectiveSwipeRightAction(),
-            onLockDecline = { prefs.swipeRightAction = Constants.GestureAction.NONE },
+            if (isLeft) prefs.getEffectiveSwipeLeftAction() else prefs.getEffectiveSwipeRightAction(),
+            onLockDecline = {
+                if (isLeft) prefs.swipeLeftAction = Constants.GestureAction.NONE
+                else prefs.swipeRightAction = Constants.GestureAction.NONE
+            },
         ) {
             // Fallback for OPEN_APP action
-            if (prefs.appPackageSwipeRight.isNotEmpty())
+            val pkg = if (isLeft) prefs.appPackageSwipeLeft else prefs.appPackageSwipeRight
+            if (pkg.isNotEmpty())
                 fragment.slotsController?.launchApp(
-                    prefs.appNameSwipeRight,
-                    prefs.appPackageSwipeRight,
-                    prefs.appActivityClassNameSwipeRight,
-                    prefs.appUserSwipeRight
+                    if (isLeft) prefs.appNameSwipeLeft else prefs.appNameSwipeRight,
+                    pkg,
+                    if (isLeft) prefs.appActivityClassNameSwipeLeft else prefs.appActivityClassNameSwipeRight,
+                    if (isLeft) prefs.appUserSwipeLeft else prefs.appUserSwipeRight
                 )
-            else openDialerApp(context)
-        }
-    }
-
-    private fun openSwipeLeftApp() {
-        if (!prefs.swipeLeftEnabled) return
-        executeGestureAction(
-            prefs.getEffectiveSwipeLeftAction(),
-            onLockDecline = { prefs.swipeLeftAction = Constants.GestureAction.NONE },
-        ) {
-            // Fallback for OPEN_APP action
-            if (prefs.appPackageSwipeLeft.isNotEmpty())
-                fragment.slotsController?.launchApp(
-                    prefs.appNameSwipeLeft,
-                    prefs.appPackageSwipeLeft,
-                    prefs.appActivityClassNameSwipeLeft,
-                    prefs.appUserSwipeLeft
-                )
-            else openCameraApp(context)
+            else if (isLeft) openCameraApp(context) else openDialerApp(context)
         }
     }
 
@@ -485,30 +472,30 @@ class HomeGesturesController(
 
     private fun openSettings() {
         fragment.findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
-        viewModel.firstOpen(false)
+        viewModel.firstOpen.postValue(false)
     }
 
     private fun showHomeLongPressMenu() {
         BottomSheetMenu(context)
             .title(context.getString(R.string.app_menu_home), prominent = true)
             .option(context.getString(R.string.a11y_all_apps)) {
-                if (fragment.isAdded && fragment.view != null) fragment.showAppList(Constants.FLAG_LAUNCH_APP)
+                if (fragment.isAlive) fragment.showAppList(Constants.FLAG_LAUNCH_APP)
             }
             .option(context.getString(R.string.notifications)) {
-                if (fragment.isAdded && fragment.view != null) expandNotificationDrawer(context)
+                if (fragment.isAlive) expandNotificationDrawer(context)
             }
             .option(context.getString(R.string.add_widget)) {
-                if (fragment.isAdded && fragment.view != null) fragment.widgetController?.showWidgetPicker()
+                if (fragment.isAlive) fragment.widgetController?.showWidgetPicker()
             }
             .option(context.getString(R.string.app_menu_wallpaper)) {
-                if (fragment.isAdded && fragment.view != null) try {
+                if (fragment.isAlive) try {
                     fragment.startActivity(Intent(Intent.ACTION_SET_WALLPAPER))
                 } catch (_: ActivityNotFoundException) {
                     context.showToast(context.getString(R.string.app_menu_wallpaper_unavailable))
                 }
             }
             .option(context.getString(R.string.settings)) {
-                if (fragment.isAdded && fragment.view != null) openSettings()
+                if (fragment.isAlive) openSettings()
             }
             .show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }

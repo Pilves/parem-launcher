@@ -150,7 +150,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (prefs.firstOpen) {
-            viewModel.firstOpen(true)
+            viewModel.firstOpen.postValue(true)
             prefs.firstOpen = false
             prefs.firstOpenTime = System.currentTimeMillis()
             viewModel.setDefaultClockApp()
