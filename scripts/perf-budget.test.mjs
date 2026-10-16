@@ -2,7 +2,7 @@
 // Run: node --test scripts/perf-budget.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { compare, enoughFrames, median, overBudget, parseAmStart, parseGfxinfo } from './perf-budget.mjs';
+import { compare, enoughFrames, hasScreen, measurementProblems, median, overBudget, parseAmStart, parseGfxinfo } from './perf-budget.mjs';
 
 test('parses am start -W output', () => {
   const out = 'Starting: Intent { act=android.intent.action.MAIN }\nStatus: ok\nLaunchState: COLD\n'
@@ -69,4 +69,27 @@ test('a phase with too few frames counts as not measured', () => {
   const few = { frames: 12, jankyPct: 50, p50Ms: 16, p99Ms: 105, maxFrameMs: 105 };
   assert.deepEqual(enoughFrames(few), { frames: 12, jankyPct: null, p50Ms: 16, p99Ms: null, maxFrameMs: null });
   assert.deepEqual(enoughFrames({ ...few, frames: 30 }), { ...few, frames: 30 });
+});
+
+
+test('screen guard requires the requested resource inside the measured package', () => {
+  const node = '<node package="com.parem.launcher.debug" resource-id="com.parem.launcher:id/search_src_text" />';
+  assert.equal(hasScreen(node, 'com.parem.launcher.debug', 'search_src_text'), true);
+  assert.equal(hasScreen(node, 'com.parem.launcher.debug', 'homeAppsLayout'), false);
+  assert.equal(hasScreen(node.replace('com.parem.launcher.debug', 'com.android.systemui'),
+    'com.parem.launcher.debug', 'search_src_text'), false);
+  assert.equal(hasScreen('<node package="com.parem.launcher.debug" /><node resource-id="com.parem.launcher:id/search_src_text" />',
+    'com.parem.launcher.debug', 'search_src_text'), false);
+});
+
+test('invalid screen or insufficient frames cannot become a valid measurement', () => {
+  const valid = { drawerScroll: { frames: 30 }, omniboxTyping: { frames: 31 } };
+  assert.deepEqual(measurementProblems(valid), []);
+  assert.deepEqual(measurementProblems({ ...valid, drawerScroll: { error: 'expected drawer' } }),
+    ['drawerScroll: expected drawer']);
+  assert.deepEqual(measurementProblems({ ...valid, omniboxTyping: { frames: 1 } }),
+    ['omniboxTyping: only 1 frames (need 30)']);
+  // Invalid frame phases must not conceal independently measured start regressions.
+  assert.ok(compare(run(500, 100, 5, 30), { coldStartMs: 1000, returnHomeMs: 200 })
+    .some((problem) => problem.startsWith('coldStartMs: 1000')));
 });
