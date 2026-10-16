@@ -7,6 +7,7 @@
 - Battery: the per-app grayscale watch ticks every 5 s instead of every second while the screen is off, home re-renders on battery changes only when the battery % is shown, and the quiet-notification filter no longer parses its allowlist for notifications it never hides
 - Fixed: the empty-home long-press menu opens fully expanded in landscape on phone and tablet, so Settings is reachable without dragging the sheet up.
 - Adding a widget no longer hides home apps silently: a widget that would push an app off screen is refused with a message (like the apps-count picker), any apps the fitting pass still has to hide are named in a message, and the home column re-fits when the system-bar insets change so no slot ends under the gesture bar.
+- Smaller release APK and a lighter cold start: WorkManager no longer initialises on every launch, build-tool leftovers are no longer packaged.
 
 ## v6.0.0-beta.1 — 2026-10-16
 

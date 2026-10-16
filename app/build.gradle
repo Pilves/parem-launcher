@@ -67,6 +67,20 @@ android {
         includeInApk = false
     }
     namespace 'com.parem.launcher'
+    // Not loaded at runtime by anything here: the builtins serve kotlin-reflect
+    // (not a dependency), the probes file serves the coroutines debugger, the
+    // rest are build-tool stamps (M3-WP10 perf audit).
+    packaging {
+        resources.excludes += [
+            'kotlin/**',
+            'DebugProbesKt.bin',
+            'META-INF/*.version',
+            'META-INF/androidx/**',
+            'META-INF/com/android/build/**',
+            'META-INF/version-control-info.textproto',
+            'META-INF/versions/**',
+        ]
+    }
 }
 
 dependencies {

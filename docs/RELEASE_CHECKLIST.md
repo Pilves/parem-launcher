@@ -141,6 +141,41 @@ Budgets are checked on a device, release build:
       frame > 32 ms. Ignore its REGRESSION lines (the baseline is the
       emulator); record the numbers in the release PR
 
+Device numbers (owner's pass; the script's `--out` JSON has the same keys).
+Record the release build, not debug: debug has no R8 and StrictMode logging.
+
+| metric | tablet (release, `adb` over Tailscale) | phone (release) | budget |
+|---|---|---|---|
+| cold start, `am start -W` TotalTime, median of 10 | _ ms | _ ms | < 300 ms |
+| return home from Settings, median of 10 | _ ms | _ ms | < 100 ms |
+| drawer scroll, janky frames | _ % | _ % | < 1% |
+| drawer scroll, worst frame | _ ms | _ ms | ≤ 32 ms |
+| omnibox typing, janky frames | _ % | _ % | < 1% |
+| omnibox typing, worst frame | _ ms | _ ms | ≤ 32 ms |
+| release APK on disk | _ MB | — | see the perf audit |
+
+The same numbers by hand, when the script cannot run (e.g. a build that is
+not past onboarding). `P=com.parem.launcher`; the release APK is the one
+under test, with Parem set as home and the screen unlocked:
+
+```
+adb connect <tablet>:5555                      # Tailscale IP from the test-tablet note
+adb shell cmd package set-home-activity $P/com.parem.launcher.MainActivity
+# cold start: repeat 10x, take the median TotalTime
+adb shell am force-stop $P
+adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.HOME -n $P/com.parem.launcher.MainActivity
+# return home: open Settings, then press home; TotalTime of the second line
+adb shell am start -W -a android.settings.SETTINGS
+adb shell am start -W -a android.intent.action.MAIN -c android.intent.category.HOME
+# frames: reset, do the gesture (swipe the drawer up/down ~10 times, or type
+# a few letters in the omnibox), then read the summary
+adb shell dumpsys gfxinfo $P reset
+adb shell dumpsys gfxinfo $P | sed -n '/Janky frames/p;/90th/p;/99th/p'
+adb shell dumpsys gfxinfo $P framestats | awk -F, 'NR>1 && $1==0 {print ($14-$2)/1e6}' | sort -n | tail -1   # worst frame ms
+# debug build only: main-thread disk/network that StrictMode caught
+adb logcat -d -s StrictMode
+```
+
 ## Battery soak (24 h)
 
 What the code holds (M4-WP11 audit, 2026-10-03, re-read 2026-10-16 in
