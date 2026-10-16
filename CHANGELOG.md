@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Widgets on Android 12 and later receive their actual size list instead of legacy minimum and maximum dimensions alone.
+
 - Settings, drawer and sheets use a warm monochrome palette with moss-teal actions, clearer type and tablet sizing; home keeps monochrome wallpaper text. E-ink stays monochrome.
 - Wallpaper dimming can be controlled independently of daily wallpaper.
 - Remove the inactive legacy lock toggle from landscape settings; the working lock controls are unchanged.

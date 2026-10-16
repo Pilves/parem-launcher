@@ -292,6 +292,12 @@ per package; the rest of each of those fragments is still in
   Verified: parser/measurement guard tests cover wrong package/resource, missing frames and preserving cold-start failures; required repository checks pass.
   Not verified: emulator CI and physical-device measurements on this commit; observed drawer-close/notification-shade escapes may now fail explicitly and still need follow-up.
   Easy to get wrong: the CI functional reports previously contained no failure screen; Settings launch failures now include package and hierarchy, so diagnose that evidence before changing app behavior.
+- **M4-WP61 (PR #0):** Widget add, drag-resize and relayout share an API-gated size notification: API31+ uses the standard SizeF-list overload and API29/30 retains the legacy dimensions.
+  Contract: pass full measured host dimensions; Android subtracts default widget padding and fills min/max plus a nonempty appWidgetSizes list. Widget IDs, provider storage, saved heights and configuration flow are unchanged.
+  Prerequisite: built on WP42 commit 4410686; its later uncommitted sizing-call cleanup touches these same sites, so integration must retain this helper and its three calls.
+  Verified: required compile, JVM tests, debug assembly and handoff harness pass; a separate QA-suffix APK is prepared for the existing tablet installation.
+  Not verified: Samsung Digital Clock rendering/recovery, Calendar regression, rotation/process restart and API29/30 fallback on a device; those need root's tablet QA.
+  Easy to get wrong: the legacy integer overload clears appWidgetSizes even if a caller sets it manually; do not pre-subtract padding or reintroduce that overload on API31+.
 - **M4-WP62 (PR #0):** Code health pass 2 reports the audit's recovered failures through CrashReporter, preserves saved home slots when installed-app lookup throws, and removes proven unused contact payload/resources and duplicate normalization/night styles.
   Contract: diagnostics always Log.e and write only with crash reporting enabled, bounded to the existing 64 KiB file; original fallbacks, UI and architecture traps remain. Contact provider lookup keys still deduplicate contacts; no dependencies or new exported prefs.
   Verification: rebased onto 504f17b; compileDebugKotlin, testDebugUnitTest (388 tests), assembleDebug, handoff harness and diff check exit 0. Section 6 has seven proposals only in docs/plans/2026-10-16-ponytail-pass2.md.

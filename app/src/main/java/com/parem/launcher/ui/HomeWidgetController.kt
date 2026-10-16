@@ -1,5 +1,6 @@
 package com.parem.launcher.ui
 
+import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
@@ -11,6 +12,7 @@ import android.os.Bundle
 import android.os.Process
 import android.os.UserManager
 import android.util.Log
+import android.util.SizeF
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -409,7 +411,7 @@ class HomeWidgetController(
                             if (!isActive()) return@post
                             val widthDp = (wrapper.width / density).toInt()
                             if (widthDp > 0 && finalHeightDp > 0) {
-                                hostView.updateAppWidgetSize(null, widthDp, finalHeightDp, widthDp, finalHeightDp)
+                                notifyWidgetSize(hostView, widthDp, finalHeightDp)
                             }
                             onWidgetsChanged?.invoke()
                         }
@@ -431,8 +433,17 @@ class HomeWidgetController(
             val widthDp = (wrapper.width / context.resources.displayMetrics.density).toInt()
             val heightDp = (wrapper.height / context.resources.displayMetrics.density).toInt()
             if (widthDp > 0 && heightDp > 0) {
-                hostView.updateAppWidgetSize(null, widthDp, heightDp, widthDp, heightDp)
+                notifyWidgetSize(hostView, widthDp, heightDp)
             }
+        }
+    }
+
+    private fun notifyWidgetSize(hostView: AppWidgetHostView, widthDp: Int, heightDp: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // The framework subtracts host padding and supplies the provider's size list.
+            hostView.updateAppWidgetSize(Bundle(), listOf(SizeF(widthDp.toFloat(), heightDp.toFloat())))
+        } else {
+            hostView.updateAppWidgetSize(null, widthDp, heightDp, widthDp, heightDp)
         }
     }
 
@@ -474,7 +485,7 @@ class HomeWidgetController(
                     ?: return@post
                 val widthDp = (wrapper.width / density).toInt()
                 if (widthDp > 0 && heightDp > 0) {
-                    hostView.updateAppWidgetSize(null, widthDp, heightDp, widthDp, heightDp)
+                    notifyWidgetSize(hostView, widthDp, heightDp)
                 }
             }
         }
