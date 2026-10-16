@@ -3,6 +3,7 @@ package com.parem.launcher.ui
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.provider.Settings
 import android.os.SystemClock
 import android.widget.TextView
@@ -13,6 +14,7 @@ import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.MindfulPause
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.UsageStatsHelper
+import com.parem.launcher.helper.WebLaunchTarget
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.formattedTimeSpent
@@ -96,6 +98,34 @@ object BadHabitDialogs {
                 )
             }
         }
+    }
+
+    /**
+     * The gate for a web open (website shortcut, omnibox search, search gesture):
+     * a web open is not an app launch, so it is gated only on the app that will
+     * handle [intent] — focus first, then that app's limit and pause through
+     * [gateLaunch]. With no single handler (chooser) nothing is gated here;
+     * MainViewModel.launchUrl still pins a whitelisted browser under focus.
+     */
+    fun gateWebOpen(
+        context: Context,
+        scope: CoroutineScope,
+        isActive: () -> Boolean,
+        intent: Intent,
+        open: () -> Unit,
+    ) {
+        val handler = try {
+            context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                ?.activityInfo?.packageName
+        } catch (_: Exception) {
+            null
+        }
+        val packageName = WebLaunchTarget.gatedPackage(handler)
+        if (packageName.isNotEmpty() && !FocusModeManager.isAppAllowed(context, packageName)) {
+            FocusModeManager.showBlocked(context)
+            return
+        }
+        gateLaunch(context, scope, isActive, "", packageName, open)
     }
 
     /** Gesture letters pass no name; show the app's label rather than its package. */

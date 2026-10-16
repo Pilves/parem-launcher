@@ -231,21 +231,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         updateSwipeApps.postValue(Unit)
     }
 
-    private fun showFocusBlocked() {
-        // A schedule block names its end and where the override is,
-        // since nothing the user did started it
-        val message = when (val label = FocusModeManager.getActiveLabel(appContext)) {
-            is FocusModeManager.ActiveLabel.ScheduledUntil -> appContext.getString(
-                R.string.app_blocked_focus_scheduled,
-                FocusModeManager.formatScheduledEnd(appContext, label.epochMs)
-            )
-            FocusModeManager.ActiveLabel.ScheduledNoEnd ->
-                appContext.getString(R.string.app_blocked_focus_scheduled_no_end)
-            else -> null
-        }
-        if (message != null) appContext.showToast(message, android.widget.Toast.LENGTH_LONG)
-        else appContext.showToast(appContext.getString(R.string.app_blocked_focus))
-    }
+    private fun showFocusBlocked() = FocusModeManager.showBlocked(appContext)
 
     private fun launchUrl(url: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

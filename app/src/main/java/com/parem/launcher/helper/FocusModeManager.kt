@@ -2,6 +2,7 @@ package com.parem.launcher.helper
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.parem.launcher.R
 import java.util.Calendar
 
 /**
@@ -180,6 +181,23 @@ object FocusModeManager {
             .filter { it.isNotEmpty() }
             .toSet()
         return packageName in whitelist
+    }
+
+    /**
+     * The one "blocked by focus" toast every launch route shows. A schedule block
+     * names its end and where the override is, since nothing the user did started it.
+     */
+    fun showBlocked(context: Context) {
+        val message = when (val label = getActiveLabel(context)) {
+            is ActiveLabel.ScheduledUntil -> context.getString(
+                R.string.app_blocked_focus_scheduled,
+                formatScheduledEnd(context, label.epochMs)
+            )
+            ActiveLabel.ScheduledNoEnd -> context.getString(R.string.app_blocked_focus_scheduled_no_end)
+            else -> null
+        }
+        if (message != null) context.showToast(message, android.widget.Toast.LENGTH_LONG)
+        else context.showToast(context.getString(R.string.app_blocked_focus))
     }
 
     /**
