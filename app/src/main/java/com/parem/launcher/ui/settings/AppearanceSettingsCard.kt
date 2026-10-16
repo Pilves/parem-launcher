@@ -57,6 +57,7 @@ class AppearanceSettingsCard(
         binding.boldFontRow.setOnClickListener(this)
         binding.dailyWallpaperUrl.setOnClickListener(this)
         binding.dailyWallpaperRow.setOnClickListener(this)
+        binding.dimWallpaperRow.setOnClickListener(this)
         binding.statusBarRow.setOnClickListener(this)
         binding.weatherRow?.setOnClickListener(this)
 
@@ -74,6 +75,10 @@ class AppearanceSettingsCard(
         when (view.id) {
             R.id.dailyWallpaperUrl -> context.openUrl(prefs.dailyWallpaperUrl)
             R.id.dailyWallpaperRow -> toggleDailyWallpaperUpdate()
+            R.id.dimWallpaperRow -> {
+                prefs.dimWallpaper = !prefs.dimWallpaper
+                populateWallpaperText()
+            }
             R.id.statusBarRow -> toggleStatusBar()
             R.id.appThemeRow -> showThemePicker()
             R.id.textSizeRow -> binding.textSizesLayout.visibility = View.VISIBLE
@@ -153,6 +158,8 @@ class AppearanceSettingsCard(
         if (prefs.dailyWallpaper) binding.dailyWallpaper.text = context.getString(R.string.on)
         else binding.dailyWallpaper.text = context.getString(R.string.off)
         binding.dailyWallpaperRow.bindSwitchRow(prefs.dailyWallpaper)
+        binding.dimWallpaper.text = context.onOff(prefs.dimWallpaper)
+        binding.dimWallpaperRow.bindSwitchRow(prefs.dimWallpaper)
     }
 
     private fun updateTextSizeScale(step: Float) {

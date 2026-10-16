@@ -2,4 +2,6 @@
 <resources>
     <!-- Matches the platform: API 36+ ignores orientation requests at sw600dp and up -->
     <bool name="lock_portrait">true</bool>
+    <!-- Dark status/navigation bar icons; values-night flips it -->
+    <bool name="light_system_bars">true</bool>
 </resources>

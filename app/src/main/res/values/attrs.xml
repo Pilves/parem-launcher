@@ -10,5 +10,9 @@
     <attr name="primaryColorInverseTrans80" format="color" />
     <attr name="primaryShadeColor" format="color" />
     <attr name="primaryShadeDarkColor" format="color" />
+    <!-- Drawer and settings root over the wallpaper: 85% surface (DESIGN 5) -->
+    <attr name="surfaceScrimColor" format="color" />
+    <!-- End colour of the opt-in home gradient behind the text (DESIGN 5) -->
+    <attr name="wallpaperDimColor" format="color" />
     <attr name="mainFontFamily" format="string" />
 </resources>

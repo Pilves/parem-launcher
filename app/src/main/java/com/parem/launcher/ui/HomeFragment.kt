@@ -20,6 +20,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GrayscaleController
+import com.parem.launcher.helper.isEinkDisplay
 import com.parem.launcher.helper.padForSystemBars
 import com.parem.launcher.helper.setStatusBarVisible
 import com.parem.launcher.helper.showToast
@@ -96,6 +97,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         slotsController?.populateHomeScreen(false)
         viewModel.isParemDefault()
         requireActivity().setStatusBarVisible(prefs.showStatusBar)
+        binding.wallpaperDim.isVisible = prefs.dimWallpaper && !requireContext().isEinkDisplay()
         FocusModeManager.checkAndExpire(requireContext())
         GrayscaleController.reconcile(requireContext())
         viewModel.getWeather()

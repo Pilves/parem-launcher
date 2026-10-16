@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Landscape tablets. sw outranks w, so a plain values-w840dp would never win here (DESIGN 4) -->
+    <dimen name="home_keyline">64dp</dimen>
+    <dimen name="sheet_padding_horizontal">32dp</dimen>
+    <dimen name="sheet_max_width">480dp</dimen>
+    <dimen name="content_side_padding">200dp</dimen>
+</resources>

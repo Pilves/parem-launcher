@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Opt-in home gradient behind the text: transparent at the top, 35% inverse at the bottom -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="@android:color/transparent"
+        android:endColor="?attr/wallpaperDimColor"
+        android:type="linear" />
+</shape>

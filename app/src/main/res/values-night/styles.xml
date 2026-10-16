@@ -1,44 +1,21 @@
 <resources>
 
-    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
-
-        <item name="android:forceDarkAllowed">false</item>
-
-        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges
-        </item>
-        <item name="android:colorEdgeEffect">@android:color/transparent</item>
-
-        <item name="android:fitsSystemWindows">false</item>
-        <item name="android:windowShowWallpaper">true</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowFullscreen">false</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
-        <item name="android:colorBackgroundCacheHint">@null</item>
-
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-        <!--        <item name="android:enforceStatusBarContrast">false</item>-->
-        <item name="android:enforceNavigationBarContrast">false</item>
-
+    <!-- Colour items only; everything else lives in Base.AppTheme (values/styles.xml) -->
+    <style name="AppTheme" parent="Base.AppTheme">
         <item name="colorPrimary">@color/white</item>
-        <item name="colorPrimaryDark">@android:color/darker_gray</item>
         <item name="colorAccent">@color/white</item>
 
         <item name="primaryColor">@color/white</item>
-        <item name="primaryInverseColor">@color/whiteInverse</item>
-        <item name="primaryTextShadowColor">@color/whiteInverseTrans50</item>
+        <item name="primaryInverseColor">@color/black</item>
+        <item name="primaryTextShadowColor">@color/blackTrans50</item>
         <item name="primaryColorTrans50">@color/whiteTrans50</item>
         <item name="primaryColorTrans60">@color/whiteTrans60</item>
         <item name="primaryColorTrans80">@color/whiteTrans80</item>
-        <item name="primaryColorInverseTrans80">@color/whiteInverseTrans80</item>
-        <item name="primaryShadeColor">@color/whiteInverseTrans10</item>
-        <item name="primaryShadeDarkColor">@color/whiteInverseTrans25</item>
-
-        <item name="mainFontFamily">sans-serif-light</item>
-
+        <item name="primaryColorInverseTrans80">@color/blackTrans80</item>
+        <item name="primaryShadeColor">@color/blackTrans10</item>
+        <item name="primaryShadeDarkColor">@color/blackTrans25</item>
+        <item name="surfaceScrimColor">@color/blackTrans85</item>
+        <item name="wallpaperDimColor">@color/blackTrans35</item>
     </style>
 
 </resources>

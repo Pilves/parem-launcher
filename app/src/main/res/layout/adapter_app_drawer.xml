@@ -20,13 +20,11 @@
 
     <TextView
         android:id="@+id/appUsageTime"
-        style="@style/TextSmall"
+        android:textAppearance="@style/TextAppearance.Parem.Caption"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|center_vertical"
         android:paddingEnd="20dp"
-        android:textSize="12sp"
-        android:alpha="0.5"
         android:visibility="gone"
         tools:text="1h 23m"
         tools:visibility="visible" />

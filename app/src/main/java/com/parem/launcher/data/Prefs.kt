@@ -48,6 +48,7 @@ class Prefs(context: Context) {
     private val KEYBOARD_MESSAGE = "KEYBOARD_MESSAGE"
     private val DAILY_WALLPAPER = "DAILY_WALLPAPER"
     private val DAILY_WALLPAPER_URL = "DAILY_WALLPAPER_URL"
+    private val DIM_WALLPAPER = "DIM_WALLPAPER"
     private val HOME_ALIGNMENT = "HOME_ALIGNMENT"
     private val HOME_BOTTOM_ALIGNMENT = "HOME_BOTTOM_ALIGNMENT"
     private val HOME_LAYOUT_LOCKED = "HOME_LAYOUT_LOCKED"
@@ -165,6 +166,11 @@ class Prefs(context: Context) {
     var dailyWallpaper: Boolean
         get() = prefs.getBoolean(DAILY_WALLPAPER, false)
         set(value) = prefs.edit { putBoolean(DAILY_WALLPAPER, value) }
+
+    // Unset follows the daily-wallpaper switch, so a photo wallpaper gets the dim by default
+    var dimWallpaper: Boolean
+        get() = prefs.getBoolean(DIM_WALLPAPER, dailyWallpaper)
+        set(value) = prefs.edit { putBoolean(DIM_WALLPAPER, value) }
 
     var dailyWallpaperUrl: String
         get() = prefs.getString(DAILY_WALLPAPER_URL, "").toString()

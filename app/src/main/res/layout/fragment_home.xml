@@ -6,6 +6,16 @@
     android:layout_height="match_parent"
     tools:context=".ui.HomeFragment">
 
+
+    <!-- Opt-in wallpaper dim behind the home text (Settings > Appearance); hidden on e-ink -->
+    <View
+        android:id="@+id/wallpaperDim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_wallpaper_dim"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
+
     <!-- Placeholder layout for locking screen-->
     <!-- Not focusable: d-pad Enter on it would lock the phone (ARCHITECTURE trap #1) -->
     <FrameLayout
@@ -35,27 +45,26 @@
 
             <TextClock
                 android:id="@+id/clock"
-                style="@style/TextDefault"
+                style="@style/TextOnWallpaper"
+                android:textAppearance="@style/TextAppearance.Parem.Display"
                 android:background="@drawable/bg_focus_highlight"
                 android:focusable="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="?attr/mainFontFamily"
                 android:format12Hour="h:mm"
                 android:format24Hour="HH:mm"
-                android:textSize="@dimen/time_size"
                 tools:text="02:34" />
 
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/tvScreenTime"
-                style="@style/TextSmall"
+                style="@style/TextOnWallpaper"
+                android:textAppearance="@style/TextAppearance.Parem.Subtitle"
+                android:textColor="?attr/primaryColorTrans80"
                 android:background="@drawable/bg_focus_highlight"
                 android:focusable="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
-                android:alpha="0.6"
-                android:textSize="@dimen/date_size"
                 android:visibility="gone"
                 tools:text="2h 11m"
                 tools:visibility="visible" />
@@ -63,13 +72,13 @@
 
         <TextView
             android:id="@+id/date"
-            style="@style/TextDefault"
+            style="@style/TextOnWallpaper"
+            android:textAppearance="@style/TextAppearance.Parem.Subtitle"
             android:background="@drawable/bg_focus_highlight"
             android:focusable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingHorizontal="3dp"
-            android:textSize="@dimen/date_size"
             tools:text="Thu, 30 Dec" />
     </LinearLayout>
 
@@ -108,7 +117,8 @@
 
         <TextView
             android:id="@+id/homeApp1"
-            style="@style/TextLarge"
+            style="@style/TextOnWallpaper"
+            android:textAppearance="@style/TextAppearance.Parem.Title"
             android:background="@drawable/bg_focus_highlight"
             android:focusable="true"
             android:layout_width="wrap_content"
@@ -121,7 +131,8 @@
 
         <TextView
             android:id="@+id/homeApp2"
-            style="@style/TextLarge"
+            style="@style/TextOnWallpaper"
+            android:textAppearance="@style/TextAppearance.Parem.Title"
             android:background="@drawable/bg_focus_highlight"
             android:focusable="true"
             android:layout_width="wrap_content"
@@ -134,7 +145,8 @@
 
         <TextView
             android:id="@+id/homeApp3"
-            style="@style/TextLarge"
+            style="@style/TextOnWallpaper"
+            android:textAppearance="@style/TextAppearance.Parem.Title"
             android:background="@drawable/bg_focus_highlight"
             android:focusable="true"
             android:layout_width="wrap_content"
@@ -147,7 +159,8 @@
 
         <TextView
             android:id="@+id/homeApp4"
-            style="@style/TextLarge"
+            style="@style/TextOnWallpaper"
+            android:textAppearance="@style/TextAppearance.Parem.Title"
             android:background="@drawable/bg_focus_highlight"
             android:focusable="true"
             android:layout_width="wrap_content"
@@ -160,7 +173,8 @@
 
         <TextView
             android:id="@+id/homeApp5"
-            style="@style/TextLarge"
+            style="@style/TextOnWallpaper"
+            android:textAppearance="@style/TextAppearance.Parem.Title"
             android:background="@drawable/bg_focus_highlight"
             android:focusable="true"
             android:layout_width="wrap_content"
@@ -173,7 +187,8 @@
 
         <TextView
             android:id="@+id/homeApp6"
-            style="@style/TextLarge"
+            style="@style/TextOnWallpaper"
+            android:textAppearance="@style/TextAppearance.Parem.Title"
             android:background="@drawable/bg_focus_highlight"
             android:focusable="true"
             android:layout_width="wrap_content"
@@ -186,7 +201,8 @@
 
         <TextView
             android:id="@+id/homeApp7"
-            style="@style/TextLarge"
+            style="@style/TextOnWallpaper"
+            android:textAppearance="@style/TextAppearance.Parem.Title"
             android:background="@drawable/bg_focus_highlight"
             android:focusable="true"
             android:layout_width="wrap_content"
@@ -199,7 +215,8 @@
 
         <TextView
             android:id="@+id/homeApp8"
-            style="@style/TextLarge"
+            style="@style/TextOnWallpaper"
+            android:textAppearance="@style/TextAppearance.Parem.Title"
             android:background="@drawable/bg_focus_highlight"
             android:focusable="true"
             android:layout_width="wrap_content"
@@ -214,7 +231,8 @@
              the drawer for people who can't swipe up (UX-2) -->
         <TextView
             android:id="@+id/homeAllApps"
-            style="@style/TextLarge"
+            style="@style/TextOnWallpaper"
+            android:textAppearance="@style/TextAppearance.Parem.Title"
             android:background="@drawable/bg_focus_highlight"
             android:focusable="true"
             android:layout_width="wrap_content"
@@ -256,7 +274,8 @@
     <!-- Set default launcher -->
     <TextView
         android:id="@+id/setDefaultLauncher"
-        style="@style/TextMedium"
+        style="@style/TextOnWallpaper"
+        android:textAppearance="@style/TextAppearance.Parem.Body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"

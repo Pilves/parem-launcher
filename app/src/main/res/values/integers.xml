@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DESIGN 7 motion durations in ms; defined here, wired by M4-WP55 -->
+    <integer name="motion_short">150</integer>
+    <integer name="motion_medium">200</integer>
+    <integer name="motion_max">300</integer>
+</resources>

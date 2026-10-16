@@ -2,6 +2,31 @@
 <resources>
     <!-- Caps the reading width of settings and the drawer; w<N>dp outranks land -->
     <dimen name="content_side_padding">0dp</dimen>
-    <!-- DESIGN 4: minHeight/minWidth of anything tappable -->
+
+    <!-- DESIGN 3.2: type scale keys on width (values-sw600dp), never on density -->
+    <dimen name="time_size">64sp</dimen>
+    <dimen name="date_size">18sp</dimen>
+    <dimen name="text_large">28sp</dimen>
+    <dimen name="text_small">18sp</dimen>
+    <dimen name="text_label">16sp</dimen>
+    <dimen name="text_caption">14sp</dimen>
+
+    <!-- DESIGN 4: 4dp grid, tokens named by role -->
+    <dimen name="space_xs">4dp</dimen>
+    <dimen name="space_s">8dp</dimen>
+    <dimen name="space_m">12dp</dimen>
+    <dimen name="space_l">16dp</dimen>
+    <dimen name="space_xl">24dp</dimen>
+    <dimen name="space_xxl">32dp</dimen>
+    <dimen name="home_keyline">20dp</dimen>
+    <dimen name="home_app_padding_vertical">12dp</dimen>
+    <dimen name="app_padding_vertical">12dp</dimen>
+    <dimen name="row_padding_vertical">14dp</dimen>
+    <dimen name="sheet_padding_horizontal">24dp</dimen>
+    <dimen name="section_gap">24dp</dimen>
+    <!-- minHeight/minWidth of anything tappable -->
     <dimen name="touch_target_min">48dp</dimen>
+    <dimen name="sheet_max_width">640dp</dimen>
+    <dimen name="corner_surface">16dp</dimen>
+    <dimen name="corner_control">8dp</dimen>
 </resources>

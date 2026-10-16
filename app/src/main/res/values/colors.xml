@@ -4,24 +4,21 @@
 
     <!--White-->
     <color name="white">#FFFFFF</color>
+    <color name="whiteTrans85">#D9FFFFFF</color>
     <color name="whiteTrans80">#CCFFFFFF</color>
     <color name="whiteTrans60">#99FFFFFF</color>
     <color name="whiteTrans50">#80FFFFFF</color>
-    <color name="whiteInverse">#000000</color>
-    <color name="whiteInverseTrans10">#1A000000</color>
-    <color name="whiteInverseTrans25">#40000000</color>
-    <color name="whiteInverseTrans50">#80000000</color>
-    <color name="whiteInverseTrans80">#CC000000</color>
+    <color name="whiteTrans35">#59FFFFFF</color>
+    <color name="whiteTrans25">#40FFFFFF</color>
+    <color name="whiteTrans10">#1AFFFFFF</color>
 
     <!--Black-->
     <color name="black">#000000</color>
+    <color name="blackTrans85">#D9000000</color>
     <color name="blackTrans80">#CC000000</color>
     <color name="blackTrans60">#99000000</color>
     <color name="blackTrans50">#80000000</color>
-    <color name="blackInverse">#FFFFFF</color>
-    <color name="blackInverseTrans10">#1AFFFFFF</color>
-    <color name="blackInverseTrans25">#40FFFFFF</color>
-    <color name="blackInverseTrans50">#80FFFFFF</color>
-    <color name="blackInverseTrans80">#CCFFFFFF</color>
-
+    <color name="blackTrans35">#59000000</color>
+    <color name="blackTrans25">#40000000</color>
+    <color name="blackTrans10">#1A000000</color>
 </resources>

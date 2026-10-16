@@ -412,6 +412,7 @@
     <string name="app_menu_add_home" translatable="false">Add to home</string>
     <string name="app_menu_home" translatable="false">Home</string>
     <string name="app_menu_wallpaper" translatable="false">Wallpaper</string>
+    <string name="dim_wallpaper" translatable="false">Dim wallpaper</string>
     <string name="app_menu_wallpaper_unavailable" translatable="false">No wallpaper app is available</string>
     <string name="app_menu_remove_home" translatable="false">Remove from home</string>
     <string name="app_menu_remove_folder" translatable="false">Remove folder from home</string>
