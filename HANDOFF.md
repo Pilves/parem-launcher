@@ -300,8 +300,8 @@ per package; the rest of each of those fragments is still in
   Easy to get wrong: the CI functional reports previously contained no failure screen; Settings launch failures now include package and hierarchy, so diagnose that evidence before changing app behavior.
 - **M4-WP62 (PR #0):** Code health pass 2 reports the audit's recovered failures through CrashReporter, preserves saved home slots when installed-app lookup throws, and removes proven unused contact payload/resources and duplicate normalization/night styles.
   Contract: diagnostics always Log.e and write only with crash reporting enabled, bounded to the existing 64 KiB file; original fallbacks, UI and architecture traps remain. Contact provider lookup keys still deduplicate contacts; no dependencies or new exported prefs.
-  Verification: rebased onto 31ef2c9; compileDebugKotlin, testDebugUnitTest (388 tests), assembleDebug, handoff harness and diff check exit 0. Section 6 has seven proposals only in docs/plans/2026-10-16-ponytail-pass2.md.
-  Not verified: device behavior, OEM failure injection, opt-in crash-file UI and visual parity on hardware; no adb or devices used. This branch has not been merged or pushed to next.
+  Verification: rebased onto 504f17b; compileDebugKotlin, testDebugUnitTest (388 tests), assembleDebug, handoff harness and diff check exit 0. Section 6 has seven proposals only in docs/plans/2026-10-16-ponytail-pass2.md.
+  Not verified: device behavior, OEM failure injection, opt-in crash-file UI and visual parity on hardware; no adb or devices used.
   Easy to get wrong: home clears only on an independent successful installed-app lookup reporting absence, not on an empty drawer list; never turn a lookup exception into false. Keep the uncaught-crash handler's guard and WP42's CSV whitespace behavior.
 
 <!-- handoff:end -->
