@@ -20,12 +20,13 @@ import com.parem.launcher.listener.DeviceAdmin
  * [onUseAdmin], when given, adds the device-admin fallback (M4-WP18); picking it
  * runs neither of the other two.
  */
+/** Sideloaded installs (GitHub releases) get a greyed-out switch on 13+; the line is shown to every install source. */
+fun Context.withRestrictedNote(body: String): String =
+    if (Build.VERSION.SDK_INT >= 33) body + "\n\n" + getString(R.string.lock_consent_restricted) else body
+
 fun showLockConsent(context: Context, onAccept: () -> Unit, onDecline: () -> Unit, onUseAdmin: (() -> Unit)? = null) {
     var decided = false
-    var body = context.getString(R.string.lock_consent_body)
-    // Sideloaded installs (GitHub releases) get a greyed-out switch on 13+
-    if (Build.VERSION.SDK_INT >= 33)
-        body += "\n\n" + context.getString(R.string.lock_consent_restricted)
+    val body = context.withRestrictedNote(context.getString(R.string.lock_consent_body))
     val menu = BottomSheetMenu(context)
         .title(context.getString(R.string.double_tap_lock))
         .message(body)
@@ -54,10 +55,9 @@ fun showLockConsent(context: Context, onAccept: () -> Unit, onDecline: () -> Uni
  * accessibility settings (M2-WP5: consent before every such route).
  */
 fun showLockServiceOff(context: Context, onAccept: () -> Unit, onUseAdmin: (() -> Unit)? = null) {
-    var body = context.getString(R.string.lock_service_off_body) +
-        "\n\n" + context.getString(R.string.lock_consent_body)
-    if (Build.VERSION.SDK_INT >= 33)
-        body += "\n\n" + context.getString(R.string.lock_consent_restricted)
+    val body = context.withRestrictedNote(
+        context.getString(R.string.lock_service_off_body) + "\n\n" + context.getString(R.string.lock_consent_body)
+    )
     val menu = BottomSheetMenu(context)
         .title(context.getString(R.string.lock_service_off_title))
         .message(body)

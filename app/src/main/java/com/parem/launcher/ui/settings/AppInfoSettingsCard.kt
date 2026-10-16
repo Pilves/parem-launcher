@@ -19,6 +19,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.CrashReporter
+import com.parem.launcher.helper.onOff
 import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.openUrl
 import com.parem.launcher.helper.showToast
@@ -106,7 +107,7 @@ class AppInfoSettingsCard(
 
     private fun populateCrashReports() {
         binding.crashReportsToggle.text =
-            context.getString(if (prefs.crashReportsEnabled) R.string.on else R.string.off)
+            context.onOff(prefs.crashReportsEnabled)
     }
 
     private fun showHiddenApps() {

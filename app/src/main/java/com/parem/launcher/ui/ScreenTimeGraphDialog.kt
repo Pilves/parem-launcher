@@ -8,6 +8,7 @@ import android.widget.TextView
 import com.parem.launcher.R
 import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.UsageStatsHelper
+import com.parem.launcher.helper.appLabelOrNull
 import com.parem.launcher.helper.convertEpochToMidnight
 import com.parem.launcher.helper.WeeklyReview
 import com.parem.launcher.helper.appUsagePermissionGranted
@@ -154,12 +155,7 @@ class ScreenTimeGraphDialog(private val context: Context) {
                     }
                 }
 
-                val pm = appContext.packageManager
-                fun labelOf(pkg: String): String? = try {
-                    pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
-                } catch (_: Exception) {
-                    null
-                }
+                fun labelOf(pkg: String): String? = appContext.appLabelOrNull(pkg)
                 fun resolveTop(usage: Map<String, Long>): List<Triple<String, String, Long>> =
                     usage.entries
                         .sortedByDescending { it.value }

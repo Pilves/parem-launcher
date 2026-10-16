@@ -28,6 +28,7 @@ import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isSystemApp
 import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.uninstall
+import com.parem.launcher.ui.isAlive
 import java.lang.ref.WeakReference
 
 /** Shared app actions; home appends its existing slot-editing routes. */
@@ -56,10 +57,10 @@ object AppMenu {
             limit != null, personal && !context.isSystemApp(app.appPackage))
         for (action in actions) when (action) {
             Action.INFO -> menu.option(context.getString(R.string.a11y_app_info)) {
-                if (fragment.isAdded && fragment.view != null) openAppInfo(context, app.user, app.appPackage)
+                if (fragment.isAlive) openAppInfo(context, app.user, app.appPackage)
             }
             Action.RENAME -> menu.option(context.getString(R.string.rename)) {
-                if (fragment.isAdded && fragment.view != null) rename(fragment, app.appLabel, homeSlot != null) { name ->
+                if (fragment.isAlive) rename(fragment, app.appLabel, homeSlot != null) { name ->
                     if (homeSlot != null) prefs.setHomeAppName(homeSlot, name)
                     else prefs.setAppRenameLabel(app.appPackage, name)
                     onChanged()
@@ -67,7 +68,7 @@ object AppMenu {
             }
             Action.LIMIT -> menu.option(context.getString(R.string.app_menu_time_limit), summary =
                 limit?.let { context.formattedTimeSpent(it * 60_000L) } ?: context.getString(R.string.none)) {
-                if (fragment.isAdded && fragment.view != null) {
+                if (fragment.isAlive) {
                     if (context.appUsagePermissionGranted()) {
                         BadHabitDialogs.showTimeLimitPicker(context, app.appPackage, onChanged)
                             ?.dismissOnDestroy(fragment.viewLifecycleOwner)
@@ -76,7 +77,7 @@ object AppMenu {
             }
             Action.PAUSE -> menu.option(context.getString(R.string.app_menu_mindful_pause),
                 checked = AppLimitManager.hasPause(context, app.appPackage)) {
-                if (fragment.isAdded && fragment.view != null) {
+                if (fragment.isAlive) {
                     AppLimitManager.setPause(context, app.appPackage, !AppLimitManager.hasPause(context, app.appPackage))
                     onChanged()
                 }
@@ -85,7 +86,7 @@ object AppMenu {
                 val marked = GrayscaleController.isAppMarked(context, app.appPackage)
                 val state = if (marked) R.string.on else if (GrayscaleController.appModeReady(context)) R.string.off else R.string.grayscale_set_up
                 menu.option(context.getString(R.string.grayscale), summary = context.getString(state)) {
-                    if (fragment.isAdded && fragment.view != null) {
+                    if (fragment.isAlive) {
                         GrayscaleSheet.toggleApp(fragment, app.appPackage) { viewModel.showDialog.postValue(it) }
                         onChanged()
                     }
@@ -95,7 +96,7 @@ object AppMenu {
                 context.getString(if (isHidden) R.string.app_menu_show else R.string.app_menu_hide),
                 summary = if (homeSlot != null) context.getString(R.string.app_menu_stays_home) else null,
             ) {
-                if (fragment.isAdded && fragment.view != null) {
+                if (fragment.isAlive) {
                     prefs.hiddenApps = prefs.hiddenApps.toMutableSet().apply {
                         if (isHidden) { remove(app.appPackage); remove(hiddenKey) } else add(hiddenKey)
                     }
@@ -103,7 +104,7 @@ object AppMenu {
                 }
             }
             Action.UNINSTALL -> menu.gap().option(context.getString(R.string.app_menu_uninstall)) {
-                if (fragment.isAdded && fragment.view != null) context.uninstall(app.appPackage)
+                if (fragment.isAlive) context.uninstall(app.appPackage)
             }
         }
         homeActions?.invoke(menu)

@@ -33,6 +33,7 @@ import com.parem.launcher.helper.openAlarmApp
 import com.parem.launcher.helper.openCalendar
 import com.parem.launcher.ui.HomeFragment
 import com.parem.launcher.ui.ScreenTimeGraphDialog
+import com.parem.launcher.ui.isAlive
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -58,7 +59,7 @@ class HomeClockController(
     // screen left visible across midnight (or a timezone change) goes stale.
     private val refreshReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context?, intent: Intent?) {
-            if (fragment.isAdded && fragment.view != null) populateDateTime()
+            if (fragment.isAlive) populateDateTime()
         }
     }
 

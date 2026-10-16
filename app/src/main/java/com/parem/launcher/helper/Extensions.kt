@@ -22,6 +22,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import java.util.Calendar
@@ -72,6 +73,14 @@ fun Context.resetDefaultLauncher() {
     } catch (e: Exception) {
         Log.e("Extensions", "Failed to reset default launcher", e)
     }
+}
+
+// The compat controller keeps the edge-to-edge layout flags on API 29, which the
+// old raw systemUiVisibility writes used to clear
+fun Activity.setStatusBarVisible(visible: Boolean) {
+    val controller = WindowInsetsControllerCompat(window, window.decorView)
+    if (visible) controller.show(WindowInsetsCompat.Type.statusBars())
+    else controller.hide(WindowInsetsCompat.Type.statusBars())
 }
 
 fun Context.resetLauncherViaFakeActivity() {

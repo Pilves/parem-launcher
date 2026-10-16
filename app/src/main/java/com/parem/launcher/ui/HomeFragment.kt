@@ -8,8 +8,6 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.AccessibilityDelegateCompat
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
@@ -23,6 +21,7 @@ import com.parem.launcher.databinding.FragmentHomeBinding
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.padForSystemBars
+import com.parem.launcher.helper.setStatusBarVisible
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.home.HomeClockController
 import com.parem.launcher.ui.home.HomeGesturesController
@@ -96,8 +95,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         gesturesController?.refreshAccessibilityRoutes()
         slotsController?.populateHomeScreen(false)
         viewModel.isParemDefault()
-        if (prefs.showStatusBar) showStatusBar()
-        else hideStatusBar()
+        requireActivity().setStatusBarVisible(prefs.showStatusBar)
         FocusModeManager.checkAndExpire(requireContext())
         GrayscaleController.reconcile(requireContext())
         viewModel.getWeather()
@@ -219,35 +217,18 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         query: String? = null,
     ) {
         viewModel.getAppList(includeHiddenApps)
+        val args = bundleOf(
+            Constants.Key.FLAG to flag,
+            Constants.Key.RENAME to rename,
+            Constants.Key.QUERY to query
+        )
         try {
-            findNavController().navigate(
-                R.id.action_mainFragment_to_appListFragment,
-                bundleOf(
-                    Constants.Key.FLAG to flag,
-                    Constants.Key.RENAME to rename,
-                    Constants.Key.QUERY to query
-                )
-            )
+            findNavController().navigate(R.id.action_mainFragment_to_appListFragment, args)
         } catch (e: Exception) {
-            findNavController().navigate(
-                R.id.appListFragment,
-                bundleOf(
-                    Constants.Key.FLAG to flag,
-                    Constants.Key.RENAME to rename,
-                    Constants.Key.QUERY to query
-                )
-            )
+            findNavController().navigate(R.id.appListFragment, args)
             Log.e("HomeFragment", "Navigation to app list failed, using fallback", e)
         }
     }
-
-    // The compat controller keeps the edge-to-edge layout flags on API 29, which the
-    // old raw systemUiVisibility writes used to clear
-    private fun showStatusBar() =
-        WindowInsetsControllerCompat(requireActivity().window, binding.root).show(WindowInsetsCompat.Type.statusBars())
-
-    private fun hideStatusBar() =
-        WindowInsetsControllerCompat(requireActivity().window, binding.root).hide(WindowInsetsCompat.Type.statusBars())
 
     override fun onDestroyView() {
         gesturesController?.unregisterTorchCallback()

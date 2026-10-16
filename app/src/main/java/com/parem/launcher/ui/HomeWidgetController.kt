@@ -83,19 +83,11 @@ class HomeWidgetController(
     // No landscape branch needed here: layout-land/fragment_home.xml places both
     // above/below scroll views inside the single right-hand widget column, so
     // either placement pref value resolves to that column beside the apps.
-    private fun getActiveContainer(): android.widget.LinearLayout? {
-        return if (prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE)
-            binding.widgetContainerAbove
-        else
-            binding.widgetContainerBelow
-    }
+    private val above get() = prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE
 
-    private fun getActiveScrollView(): android.widget.ScrollView? {
-        return if (prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE)
-            binding.widgetScrollViewAbove
-        else
-            binding.widgetScrollViewBelow
-    }
+    private fun getActiveContainer() = if (above) binding.widgetContainerAbove else binding.widgetContainerBelow
+
+    private fun getActiveScrollView() = if (above) binding.widgetScrollViewAbove else binding.widgetScrollViewBelow
 
     // Queue of (oldWidgetId, providerComponentString) for widgets that need rebinding with permission
     private val widgetRestoreQueue = mutableListOf<Pair<Int, String>>()

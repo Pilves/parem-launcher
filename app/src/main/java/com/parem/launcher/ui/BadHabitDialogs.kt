@@ -11,6 +11,7 @@ import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.MindfulPause
+import com.parem.launcher.helper.appLabelOrNull
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.dpToPx
@@ -98,12 +99,7 @@ object BadHabitDialogs {
     /** Gesture letters pass no name; show the app's label rather than its package. */
     private fun appLabel(context: Context, appName: String, packageName: String): String {
         if (appName.isNotEmpty()) return appName
-        return try {
-            val pm = context.packageManager
-            pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
-        } catch (_: Exception) {
-            packageName
-        }
+        return context.appLabelOrNull(packageName) ?: packageName
     }
 
     private fun showMindfulPause(

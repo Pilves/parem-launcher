@@ -21,6 +21,15 @@ fun Context.showToast(message: String?, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, message, duration).show()
 }
 
+/** The app's label from PackageManager, or null when it is not installed. */
+fun Context.appLabelOrNull(packageName: String): String? = try {
+    packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
+} catch (_: Exception) {
+    null
+}
+
+fun Context.onOff(on: Boolean): String = getString(if (on) R.string.on else R.string.off)
+
 fun Context.showToast(stringResource: Int, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, getString(stringResource), duration).show()
 }
