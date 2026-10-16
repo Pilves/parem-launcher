@@ -15,8 +15,24 @@ class WeeklyReviewTest {
     private fun same(day: Map<String, Long>) = List(7) { day }
 
     @Test
+    fun compare_partialTodayCountsAsItsElapsedFraction() {
+        // A34: at 08:00 today holds a third of a full day's use; the same
+        // daily habit both weeks must read as no change, not "down 10%"
+        val fullDay = mapOf("a" to 3 * hour)
+        val thisWeek = List(6) { fullDay } + listOf(mapOf("a" to 1 * hour))
+        val result = WeeklyReview.compare(thisWeek, same(fullDay), todayFraction = 1.0 / 3)!!
+        assertEquals(0, result.percentChange)
+        assertEquals(3 * hour, result.thisWeekAvgMs)
+        assertTrue(result.risers.isEmpty())
+        assertTrue(result.fallers.isEmpty())
+        // Just after midnight nothing is divided by zero and the six full days carry the week
+        val midnight = WeeklyReview.compare(List(6) { fullDay } + listOf(emptyMap()), same(fullDay), 0.0)!!
+        assertEquals(0, midnight.percentChange)
+    }
+
+    @Test
     fun compare_thisWeekAverageMatchesGraphTotalOverSeven() {
-        // The sheet's "/day average" is weekTotal / 7 with integer division
+        // With a complete today the average is weekTotal / 7, the "/day average" line
         val thisWeek = week(
             mapOf("a" to 1 * hour), mapOf("a" to 2 * hour), mapOf("b" to 3 * hour),
             emptyMap(), mapOf("a" to 10 * min, "b" to 7L), mapOf("c" to 1L), mapOf("a" to 5 * min),

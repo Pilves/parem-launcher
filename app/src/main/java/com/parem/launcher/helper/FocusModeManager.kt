@@ -196,6 +196,16 @@ object FocusModeManager {
     }
 
     /**
+     * The whitelist to store after the picker: what the user ticked, plus the
+     * current entries the picker could not offer (a Private Space app while
+     * the space is locked, a profile that is paused). Dropping those silently
+     * would block the app during the next focus session with no way to re-add
+     * it. Ticked apps come first so the cap never cuts a fresh choice.
+     */
+    fun mergeWhitelist(selected: Collection<String>, current: Set<String>, offered: Set<String>): Set<String> =
+        (selected + (current - offered)).take(MAX_WHITELIST_SIZE).toSet()
+
+    /**
      * Sets the whitelist. At most [MAX_WHITELIST_SIZE] apps are stored.
      */
     fun setWhitelist(context: Context, packages: Set<String>) {

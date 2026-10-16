@@ -92,6 +92,20 @@ class CurrencyConverterTest {
     }
 
     @Test
+    fun convert_thousandsSeparatorIsNotADecimalComma() {
+        // A51: "1,000" is a thousand, "1,5" stays one and a half
+        val thousand = CurrencyConverter.convert("1,000 usd in eur", rates)!!
+        assertEquals(1000.0 / 1.1225, thousand.value, 0.01)
+        assertEquals("890.87 EUR", thousand.format())
+        val decimal = CurrencyConverter.convert("1,5 eur in usd", rates)!!
+        assertEquals(1.5 * 1.1225, decimal.value, 1e-9)
+        assertEquals(1000.0, CurrencyConverter.parseAmount("1,000")!!, 0.0)
+        assertEquals(1.5, CurrencyConverter.parseAmount("1,5")!!, 0.0)
+        assertEquals(1.25, CurrencyConverter.parseAmount("1.25")!!, 0.0)
+        assertEquals(1.0005, CurrencyConverter.parseAmount("1,0005")!!, 0.0)
+    }
+
+    @Test
     fun convert_eurToEur() {
         assertEquals("10.00 EUR", CurrencyConverter.convert("10 eur eur", rates)!!.format())
     }

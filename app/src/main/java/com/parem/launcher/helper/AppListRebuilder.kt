@@ -15,6 +15,17 @@ import java.text.CollationKey
  */
 object AppListRebuilder {
 
+    /** The hidden-apps set entry for one app in one profile: `package|userString`. */
+    fun hiddenKey(packageName: String, userString: String): String = "$packageName|$userString"
+
+    /**
+     * Upgrades a hidden-apps set written before profiles were keyed: a bare
+     * package name becomes [hiddenKey] for the personal profile, an entry
+     * that already carries a profile is kept as is.
+     */
+    fun upgradeHiddenApps(hiddenApps: Set<String>, personalUserString: String): Set<String> =
+        hiddenApps.mapTo(mutableSetOf()) { if (it.contains("|")) it else hiddenKey(it, personalUserString) }
+
     /** One launcher activity exactly as the system reported it at query time. */
     data class RawApp<U>(
         val label: String,
@@ -55,7 +66,7 @@ object AppListRebuilder {
                 // (and a hide/unhide of the main-profile copy) never reaches them
                 if (privateLocked || !includePrivate || !includeRegularApps) continue
             } else {
-                val hidden = hiddenApps.contains(app.packageName + "|" + app.userString)
+                val hidden = hiddenApps.contains(hiddenKey(app.packageName, app.userString))
                 if (hidden && !includeHiddenApps) continue
                 if (!hidden && !includeRegularApps) continue
             }

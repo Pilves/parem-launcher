@@ -9,8 +9,10 @@ import kotlin.math.roundToInt
  * Everything is compared as a daily average. Android prunes its usage event
  * log after roughly ten days, so last week is often only partly on record;
  * averaging over the days that are on record keeps the comparison honest
- * instead of reporting a fake drop. This week's average is the graph's
- * total / 7, so it matches the sheet's "/day average" line exactly.
+ * instead of reporting a fake drop. This week's newest day is today, still in
+ * progress, so it counts as the fraction of the day that has elapsed
+ * ([todayFraction]); otherwise the same usage every day would read as a
+ * drop of up to 1/7 just after midnight.
  */
 object WeeklyReview {
 
@@ -49,22 +51,29 @@ object WeeklyReview {
 
     /**
      * Compares [thisWeek] against [lastWeek], both lists of per-day
-     * package -> foreground-ms maps ordered oldest to newest. Returns null when
+     * package -> foreground-ms maps ordered oldest to newest. [todayFraction]
+     * is how much of today (the last day of [thisWeek]) has elapsed, 0..1;
+     * this week's averages divide by 6 + that fraction. Returns null when
      * fewer than [MIN_HISTORY_DAYS] days of last week are on record (or they
      * average to zero, which leaves no base for a percentage).
      */
-    fun compare(thisWeek: List<Map<String, Long>>, lastWeek: List<Map<String, Long>>): Result? {
+    fun compare(
+        thisWeek: List<Map<String, Long>>,
+        lastWeek: List<Map<String, Long>>,
+        todayFraction: Double = 1.0,
+    ): Result? {
         val recorded = recordedDays(lastWeek)
         if (recorded.size < MIN_HISTORY_DAYS) return null
 
         val thisTotals = perAppTotals(thisWeek)
         val lastTotals = perAppTotals(recorded)
-        val thisAvg = thisTotals.values.sum() / DAYS
+        val thisDays = DAYS - 1 + todayFraction.coerceIn(0.0, 1.0)
+        val thisAvg = (thisTotals.values.sum() / thisDays).toLong()
         val lastAvg = lastTotals.values.sum() / recorded.size
         if (lastAvg <= 0L) return null
 
         val changes = (thisTotals.keys + lastTotals.keys).map { pkg ->
-            AppChange(pkg, (thisTotals[pkg] ?: 0L) / DAYS - (lastTotals[pkg] ?: 0L) / recorded.size)
+            AppChange(pkg, ((thisTotals[pkg] ?: 0L) / thisDays).toLong() - (lastTotals[pkg] ?: 0L) / recorded.size)
         }
 
         return Result(

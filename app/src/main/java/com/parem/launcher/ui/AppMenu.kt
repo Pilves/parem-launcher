@@ -17,6 +17,7 @@ import com.parem.launcher.R
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.AppLimitManager
+import com.parem.launcher.helper.AppListRebuilder
 import com.parem.launcher.helper.AppMenuPolicy
 import com.parem.launcher.helper.AppMenuPolicy.Action
 import com.parem.launcher.helper.GrayscaleController
@@ -48,7 +49,7 @@ object AppMenu {
         if (fragment.view == null || app.appPackage.isEmpty() || app.shortcutId != null) return
         if (openMenu?.get()?.isShowing == true) return
         val personal = app.user == Process.myUserHandle()
-        val hiddenKey = app.appPackage + "|" + app.user.toString()
+        val hiddenKey = AppListRebuilder.hiddenKey(app.appPackage, app.user.toString())
         val isHidden = hidden || hiddenKey in prefs.hiddenApps || app.appPackage in prefs.hiddenApps
         val limit = AppLimitManager.getLimit(context, app.appPackage)
         val menu = BottomSheetMenu(context).title(BidiFormatter.getInstance().unicodeWrap(app.appLabel), prominent = true)

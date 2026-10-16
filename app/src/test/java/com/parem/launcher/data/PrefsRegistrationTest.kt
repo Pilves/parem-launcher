@@ -43,9 +43,13 @@ class PrefsRegistrationTest {
         return global[name]?.singleOrNull()
     }
 
-    private fun setContents(prefsText: String, setName: String): String =
-        Regex("""\b$setName\s*=\s*setOf\(([^)]*)\)""").find(prefsText)?.groupValues?.get(1)
+    /** The literal elements of `name = setOf(...)`, following one `+ otherSet` onto that set's elements. */
+    private fun setContents(prefsText: String, setName: String): String {
+        val m = Regex("""\b$setName\s*=\s*setOf\(([^)]*)\)(?:\s*\+\s*(\w+))?""").find(prefsText)
             ?: error("$setName = setOf(...) not found in Prefs.kt")
+        val tail = m.groupValues[2]
+        return m.groupValues[1] + if (tail.isEmpty()) "" else "," + setContents(prefsText, tail)
+    }
 
     /** Returns "file: getLong(KEY)" for every read whose key is not registered or excluded. */
     private fun unregisteredReads(sources: List<Source>, prefsText: String): List<String> {
@@ -107,7 +111,8 @@ class PrefsRegistrationTest {
             """
             private val LONG_PREF_KEYS = setOf("REGISTERED_MS")
             private val FLOAT_PREF_KEYS = setOf("SCALE")
-            private val exportExcludeKeys = setOf(DEVICE_KEY)
+            val deviceOnlyKeys = setOf("MOMENT_MS")
+            private val exportExcludeKeys = setOf(DEVICE_KEY) + deviceOnlyKeys
             private val DEVICE_KEY = "DEVICE_MS"
             """.trimIndent()
         )
@@ -115,7 +120,7 @@ class PrefsRegistrationTest {
             "helper/Fake.kt",
             """
             private const val KEY_NEW = "NEW_MS"
-            fun a() = p.getLong("REGISTERED_MS", 0L) + p.getLong(DEVICE_KEY, 0L)
+            fun a() = p.getLong("REGISTERED_MS", 0L) + p.getLong(DEVICE_KEY, 0L) + p.getLong("MOMENT_MS", 0L)
             fun b() = p.getLong(KEY_NEW, 0L) + p.getFloat("SCALE", 1f) + p.getFloat("OTHER", 1f)
             """.trimIndent()
         )

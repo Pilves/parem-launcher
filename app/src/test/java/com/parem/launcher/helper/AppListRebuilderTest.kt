@@ -181,4 +181,14 @@ class AppListRebuilderTest {
         private const val HOUR = 3_600_000L
         private const val NOW = HOUR * 100
     }
+
+    @Test
+    fun upgradeHiddenApps_keysBarePackagesWithTheSeparator() {
+        // A27: a legacy bare package must become exactly the key rebuild() matches on
+        val upgraded = AppListRebuilder.upgradeHiddenApps(setOf("com.foo", "com.bar|UserHandle{10}"), MAIN_USER)
+        assertEquals(setOf("com.foo|$MAIN_USER", "com.bar|UserHandle{10}"), upgraded)
+        assertEquals("com.foo|$MAIN_USER", AppListRebuilder.hiddenKey("com.foo", MAIN_USER))
+        val visible = rebuild(listOf(raw("Foo", "com.foo"), raw("Baz", "com.baz")), hiddenApps = upgraded)
+        assertEquals(listOf("com.baz"), visible.map { it.app.packageName })
+    }
 }

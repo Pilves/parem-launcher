@@ -164,8 +164,6 @@ class FocusModeDialog(
             container.addView(createSectionLabel(ctx, ctx.getString(R.string.focus_allowed_apps)))
 
             val currentWhitelist = FocusModeManager.getWhitelist(ctx)
-            // Whitelist entries for apps no longer offered are dropped on enable,
-            // as before (the old code only collected the rendered checkboxes).
             val adapter = AppPickerAdapter(
                 textColor = primaryColor,
                 maxSelected = 5,
@@ -287,7 +285,13 @@ class FocusModeDialog(
         renderSchedule()
 
         fun saveSettings() {
-            FocusModeManager.setWhitelist(ctx, pickerAdapter?.selectedIds?.toSet() ?: emptySet())
+            // Entries the picker could not offer (locked Private Space, paused
+            // profile) survive a save instead of being blocked from then on
+            FocusModeManager.setWhitelist(ctx, FocusModeManager.mergeWhitelist(
+                pickerAdapter?.selectedIds ?: emptySet(),
+                FocusModeManager.getWhitelist(ctx),
+                allApps.mapTo(mutableSetOf()) { it.first },
+            ))
             FocusModeManager.setSchedule(ctx, windows)
             FocusModeManager.setScheduleEnabled(ctx, scheduleOn)
         }

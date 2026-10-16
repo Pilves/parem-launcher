@@ -533,6 +533,20 @@ class Prefs(context: Context) {
 
     fun setAppRenameLabel(appPackage: String, renameLabel: String) = prefs.edit { putString("RENAME_$appPackage", renameLabel) }
 
+    // State that describes this device at this moment (which service is bound,
+    // whether grayscale is applied right now, a paused schedule). Android
+    // backup and device transfer carry the whole prefs file, so a restored
+    // phone would otherwise claim its lock service "was turned off" and skip
+    // the first-time consent; ParemBackupAgent clears these after a restore.
+    val deviceOnlyKeys = setOf(
+        LOCK_SERVICE_CONNECTED, LOCK_SERVICE_OFF_EXPLAINED,
+        "FOCUS_MODE_ENABLED", "FOCUS_MODE_END_TIME", "FOCUS_SCHEDULE_SKIP_UNTIL",
+        "GRAYSCALE_MANUAL", "GRAYSCALE_APPLIED", "GRAYSCALE_SUPPRESSED", "GRAYSCALE_LIMIT_OVERRIDE",
+        "GRAYSCALE_LEFT_SINCE_OVERRIDE", "GRAYSCALE_PREV_ENABLED", "GRAYSCALE_PREV_MODE", "GRAYSCALE_APP_FG"
+    )
+
+    fun clearDeviceOnlyState() = prefs.edit { for (key in deviceOnlyKeys) remove(key) }
+
     // Keys to exclude from export (device-specific, not transferable)
     private val exportExcludeKeys = setOf(
         WIDGET_ID, WIDGET_IDS, WIDGET_HEIGHTS, WIDGET_PLACEMENT, WIDGET_PROVIDERS,
@@ -540,13 +554,9 @@ class Prefs(context: Context) {
         "OPEN_COUNTS", "OPEN_COUNTS_DAY",
         "WEATHER_CACHED_TEMP", "WEATHER_LAST_FETCHED", "WEATHER_LAST_SUCCESS_MS",
         "CURRENCY_RATES", "CURRENCY_LAST_SUCCESS_MS", "CURRENCY_LAST_ATTEMPT_MS",
-        "FOCUS_MODE_ENABLED", "FOCUS_MODE_END_TIME", "FOCUS_SCHEDULE_SKIP_UNTIL",
         "ONBOARDING_COMPLETE", ONBOARDING_VERSION_SEEN,
-        PERIODIC_SELF_RECREATE_ENABLED,
-        LOCK_SERVICE_CONNECTED, LOCK_SERVICE_OFF_EXPLAINED,
-        "GRAYSCALE_MANUAL", "GRAYSCALE_APPLIED", "GRAYSCALE_SUPPRESSED", "GRAYSCALE_LIMIT_OVERRIDE",
-        "GRAYSCALE_LEFT_SINCE_OVERRIDE", "GRAYSCALE_PREV_ENABLED", "GRAYSCALE_PREV_MODE", "GRAYSCALE_APP_FG"
-    )
+        PERIODIC_SELF_RECREATE_ENABLED
+    ) + deviceOnlyKeys
 
     fun exportToJson(): JSONObject {
         val json = JSONObject()
