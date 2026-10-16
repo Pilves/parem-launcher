@@ -85,6 +85,33 @@ class SmokeTest {
     }
 
     @Test
+    fun drawerHintStaysBelowSearchAtNormalAndLargeFont() {
+        val originalScale = device.executeShellCommand("settings get system font_scale").trim()
+        try {
+            for (scale in listOf("1.0", "2.0")) {
+                device.executeShellCommand("settings put system font_scale $scale")
+                device.pressHome()
+                assertTrue(device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+                openDrawer()
+                val field = device.wait(Until.findObject(By.res(
+                    context.resources.getResourceName(androidx.appcompat.R.id.search_src_text)
+                )), TIMEOUT)
+                assertNotNull("search field missing at scale $scale", field)
+                field.text = "focus"
+                val tip = device.wait(Until.findObject(By.res(
+                    context.resources.getResourceName(R.id.appDrawerTip)
+                ).textContains("Focus")), TIMEOUT)
+                assertNotNull("settings hint missing at scale $scale", tip)
+                assertTrue("hint overlaps search at scale $scale",
+                    tip.visibleBounds.top >= field.visibleBounds.bottom)
+            }
+        } finally {
+            if (originalScale == "null") device.executeShellCommand("settings delete system font_scale")
+            else device.executeShellCommand("settings put system font_scale $originalScale")
+        }
+    }
+
+    @Test
     fun rotatesOnLargeScreenOnly() {
         try {
             device.setOrientationLandscape()
