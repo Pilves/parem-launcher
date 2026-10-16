@@ -4,20 +4,14 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Typeface
 import android.os.Process
-import android.text.Editable
-import android.text.InputType
-import android.text.TextWatcher
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.widget.NestedScrollView
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.R
@@ -106,34 +100,7 @@ class CreateFolderDialog(
             entries = apps.map { AppPickerAdapter.Entry(rowId(it), it.appLabel) }
         )
 
-        val searchInput = EditText(context).apply {
-            hint = context.getString(R.string.search_apps)
-            textSize = 16f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColor))
-            setHintTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
-            background = null
-            inputType = InputType.TYPE_CLASS_TEXT
-            isSingleLine = true
-            setPadding(0, 8.dpToPx(), 0, 8.dpToPx())
-            addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-                override fun afterTextChanged(s: Editable?) {
-                    pickerAdapter.filter(s?.toString() ?: "")
-                }
-            })
-        }
-        container.addView(searchInput)
-
-        val appsList = RecyclerView(context).apply {
-            // Fixed height so rows recycle inside the outer scroll container
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 300.dpToPx()
-            )
-            layoutManager = LinearLayoutManager(context)
-            adapter = pickerAdapter
-        }
-        container.addView(appsList)
+        container.addAppPicker(pickerAdapter, searchPaddingLeft = 0, searchPaddingTop = 8.dpToPx())
 
         // Websites sit beside the picked apps under the same 4-item cap;
         // unchecking one drops it
