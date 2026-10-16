@@ -7,6 +7,19 @@ import com.parem.launcher.data.Prefs
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.Before
+import org.junit.After
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
+import com.parem.launcher.helper.FocusModeManager
+import com.parem.launcher.helper.FocusSchedule
+import com.parem.launcher.helper.ThemeScheduleManager
+import com.parem.launcher.helper.ThemeScheduleWorker
+import com.parem.launcher.data.Constants
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkInfo
+import java.util.concurrent.TimeUnit
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
@@ -14,6 +27,58 @@ class PrefsRoundTripTest {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val sp = context.getSharedPreferences(Prefs.PREFS_NAME, Context.MODE_PRIVATE)
+
+    private lateinit var saved: Map<String, *>
+
+    @Before
+    fun preservePreferences() { saved = sp.all.toMap() }
+
+    @After
+    fun restorePreferences() {
+        val editor = sp.edit().clear()
+        for ((key, value) in saved) if (value != null) editor.put(key, value)
+        check(editor.commit())
+    }
+
+    @Test
+    fun focusExpiryAndSchedulePauseSurvivePreferenceReads() {
+        sp.edit().remove("FOCUS_SCHEDULE_SKIP_UNTIL").commit()
+        FocusModeManager.setScheduleEnabled(context, false)
+        FocusModeManager.setWhitelist(context, setOf("example.allowed"))
+        FocusModeManager.enable(context, 25)
+        assertTrue(FocusModeManager.isAppAllowed(context, "example.allowed"))
+        assertFalse(FocusModeManager.isAppAllowed(context, "example.blocked"))
+        sp.edit().putLong("FOCUS_MODE_END_TIME", System.currentTimeMillis() - 1).commit()
+        assertFalse(FocusModeManager.isActive(context))
+        FocusModeManager.checkAndExpire(context)
+        assertFalse(sp.getBoolean("FOCUS_MODE_ENABLED", true))
+        FocusModeManager.setSchedule(context, listOf(FocusSchedule.Window(FocusSchedule.ALL_DAYS, 0, 0)))
+        FocusModeManager.setScheduleEnabled(context, true)
+        assertTrue(FocusModeManager.isActive(context))
+        FocusModeManager.pauseSchedule(context)
+        assertFalse(FocusModeManager.isActive(context))
+        assertTrue(sp.getLong("FOCUS_SCHEDULE_SKIP_UNTIL", 0) > System.currentTimeMillis())
+    }
+
+    @Test
+    fun workManagerInitializesOnDemandAndRunsThemeWorker() {
+        ThemeScheduleManager.setMode(context, Constants.ThemeScheduleMode.MANUAL)
+        val manager = WorkManager.getInstance(context)
+        val request = OneTimeWorkRequestBuilder<ThemeScheduleWorker>().build()
+        try {
+            manager.enqueue(request).result.get(10, TimeUnit.SECONDS)
+            val deadline = System.currentTimeMillis() + 20_000
+            var state: WorkInfo.State? = null
+            while (System.currentTimeMillis() < deadline) {
+                state = manager.getWorkInfoById(request.id).get(5, TimeUnit.SECONDS)?.state
+                if (state?.isFinished == true) break
+                android.os.SystemClock.sleep(100)
+            }
+            assertEquals(WorkInfo.State.SUCCEEDED, state)
+        } finally {
+            manager.cancelWorkById(request.id).result.get(10, TimeUnit.SECONDS)
+        }
+    }
 
     @Test
     fun exportImportKeepsValuesAndTypes() {
@@ -25,6 +90,10 @@ class PrefsRoundTripTest {
             "HOME_APPS_NUM" to 6,
             "RENAME_com.example.app" to "Renamed",
             "FIRST_OPEN" to false,
+            "DIM_WALLPAPER" to true,
+            "BAD_HABIT_APPS" to "com.example.app=15",
+            "MINDFUL_PAUSE_APPS" to "com.example.app",
+            "FOCUS_SCHEDULE" to "127,1320,420",
             "FOCUS_MODE_WHITELIST" to setOf("com.example.a", "com.example.b"),
         )
         val editor = sp.edit().clear()
