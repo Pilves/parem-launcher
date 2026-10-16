@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Fixed: with a fixed Dark or Light theme that disagreed with the system dark mode, home could render invisible text and rebuild itself in a loop (only the wallpaper visible); the text-size step no longer overrides the activity's theme configuration, and the theme-check retry cap now survives recreate()
 - Gesture letters match resampled shapes, tolerating drawing size, speed, modest slant and reversed strokes; ambiguous marks and straight swipes are rejected.
 - App actions use consistent labelled sheets on home and in the app list; home keeps its replacement actions, removal offers Undo, and a locked layout offers Unlock. Renames stay local to home or the personal app list, and package-only controls no longer affect work-profile copies.
 - Onboarding offers optional explanations for home, search, gestures, Calm tools, appearance and backup; setup states and spoken captions now explain what is enabled.
