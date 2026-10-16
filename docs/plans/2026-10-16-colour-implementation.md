@@ -23,6 +23,8 @@ Surface scrims use 230/255 (90%) opacity: the proposed 85% light scrim gives onl
 
 Typography follows width-qualified resources, six named text appearances and existing system font scaling. Tablet sheet width is capped by a resource. Wallpaper dimming is independent of daily wallpaper and is suppressed on e-ink. Ordinary captions use at least 14sp; existing graph paint sizes and graph geometry remain unchanged pending device review.
 
+Graph labels use opaque secondary text and past-day bars use outline colour; the former 60% text alpha failed contrast on the new light surface. The new dimming row is included in the settings search index.
+
 Source validation: every resource XML parses; existing accessibility attributes on identified views in both settings and drawer layouts are preserved. Removed drawable references were searched before deletion (proof in the QA directory). Night styles contain colour overrides only. No dependency was added.
 
 Not verified: screenshot comparison, 200% font fitting, D-pad/TalkBack interaction, keyboard/inset layout, wallpaper compositing on devices, and e-ink rendering. These require the owner device pass; no device commands were run.

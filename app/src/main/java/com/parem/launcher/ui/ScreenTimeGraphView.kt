@@ -55,13 +55,10 @@ class ScreenTimeGraphView @JvmOverloads constructor(
 
     private val primaryColor = context.getColorFromAttr(R.attr.textColor)
 
-    // Past days are dimmed, today gets the full-strength variants below.
-    // 60% text on the sheet background is 5.7:1 in the light theme (WCAG
-    // 1.4.3 needs 4.5:1); 45% bars are 3.4:1 (1.4.11 needs 3:1 for graphics).
-    private val dimAlpha = 115
-    private val textDimAlpha = 153
+    private val secondaryColor = context.getColorFromAttr(R.attr.textSecondaryColor)
+    private val outlineColor = context.getColorFromAttr(R.attr.outlineColor)
 
-    // Alpha and typeface are swapped per bar in onDraw (today vs. past days)
+    // Colour and typeface are swapped per bar in onDraw (today vs. past days)
     private val barPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = primaryColor
         style = Paint.Style.FILL
@@ -220,9 +217,9 @@ class ScreenTimeGraphView @JvmOverloads constructor(
         for (i in data.indices) {
             val (label, millis) = data[i]
             val isToday = i == emphasizedIndex
-            barPaint.alpha = if (isToday) 255 else dimAlpha
-            textPaint.alpha = if (isToday) 255 else textDimAlpha
-            labelPaint.alpha = if (isToday) 255 else textDimAlpha
+            barPaint.color = if (isToday) primaryColor else outlineColor
+            textPaint.color = if (isToday) primaryColor else secondaryColor
+            labelPaint.color = if (isToday) primaryColor else secondaryColor
             textPaint.typeface = if (isToday) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
             labelPaint.typeface = if (isToday) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
             val centerX = sidePadding + slotWidth * i + slotWidth / 2f

@@ -36,6 +36,7 @@ object SettingsSearchIndex {
         R.string.text_size to R.id.textSizeValue,
         R.string.bold_font to R.id.boldFont,
         R.string.daily_wallpaper_update to R.id.dailyWallpaperUrl,
+        R.string.dim_wallpaper to R.id.dimWallpaper,
         R.string.notification_bar to R.id.statusBar,
         R.string.weather to R.id.weatherToggle,
         R.string.swipe_left_action to R.id.swipeLeftApp,
