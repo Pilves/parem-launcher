@@ -49,6 +49,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Build pinned performance reference
+        if: matrix.perf
+        run: |
+          git fetch origin 996ef0cf0b1b130d07c1d035bfcc456438c8ebff
+          git worktree add ../perf-reference 996ef0cf0b1b130d07c1d035bfcc456438c8ebff
+          (cd ../perf-reference && ./gradlew assembleDebug)
+
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -64,13 +71,12 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-          # connectedDebugAndroidTest uninstalls the app when done, so reinstall
-          # for the perf run; it fails the job on a > 20% regression. Perf runs
-          # on the phone leg only so the baseline stays comparable; each script
-          # line runs on its own, hence the one-line if
+          # Compare with the pinned reference on this runner after the functional
+          # suite warms Android. Historical timings use a different scroll driver.
+          # Each script line runs independently, hence the one-line conditional.
           script: |
             ./gradlew connectedDebugAndroidTest
-            if [ "${{ matrix.perf }}" = "true" ]; then ./gradlew installDebug && node scripts/perf-budget.mjs --out app/build/perf/result.json; fi
+            if [ "${{ matrix.perf }}" = "true" ]; then bash scripts/perf-compare.sh; fi
 
       - name: Upload test reports
         if: failure()

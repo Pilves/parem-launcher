@@ -3,7 +3,7 @@
 // or emulator over adb: cold start and return-to-home via `am start -W`, drawer
 // scroll and omnibox typing frame timing via `dumpsys gfxinfo`.
 //
-//   node scripts/perf-budget.mjs [--package <id>] [--out <file>] [--write-baseline]
+//   node scripts/perf-budget.mjs [--package <id>] [--out <file>] [--baseline <file>] [--write-baseline]
 //
 // --out also saves a screenshot of each frame-timing phase next to the file.
 //
@@ -158,6 +158,7 @@ export function measurementProblems(result) {
 }
 
 function hierarchy() {
+  adb('rm -f /data/local/tmp/parem-perf.xml');
   adb('uiautomator dump /data/local/tmp/parem-perf.xml');
   return adb('cat /data/local/tmp/parem-perf.xml');
 }
@@ -335,13 +336,14 @@ function main(argv) {
     return 0;
   }
   let baseline = {};
+  const baselineFile = opt('--baseline') ?? BASELINE_FILE;
   try {
-    baseline = JSON.parse(readFileSync(BASELINE_FILE, 'utf8'));
+    baseline = JSON.parse(readFileSync(baselineFile, 'utf8'));
   } catch {
-    console.log(`no baseline at ${BASELINE_FILE}`);
+    console.log(`no baseline at ${baselineFile}`);
   }
   const table = summaryTable(baseline, current);
-  const problems = compare(baseline, current);
+  const problems = [...measurementProblems(baseline).map((p) => `invalid baseline: ${p}`), ...compare(baseline, current)];
   const budget = overBudget(current);
   const report = [table, '', ...invalid.map((p) => `INVALID MEASUREMENT ${p}`), ...problems.map((p) => `REGRESSION ${p}`), ...budget.map((b) => `over budget (not gated) ${b}`)].join('\n');
   console.log(json + '\n' + report);
