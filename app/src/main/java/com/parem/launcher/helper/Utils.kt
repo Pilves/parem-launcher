@@ -84,11 +84,8 @@ fun Context.isSystemApp(packageName: String): Boolean {
 }
 
 @ColorInt
-fun Context.getColorFromAttr(
-    @AttrRes attrColor: Int,
-    typedValue: TypedValue = TypedValue(),
-    resolveRefs: Boolean = true,
-): Int {
-    theme.resolveAttribute(attrColor, typedValue, resolveRefs)
+fun Context.getColorFromAttr(@AttrRes attrColor: Int): Int {
+    val typedValue = TypedValue()
+    theme.resolveAttribute(attrColor, typedValue, true)
     return typedValue.data
 }
