@@ -18,6 +18,7 @@ import com.parem.launcher.helper.GrayscalePairing
 import com.parem.launcher.helper.WellbeingRowState
 import com.parem.launcher.helper.WellbeingRowState.Row
 import com.parem.launcher.helper.appUsagePermissionGranted
+import com.parem.launcher.helper.onOff
 import com.parem.launcher.ui.BadHabitDialogs
 import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.showToast
@@ -166,7 +167,7 @@ class WellbeingSettingsCard(
     /** The permission row and the limits row that depends on it, re-derived on every resume (the grant lands in system settings). */
     private fun populateUsageAccess() {
         val granted = context.appUsagePermissionGranted()
-        binding.screenTimeOnOff.text = context.getString(if (granted) R.string.on else R.string.off)
+        binding.screenTimeOnOff.text = context.onOff(granted)
         val needsAccess = WellbeingRowState.appLimits(granted) == Row.NEEDS_ACCESS
         binding.screenTimeLimitsToggle?.apply {
             text = context.getString(if (needsAccess) R.string.quiet_needs_access else R.string.configure)

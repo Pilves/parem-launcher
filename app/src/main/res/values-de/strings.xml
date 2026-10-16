@@ -15,8 +15,6 @@
     <string name="_8">8</string>
     <string name="app_drawer_tips">Tipp: Beginnen Sie mit der Eingabe eines App-Namens, um sie automatisch zu starten</string>
     <string name="okay">Okay</string>
-    <string name="cool">Cool!</string>
-    <string name="tip_start_typing_for_rename">Tipp: Beginnen Sie mit der Eingabe der Option „App RENAME“.</string>
     <string name="your_wallpaper_will_update_shortly">Ihr Hintergrundbild wird in Kürze aktualisiert</string>
     <string name="parem_is_not_default_launcher">Parem Launcher ist kein Standard-Launcher. Die tägliche Aktualisierung des Hintergrundbilds schlägt möglicherweise fehl.</string>
     <string name="long_press_to_enable">Zum Aktivieren lange drücken</string>
@@ -27,16 +25,8 @@
     <string name="swipe_down_for">Wischen Sie nach unten für</string>
     <string name="search">Suchen</string>
     <string name="notifications">Benachrichtigungen</string>
-    <string name="accessibility_disclosure">Bitte schalten Sie den Barrierefreiheitsdienst von Parem Launcher in den Einstellungen Ihres Geräts ein oder aus, um diese Funktion zu aktivieren oder zu deaktivieren.
-        \n\nBitte beachten Sie, dass dieser Dienst nur dazu dient, den Bildschirm Ihres Geräts mit der Doppeltipp-Geste auszuschalten. Unser Barrierefreiheitsdienst erfasst oder gibt keine Daten weiter.</string>
-    <string name="accept">Akzeptieren</string>
-    <string name="permission">Erlaubnis</string>
     <string name="double_tap_lock">Zum Sperren zweimal tippen</string>
-    <string name="enable">Aktivieren</string>
     <string name="disable">Deaktivieren</string>
-    <string name="not_working"><u>Funktioniert nicht?</u></string>
-    <string name="info">Die Info</string>
-    <string name="delete">Löschen</string>
     <string name="text_size">Textgröße</string>
     <string name="enabled">Aktiviert</string>
     <string name="disabled">Deaktiviert</string>
@@ -45,22 +35,13 @@
     <string name="long_press_to_select_app">Lange drücken, um die App auszuwählen</string>
     <string name="unable_to_open_app">App-Informationen können nicht geöffnet werden</string>
     <string name="copied">Kopiert</string>
-    <string name="system_app_cannot_delete">System-App, kann nicht gelöscht werden</string>
     <string name="type_a_new_app_name_first">Geben Sie zuerst einen neuen App-Namen ein</string>
-    <string name="adapter_show">Zeigen</string>
-    <string name="adapter_hide">Verstecken</string>
-    <string name="app_text_color">Textfarbe</string>
     <string name="double_tap_to_lock_screen">Zum Sperren zweimal tippen</string>
-    <string name="about">Über</string>
     <string name="off">Aus</string>
     <string name="on">Ein</string>
-    <string name="black">Schwarz</string>
-    <string name="white">Weiß</string>
     <string name="change_default_launcher">Standard-Launcher ändern</string>
-    <string name="privacy">Privatsphäre</string><string name="follow">Folgen</string>
-    <string name="email">Email</string>
+    <string name="privacy">Privatsphäre</string>
 
-    <string name="donate">Spenden</string>
     <string name="swipe_up_for_apps">1. Für alle Apps nach oben wischen\n2. Drücken Sie lange auf eine beliebige Stelle, um Einstellungen vorzunehmen</string>
     <string name="apps_on_home_screen">Apps auf dem Startbildschirm</string>
     <string name="daily_wallpaper_update">Täglich neue Hintergrundbilder</string>
@@ -71,7 +52,6 @@
     <string name="swipe_left_app">Wischen Sie nach links über die App</string>
     <string name="swipe_right_app">Wischen Sie nach rechts über die App</string>
     <string name="auto_show_keyboard">Tastatur automatisch anzeigen</string>
-    <string name="hide">Verstecken</string>
     <string name="status_bar">Zeige Statusleiste</string>
     <string name="rename">Umbenennen</string>
     <string name="show_date_time">Datum und Uhrzeit anzeigen</string>
@@ -81,32 +61,21 @@
     <string name="system_default">System</string>
     <string name="dark">Dunkel</string>
     <string name="light">Hell</string>
-    <string name="welcome_to_parem_settings">Willkommen in den Einstellungen!
-        \n\nDenken Sie daran, wenn Sie Fragen haben, unsere Seite „Über“ hat die Antwort.</string><string name="keyboard_message">Hallo, die Tastatur ist der schnellste Weg, Apps in Parem Launcher zu finden und zu starten. Können wir Sie bitten, die Funktion noch ein paar Tage eingeschaltet zu lassen und dann zu entscheiden?
-        \n\nDie Wahl liegt immer bei Ihnen.</string>
-    <string name="digital_wellbeing_message">Wenn Sie Zeitlimits für bestimmte Apps festlegen möchten, kann Ihnen die Digital Wellbeing-Funktion von Android dabei helfen.
-        \n\nBitte suchen Sie in Ihren Telefoneinstellungen nach Digital Wellbeing und aktivieren Sie es.</string>
     <string name="app_usage_message">Um die Bildschirmzeit auf dem Startbildschirm anzuzeigen oder zu verbergen, erteilen Sie bitte die Erlaubnis für die App-Nutzung oder verweigern Sie sie.
         \n\nHinweis: Es werden keine Daten zur App-Nutzung gesammelt. Alles wird auf Ihrem Gerät verarbeitet.</string><string name="accessibility_service_description">Die Zugriffsberechtigung ist erforderlich, um das Sperren durch Doppeltippen zu ermöglichen. Die von Parem Launcher über diesen Dienst erfassten Daten verlassen Ihr Gerät nicht.</string><string name="open">Verbindung öffnen</string>
-    <string name="copy">Kopieren</string>
     <string name="close">Schließen</string>
     <string name="not_now">Nicht jetzt</string>
-    <string name="public_roadmap">Öffentliche Parem Launcher-Roadmap</string>
-    <string name="instagram">Instagram</string><string name="roadmap">Roadmap</string>
+    <string name="instagram">Instagram</string>
     <string name="date">Datum</string>
     <string name="date_only">Nur Datum</string>
     <string name="bottom_on">Unten: Ein</string>
     <string name="bottom_off">Unten: Aus</string>
     <string name="please_set_parem_as_default_first">Bitte legen Sie zunächst Parem Launcher als Ihren Standard-Launcher fest</string>
-    <string name="affiliate">Affiliate</string>
     <string name="app_not_found">App nicht gefunden</string>
-    <string name="unable_to_launch_app">App kann nicht gestartet werden</string>
-    <string name="search_for_Launcher_or_home_app">Suchen Sie nach Launcher oder Home-App</string>
     <string name="swipe_left_app_enabled">App nach links wischen aktiviert</string>
     <string name="swipe_right_app_enabled">App nach rechts wischen aktiviert</string>
     <string name="swipe_left_app_disabled">App nach links wischen deaktiviert</string>
     <string name="swipe_right_app_disabled">App nach rechts wischen deaktiviert</string><string name="screen_time">Bildschirmzeit</string>
     <string name="about_parem">Über Parem Launcher</string>
-    <string name="learn_more">Erfahren Sie mehr</string><string name="alignment_changed">Ausrichtung geändert ✅</string>
     <string name="home_screen">Startbildschirm</string><string name="notification_bar">Benachrichtigungsleiste</string>
 </resources>

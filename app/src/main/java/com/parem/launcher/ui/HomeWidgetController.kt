@@ -19,6 +19,7 @@ import android.widget.FrameLayout
 import android.widget.RemoteViews
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.MainActivity
@@ -82,19 +83,11 @@ class HomeWidgetController(
     // No landscape branch needed here: layout-land/fragment_home.xml places both
     // above/below scroll views inside the single right-hand widget column, so
     // either placement pref value resolves to that column beside the apps.
-    private fun getActiveContainer(): android.widget.LinearLayout? {
-        return if (prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE)
-            binding.widgetContainerAbove
-        else
-            binding.widgetContainerBelow
-    }
+    private val above get() = prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE
 
-    private fun getActiveScrollView(): android.widget.ScrollView? {
-        return if (prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE)
-            binding.widgetScrollViewAbove
-        else
-            binding.widgetScrollViewBelow
-    }
+    private fun getActiveContainer() = if (above) binding.widgetContainerAbove else binding.widgetContainerBelow
+
+    private fun getActiveScrollView() = if (above) binding.widgetScrollViewAbove else binding.widgetScrollViewBelow
 
     // Queue of (oldWidgetId, providerComponentString) for widgets that need rebinding with permission
     private val widgetRestoreQueue = mutableListOf<Pair<Int, String>>()
@@ -394,11 +387,7 @@ class HomeWidgetController(
                         initialY = event.rawY
                         initialHeight = wrapper.layoutParams.height
                         // Prevent ScrollView from stealing the drag
-                        var p = parent
-                        while (p != null) {
-                            p.requestDisallowInterceptTouchEvent(true)
-                            p = p.parent
-                        }
+                        parent?.requestDisallowInterceptTouchEvent(true)
                         handleBar.alpha = 1.0f
                         true
                     }
@@ -419,21 +408,11 @@ class HomeWidgetController(
                             if (!isActive()) return@post
                             val widthDp = (wrapper.width / density).toInt()
                             if (widthDp > 0 && finalHeightDp > 0) {
-                                val options = Bundle().apply {
-                                    putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, widthDp)
-                                    putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, widthDp)
-                                    putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, finalHeightDp)
-                                    putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, finalHeightDp)
-                                }
-                                hostView.updateAppWidgetSize(options, widthDp, finalHeightDp, widthDp, finalHeightDp)
+                                hostView.updateAppWidgetSize(null, widthDp, finalHeightDp, widthDp, finalHeightDp)
                             }
                         }
                         // Re-allow scroll interception
-                        var p = parent
-                        while (p != null) {
-                            p.requestDisallowInterceptTouchEvent(false)
-                            p = p.parent
-                        }
+                        parent?.requestDisallowInterceptTouchEvent(false)
                         handleBar.alpha = 0.5f
                         true
                     }
@@ -450,13 +429,7 @@ class HomeWidgetController(
             val widthDp = (wrapper.width / context.resources.displayMetrics.density).toInt()
             val heightDp = (wrapper.height / context.resources.displayMetrics.density).toInt()
             if (widthDp > 0 && heightDp > 0) {
-                val options = Bundle().apply {
-                    putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, widthDp)
-                    putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, widthDp)
-                    putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, heightDp)
-                    putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, heightDp)
-                }
-                hostView.updateAppWidgetSize(options, widthDp, heightDp, widthDp, heightDp)
+                hostView.updateAppWidgetSize(null, widthDp, heightDp, widthDp, heightDp)
             }
         }
     }
@@ -499,13 +472,7 @@ class HomeWidgetController(
                     ?: return@post
                 val widthDp = (wrapper.width / density).toInt()
                 if (widthDp > 0 && heightDp > 0) {
-                    val options = Bundle().apply {
-                        putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, widthDp)
-                        putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, widthDp)
-                        putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, heightDp)
-                        putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, heightDp)
-                    }
-                    hostView.updateAppWidgetSize(options, widthDp, heightDp, widthDp, heightDp)
+                    hostView.updateAppWidgetSize(null, widthDp, heightDp, widthDp, heightDp)
                 }
             }
         }
@@ -577,12 +544,7 @@ class HomeWidgetController(
 
         // Remove from container
         val container = getActiveContainer() ?: return
-        for (i in 0 until container.childCount) {
-            if (container.getChildAt(i).tag == widgetId) {
-                container.removeViewAt(i)
-                break
-            }
-        }
+        container.findViewWithTag<View>(widgetId)?.let(container::removeView)
         updateWidgetContainerVisibility()
     }
 
@@ -757,14 +719,10 @@ class HomeWidgetController(
             }
             listView.adapter = adapter
 
-            searchField.addTextChangedListener(object : android.text.TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-                override fun afterTextChanged(s: android.text.Editable?) {
-                    currentItems = buildItems(s?.toString() ?: "")
-                    adapter.notifyDataSetChanged()
-                }
-            })
+            searchField.doAfterTextChanged { s ->
+                currentItems = buildItems(s?.toString() ?: "")
+                adapter.notifyDataSetChanged()
+            }
 
             listView.setOnItemClickListener { _, _, position, _ ->
                 val entry = currentItems[position].second ?: return@setOnItemClickListener

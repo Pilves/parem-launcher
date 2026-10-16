@@ -5,7 +5,11 @@ import android.content.SharedPreferences
 import android.view.Gravity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
+import com.parem.launcher.helper.CsvPairs
 import org.json.JSONObject
+
+/** The single SharedPreferences file every feature manager reads and writes. */
+fun Context.paremPrefs(): SharedPreferences = getSharedPreferences(Prefs.PREFS_NAME, 0)
 
 class Prefs(context: Context) {
     companion object {
@@ -30,11 +34,8 @@ class Prefs(context: Context) {
         )
     }
 
-    private val PREFS_FILENAME = PREFS_NAME
-
     private val FIRST_OPEN = "FIRST_OPEN"
     private val FIRST_OPEN_TIME = "FIRST_OPEN_TIME"
-    private val FIRST_HIDE = "FIRST_HIDE"
     private val LOCK_MODE = "LOCK_MODE"
     private val LOCK_SERVICE_CONNECTED = "LOCK_SERVICE_CONNECTED"
     private val LOCK_SERVICE_OFF_EXPLAINED = "LOCK_SERVICE_OFF_EXPLAINED"
@@ -92,12 +93,12 @@ class Prefs(context: Context) {
     private val CALENDAR_APP_USER = "CALENDAR_APP_USER"
     private val CALENDAR_APP_CLASS_NAME = "CALENDAR_APP_CLASS_NAME"
 
-    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_FILENAME, 0)
+    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, 0)
 
     // Omnibox history lives in its own file: the export only reads the main
     // file, and backup_rules / data_extraction_rules keep this one on the device.
     private val historyPrefs: SharedPreferences =
-        context.getSharedPreferences("$PREFS_FILENAME.omnibox_history", 0)
+        context.getSharedPreferences("$PREFS_NAME.omnibox_history", 0)
 
     private var widgetHeightsCache: Map<Int, Int>? = null
     private var widgetProvidersCache: Map<Int, String>? = null
@@ -110,10 +111,6 @@ class Prefs(context: Context) {
     var firstOpenTime: Long
         get() = prefs.getLong(FIRST_OPEN_TIME, 0L)
         set(value) = prefs.edit { putLong(FIRST_OPEN_TIME, value) }
-
-    var firstHide: Boolean
-        get() = prefs.getBoolean(FIRST_HIDE, true)
-        set(value) = prefs.edit { putBoolean(FIRST_HIDE, value) }
 
     var lockModeOn: Boolean
         get() = prefs.getBoolean(LOCK_MODE, false)
@@ -265,16 +262,8 @@ class Prefs(context: Context) {
 
     fun getCachedUsageStats(): Map<String, Long> {
         usageStatsCache?.let { return it }
-        val raw = prefs.getString(CACHED_USAGE_STATS, "").toString()
-        if (raw.isBlank()) return emptyMap()
-        val parsed = raw.split(",").mapNotNull { entry ->
-            val sep = entry.indexOf('=')
-            if (sep > 0) {
-                val pkg = entry.substring(0, sep)
-                val time = entry.substring(sep + 1).toLongOrNull()
-                if (time != null) pkg to time else null
-            } else null
-        }.toMap()
+        val parsed = CsvPairs.parse(prefs.getString(CACHED_USAGE_STATS, "").toString(), '=', trim = false)
+            .mapNotNull { (pkg, time) -> time.toLongOrNull()?.let { pkg to it } }.toMap()
         usageStatsCache = parsed
         return parsed
     }
@@ -330,26 +319,15 @@ class Prefs(context: Context) {
     }
 
     fun removeWidgetHeight(widgetId: Int) {
-        val current = widgetHeightsCache ?: parseWidgetHeights()
-        val updated = current.toMutableMap()
-        updated.remove(widgetId)
-        val raw = updated.entries.joinToString(",") { "${it.key}:${it.value}" }
-        prefs.edit { putString(WIDGET_HEIGHTS, raw) }
-        widgetHeightsCache = updated
+        val map = parseWidgetHeights().toMutableMap()
+        map.remove(widgetId)
+        widgetHeights = map.entries.joinToString(",") { "${it.key}:${it.value}" }
     }
 
     private fun parseWidgetHeights(): Map<Int, Int> {
         widgetHeightsCache?.let { return it }
-        val raw = widgetHeights
-        if (raw.isBlank()) return emptyMap()
-        val parsed = raw.split(",").mapNotNull { entry ->
-            val parts = entry.split(":")
-            if (parts.size == 2) {
-                val id = parts[0].trim().toIntOrNull()
-                val h = parts[1].trim().toIntOrNull()
-                if (id != null && h != null) id to h else null
-            } else null
-        }.toMap()
+        val parsed = CsvPairs.parse(widgetHeights, ':')
+            .mapNotNull { (id, h) -> id.toIntOrNull()?.let { i -> h.toIntOrNull()?.let { i to it } } }.toMap()
         widgetHeightsCache = parsed
         return parsed
     }
@@ -360,11 +338,6 @@ class Prefs(context: Context) {
             widgetProvidersCache = null
             prefs.edit { putString(WIDGET_PROVIDERS, value) }
         }
-
-    fun getWidgetProvider(widgetId: Int): String? {
-        val map = parseWidgetProviders()
-        return map[widgetId]
-    }
 
     fun setWidgetProvider(widgetId: Int, provider: String) {
         val map = parseWidgetProviders().toMutableMap()
@@ -382,17 +355,9 @@ class Prefs(context: Context) {
 
     private fun parseWidgetProviders(): Map<Int, String> {
         widgetProvidersCache?.let { return it }
-        val raw = widgetProviders
-        if (raw.isBlank()) return emptyMap()
-        val parsed = raw.split(",").mapNotNull { entry ->
-            // Format: "id:component/class" — split only on first ':'
-            val sep = entry.indexOf(':')
-            if (sep > 0) {
-                val id = entry.substring(0, sep).trim().toIntOrNull()
-                val comp = entry.substring(sep + 1).trim()
-                if (id != null && comp.isNotBlank()) id to comp else null
-            } else null
-        }.toMap()
+        // Format: "id:component/class" — split only on first ':'
+        val parsed = CsvPairs.parse(widgetProviders, ':')
+            .mapNotNull { (id, comp) -> id.toIntOrNull()?.takeIf { comp.isNotBlank() }?.let { it to comp } }.toMap()
         widgetProvidersCache = parsed
         return parsed
     }
@@ -606,14 +571,7 @@ class Prefs(context: Context) {
                     key in FLOAT_PREF_KEYS -> putFloat(key, (value as Number).toFloat())
                     value is Boolean -> putBoolean(key, value)
                     value is String -> putString(key, value)
-                    value is Int -> {
-                        val doubleVal = value.toDouble()
-                        if (doubleVal != doubleVal.toLong().toDouble()) {
-                            putFloat(key, doubleVal.toFloat())
-                        } else {
-                            putInt(key, value)
-                        }
-                    }
+                    value is Int -> putInt(key, value)
                     value is Long -> putLong(key, value)
                     value is Double -> putFloat(key, value.toFloat())
                     value is org.json.JSONArray -> {

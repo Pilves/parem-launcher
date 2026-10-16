@@ -33,9 +33,9 @@ import com.parem.launcher.helper.openAlarmApp
 import com.parem.launcher.helper.openCalendar
 import com.parem.launcher.ui.HomeFragment
 import com.parem.launcher.ui.ScreenTimeGraphDialog
+import com.parem.launcher.ui.isAlive
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /**
  * Owns the home screen's clock row: date/time rendering (including weather
@@ -59,7 +59,7 @@ class HomeClockController(
     // screen left visible across midnight (or a timezone change) goes stale.
     private val refreshReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context?, intent: Intent?) {
-            if (fragment.isAdded && fragment.view != null) populateDateTime()
+            if (fragment.isAlive) populateDateTime()
         }
     }
 
@@ -81,30 +81,17 @@ class HomeClockController(
         })
     }
 
-    companion object {
-        private var cachedLocale: Locale? = null
-        private var dateFormatter: DateTimeFormatter? = null
-        fun getDateFormatter(): DateTimeFormatter {
-            val current = Locale.getDefault()
-            if (current != cachedLocale || dateFormatter == null) {
-                cachedLocale = current
-                dateFormatter = DateTimeFormatter.ofPattern("EEE, d MMM", current)
-            }
-            return dateFormatter!!
-        }
-    }
-
     fun populateDateTime() {
         binding.dateTimeLayout.isVisible = prefs.dateTimeVisibility != Constants.DateTime.OFF
         binding.clock.isVisible = Constants.DateTime.isTimeVisible(prefs.dateTimeVisibility)
         binding.date.isVisible = Constants.DateTime.isDateVisible(prefs.dateTimeVisibility)
 
-        val rawWeatherTemp = WeatherManager.getDisplayString(context)
+        val rawWeatherTemp = WeatherManager.getCachedTemp(context)
         val staleness = WeatherManager.getStaleness(context)
         // Older than 24h: hide entirely rather than show a silently stale reading.
         val weatherTemp = if (staleness == WeatherStaleness.Level.EXPIRED) "" else rawWeatherTemp
 
-        var dateText = LocalDate.now().format(getDateFormatter())
+        var dateText = LocalDate.now().format(DateTimeFormatter.ofPattern("EEE, d MMM"))
         if (weatherTemp.isNotEmpty()) dateText = "$weatherTemp  $dateText"
 
         if (!prefs.showStatusBar) {

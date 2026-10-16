@@ -4,18 +4,12 @@
     <string name="set_as_default_launcher">Definir como launcher padrão</string>
     <string name="set_as_default_launcher_u"><u>Definir como launcher padrão</u></string>
     <string name="set_as_default_launcher_first">Definir como launcher padrão</string>
-    <string name="app_text_color">Cor do texto</string>
     <string name="double_tap_to_lock_screen">Toque duplo para bloquear</string>
-    <string name="about">Sobre</string>
     <string name="off">Desligado</string>
     <string name="on">Ligado</string>
-    <string name="black">Preto</string>
-    <string name="white">Branco</string>
     <string name="change_default_launcher">Alterar launcher padrão</string>
-    <string name="privacy">Privacidade</string><string name="follow">Seguir</string>
-    <string name="email">E-mail</string>
+    <string name="privacy">Privacidade</string>
 
-    <string name="donate">Fazer donativo</string>
     <string name="swipe_up_for_apps">1. Deslize para cima para ver todos os aplicativos\n2. Pressione continuamente em qualquer ponto do ecrã para aceder às configurações</string>
     <string name="apps_on_home_screen">Aplicativos na home</string>
     <string name="daily_wallpaper_update">Novo fundo de ecrã diariamente</string>
@@ -36,9 +30,7 @@
     <string name="_8">8</string>
     <string name="app_drawer_tips">Dica: comece a digitar um nome de aplicativo para iniciá-lo automaticamente</string>
     <string name="okay">Ok</string>
-    <string name="cool">Boa!</string>
     <string name="auto_show_keyboard">Exibição automática do teclado</string>
-    <string name="hide">Esconder</string>
     <string name="status_bar">Mostrar barra de status</string>
     <string name="rename">Alterar nome</string>
     <string name="show_date_time">Mostrar data e hora</string>
@@ -48,40 +40,23 @@
     <string name="system_default">Sistema</string>
     <string name="dark">Escuro</string>
     <string name="light">Claro</string>
-    <string name="welcome_to_parem_settings">Bem-vindo às configurações!
-        \n\nLembre-se, se você tiver alguma dúvida, nossa página Sobre tem a resposta.</string><string name="keyboard_message">Olá, o teclado é a maneira mais rápida de encontrar e iniciar aplicativos no Parem Launcher. Podemos pedir-lhe que mantenha isto ligado por mais alguns dias para depois decidir?
-        \n\nA escolha é sempre sua!</string>
-    <string name="digital_wellbeing_message">Se você deseja definir limites de tempo para determinados aplicativos, o recurso Bem-estar digital do Android pode ajudá-lo a fazer isso.
-        \n\nProcure Bem-estar Digital nas configurações do seu telefone e ative-o.</string>
     <string name="app_usage_message">Para exibir/ocultar o tempo de tela na tela inicial, permita ou negue a permissão de uso do aplicativo.
         \n\nNota: Não são coletados dados de uso do aplicativo. Tudo é processado no seu dispositivo.</string><string name="accessibility_service_description">A permissão de acessibilidade é necessária para ativar o toque duplo para bloquear. Quaisquer dados adquiridos pelo Parem Launcher através deste serviço não sairão do seu dispositivo.</string><string name="open">Abrir link</string>
-    <string name="copy">Copiar</string>
     <string name="close">Fechar</string>
     <string name="not_now">Agora não</string>
-    <string name="public_roadmap">Roteiro público do Parem Launcher</string>
-    <string name="instagram">Instagram</string><string name="roadmap">Roteiro</string>
+    <string name="instagram">Instagram</string>
     <string name="date">Data</string>
     <string name="date_only">Apenas data</string>
     <string name="bottom_on">Fundo: Ativado</string>
     <string name="bottom_off">Fundo: Desligado</string>
     <string name="please_set_parem_as_default_first">Por favor, defina Parem Launcher como seu lançador padrão primeiro</string>
-    <string name="affiliate">Afiliar</string>
-    <string name="tip_start_typing_for_rename">Dica: comece a digitar para a opção RENAME do aplicativo</string>
     <string name="hidden_apps_message">Nota: Toque em \"Parem Launcher\" na parte superior desta página de Configurações para encontrar seus aplicativos ocultos.
         \n\nMais detalhes disponíveis em nossa página Sobre abaixo.</string>
     <string name="swipe_down_for">Deslize para baixo para</string>
     <string name="search">Procurar</string>
     <string name="notifications">Notificações</string>
-    <string name="accessibility_disclosure">Ative ou desative o serviço de acessibilidade do Parem Launcher nas configurações do seu dispositivo para ativar ou desativar esse recurso.
-        \n\nPor favor, note que este serviço é usado apenas para permitir que você desligue o scree do seu dispositivo</string>
-    <string name="accept">Aceitar</string>
-    <string name="permission">Permissão</string>
     <string name="double_tap_lock">Toque duas vezes para bloquear</string>
-    <string name="enable">Permitir</string>
     <string name="disable">Não permitir</string>
-    <string name="not_working"><u>Não está funcionando?</u></string>
-    <string name="info">Informação</string>
-    <string name="delete">Desinstalar</string>
     <string name="text_size">Tamanho do texto</string>
     <string name="enabled">Habilitado</string>
     <string name="disabled">Desactivado</string>
@@ -90,11 +65,8 @@
     <string name="long_press_to_select_app">Pressione por muito tempo para selecionar o aplicativo</string>
     <string name="unable_to_open_app">Não é possível abrir as informações do aplicativo</string>
     <string name="copied">Copiado</string>
-    <string name="system_app_cannot_delete">Aplicativo do sistema, não é possível excluir</string>
     <string name="type_a_new_app_name_first">Digite um novo nome de aplicativo primeiro</string>
     <string name="app_not_found">Aplicativo não encontrado</string>
-    <string name="unable_to_launch_app">Não é possível iniciar o aplicativo</string>
-    <string name="search_for_Launcher_or_home_app">Procurar a aplicação Launcher</string>
     <string name="swipe_left_app_enabled">Deslizar para a esquerda para abrir aplicativo ativado</string>
     <string name="swipe_right_app_enabled">Deslizar para a direita para abrir aplicativo ativado</string>
     <string name="swipe_left_app_disabled">Deslizar para a esquerda para abrir aplicativo desativado</string>
@@ -104,9 +76,6 @@
     <string name="long_press_to_enable">Pressione por muito tempo para ativar</string>
     <string name="no_hidden_apps">Sem aplicativos ocultos</string>
     <string name="hidden_apps">Aplicativos ocultos</string>
-    <string name="adapter_show">Mostrar</string>
-    <string name="adapter_hide">Esconder</string><string name="about_parem">Sobre Parem Launcher</string>
-    <string name="learn_more">Saber mais</string>
     <string name="screen_time">Tempo de tela</string><string name="alignment_changed">Alinhamento alterado ✅</string>
     <string name="home_screen">Tela inicial</string><string name="notification_bar">Barra de notificações</string>
 </resources><!-- Portuguese -->

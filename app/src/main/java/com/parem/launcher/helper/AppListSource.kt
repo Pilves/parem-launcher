@@ -205,12 +205,8 @@ private fun upgradeHiddenApps(prefs: Prefs) {
     prefs.hiddenAppsUpdated = true
 }
 
-fun isPackageInstalled(context: Context, packageName: String, userString: String): Boolean {
-    val launcher = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-    val activityInfo = launcher.getActivityList(packageName, getUserHandleFromString(context, userString))
-    if (activityInfo.size > 0) return true
-    return false
-}
+fun isPackageInstalled(context: Context, packageName: String, userString: String): Boolean =
+    context.isPackageInstalled(packageName, getUserHandleFromString(context, userString))
 
 /**
  * Cache-aware [isPackageInstalled] for the home-resume hot path (PAREM-117).

@@ -54,11 +54,6 @@ object Constants {
         const val QUIET_LIST = 7
     }
 
-    object CharacterIndicator {
-        const val SHOW = 202
-        const val HIDE = 201
-    }
-
     val CLOCK_APP_PACKAGES = arrayOf(
         "com.google.android.deskclock", //Google Clock
         "com.sec.android.app.clockpackage", //Samsung Clock
@@ -73,12 +68,6 @@ object Constants {
     const val FLAG_HIDDEN_APPS = 101
 
     const val FLAG_SET_HOME_APP_1 = 1
-    const val FLAG_SET_HOME_APP_2 = 2
-    const val FLAG_SET_HOME_APP_3 = 3
-    const val FLAG_SET_HOME_APP_4 = 4
-    const val FLAG_SET_HOME_APP_5 = 5
-    const val FLAG_SET_HOME_APP_6 = 6
-    const val FLAG_SET_HOME_APP_7 = 7
     const val FLAG_SET_HOME_APP_8 = 8
 
     const val FLAG_SET_SWIPE_LEFT_APP = 11
@@ -87,12 +76,6 @@ object Constants {
     const val FLAG_SET_CALENDAR_APP = 14
 
     const val FLAG_SET_SWIPE_UP_APP_1 = 21
-    const val FLAG_SET_SWIPE_UP_APP_2 = 22
-    const val FLAG_SET_SWIPE_UP_APP_3 = 23
-    const val FLAG_SET_SWIPE_UP_APP_4 = 24
-    const val FLAG_SET_SWIPE_UP_APP_5 = 25
-    const val FLAG_SET_SWIPE_UP_APP_6 = 26
-    const val FLAG_SET_SWIPE_UP_APP_7 = 27
     const val FLAG_SET_SWIPE_UP_APP_8 = 28
     const val FLAG_SET_DOUBLE_TAP_APP = 30
     const val FLAG_SET_GESTURE_LETTER_APP = 40
@@ -104,7 +87,6 @@ object Constants {
     // Bump to re-show onboarding after major feature additions
     const val ONBOARDING_VERSION = 3
 
-    const val LONG_PRESS_DELAY_MS = 500L
     const val ONE_DAY_IN_MILLIS = 86400000L
     const val ONE_HOUR_IN_MILLIS = 3600000L
     const val ONE_MINUTE_IN_MILLIS = 60000L
@@ -114,7 +96,6 @@ object Constants {
     // Rows in settings whose URL is empty are hidden (see SettingsFragment)
     const val URL_ABOUT_PAREM = ""
     const val URL_PAREM_PRIVACY = ""
-    const val URL_DOUBLE_TAP = ""
     const val URL_PAREM_GITHUB = "https://github.com/Pilves/parem-launcher"
     const val URL_WALLPAPERS = "https://gist.githubusercontent.com/tanujnotes/85e2d0343ace71e76615ac346fbff82b/raw"
     const val URL_DEFAULT_DARK_WALLPAPER = "https://images.unsplash.com/photo-1512551980832-13df02babc9e"
@@ -124,17 +105,8 @@ object Constants {
 
     const val DIGITAL_WELLBEING_PACKAGE_NAME = "com.google.android.apps.wellbeing"
     const val DIGITAL_WELLBEING_ACTIVITY = "com.google.android.apps.wellbeing.settings.TopLevelSettingsActivity"
-    const val DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME = "com.samsung.android.forest"
-    const val DIGITAL_WELLBEING_SAMSUNG_ACTIVITY = "com.samsung.android.forest.launcher.LauncherActivity"
     const val WALLPAPER_WORKER_NAME = "WALLPAPER_WORKER_NAME"
-    const val THEME_SCHEDULE_WORKER_NAME = "THEME_SCHEDULE_WORKER"
 
-    object FocusTimer {
-        const val MINUTES_25 = 25
-        const val HOURS_1 = 60
-        const val HOURS_2 = 120
-        const val UNTIL_DISABLED = -1
-    }
 
     object ThemeScheduleMode {
         const val MANUAL = 0

@@ -30,7 +30,7 @@ import com.parem.launcher.helper.WellbeingRowState
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.isAccessServiceEnabled
-import com.parem.launcher.helper.isDefaultLauncher
+import com.parem.launcher.helper.isParemDefault
 import com.parem.launcher.helper.padForSystemBars
 import com.parem.launcher.helper.notifications.QuietNotificationsManager
 import com.parem.launcher.helper.notifications.QuietNotificationsManager.State
@@ -97,7 +97,7 @@ class OnboardingFragment : BaseFragment() {
 
     override fun onResume() {
         super.onResume()
-        if (!showingCalm && requireContext().isDefaultLauncher()) showCalm()
+        if (!showingCalm && isParemDefault(requireContext())) showCalm()
         else if (showingCalm) refreshRows()
     }
 

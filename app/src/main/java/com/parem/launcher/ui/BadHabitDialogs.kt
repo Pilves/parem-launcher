@@ -11,6 +11,7 @@ import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.MindfulPause
+import com.parem.launcher.helper.appLabelOrNull
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.dpToPx
@@ -43,11 +44,8 @@ object BadHabitDialogs {
     }
 
     private fun limitWarningText(context: Context, appName: String, usageMinutes: Long, limitMinutes: Int): String {
-        val hours = usageMinutes / 60
-        val mins = usageMinutes % 60
-        val usageText = if (hours > 0) "${hours}h ${mins}m" else "${mins}m"
-        val limitText =
-            if (limitMinutes >= 60) "${limitMinutes / 60}h ${limitMinutes % 60}m" else "${limitMinutes}m"
+        val usageText = context.formattedTimeSpent(usageMinutes * 60_000L)
+        val limitText = context.formattedTimeSpent(limitMinutes * 60_000L)
         return context.getString(R.string.app_limit_warning, appName, usageText, limitText)
     }
 
@@ -101,12 +99,7 @@ object BadHabitDialogs {
     /** Gesture letters pass no name; show the app's label rather than its package. */
     private fun appLabel(context: Context, appName: String, packageName: String): String {
         if (appName.isNotEmpty()) return appName
-        return try {
-            val pm = context.packageManager
-            pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
-        } catch (_: Exception) {
-            packageName
-        }
+        return context.appLabelOrNull(packageName) ?: packageName
     }
 
     private fun showMindfulPause(

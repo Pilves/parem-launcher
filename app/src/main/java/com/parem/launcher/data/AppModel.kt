@@ -17,9 +17,4 @@ data class AppModel(
     // Non-null for an app-shortcut drawer row; the other fields are its parent app's
     val shortcutId: String? = null,
     val shortcutLabel: String? = null,
-) : Comparable<AppModel> {
-    override fun compareTo(other: AppModel): Int = when {
-        key != null && other.key != null -> key.compareTo(other.key)
-        else -> appLabel.compareTo(other.appLabel, true)
-    }
-}
+)

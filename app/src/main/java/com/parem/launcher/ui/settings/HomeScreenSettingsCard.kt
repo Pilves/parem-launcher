@@ -14,6 +14,7 @@ import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.ContactSearchManager
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.appUsagePermissionGranted
+import com.parem.launcher.helper.onOff
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SettingsFragment
@@ -71,15 +72,12 @@ class HomeScreenSettingsCard(
         binding.dateTimeOff.setOnClickListener(this)
         binding.dateOnly.setOnClickListener(this)
 
-        binding.maxApps0.setOnClickListener(this)
-        binding.maxApps1.setOnClickListener(this)
-        binding.maxApps2.setOnClickListener(this)
-        binding.maxApps3.setOnClickListener(this)
-        binding.maxApps4.setOnClickListener(this)
-        binding.maxApps5.setOnClickListener(this)
-        binding.maxApps6.setOnClickListener(this)
-        binding.maxApps7.setOnClickListener(this)
-        binding.maxApps8.setOnClickListener(this)
+        maxAppsOptions.forEachIndexed { count, option ->
+            option.setOnClickListener {
+                fragment.resetOpenPickers(option.id)
+                updateHomeAppsNum(count)
+            }
+        }
 
         binding.alignment.setOnLongClickListener(this)
     }
@@ -106,16 +104,6 @@ class HomeScreenSettingsCard(
             R.id.dateTimeOn -> toggleDateTime(Constants.DateTime.ON)
             R.id.dateTimeOff -> toggleDateTime(Constants.DateTime.OFF)
             R.id.dateOnly -> toggleDateTime(Constants.DateTime.DATE_ONLY)
-
-            R.id.maxApps0 -> updateHomeAppsNum(0)
-            R.id.maxApps1 -> updateHomeAppsNum(1)
-            R.id.maxApps2 -> updateHomeAppsNum(2)
-            R.id.maxApps3 -> updateHomeAppsNum(3)
-            R.id.maxApps4 -> updateHomeAppsNum(4)
-            R.id.maxApps5 -> updateHomeAppsNum(5)
-            R.id.maxApps6 -> updateHomeAppsNum(6)
-            R.id.maxApps7 -> updateHomeAppsNum(7)
-            R.id.maxApps8 -> updateHomeAppsNum(8)
 
             R.id.widgetPlacement -> toggleWidgetPlacement()
             R.id.showIconsToggle -> toggleShowIcons()
@@ -173,13 +161,13 @@ class HomeScreenSettingsCard(
         binding.homeAppsNum.text = num.toString()
         binding.appsNumSelectLayout.visibility = View.GONE
         prefs.homeAppsNum = num
-        viewModel.refreshHome(true)
+        viewModel.refreshHome.postValue(true)
     }
 
     private fun toggleDateTime(selected: Int) {
         prefs.dateTimeVisibility = selected
         populateDateTime()
-        viewModel.toggleDateTime()
+        viewModel.toggleDateTime.postValue(Unit)
     }
 
     private fun populateDateTime() {
@@ -229,7 +217,7 @@ class HomeScreenSettingsCard(
             prefs.iconPackPackage = ""
         }
         populateShowIcons()
-        viewModel.refreshHome(false)
+        viewModel.refreshHome.postValue(false)
     }
 
     private fun showIconPackPicker(packs: List<Pair<String, String>>) {
@@ -246,7 +234,7 @@ class HomeScreenSettingsCard(
         prefs.showIcons = true
         prefs.iconPackPackage = pkg
         populateShowIcons()
-        viewModel.refreshHome(false)
+        viewModel.refreshHome.postValue(false)
     }
 
     private fun populateShowIcons() {
@@ -257,7 +245,7 @@ class HomeScreenSettingsCard(
     private fun toggleHomeLayoutLock() {
         prefs.homeLayoutLocked = !prefs.homeLayoutLocked
         populateHomeLayoutLock()
-        viewModel.refreshHome(false)
+        viewModel.refreshHome.postValue(false)
     }
 
     private fun populateHomeLayoutLock() {
@@ -314,13 +302,13 @@ class HomeScreenSettingsCard(
 
     private fun populateSearchHistory() {
         val on = prefs.omniboxHistoryEnabled
-        binding.searchHistoryToggle?.text = context.getString(if (on) R.string.on else R.string.off)
+        binding.searchHistoryToggle?.text = context.onOff(on)
         binding.searchHistoryClear?.visibility = if (on) View.VISIBLE else View.GONE
     }
 
     // DESIGN 6.3: the row owns the spoken state, the label and value are silent
     private fun populateAutoLaunch() {
-        val state = context.getString(if (prefs.autoLaunchSingleMatch) R.string.on else R.string.off)
+        val state = context.onOff(prefs.autoLaunchSingleMatch)
         binding.autoLaunchToggle.text = state
         ViewCompat.setStateDescription(binding.autoLaunchRow, state)
     }
@@ -331,7 +319,7 @@ class HomeScreenSettingsCard(
         else
             Constants.WidgetPlacement.ABOVE
         populateWidgetPlacement()
-        viewModel.refreshHome(false)
+        viewModel.refreshHome.postValue(false)
     }
 
     private fun populateWidgetPlacement() {

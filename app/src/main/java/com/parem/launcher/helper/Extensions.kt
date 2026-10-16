@@ -22,7 +22,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.parem.launcher.BuildConfig
+import androidx.core.view.WindowInsetsControllerCompat
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import java.util.Calendar
@@ -75,9 +75,12 @@ fun Context.resetDefaultLauncher() {
     }
 }
 
-fun Context.isDefaultLauncher(): Boolean {
-    val launcherPackageName = getDefaultLauncherPackage(this)
-    return BuildConfig.APPLICATION_ID == launcherPackageName
+// The compat controller keeps the edge-to-edge layout flags on API 29, which the
+// old raw systemUiVisibility writes used to clear
+fun Activity.setStatusBarVisible(visible: Boolean) {
+    val controller = WindowInsetsControllerCompat(window, window.decorView)
+    if (visible) controller.show(WindowInsetsCompat.Type.statusBars())
+    else controller.hide(WindowInsetsCompat.Type.statusBars())
 }
 
 fun Context.resetLauncherViaFakeActivity() {
@@ -200,12 +203,6 @@ fun Long.convertEpochToMidnight(): Long {
 
 fun Long.isDaySince(): Int = ((System.currentTimeMillis().convertEpochToMidnight() - this.convertEpochToMidnight())
         / Constants.ONE_DAY_IN_MILLIS).toInt()
-
-fun Long.hasBeenDays(days: Int): Boolean =
-    ((System.currentTimeMillis() - this) / Constants.ONE_DAY_IN_MILLIS) >= days
-
-fun Long.hasBeenHours(hours: Int): Boolean =
-    ((System.currentTimeMillis() - this) / Constants.ONE_HOUR_IN_MILLIS) >= hours
 
 fun Long.hasBeenMinutes(minutes: Int): Boolean =
     ((System.currentTimeMillis() - this) / Constants.ONE_MINUTE_IN_MILLIS) >= minutes

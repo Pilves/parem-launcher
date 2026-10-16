@@ -1,6 +1,8 @@
 package com.parem.launcher.helper
 
 import android.content.Context
+import androidx.core.content.edit
+import com.parem.launcher.data.paremPrefs
 
 /**
  * Manages per-app daily time limits.
@@ -11,7 +13,6 @@ import android.content.Context
  */
 object AppLimitManager {
 
-    private const val PREFS_NAME = "com.parem.launcher"
     private const val KEY_APP_LIMITS = "BAD_HABIT_APPS"
     private const val KEY_MINDFUL_PAUSE = "MINDFUL_PAUSE_APPS"
 
@@ -84,22 +85,20 @@ object AppLimitManager {
 
     private fun getPauseInternal(context: Context): Set<String> {
         cachedPause?.let { return it }
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.paremPrefs()
         return MindfulPause.parse(prefs.getString(KEY_MINDFUL_PAUSE, "")).also { cachedPause = it }
     }
 
     private fun savePause(context: Context, packages: Set<String>) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_MINDFUL_PAUSE, MindfulPause.serialize(packages))
-            .apply()
+        context.paremPrefs()
+            .edit { putString(KEY_MINDFUL_PAUSE, MindfulPause.serialize(packages)) }
         cachedPause = packages
     }
 
     private fun getAllLimitsInternal(context: Context): Map<String, Int> {
         cachedLimits?.let { return it }
 
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.paremPrefs()
         val csv = prefs.getString(KEY_APP_LIMITS, "") ?: ""
         if (csv.isBlank()) {
             cachedLimits = emptyMap()
@@ -122,9 +121,7 @@ object AppLimitManager {
 
     private fun save(context: Context, limits: Map<String, Int>) {
         val csv = limits.entries.joinToString(",") { "${it.key}=${it.value}" }
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_APP_LIMITS, csv)
-            .apply()
+        context.paremPrefs()
+            .edit { putString(KEY_APP_LIMITS, csv) }
     }
 }

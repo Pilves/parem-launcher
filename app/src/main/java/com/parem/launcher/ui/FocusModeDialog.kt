@@ -4,21 +4,15 @@ import android.app.TimePickerDialog
 import android.content.Context
 import android.content.res.ColorStateList
 import android.os.Bundle
-import android.text.Editable
-import android.text.InputType
-import android.text.TextWatcher
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.parem.launcher.R
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.FocusSchedule
@@ -26,6 +20,7 @@ import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.parem.launcher.helper.onOff
 import java.text.DateFormatSymbols
 import java.util.Calendar
 
@@ -179,36 +174,7 @@ class FocusModeDialog(
             )
             pickerAdapter = adapter
 
-            val searchInput = EditText(ctx).apply {
-                hint = ctx.getString(R.string.search_apps)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-                setTextColor(primaryColor)
-                setHintTextColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
-                background = null
-                inputType = InputType.TYPE_CLASS_TEXT
-                isSingleLine = true
-                setPadding(8.dpToPx(), 4.dpToPx(), 0, 8.dpToPx())
-                addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-                    override fun afterTextChanged(s: Editable?) {
-                        adapter.filter(s?.toString() ?: "")
-                    }
-                })
-            }
-            container.addView(searchInput)
-
-            // Fixed height so the RecyclerView actually recycles inside the outer
-            // ScrollView (wrap_content would measure every row); same viewport as
-            // the folder picker.
-            val appsList = RecyclerView(ctx).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, 300.dpToPx()
-                )
-                layoutManager = LinearLayoutManager(ctx)
-            }
-            appsList.adapter = adapter
-            container.addView(appsList)
+            container.addAppPicker(adapter)
 
             // Keep the filtered list visible above the keyboard, as the widget picker does
             window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
@@ -243,7 +209,7 @@ class FocusModeDialog(
         val emptyWarning = createMutedLine(ctx, ctx.getString(R.string.focus_schedule_empty_whitelist))
 
         fun renderSchedule() {
-            scheduleToggle.text = ctx.getString(if (scheduleOn) R.string.on else R.string.off)
+            scheduleToggle.text = ctx.onOff(scheduleOn)
             windowsList.removeAllViews()
             windows.forEachIndexed { index, window ->
                 windowsList.addView(createWindowRow(ctx, primaryColor, formatWindow(ctx, window),

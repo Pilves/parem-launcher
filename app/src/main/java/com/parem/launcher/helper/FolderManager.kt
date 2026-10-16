@@ -1,8 +1,10 @@
 package com.parem.launcher.helper
 
 import android.content.Context
+import androidx.core.content.edit
 import com.parem.launcher.data.FolderApp
 import com.parem.launcher.data.FolderGroup
+import com.parem.launcher.data.paremPrefs
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -26,7 +28,6 @@ class FolderManager(context: Context) {
 
     companion object {
         private val lock = Any()
-        private const val PREFS_NAME = "com.parem.launcher"
         private const val KEY_FOLDER_DATA = "FOLDER_DATA"
         private const val MAX_APPS_PER_FOLDER = 4
 
@@ -39,7 +40,7 @@ class FolderManager(context: Context) {
         private const val JSON_URL = "url"
     }
 
-    private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, 0)
+    private val prefs = context.applicationContext.paremPrefs()
 
     /** Returns true if the given home-app [slot] is currently occupied by a folder. */
     fun isFolderSlot(slot: Int): Boolean {
@@ -98,22 +99,6 @@ class FolderManager(context: Context) {
         }
     }
 
-    /** Returns every stored folder keyed by slot number. */
-    fun getAllFolders(): Map<Int, FolderGroup> {
-        synchronized(lock) {
-            val root = readJson()
-            val result = mutableMapOf<Int, FolderGroup>()
-            val keys = root.keys()
-            while (keys.hasNext()) {
-                val key = keys.next()
-                val slotNum = key.toIntOrNull() ?: continue
-                val obj = root.optJSONObject(key) ?: continue
-                result[slotNum] = parseFolderGroup(obj)
-            }
-            return result
-        }
-    }
-
     // ── Private helpers ─────────────────────────────────────────────────
 
     // Parsed-root cache: isFolderSlot() runs per slot on every home resume,
@@ -138,7 +123,7 @@ class FolderManager(context: Context) {
     private fun writeJson(json: JSONObject) {
         cachedRoot = json
         cachedRaw = json.toString()
-        prefs.edit().putString(KEY_FOLDER_DATA, cachedRaw).apply()
+        prefs.edit { putString(KEY_FOLDER_DATA, cachedRaw) }
     }
 
     private fun parseFolderGroup(obj: JSONObject): FolderGroup {

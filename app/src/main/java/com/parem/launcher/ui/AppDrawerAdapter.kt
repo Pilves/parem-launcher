@@ -248,14 +248,6 @@ class AppDrawerAdapter(
         firstApp(appFilteredList)?.let(appClickListener)
     }
 
-    fun removeApp(position: Int) {
-        if (position < 0 || position >= appFilteredList.size) return
-        val app = appFilteredList[position]
-        appFilteredList = appFilteredList.toMutableList().also { it.removeAt(position) }
-        appsList = appsList.toMutableList().also { it.remove(app) }
-        submitList(appFilteredList.toList())
-    }
-
     class ViewHolder(private val binding: AdapterAppDrawerBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(
@@ -264,10 +256,10 @@ class AppDrawerAdapter(
             appModel: AppModel,
             clickListener: (AppModel) -> Unit,
             longPressListener: (AppModel) -> Unit,
-            usageStats: Map<String, Long> = emptyMap(),
-            openCounts: Map<String, Int> = emptyMap(),
-            showIcons: Boolean = false,
-            iconPackPackage: String = "",
+            usageStats: Map<String, Long>,
+            openCounts: Map<String, Int>,
+            showIcons: Boolean,
+            iconPackPackage: String,
         ) =
             with(binding) {
                 if (appModel.isPrivateHeader()) {

@@ -17,6 +17,7 @@ import androidx.core.widget.TextViewCompat
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -24,6 +25,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.R
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.helper.onOff
 import com.parem.launcher.helper.skipAnimations
 import com.parem.launcher.helper.isEinkDisplay
 
@@ -52,6 +54,9 @@ fun BottomSheetDialog.disableAnimationsOnEink() {
  * up after Home pops the fragment, and its callbacks would then reach a
  * fragment that is no longer attached.
  */
+/** True while the fragment's view exists: the guard every sheet callback runs before touching it. */
+val Fragment.isAlive: Boolean get() = isAdded && view != null
+
 fun <T : Dialog> T.dismissOnDestroy(owner: LifecycleOwner): T {
     owner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
         if (event == Lifecycle.Event.ON_DESTROY) dismiss()
@@ -140,7 +145,7 @@ class BottomSheetMenu(private val context: Context) {
             contentDescription = listOfNotNull(text, summary).joinToString(", ")
             ViewCompat.setScreenReaderFocusable(this, true)
             isSelected = checked == true
-            if (checked != null) ViewCompat.setStateDescription(this, context.getString(if (checked) R.string.on else R.string.off))
+            if (checked != null) ViewCompat.setStateDescription(this, context.onOff(checked))
             ViewCompat.setAccessibilityDelegate(this, object : AccessibilityDelegateCompat() {
                 override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
                     super.onInitializeAccessibilityNodeInfo(host, info)

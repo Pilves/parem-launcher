@@ -6,6 +6,8 @@ import android.content.pm.PackageManager
 import android.provider.ContactsContract
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
+import com.parem.launcher.data.paremPrefs
 
 /**
  * Opt-in omnibox contact search (PAREM-104). Owns its own preference key in the
@@ -18,20 +20,16 @@ import androidx.core.content.ContextCompat
  */
 object ContactSearchManager {
 
-    private const val PREFS_NAME = "com.parem.launcher"
     private const val CONTACT_SEARCH_ENABLED = "CONTACT_SEARCH_ENABLED"
 
     // Bounds memory/scan cost on devices with huge address books.
     private const val MAX_CONTACTS = 2000
 
-    private fun prefs(context: Context) =
-        context.getSharedPreferences(PREFS_NAME, 0)
-
     fun isEnabled(context: Context): Boolean =
-        prefs(context).getBoolean(CONTACT_SEARCH_ENABLED, false)
+        context.paremPrefs().getBoolean(CONTACT_SEARCH_ENABLED, false)
 
     fun setEnabled(context: Context, enabled: Boolean) {
-        prefs(context).edit().putBoolean(CONTACT_SEARCH_ENABLED, enabled).apply()
+        context.paremPrefs().edit { putBoolean(CONTACT_SEARCH_ENABLED, enabled) }
     }
 
     fun hasPermission(context: Context): Boolean =

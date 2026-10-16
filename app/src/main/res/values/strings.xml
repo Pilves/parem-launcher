@@ -18,19 +18,12 @@
     <string name="set_as_default_launcher">Set as default launcher</string>
     <string name="set_as_default_launcher_u"><u>Set as default launcher</u></string>
     <string name="set_as_default_launcher_first">Set Parem Launcher default first</string>
-    <string name="app_text_color">Text color</string>
     <string name="double_tap_to_lock_screen">Double tap to lock</string>
     <string name="admin_permission_message" translatable="false">Parem uses this only to lock the screen when its accessibility service can\'t. After each such lock, your next unlock needs your PIN, pattern or password: fingerprint and face unlock won\'t work for it. Parem uses no other device admin power and collects no data. To uninstall Parem, first turn this off in Parem\'s Settings › Gestures.</string>
-    <string name="about">About</string>
     <string name="off">Off</string>
     <string name="on">On</string>
-    <string name="black">Black</string>
-    <string name="white">White</string>
     <string name="change_default_launcher">Change default launcher</string>
     <string name="privacy">Privacy</string>
-    <string name="follow">Follow</string>
-    <string name="email">Email</string>
-    <string name="donate">Donate</string>
     <string name="swipe_up_for_apps">1. Swipe up for all apps\n2. Long press anywhere for settings</string>
     <string name="apps_on_home_screen">Apps on home screen</string>
     <string name="daily_wallpaper_update">Daily new wallpaper</string>
@@ -89,9 +82,7 @@
     <string name="crash_report_discard" translatable="false">Discard</string>
     <string name="crash_report_subject" translatable="false">Parem crash report</string>
     <string name="okay">Okay</string>
-    <string name="cool">Cool!</string>
     <string name="auto_show_keyboard">Auto show keyboard</string>
-    <string name="hide">Hide</string>
     <string name="status_bar">Status bar on top</string>
     <string name="rename">Rename</string>
     <string name="show_date_time">Show date time</string>
@@ -101,42 +92,26 @@
     <string name="system_default">System</string>
     <string name="dark">Dark</string>
     <string name="light">Light</string>
-    <string name="welcome_to_parem_settings">Welcome to the settings!
-        \n\nRemember, if you have any questions, our About page has the answer.</string>
     <string name="keyboard_message">Hi, keyboard is the fastest way to find and launch apps in Parem Launcher. Can we request you to keep this On for a few more days and then decide?
         \n\nThe choice is always yours.</string>
-    <string name="digital_wellbeing_message">If you want to set time limits for certain apps, Digital Wellbeing feature of Android can help you do it.           Please search for Digital Wellbeing in your phone settings and enable it.</string>
     <string name="app_usage_message">Parem counts screen time through Android\'s usage access: the total on the home screen, app limits, sort by usage and the weekly graph all depend on it.
         \n\nNothing is collected or sent anywhere. Everything is counted on your device.</string>
     <string name="accessibility_service_description">Lets the double tap or swipe gesture lock your screen. The service only sees taps inside Parem, ignores all of them except its own invisible lock area, and cannot read your screen. Nothing is stored or sent anywhere.</string>
     <string name="open">Open link</string>
-    <string name="copy">Copy</string>
     <string name="close">Close</string>
     <string name="not_now">Not now</string>
-    <string name="public_roadmap">Parem Launcher public roadmap</string>
     <string name="instagram">Instagram</string>
-    <string name="roadmap">Roadmap</string>
     <string name="date">Date</string>
     <string name="date_only">Date only</string>
     <string name="bottom_on">Bottom: On</string>
     <string name="bottom_off">Bottom: Off</string>
     <string name="please_set_parem_as_default_first">Please set Parem Launcher as default first</string>
-    <string name="affiliate">Affiliate</string>
-    <string name="tip_start_typing_for_rename">Tip: Start typing for app RENAME option</string>
     <string name="hidden_apps_message">Note: Tap on \'Parem Launcher\' at the top of this Settings page to find your hidden apps.\n\nMore details available in our About page.</string>
     <string name="swipe_down_for">Swipe down for</string>
     <string name="search">Search</string>
     <string name="notifications">Notifications</string>
-    <string name="accessibility_disclosure">Please turn on or off Parem Launcher\'s accessibility service in your device\'s settings to enable or disable this feature.
-    \n\nPlease note that this service is only used to let you turn off your device\'s screen using the double tap gesture. Our accessibility service does not collect or share any data.</string>
-    <string name="accept">Accept</string>
-    <string name="permission">Permission</string>
     <string name="double_tap_lock">Double tap to lock</string>
-    <string name="enable">Enable</string>
     <string name="disable">Disable</string>
-    <string name="not_working"><u>Not working?</u></string>
-    <string name="info">Info</string>
-    <string name="delete">Delete</string>
     <string name="text_size">Text size</string>
     <string name="bold_font" translatable="false">Bold font</string>
     <string name="enabled">Enabled</string>
@@ -146,14 +121,11 @@
     <string name="long_press_to_select_app">Long press to select app</string>
     <string name="unable_to_open_app">Unable to open app</string>
     <string name="copied">Copied</string>
-    <string name="system_app_cannot_delete">System app, cannot delete</string>
     <string name="type_a_new_app_name_first">Type a new app name first</string>
     <string name="app_not_found">App not found</string>
     <string name="private_space" translatable="false">Private space</string>
     <string name="private_space_unlock" translatable="false">Unlock</string>
     <string name="private_space_lock" translatable="false">Lock</string>
-    <string name="unable_to_launch_app">Unable to launch app</string>
-    <string name="search_for_Launcher_or_home_app">Search for Launcher or Home app</string>
     <string name="swipe_left_app_enabled">Swipe left app enabled</string>
     <string name="swipe_right_app_enabled">Swipe right app enabled</string>
     <string name="swipe_left_app_disabled">Swipe left app disabled</string>
@@ -163,16 +135,12 @@
     <string name="long_press_to_enable">Long press to enable</string>
     <string name="no_hidden_apps">No hidden apps</string>
     <string name="hidden_apps">Hidden apps</string>
-    <string name="adapter_show">Show</string>
-    <string name="adapter_hide">Hide</string>
     <string name="about_parem">About and FAQs</string>
     <string name="screen_time">Screen time</string>
-    <string name="learn_more">Learn more</string>
     <string name="alignment_changed">Alignment changed ✅</string>
     <string name="home_screen">Home screen</string>
     <string name="notification_bar">Notification bar</string>
     <string name="remove_widget">Remove widget</string>
-    <string name="remove_widget_confirm">Remove this widget from your home screen?</string>
     <string name="no_widgets_available">No widgets available</string>
     <string name="add_widget">Add widget</string>
     <string name="settings">Settings</string>
@@ -216,48 +184,28 @@
     <string name="create_folder" translatable="false">Create folder</string>
     <string name="folder_name" translatable="false">Folder name</string>
     <string name="select_apps" translatable="false">Select apps (max 4)</string>
-    <string name="remove_folder" translatable="false">Remove folder</string>
 
     <!-- Icon Packs -->
     <string name="show_icons" translatable="false">Show icons</string>
     <string name="lock_home_layout" translatable="false">Lock home layout</string>
     <string name="home_layout_locked" translatable="false">Home layout is locked. Unlock it in Settings.</string>
-    <string name="icon_pack" translatable="false">Icon pack</string>
     <string name="select_icon_pack" translatable="false">Select icon pack</string>
-    <string name="no_icon_packs" translatable="false">No icon packs installed</string>
     <string name="system_icons" translatable="false">System icons</string>
 
     <!-- Screen Time Limits -->
-    <string name="screen_time_limits" translatable="false">Screen time limits</string>
-    <string name="set_time_limits" translatable="false">Set time limits</string>
-    <string name="time_limit_reached" translatable="false">Screen time limit reached</string>
-    <string name="minutes_15" translatable="false">15m</string>
-    <string name="minutes_30" translatable="false">30m</string>
-    <string name="hour_1" translatable="false">1h</string>
-    <string name="hours_2" translatable="false">2h</string>
-    <string name="unlimited" translatable="false">Unlimited</string>
-    <string name="screen_time_7_days" translatable="false">Screen Time \u2014 Last 7 Days</string>
 
     <!-- Swipe Up Apps -->
-    <string name="set_swipe_up_app" translatable="false">Set swipe-up app</string>
-    <string name="swipe_up_app" translatable="false">Swipe-up app</string>
-    <string name="clear_swipe_up" translatable="false">Clear swipe-up app</string>
 
     <!-- Double Tap -->
     <string name="double_tap_action" translatable="false">Double tap action</string>
 
     <!-- Theme Schedule -->
-    <string name="theme_schedule" translatable="false">Theme schedule</string>
-    <string name="manual" translatable="false">Manual</string>
     <string name="scheduled" translatable="false">Scheduled</string>
     <string name="sunrise_sunset" translatable="false">Sunrise/Sunset</string>
-    <string name="light_time" translatable="false">Light time</string>
-    <string name="dark_time" translatable="false">Dark time</string>
 
     <!-- Focus Mode -->
     <string name="focus_mode" translatable="false">Focus mode</string>
     <string name="focus_mode_on" translatable="false">Focus mode is ON</string>
-    <string name="focus_mode_off" translatable="false">Focus mode is OFF</string>
     <string name="focus_remaining" translatable="false">Remaining: %s</string>
     <string name="enable_focus" translatable="false">Enable</string>
     <string name="disable_focus" translatable="false">Disable</string>
@@ -268,7 +216,6 @@
     <string name="focus_until_disabled_status" translatable="false">Until manually disabled</string>
     <string name="focus_duration" translatable="false">Duration</string>
     <string name="focus_allowed_apps" translatable="false">Allowed apps (max 5)</string>
-    <string name="allowed_apps" translatable="false">Allowed apps</string>
     <string name="app_blocked_focus" translatable="false">Blocked by Focus Mode</string>
     <string name="app_blocked_focus_scheduled" translatable="false">Focus scheduled until %s. Pause it in Settings › Digital Wellbeing › Focus mode.</string>
     <string name="app_blocked_focus_scheduled_no_end" translatable="false">Focus is scheduled. Pause it in Settings › Digital Wellbeing › Focus mode.</string>
@@ -284,10 +231,7 @@
     <string name="focus_schedule_empty_whitelist" translatable="false">No apps allowed: only calls work during scheduled focus.</string>
 
     <!-- Quick Note -->
-    <string name="note" translatable="false">Note</string>
     <string name="save" translatable="false">Save</string>
-    <string name="write_something" translatable="false">Write something\u2026</string>
-    <string name="clear_note" translatable="false">Clear</string>
 
     <!-- Weather -->
     <string name="weather" translatable="false">Weather</string>
@@ -299,8 +243,6 @@
 
     <!-- App Limits -->
     <string name="app_limits" translatable="false">App limits</string>
-    <string name="set_time_limit" translatable="false">Set time limit</string>
-    <string name="remove_time_limit" translatable="false">Remove time limit</string>
     <string name="app_limit_warning" translatable="false">You\u2019ve used %1$s for %2$s today (limit: %3$s)</string>
     <string name="open_anyway" translatable="false">Open anyway</string>
     <string name="go_back" translatable="false">Go back</string>
@@ -313,9 +255,6 @@
 
     <!-- Gesture Letters -->
     <string name="gesture_letters" translatable="false">Gesture letters</string>
-    <string name="draw_letter_to_launch" translatable="false">Draw a letter to launch an app</string>
-    <string name="assign_app" translatable="false">Assign app</string>
-    <string name="letter_detected" translatable="false">Letter: %s</string>
     <string name="no_app_for_letter" translatable="false">No app assigned to letter %s</string>
 
     <!-- Wellbeing section -->
@@ -323,48 +262,13 @@
 
     <!-- General new -->
     <string name="configure" translatable="false">Configure</string>
-    <string name="app_options" translatable="false">App options</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_gestures_title">Gestures</string>
-    <string name="onboarding_gestures_subtitle">Navigate with simple gestures</string>
-    <string name="onboarding_gesture_swipe_up">Swipe up to open the app drawer</string>
-    <string name="onboarding_gesture_swipe_down">Swipe down to open notifications</string>
-    <string name="onboarding_gesture_swipe_left">Swipe left to open an app (customizable)</string>
-    <string name="onboarding_gesture_swipe_right">Swipe right to open an app (customizable)</string>
-    <string name="onboarding_gesture_double_tap">Double tap to lock the screen</string>
 
-    <string name="onboarding_omnibox_title" translatable="false">One Search Bar</string>
-    <string name="onboarding_omnibox_subtitle" translatable="false">Swipe up and just type</string>
-    <string name="onboarding_omnibox_apps" translatable="false">Type an app name — a single match launches itself</string>
-    <string name="onboarding_omnibox_fuzzy" translatable="false">Fuzzy: gm → Google Maps, s ki → Shaurmas Kitchen</string>
-    <string name="onboarding_omnibox_calc" translatable="false">2+2 — instant calculator, enter copies the result</string>
-    <string name="onboarding_omnibox_dial" translatable="false">Type a phone number, enter opens the dialer</string>
-    <string name="onboarding_omnibox_web" translatable="false">Space + text searches Google, !bang goes to DuckDuckGo</string>
 
-    <string name="onboarding_home_title">Home Screen</string>
-    <string name="onboarding_home_subtitle">Your home screen, your rules</string>
-    <string name="onboarding_home_slots">Up to 8 app slots on the home screen</string>
-    <string name="onboarding_home_clock">Tap the clock or date to open apps</string>
-    <string name="onboarding_home_long_press_app">Long press an app for options</string>
-    <string name="onboarding_home_long_press_empty">Long press empty space for settings</string>
 
-    <string name="onboarding_features_title">Features</string>
-    <string name="onboarding_features_subtitle">Powerful tools, minimal interface</string>
-    <string name="onboarding_feature_widgets">Add widgets via long press menu</string>
-    <string name="onboarding_feature_open_counts" translatable="false">See how often you open each app, daily</string>
-    <string name="onboarding_feature_focus_mode">Focus mode to block distracting apps</string>
-    <string name="onboarding_feature_gesture_letters">Draw letters to launch apps instantly</string>
 
-    <string name="onboarding_ready_title">You\'re All Set</string>
-    <string name="onboarding_ready_subtitle">Explore more in settings</string>
-    <string name="onboarding_ready_themes">Light, dark, and auto themes</string>
-    <string name="onboarding_ready_wallpaper">Daily wallpaper updates</string>
-    <string name="onboarding_ready_hidden_apps">Hide apps from the drawer</string>
-    <string name="onboarding_ready_habit">App limits and screen time</string>
 
-    <string name="onboarding_skip">Skip</string>
-    <string name="onboarding_get_started">Get Started</string>
 
     <string name="screen_time_week_title" translatable="false">Screen time \u2014 last 7 days</string>
     <string name="top_apps_week" translatable="false">Top apps this week</string>
@@ -449,8 +353,6 @@
     <string name="grayscale_pair_err_not_found" translatable="false">No pairing dialog found. Make sure Wi-Fi is on, tap Pair device with pairing code, and keep it open while you type.</string>
     <string name="grayscale_pair_err_connect" translatable="false">Paired, but Wireless debugging is not reachable. Check it is still on and try again.</string>
     <string name="grayscale_pair_err_refused" translatable="false">The phone refused the permission. Some phones need an extra switch in Developer options (for example USB debugging (Security settings)). Turn it on and try again.</string>
-    <string name="grayscale_app_on" translatable="false">Grayscale</string>
-    <string name="grayscale_app_off" translatable="false">Stop grayscale</string>
     <string name="grayscale_app_needs_usage" translatable="false">Per-app grayscale needs usage access to notice when you switch apps.</string>
     <string name="grayscale_app_needs_default" translatable="false">Per-app grayscale needs Parem as your default home screen to bring color back.</string>
     <string name="grayscale_pair_err_generic" translatable="false">Pairing failed. Try again with a new code.</string>

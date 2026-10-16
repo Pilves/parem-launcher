@@ -31,7 +31,6 @@ import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.SingleLiveEvent
-import com.parem.launcher.helper.ThemeScheduleManager
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.WallpaperWorker
 import com.parem.launcher.helper.WeatherManager
@@ -59,11 +58,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val firstOpen = MutableLiveData<Boolean>()
     val refreshHome = MutableLiveData<Boolean>()
     val toggleDateTime = MutableLiveData<Unit>()
-    val updateSwipeApps = MutableLiveData<Any>()
+    val updateSwipeApps = MutableLiveData<Unit>()
     val appList = MutableLiveData<List<AppModel>?>()
     val hiddenApps = MutableLiveData<List<AppModel>?>()
     val isParemDefault = MutableLiveData<Boolean>()
-    val launcherResetFailed = MutableLiveData<Boolean>()
     val homeAppAlignment = MutableLiveData<Int>()
     val screenTimeValue = MutableLiveData<Long>()
     val perAppScreenTime = MutableLiveData<Map<String, Long>>()
@@ -148,7 +146,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 prefs.setHomeAppActivityClassName(flag, appModel.activityClassName)
                 // Picking a normal app clears a website left on the slot
                 prefs.setHomeAppUrl(flag, appModel.url ?: "")
-                refreshHome(false)
+                refreshHome.postValue(false)
             }
 
             Constants.FLAG_SET_SWIPE_LEFT_APP -> {
@@ -156,7 +154,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 prefs.appPackageSwipeLeft = appModel.appPackage
                 prefs.appUserSwipeLeft = appModel.user.toString()
                 prefs.appActivityClassNameSwipeLeft = appModel.activityClassName
-                updateSwipeApps()
+                updateSwipeApps.postValue(Unit)
             }
 
             Constants.FLAG_SET_SWIPE_RIGHT_APP -> {
@@ -164,7 +162,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 prefs.appPackageSwipeRight = appModel.appPackage
                 prefs.appUserSwipeRight = appModel.user.toString()
                 prefs.appActivityClassNameSwipeRight = appModel.activityClassName
-                updateSwipeApps()
+                updateSwipeApps.postValue(Unit)
             }
 
             Constants.FLAG_SET_CLOCK_APP -> {
@@ -186,7 +184,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     appModel.appLabel, appModel.appPackage,
                     appModel.activityClassName ?: "", appModel.user.toString()
                 )
-                refreshHome(false)
+                refreshHome.postValue(false)
             }
 
             Constants.FLAG_SET_DOUBLE_TAP_APP -> {
@@ -213,22 +211,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             Constants.FLAG_PICK_SILENT_APP ->
                 QuietNotificationsManager.openAppNotificationSettings(appContext, appModel.appPackage)
         }
-    }
-
-    fun firstOpen(value: Boolean) {
-        firstOpen.postValue(value)
-    }
-
-    fun refreshHome(appCountUpdated: Boolean) {
-        refreshHome.postValue(appCountUpdated)
-    }
-
-    fun toggleDateTime() {
-        toggleDateTime.postValue(Unit)
-    }
-
-    private fun updateSwipeApps() {
-        updateSwipeApps.postValue(Unit)
     }
 
     private fun showFocusBlocked() {
@@ -415,18 +397,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (temp != null) {
                 weatherValue.postValue(temp)
             } else {
-                val cached = WeatherManager.getDisplayString(appContext)
+                val cached = WeatherManager.getCachedTemp(appContext)
                 if (cached.isNotEmpty()) weatherValue.postValue(cached)
             }
         }
-    }
-
-    fun startThemeScheduleWorker() {
-        ThemeScheduleManager.startWorker(appContext)
-    }
-
-    fun cancelThemeScheduleWorker() {
-        ThemeScheduleManager.cancelWorker(appContext)
     }
 
     fun updateHomeAlignment(gravity: Int) {

@@ -1,21 +1,13 @@
 package com.parem.launcher.ui
 
 import android.content.Context
-import android.os.Build
-import android.text.Editable
-import android.text.InputType
-import android.text.TextWatcher
-import android.util.TypedValue
-import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.parem.launcher.R
 import com.parem.launcher.data.Prefs
+import com.parem.launcher.helper.appLabelOrNull
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.getColorFromAttr
@@ -113,30 +105,7 @@ object QuietListSheet {
         val content = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(16.dpToPx(), 0, 24.dpToPx(), 0)
-            addView(EditText(context).apply {
-                hint = context.getString(R.string.search_apps)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-                setTextColor(textColor)
-                setHintTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
-                background = null
-                inputType = InputType.TYPE_CLASS_TEXT
-                isSingleLine = true
-                setPadding(8.dpToPx(), 4.dpToPx(), 0, 8.dpToPx())
-                addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-                    override fun afterTextChanged(s: Editable?) {
-                        adapter.filter(s?.toString() ?: "")
-                    }
-                })
-            })
-            // Fixed height so the RecyclerView recycles inside the sheet's scroller,
-            // same viewport as the focus-mode picker
-            addView(RecyclerView(context).apply {
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 300.dpToPx())
-                layoutManager = LinearLayoutManager(context)
-                this.adapter = adapter
-            })
+            addAppPicker(adapter)
         }
         BottomSheetMenu(context)
             .title(context.getString(R.string.quiet_pick_title))
@@ -149,10 +118,7 @@ object QuietListSheet {
 
     /** Shown every time the filter is turned on, before the system access screen. */
     private fun showDisclosure(context: Context, onChanged: () -> Unit) {
-        var body = context.getString(R.string.quiet_disclosure_body)
-        // Sideloaded installs get a greyed-out switch on 13+; the line is shown to every install source
-        if (Build.VERSION.SDK_INT >= 33)
-            body += "\n\n" + context.getString(R.string.lock_consent_restricted)
+        val body = context.withRestrictedNote(context.getString(R.string.quiet_disclosure_body))
         BottomSheetMenu(context)
             .title(context.getString(R.string.quiet_disclosure_title))
             .message(body)
@@ -218,7 +184,7 @@ object QuietListSheet {
         } else {
             val labels = HashMap<String, String>()
             for (sbn in waiting) {
-                val app = labels.getOrPut(sbn.packageName) { appLabel(context, sbn.packageName) }
+                val app = labels.getOrPut(sbn.packageName) { context.appLabelOrNull(sbn.packageName) ?: sbn.packageName }
                 val title = sbn.notification.extras
                     ?.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString()?.trim()
                 val text = if (title.isNullOrEmpty()) app else "$app: $title"
@@ -229,12 +195,5 @@ object QuietListSheet {
             }
         }
         menu.show()
-    }
-
-    private fun appLabel(context: Context, pkg: String): String = try {
-        val pm = context.packageManager
-        pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
-    } catch (_: Exception) {
-        pkg
     }
 }

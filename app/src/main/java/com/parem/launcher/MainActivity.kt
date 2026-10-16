@@ -33,7 +33,7 @@ import com.parem.launcher.helper.HomeKeyInput
 import com.parem.launcher.helper.TextScale
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.isDarkThemeOn
-import com.parem.launcher.helper.isDefaultLauncher
+import com.parem.launcher.helper.isParemDefault
 import com.parem.launcher.helper.isEinkDisplay
 import com.parem.launcher.helper.resetLauncherViaFakeActivity
 import com.parem.launcher.helper.setPlainWallpaper
@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
         ) { result ->
             // Only when the grant didn't take: once Parem holds the role, the fake-activity
             // reset would fire a HOME chooser and then open Default apps settings
-            if (result.resultCode == Activity.RESULT_OK && !isDefaultLauncher())
+            if (result.resultCode == Activity.RESULT_OK && !isParemDefault(this))
                 resetLauncherViaFakeActivity()
         }
 
@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (prefs.firstOpen) {
-            viewModel.firstOpen(true)
+            viewModel.firstOpen.postValue(true)
             prefs.firstOpen = false
             prefs.firstOpenTime = System.currentTimeMillis()
             viewModel.setDefaultClockApp()
@@ -273,11 +273,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initObservers(viewModel: MainViewModel) {
-        viewModel.launcherResetFailed.observe(this) {
-            openLauncherChooser(it)
-        }
         viewModel.resetLauncherLiveData.observe(this) {
-            if (isDefaultLauncher())
+            if (isParemDefault(this))
                 resetLauncherViaFakeActivity()
             else
                 showLauncherSelector(launcherSelectorLauncher)
@@ -358,13 +355,6 @@ class MainActivity : AppCompatActivity() {
         if (this.isDarkThemeOn())
             setPlainWallpaper(this, android.R.color.black)
         else setPlainWallpaper(this, android.R.color.white)
-    }
-
-    private fun openLauncherChooser(resetFailed: Boolean) {
-        if (resetFailed) {
-            val intent = Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS)
-            startActivity(intent)
-        }
     }
 
     // PAREM-108 phase 3: the inherited Olauncher 4-hour self-recreate +

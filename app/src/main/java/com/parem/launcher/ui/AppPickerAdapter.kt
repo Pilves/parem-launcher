@@ -1,11 +1,19 @@
 package com.parem.launcher.ui
 
 import android.content.res.ColorStateList
+import android.text.InputType
+import android.util.TypedValue
 import android.view.ViewGroup
 import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.LinearLayout
+import androidx.core.widget.doAfterTextChanged
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.parem.launcher.R
 import com.parem.launcher.helper.SearchMatcher
 import com.parem.launcher.helper.dpToPx
+import com.parem.launcher.helper.getColorFromAttr
 
 /**
  * Checkbox rows for the app pickers (folder creation, focus-mode whitelist),
@@ -18,7 +26,7 @@ import com.parem.launcher.helper.dpToPx
  * by unchecking, matching the old inline pickers.
  */
 class AppPickerAdapter(
-    private val textColor: Int,
+    val textColor: Int,
     private val maxSelected: Int,
     entries: List<Entry>,
     initiallySelected: Collection<String> = emptyList(),
@@ -82,4 +90,28 @@ class AppPickerAdapter(
             }
         }
     }
+}
+
+/**
+ * The search field plus fixed-height list every app-picker sheet shows. The
+ * list height is fixed so rows recycle inside the sheet's scroller; the
+ * padding parameters keep each sheet's existing inset.
+ */
+fun LinearLayout.addAppPicker(adapter: AppPickerAdapter, searchPaddingLeft: Int = 8.dpToPx(), searchPaddingTop: Int = 4.dpToPx()) {
+    addView(EditText(context).apply {
+        hint = context.getString(R.string.search_apps)
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+        setTextColor(adapter.textColor)
+        setHintTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+        background = null
+        inputType = InputType.TYPE_CLASS_TEXT
+        isSingleLine = true
+        setPadding(searchPaddingLeft, searchPaddingTop, 0, 8.dpToPx())
+        doAfterTextChanged { adapter.filter(it?.toString() ?: "") }
+    })
+    addView(RecyclerView(context).apply {
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 300.dpToPx())
+        layoutManager = LinearLayoutManager(context)
+        this.adapter = adapter
+    })
 }

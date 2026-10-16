@@ -1,6 +1,8 @@
 package com.parem.launcher.helper
 
 import android.content.Context
+import androidx.core.content.edit
+import com.parem.launcher.data.paremPrefs
 
 /**
  * Manages gesture-letter mappings: which letter launches which app.
@@ -10,7 +12,6 @@ import android.content.Context
  */
 object GestureLetterManager {
 
-    private const val PREFS_NAME = "com.parem.launcher"
     private const val KEY_ENABLED = "GESTURE_LETTERS_ENABLED"
     private const val KEY_MAPPINGS = "GESTURE_LETTER_MAPPINGS"
 
@@ -22,7 +23,7 @@ object GestureLetterManager {
      * Returns true if gesture letters are enabled.
      */
     fun isEnabled(context: Context): Boolean {
-        return context.getSharedPreferences(PREFS_NAME, 0)
+        return context.paremPrefs()
             .getBoolean(KEY_ENABLED, false)
     }
 
@@ -30,10 +31,8 @@ object GestureLetterManager {
      * Enables or disables gesture letters.
      */
     fun setEnabled(context: Context, enabled: Boolean) {
-        context.getSharedPreferences(PREFS_NAME, 0)
-            .edit()
-            .putBoolean(KEY_ENABLED, enabled)
-            .apply()
+        context.paremPrefs()
+            .edit { putBoolean(KEY_ENABLED, enabled) }
     }
 
     /**
@@ -49,10 +48,8 @@ object GestureLetterManager {
         synchronized(lock) {
             val mappings = parseMappings(context).toMutableMap()
             mappings[letter.uppercaseChar()] = Triple(packageName, activityClassName, userString)
-            context.getSharedPreferences(PREFS_NAME, 0)
-                .edit()
-                .putString(KEY_MAPPINGS, serializeMappings(mappings))
-                .apply()
+            context.paremPrefs()
+                .edit { putString(KEY_MAPPINGS, serializeMappings(mappings)) }
         }
     }
 
@@ -73,10 +70,8 @@ object GestureLetterManager {
         synchronized(lock) {
             val mappings = parseMappings(context).toMutableMap()
             mappings.remove(letter.uppercaseChar())
-            context.getSharedPreferences(PREFS_NAME, 0)
-                .edit()
-                .putString(KEY_MAPPINGS, serializeMappings(mappings))
-                .apply()
+            context.paremPrefs()
+                .edit { putString(KEY_MAPPINGS, serializeMappings(mappings)) }
         }
     }
 
@@ -101,7 +96,7 @@ object GestureLetterManager {
      * Format: "A:com.pkg:activity:user,B:com.pkg2:activity2:user2,..."
      */
     private fun parseMappings(context: Context): Map<Char, Triple<String, String, String>> {
-        val prefs = context.getSharedPreferences(PREFS_NAME, 0)
+        val prefs = context.paremPrefs()
         val csv = prefs.getString(KEY_MAPPINGS, "") ?: ""
         if (csv.isBlank()) return emptyMap()
 

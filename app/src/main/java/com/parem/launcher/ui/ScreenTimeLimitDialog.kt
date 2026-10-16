@@ -2,7 +2,6 @@ package com.parem.launcher.ui
 
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
 import android.view.Gravity
@@ -12,6 +11,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import com.parem.launcher.R
 import com.parem.launcher.helper.AppLimitManager
+import com.parem.launcher.helper.appLabelOrNull
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.formattedTimeSpent
@@ -99,12 +99,7 @@ class ScreenTimeLimitDialog(
         val pm = context.packageManager
 
         for ((packageName, usageMs) in sortedApps) {
-            val appName = try {
-                val appInfo = pm.getApplicationInfo(packageName, 0)
-                pm.getApplicationLabel(appInfo).toString()
-            } catch (e: PackageManager.NameNotFoundException) {
-                packageName
-            }
+            val appName = context.appLabelOrNull(packageName) ?: packageName
 
             val row = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL

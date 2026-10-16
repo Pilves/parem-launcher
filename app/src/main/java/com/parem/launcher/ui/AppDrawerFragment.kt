@@ -231,18 +231,9 @@ class AppDrawerFragment : BaseFragment() {
                 }
                 if (isQuery) recordHistory(OmniboxHistory.Entry.Query(q))
                 when (val mode = omniboxMode) {
-                    is OmniboxMode.Calc -> {
-                        ctx.copyToClipboard(mode.result)
-                        ctx.showToast(getString(R.string.copied))
-                    }
-                    is OmniboxMode.Conversion -> {
-                        ctx.copyToClipboard(mode.result)
-                        ctx.showToast(getString(R.string.copied))
-                    }
-                    is OmniboxMode.Currency -> {
-                        ctx.copyToClipboard(mode.result)
-                        ctx.showToast(getString(R.string.copied))
-                    }
+                    is OmniboxMode.Calc -> copyResult(mode.result)
+                    is OmniboxMode.Conversion -> copyResult(mode.result)
+                    is OmniboxMode.Currency -> copyResult(mode.result)
                     OmniboxMode.CurrencyNoRates -> {}
                     is OmniboxMode.Dial -> dial(ctx, mode.number)
                     is OmniboxMode.QuickAction -> runQuickAction(mode.action)
@@ -446,7 +437,7 @@ class AppDrawerFragment : BaseFragment() {
                 val overScroll = dx - scrollRange
                 val rv = _binding?.recyclerView ?: return scrollRange
                 if (overScroll < -10 && rv.scrollState == RecyclerView.SCROLL_STATE_DRAGGING)
-                    checkMessageAndExit()
+                    if (isAdded) findNavController().popBackStack()
                 return scrollRange
             }
         }
@@ -523,18 +514,15 @@ class AppDrawerFragment : BaseFragment() {
         binding.appDrawerTip.setOnClickListener {
             when (val mode = omniboxMode) {
                 is OmniboxMode.Calc -> {
-                    requireContext().copyToClipboard(mode.result)
-                    requireContext().showToast(getString(R.string.copied))
+                    copyResult(mode.result)
                     return@setOnClickListener
                 }
                 is OmniboxMode.Conversion -> {
-                    requireContext().copyToClipboard(mode.result)
-                    requireContext().showToast(getString(R.string.copied))
+                    copyResult(mode.result)
                     return@setOnClickListener
                 }
                 is OmniboxMode.Currency -> {
-                    requireContext().copyToClipboard(mode.result)
-                    requireContext().showToast(getString(R.string.copied))
+                    copyResult(mode.result)
                     return@setOnClickListener
                 }
                 is OmniboxMode.Contact -> {
@@ -597,9 +585,9 @@ class AppDrawerFragment : BaseFragment() {
         }
     }
 
-    private fun checkMessageAndExit() {
-        if (!isAdded) return
-        findNavController().popBackStack()
+    private fun copyResult(result: String) {
+        requireContext().copyToClipboard(result)
+        requireContext().showToast(getString(R.string.copied))
     }
 
     // The action pops the drawer, so Back from Settings returns home

@@ -10,6 +10,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.helper.GestureLetterManager
+import com.parem.launcher.helper.appLabelOrNull
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.ui.BottomSheetMenu
@@ -46,12 +47,7 @@ class GestureLetterConfigDialog(
         val allMappings = GestureLetterManager.getAllMappings(context)
         for (letter in GestureLetterManager.getSupportedLetters()) {
             val mapping = allMappings[letter]
-            val appLabel = if (mapping != null) {
-                try {
-                    val pm = context.packageManager
-                    pm.getApplicationLabel(pm.getApplicationInfo(mapping.first, 0)).toString()
-                } catch (_: Exception) { mapping.first }
-            } else null
+            val appLabel = mapping?.let { context.appLabelOrNull(it.first) ?: it.first }
 
             val row = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL

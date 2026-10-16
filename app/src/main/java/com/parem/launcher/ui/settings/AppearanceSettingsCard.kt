@@ -4,8 +4,6 @@ import android.app.TimePickerDialog
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.doOnAttach
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -17,8 +15,10 @@ import com.parem.launcher.helper.ThemeScheduleManager
 import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.isDarkThemeOn
 import com.parem.launcher.helper.isParemDefault
+import com.parem.launcher.helper.onOff
 import com.parem.launcher.helper.openUrl
 import com.parem.launcher.helper.setPlainWallpaper
+import com.parem.launcher.helper.setStatusBarVisible
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SettingsFragment
@@ -110,24 +110,14 @@ class AppearanceSettingsCard(
     }
 
     private fun populateStatusBar() {
-        binding.statusBar.text = context.getString(if (prefs.showStatusBar) R.string.on else R.string.off)
+        binding.statusBar.text = context.onOff(prefs.showStatusBar)
         // On a rotation restore this runs while MainActivity is still inflating its
         // layout, before setContentView installs the decor, and window.insetsController
         // throws. Once the view is attached the decor exists.
         binding.root.doOnAttach {
             if (!fragment.isAdded) return@doOnAttach
-            if (prefs.showStatusBar) showStatusBar() else hideStatusBar()
+            fragment.requireActivity().setStatusBarVisible(prefs.showStatusBar)
         }
-    }
-
-    private fun showStatusBar() {
-        val window = fragment.requireActivity().window
-        WindowInsetsControllerCompat(window, window.decorView).show(WindowInsetsCompat.Type.statusBars())
-    }
-
-    private fun hideStatusBar() {
-        val window = fragment.requireActivity().window
-        WindowInsetsControllerCompat(window, window.decorView).hide(WindowInsetsCompat.Type.statusBars())
     }
 
     private fun removeWallpaper() {
@@ -189,7 +179,7 @@ class AppearanceSettingsCard(
     }
 
     private fun populateBoldFont() {
-        binding.boldFont.text = context.getString(if (prefs.boldFont) R.string.on else R.string.off)
+        binding.boldFont.text = context.onOff(prefs.boldFont)
     }
 
     private fun updateTheme(appTheme: Int) {
@@ -245,7 +235,7 @@ class AppearanceSettingsCard(
 
     private fun setManualTheme(mode: Int) {
         ThemeScheduleManager.setMode(context, Constants.ThemeScheduleMode.MANUAL)
-        viewModel.cancelThemeScheduleWorker()
+        ThemeScheduleManager.cancelWorker(context)
         updateTheme(mode)
     }
 
@@ -261,7 +251,7 @@ class AppearanceSettingsCard(
     private fun applyScheduledTheme(scheduleMode: Int) {
         val ctx = context
         ThemeScheduleManager.setMode(ctx, scheduleMode)
-        viewModel.startThemeScheduleWorker()
+        ThemeScheduleManager.startWorker(ctx)
         // Apply immediately instead of waiting for the periodic worker's next run
         val newTheme = if (ThemeScheduleManager.shouldBeDark(ctx))
             AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
