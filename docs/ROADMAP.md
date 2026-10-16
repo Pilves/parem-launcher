@@ -216,6 +216,8 @@ Tiers: **BLOCKS 6.0** must land before the Play submission; **should land**; **c
 
 | M4-WP58 | **Done** (PR #0). Write the Fable/Codex implementation split requested by Patric; record ownership, dependency gates and integration rules | `docs/plans/2026-10-16-work-split.md`, roadmap registration and handoff | Shareable kickoff and ordered lanes; no application behavior changes |
 
+| M4-WP59 | **Done** (PR #0). Fix the invalid foldable emulator profile in release smoke CI while preserving phone/tablet/fold coverage | `.github/workflows/smoke.yml`, roadmap registration and handoff | Fold profile matches the SDK device catalog; required repository checks pass; CI rerun listed separately |
+
 **Launch quality bars** (Play vitals bad-behaviour lines are 1.09% crash / 0.47% ANR):
 crash-free ≥ 99.8%, ANR < 0.2%, battery < 1%/day, APK < 10 MB, no RAM growth over 24 h.
 Pricing: free, no ads, no accounts, donations only — the privacy story is the differentiator.

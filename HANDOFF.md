@@ -262,5 +262,10 @@ per package; the rest of each of those fragments is still in
   Coordination: isolated worktrees, live package claims, one Gradle lock and one phone operator; app-menu/onboarding follow-ups are assigned to the packages changing their behavior.
   Not verified: this is a coordination document, not implementation or a reservation of those future packages; existing live claims must be checked at kickoff.
   Easy to get wrong: WP35 and WP24 share dialogs, and WP53 approval does not approve the later first-run, typography or settings designs.
+- **M4-WP59 (PR #0):** The release smoke matrix uses the SDK's 7.6in Foldable profile instead of the nonexistent pixel_fold identifier.
+  Contract: API 34 phone, foldable and tablet legs and the API 36 tablet leg remain; pixel_tablet is a valid SDK identifier and is unchanged.
+  Verified: the installed SDK device catalog lists 7.6in Foldable and pixel_tablet; compile, JVM tests, debug assembly and handoff harness pass.
+  Not verified: the corrected foldable CI leg has not run yet; the old job failed before emulator creation or any application test.
+  Easy to get wrong: Studio device names are not necessarily avdmanager profile IDs; rerun the workflow on the corrected commit, not the failed job at the old SHA.
 
 <!-- handoff:end -->
