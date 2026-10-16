@@ -1,5 +1,7 @@
 package com.parem.launcher.ui.home
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Process
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.text.BidiFormatter
@@ -31,6 +33,7 @@ import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.skipAnimations
 import com.parem.launcher.ui.AppMenu
 import com.parem.launcher.ui.dismissOnDestroy
+import com.parem.launcher.helper.openSearch
 import com.parem.launcher.ui.BadHabitDialogs
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.CreateFolderDialog
@@ -241,15 +244,34 @@ class HomeSlotsController(
 
     /**
      * Every home launch route (slots, folders, gesture letters, swipe apps,
-     * clock/calendar) comes through here so app limits and the mindful pause
-     * apply to all of them.
+     * double-tap, clock/calendar) comes through here so focus, app limits and
+     * the mindful pause apply to all of them. A website slot is gated on the
+     * app that handles its URL, not on its empty package.
      */
     fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String? = null) {
         val ctx = fragment.context ?: return
+        if (url != null) {
+            // The gated browser rides along as the package so selectedApp pins the intent to it
+            BadHabitDialogs.gateWebOpen(
+                ctx, fragment.viewLifecycleOwner.lifecycleScope, { fragment.isAdded },
+                Intent(Intent.ACTION_VIEW, Uri.parse(url)),
+                open = { browser -> openApp(appName, browser, activityClassName, userString, url) },
+            )
+            return
+        }
         BadHabitDialogs.gateLaunch(
             ctx, fragment.viewLifecycleOwner.lifecycleScope, { fragment.isAdded },
             appName, packageName,
             open = { openApp(appName, packageName, activityClassName, userString, url) },
+        )
+    }
+
+    /** The search gestures (swipe-down, OPEN_SEARCH): gated on the app that handles web search. */
+    fun launchSearch() {
+        val ctx = fragment.context ?: return
+        BadHabitDialogs.gateWebOpen(
+            ctx, fragment.viewLifecycleOwner.lifecycleScope, { fragment.isAdded },
+            Intent(Intent.ACTION_WEB_SEARCH), open = { browser -> ctx.openSearch(null, browser) },
         )
     }
 

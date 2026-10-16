@@ -1,13 +1,15 @@
 package com.parem.launcher.helper
 
-import android.content.ComponentName
 import android.content.Context
-import android.content.pm.LauncherApps
 import androidx.core.content.edit
-import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.paremPrefs
 
+/**
+ * Stores the double-tap action and its app. Running the action lives in
+ * HomeGesturesController.executeGestureAction, so "Open app" takes the same
+ * gated route (focus, limits, mindful pause, open counts) as every other launch.
+ */
 object DoubleTapActionManager {
 
     private const val KEY_ACTION = "DOUBLE_TAP_ACTION"
@@ -43,36 +45,6 @@ object DoubleTapActionManager {
             putString(KEY_APP_PACKAGE, packageName)
             putString(KEY_APP_ACTIVITY, activityClassName)
             putString(KEY_APP_USER, userString)
-        }
-    }
-
-    fun execute(
-        context: Context,
-        lockPhone: () -> Unit,
-        toggleFlashlight: () -> Unit
-    ) {
-        when (getAction(context)) {
-            Constants.GestureAction.OPEN_APP -> {
-                val packageName = getAppPackage(context)
-                val activityName = getAppActivity(context)
-                val userString = getAppUser(context)
-                if (packageName.isNotEmpty() && activityName.isNotEmpty()) {
-                    val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-                    val component = ComponentName(packageName, activityName)
-                    val userHandle = getUserHandleFromString(context, userString)
-                    try {
-                        launcherApps.startMainActivity(component, userHandle, null, null)
-                    } catch (e: Exception) {
-                        context.showToast(context.getString(R.string.unable_to_open_app))
-                    }
-                }
-            }
-            Constants.GestureAction.OPEN_NOTIFICATIONS -> expandNotificationDrawer(context)
-            Constants.GestureAction.OPEN_SEARCH -> context.openSearch()
-            Constants.GestureAction.LOCK_SCREEN -> lockPhone()
-            Constants.GestureAction.OPEN_CAMERA -> openCameraApp(context)
-            Constants.GestureAction.TOGGLE_FLASHLIGHT -> toggleFlashlight()
-            Constants.GestureAction.NONE -> { /* do nothing */ }
         }
     }
 }

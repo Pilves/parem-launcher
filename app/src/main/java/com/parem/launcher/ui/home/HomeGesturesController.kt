@@ -32,7 +32,6 @@ import com.parem.launcher.helper.isAccessServiceBound
 import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.openCameraApp
 import com.parem.launcher.helper.openDialerApp
-import com.parem.launcher.helper.openSearch
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.listener.DeviceAdmin
 import com.parem.launcher.listener.OnSwipeTouchListener
@@ -279,15 +278,19 @@ class HomeGesturesController(
 
             override fun onDoubleClick() {
                 super.onDoubleClick()
-                DoubleTapActionManager.execute(
-                    context,
-                    lockPhone = {
-                        lockPhone(onDecline = {
-                            DoubleTapActionManager.setAction(context, Constants.GestureAction.NONE)
-                        })
-                    },
-                    toggleFlashlight = { toggleFlashlight() }
-                )
+                executeGestureAction(
+                    DoubleTapActionManager.getAction(context),
+                    onLockDecline = { DoubleTapActionManager.setAction(context, Constants.GestureAction.NONE) },
+                ) {
+                    val packageName = DoubleTapActionManager.getAppPackage(context)
+                    if (packageName.isNotEmpty())
+                        fragment.slotsController?.launchApp(
+                            "",
+                            packageName,
+                            DoubleTapActionManager.getAppActivity(context),
+                            DoubleTapActionManager.getAppUser(context)
+                        )
+                }
             }
 
         }
@@ -354,7 +357,7 @@ class HomeGesturesController(
 
     private fun swipeDownAction() {
         when (prefs.swipeDownAction) {
-            Constants.SwipeDownAction.SEARCH -> context.openSearch()
+            Constants.SwipeDownAction.SEARCH -> fragment.slotsController?.launchSearch()
             else -> expandNotificationDrawer(context)
         }
     }
@@ -385,7 +388,7 @@ class HomeGesturesController(
         when (action) {
             Constants.GestureAction.OPEN_APP -> openAppFallback()
             Constants.GestureAction.OPEN_NOTIFICATIONS -> expandNotificationDrawer(context)
-            Constants.GestureAction.OPEN_SEARCH -> context.openSearch()
+            Constants.GestureAction.OPEN_SEARCH -> fragment.slotsController?.launchSearch()
             Constants.GestureAction.LOCK_SCREEN -> lockPhone(onLockDecline)
             Constants.GestureAction.OPEN_CAMERA -> openCameraApp(context)
             Constants.GestureAction.TOGGLE_FLASHLIGHT -> toggleFlashlight()

@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import com.parem.launcher.R
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.appLabelOrNull
+import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.getColorFromAttr
@@ -37,7 +38,7 @@ object QuietListSheet {
                 val listener = QuietNotificationListener.instance
                 // Never show an empty list unless the listener can actually see the snoozed set
                 if (listener == null) showNeedsAccess(context, starting = true, onChanged = {})
-                else showList(context, listener)
+                else showList(fragment, isAlive, listener)
             }
         }
     }
@@ -176,7 +177,9 @@ object QuietListSheet {
             context.showToast(R.string.quiet_keep_info)
     }
 
-    private fun showList(context: Context, listener: QuietNotificationListener) {
+    /** Opening an entry is a Parem launch route: same focus check and limit gate as a home slot. */
+    private fun showList(fragment: Fragment, isAlive: () -> Boolean, listener: QuietNotificationListener) {
+        val context = fragment.context ?: return
         val waiting = listener.waiting()
         val menu = BottomSheetMenu(context).title(context.getString(R.string.quiet_list))
         if (waiting.isEmpty()) {
@@ -188,7 +191,17 @@ object QuietListSheet {
                 val title = sbn.notification.extras
                     ?.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString()?.trim()
                 val text = if (title.isNullOrEmpty()) app else "$app: $title"
-                menu.option(text) { listener.open(context, sbn.key) }
+                menu.option(text) {
+                    if (!FocusModeManager.isAppAllowed(context, sbn.packageName)) {
+                        FocusModeManager.showBlocked(context)
+                        return@option
+                    }
+                    BadHabitDialogs.gateLaunch(
+                        context, fragment.lifecycleScope, isAlive,
+                        app, sbn.packageName,
+                        open = { listener.open(context, sbn.key) },
+                    )
+                }
             }
             menu.option(context.getString(R.string.quiet_list_dismiss_all), dimmed = true) {
                 listener.dismissAll()

@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import com.parem.launcher.helper.AppOpenCounter
 
 /**
  * Moves notifications from apps the user did not allow out of the shade by
@@ -132,6 +133,8 @@ class QuietNotificationListener : NotificationListenerService() {
         val n = sbn.notification
         try {
             n.contentIntent?.send(context, 0, null, null, null, null, backgroundStartOptions())
+            // Open counts are exported, so only the personal profile's package name lands there
+            if (sbn.user == android.os.Process.myUserHandle()) AppOpenCounter.increment(this, sbn.packageName)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to open notification", e)
         }

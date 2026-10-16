@@ -89,10 +89,12 @@ fun Context.resetLauncherViaFakeActivity() {
         startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
 }
 
-fun Context.openSearch(query: String? = null) {
+/** [packageName] pins the search to the app the launch gate was run for. */
+fun Context.openSearch(query: String? = null, packageName: String? = null) {
     try {
         val intent = Intent(Intent.ACTION_WEB_SEARCH)
         intent.putExtra(SearchManager.QUERY, query ?: "")
+        if (!packageName.isNullOrEmpty()) intent.setPackage(packageName)
         startActivity(intent)
     } catch (e: Exception) {
         showToast("No search app found")

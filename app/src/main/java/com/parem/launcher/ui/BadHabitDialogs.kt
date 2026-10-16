@@ -3,6 +3,7 @@ package com.parem.launcher.ui
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.provider.Settings
 import android.os.SystemClock
 import android.widget.TextView
@@ -15,6 +16,7 @@ import com.parem.launcher.helper.MindfulPause
 import com.parem.launcher.helper.appLabelOrNull
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.UsageStatsHelper
+import com.parem.launcher.helper.WebLaunchTarget
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.formattedTimeSpent
@@ -95,6 +97,44 @@ object BadHabitDialogs {
                 )
             }
         }
+    }
+
+    /**
+     * The gate for a web open (website shortcut, omnibox search, search gesture):
+     * a web open is not an app launch, so it is gated on the one app that will
+     * receive [intent] per [WebLaunchTarget.target] — focus first, then that
+     * app's limit and pause through [gateLaunch]. [open] gets that package and must
+     * pin the intent to it; "" means no single app (the chooser, or nothing) — the
+     * receiver is unknown, so nothing is gated and the intent goes out unpinned.
+     */
+    fun gateWebOpen(
+        context: Context,
+        scope: CoroutineScope,
+        isActive: () -> Boolean,
+        intent: Intent,
+        open: (packageName: String) -> Unit,
+    ) {
+        val pm = context.packageManager
+        val handler = try {
+            pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
+        } catch (_: Exception) {
+            null
+        }
+        // Candidates matter only under focus, where the chooser must not offer a blocked browser
+        val focusActive = FocusModeManager.isActive(context)
+        val candidates = if (!focusActive) emptyList() else try {
+            pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY).map { it.activityInfo.packageName }
+        } catch (_: Exception) {
+            emptyList()
+        }
+        val allowed: ((String) -> Boolean)? =
+            if (focusActive) { pkg -> FocusModeManager.isAppAllowed(context, pkg) } else null
+        val packageName = WebLaunchTarget.target(handler, candidates, allowed)
+        if (packageName == null) {
+            FocusModeManager.showBlocked(context)
+            return
+        }
+        gateLaunch(context, scope, isActive, "", packageName, open = { open(packageName) })
     }
 
     /** Gesture letters pass no name; show the app's label rather than its package. */

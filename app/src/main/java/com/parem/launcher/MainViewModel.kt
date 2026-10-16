@@ -121,9 +121,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun selectedApp(appModel: AppModel, flag: Int) {
         when (flag) {
             Constants.FLAG_LAUNCH_APP, Constants.FLAG_HIDDEN_APPS -> {
-                // Before the package check: a website's package is "" and would be blocked
+                // Before the package check: a website's package is the browser the
+                // launch gate picked (or "" from an ungated caller) and must not be
+                // judged as an app launch
                 if (appModel.url != null) {
-                    launchUrl(appModel.url)
+                    launchUrl(appModel.url, appModel.appPackage)
                     return
                 }
                 if (!FocusModeManager.isAppAllowed(appContext, appModel.appPackage)) {
@@ -213,25 +215,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun showFocusBlocked() {
-        // A schedule block names its end and where the override is,
-        // since nothing the user did started it
-        val message = when (val label = FocusModeManager.getActiveLabel(appContext)) {
-            is FocusModeManager.ActiveLabel.ScheduledUntil -> appContext.getString(
-                R.string.app_blocked_focus_scheduled,
-                FocusModeManager.formatScheduledEnd(appContext, label.epochMs)
-            )
-            FocusModeManager.ActiveLabel.ScheduledNoEnd ->
-                appContext.getString(R.string.app_blocked_focus_scheduled_no_end)
-            else -> null
-        }
-        if (message != null) appContext.showToast(message, android.widget.Toast.LENGTH_LONG)
-        else appContext.showToast(appContext.getString(R.string.app_blocked_focus))
-    }
+    private fun showFocusBlocked() = FocusModeManager.showBlocked(appContext)
 
-    private fun launchUrl(url: String) {
+    /**
+     * [packageName] is the app BadHabitDialogs.gateWebOpen gated and the intent
+     * is pinned to it, so the limit and pause that ran apply to the receiver; the
+     * focus resolution below is only the backstop for an ungated caller.
+     */
+    private fun launchUrl(url: String, packageName: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        if (FocusModeManager.isActive(appContext)) {
+        if (packageName.isNotEmpty()) {
+            if (!FocusModeManager.isAppAllowed(appContext, packageName)) {
+                showFocusBlocked()
+                return
+            }
+            intent.setPackage(packageName)
+        } else if (FocusModeManager.isActive(appContext)) {
             val pm = appContext.packageManager
             val handler = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
             if (handler != null && handler != "android") {

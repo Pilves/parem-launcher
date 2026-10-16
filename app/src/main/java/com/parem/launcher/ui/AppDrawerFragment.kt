@@ -1,5 +1,8 @@
 package com.parem.launcher.ui
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -42,7 +45,6 @@ import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isEinkDisplay
 import com.parem.launcher.helper.skipAnimations
 import com.parem.launcher.helper.openSearch
-import com.parem.launcher.helper.openUrl
 import com.parem.launcher.helper.privateProfile
 import com.parem.launcher.helper.padForSystemBars
 import com.parem.launcher.helper.showKeyboard
@@ -241,13 +243,16 @@ class AppDrawerFragment : BaseFragment() {
                     is OmniboxMode.QuickAction -> runQuickAction(mode.action)
                     is OmniboxMode.Contact -> dial(ctx, mode.number)
                     OmniboxMode.WebSearch ->
-                        ctx.openUrl(Constants.URL_GOOGLE_SEARCH + java.net.URLEncoder.encode(q.trim(), "UTF-8"))
+                        launchUrl(ctx, Constants.URL_GOOGLE_SEARCH + java.net.URLEncoder.encode(q.trim(), "UTF-8"))
                     is OmniboxMode.Setting ->
                         if (adapter.itemCount == 0) openSetting(mode.anchor) else adapter.launchFirstInList()
                     OmniboxMode.None -> when {
                         q.startsWith("!") ->
-                            ctx.openUrl(Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(q, "UTF-8"))
-                        adapter.itemCount == 0 -> ctx.openSearch(q.trim())
+                            launchUrl(ctx, Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(q, "UTF-8"))
+                        adapter.itemCount == 0 -> BadHabitDialogs.gateWebOpen(
+                            ctx, viewLifecycleOwner.lifecycleScope, { isAdded },
+                            Intent(Intent.ACTION_WEB_SEARCH), open = { browser -> ctx.openSearch(q.trim(), browser) },
+                        )
                         else -> adapter.launchFirstInList()
                     }
                 }
@@ -627,6 +632,23 @@ class AppDrawerFragment : BaseFragment() {
         } catch (e: Exception) {
             ctx.showToast(getString(R.string.unable_to_open_app))
         }
+    }
+
+    /**
+     * Omnibox web opens take the website-slot route: gated on the handling app,
+     * then MainViewModel.selectedApp, which also pins a whitelisted browser under focus.
+     */
+    private fun launchUrl(ctx: Context, url: String) {
+        BadHabitDialogs.gateWebOpen(
+            ctx, viewLifecycleOwner.lifecycleScope, { isAdded },
+            Intent(Intent.ACTION_VIEW, Uri.parse(url)),
+            open = { browser ->
+                if (isAdded) viewModel.selectedApp(
+                    AppModel(url, null, browser, null, false, android.os.Process.myUserHandle(), url),
+                    Constants.FLAG_LAUNCH_APP
+                )
+            },
+        )
     }
 
     private fun isQuietMode(profile: android.os.UserHandle): Boolean = try {
