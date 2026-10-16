@@ -267,9 +267,9 @@ class OnboardingFragment : BaseFragment() {
         if (usageMap.isNotEmpty()) {
             menu.option(getString(R.string.onboarding_open_limits)) {
                 if (isAdded && _binding != null) {
-                    ScreenTimeLimitDialog(ctx, usageMap).apply {
+                    ScreenTimeLimitDialog(ctx, usageMap).show().apply {
                         setOnDismissListener { refreshRows() }
-                    }.dismissOnDestroy(viewLifecycleOwner).show()
+                    }.dismissOnDestroy(viewLifecycleOwner)
                 }
             }
         } else menu.message(getString(R.string.onboarding_pause_no_usage))

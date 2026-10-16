@@ -200,9 +200,9 @@ class WellbeingSettingsCard(
             // duplicates — otherwise a work-profile app renders twice and one
             // visible app burns two of the five whitelist slots.
             val allApps = apps.map { it.appPackage to it.appLabel }.distinctBy { it.first }
-            val dialog = FocusModeDialog(context, allApps)
+            val dialog = FocusModeDialog(context, allApps).show()
             dialog.setOnDismissListener { onWellbeingChanged() }
-            dialog.dismissOnDestroy(fragment.viewLifecycleOwner).show()
+            dialog.dismissOnDestroy(fragment.viewLifecycleOwner)
         }
     }
 
@@ -211,6 +211,6 @@ class WellbeingSettingsCard(
         // The async usage scan may not have landed on a fresh settings open;
         // fall back to the last persisted map rather than opening an empty sheet
         val usageMap = viewModel.perAppScreenTime.value ?: prefs.getCachedUsageStats()
-        ScreenTimeLimitDialog(context, usageMap).dismissOnDestroy(fragment.viewLifecycleOwner).show()
+        ScreenTimeLimitDialog(context, usageMap).show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 }

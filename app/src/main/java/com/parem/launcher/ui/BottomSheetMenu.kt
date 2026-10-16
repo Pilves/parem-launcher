@@ -229,14 +229,14 @@ class BottomSheetMenu(private val context: Context) {
         return this
     }
 
-    fun show(): BottomSheetDialog {
+    fun show(resizeForKeyboard: Boolean = false, scrollContent: Boolean = true): BottomSheetDialog {
         // Nested-scroll wrapper + expanded state: on landscape heights the
         // taller sheets (screen-time graph + top apps) exceed the screen, and
         // the default landscape peek opens sheets half-hidden. Short menus are
         // unaffected — they still open at content height.
-        val scroller = androidx.core.widget.NestedScrollView(context).apply {
+        val content = if (scrollContent) androidx.core.widget.NestedScrollView(context).apply {
             addView(container)
-        }
+        } else container
         // Edge-to-edge dialog window: keep the last row above the navigation bar
         val basePaddingBottom = container.paddingBottom
         ViewCompat.setOnApplyWindowInsetsListener(container) { v, insets ->
@@ -244,13 +244,16 @@ class BottomSheetMenu(private val context: Context) {
             v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, basePaddingBottom + bottom)
             insets
         }
-        dialog.setContentView(scroller)
+        dialog.setContentView(content)
         dialog.transparentSheetFrame()
         dialog.disableAnimationsOnEink()
         dialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
         dialog.behavior.skipCollapsed = true
         dialog.window?.setDimAmount(0.5f)
         dialog.behavior.maxWidth = context.resources.getDimensionPixelSize(R.dimen.sheet_max_width)
+        if (resizeForKeyboard) dialog.window?.setSoftInputMode(
+            android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
+        )
         dialog.show()
         return dialog
     }

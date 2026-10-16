@@ -3,19 +3,14 @@ package com.parem.launcher.ui
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.res.ColorStateList
-import android.os.Bundle
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
-import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.core.view.ViewCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.parem.launcher.R
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.FocusSchedule
@@ -39,30 +34,32 @@ import java.util.Calendar
  * be checked at once.
  */
 class FocusModeDialog(
-    context: Context,
+    private val context: Context,
     private val allApps: List<Pair<String, String>> = emptyList()
-) : BottomSheetDialog(context) {
+) {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.dialog_focus_mode)
-        transparentSheetFrame()
-        disableAnimationsOnEink()
-        // Landscape's short default peek would open the sheet half-hidden;
-        // the ScrollView root handles content taller than the screen
-        behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
-        behavior.skipCollapsed = true
+    private lateinit var dialog: BottomSheetDialog
 
-        val container = findViewById<LinearLayout>(R.id.focusModeContainer) ?: return
-        val ctx = container.context
-
+    fun show(): BottomSheetDialog {
+        val menu = BottomSheetMenu(context).title(context.getString(R.string.focus_mode))
+        val container = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(16.dpToPx(), 0, 16.dpToPx(), 0)
+        }
+        val ctx = context
         val primaryColor = ctx.getColorFromAttr(R.attr.textColor)
 
-        if (FocusModeManager.isActive(ctx)) {
-            buildActiveView(container, ctx, primaryColor)
+        menu.customView(container)
+        val active = FocusModeManager.isActive(ctx)
+        if (active) {
+            buildActiveView(container, ctx, primaryColor, menu)
         } else {
-            buildInactiveView(container, ctx, primaryColor)
+            buildInactiveView(container, ctx, primaryColor, menu)
         }
+        dialog = menu.show(
+            resizeForKeyboard = !active && allApps.isNotEmpty(),
+        )
+        return dialog
     }
 
     /**
@@ -72,10 +69,9 @@ class FocusModeDialog(
     private fun buildActiveView(
         container: LinearLayout,
         ctx: Context,
-        primaryColor: Int
+        primaryColor: Int,
+        menu: BottomSheetMenu,
     ) {
-        container.addView(createTitle(ctx, ctx.getString(R.string.focus_mode)))
-
         // Status text
         val statusText = TextView(ctx).apply {
             text = ctx.getString(R.string.focus_mode_on)
@@ -101,13 +97,13 @@ class FocusModeDialog(
         }
         container.addView(timeText)
 
-        container.addView(createActionRow(ctx, ctx.getString(R.string.disable_focus)) {
+        menu.option(ctx.getString(R.string.disable_focus), dismissOnClick = false) {
             FocusModeManager.disable(ctx)
             FocusModeManager.pauseSchedule(ctx)
             GrayscaleController.cancelFocusEnd(ctx)
             GrayscaleController.reconcile(ctx)
-            dismiss()
-        })
+            dialog.dismiss()
+        }
     }
 
     /**
@@ -117,9 +113,9 @@ class FocusModeDialog(
     private fun buildInactiveView(
         container: LinearLayout,
         ctx: Context,
-        primaryColor: Int
+        primaryColor: Int,
+        menu: BottomSheetMenu,
     ) {
-        container.addView(createTitle(ctx, ctx.getString(R.string.focus_mode)))
         container.addView(createSectionLabel(ctx, ctx.getString(R.string.focus_duration)))
 
         // Radio group for timer options
@@ -178,8 +174,6 @@ class FocusModeDialog(
 
             container.addAppPicker(adapter)
 
-            // Keep the filtered list visible above the keyboard, as the widget picker does
-            window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         }
 
         // Schedule section: edits stay local until Save or Enable
@@ -266,12 +260,12 @@ class FocusModeDialog(
             FocusModeManager.setScheduleEnabled(ctx, scheduleOn)
         }
 
-        container.addView(createActionRow(ctx, ctx.getString(R.string.save)) {
+        menu.option(ctx.getString(R.string.save), dismissOnClick = false) {
             saveSettings()
-            dismiss()
-        })
+            dialog.dismiss()
+        }
 
-        container.addView(createActionRow(ctx, ctx.getString(R.string.enable_focus)) {
+        menu.option(ctx.getString(R.string.enable_focus), dismissOnClick = false) {
             val selectedId = radioGroup.checkedRadioButtonId
             val durationMinutes = if (selectedId in 1..options.size) {
                 options[selectedId - 1].minutes
@@ -283,8 +277,8 @@ class FocusModeDialog(
             FocusModeManager.enable(ctx, durationMinutes)
             // Also queues the focus-end job when grey goes on
             GrayscaleController.reconcile(ctx)
-            dismiss()
-        })
+            dialog.dismiss()
+        }
     }
 
     /**
@@ -303,15 +297,15 @@ class FocusModeDialog(
             }
             .setNegativeButton(android.R.string.cancel, null)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                if (!isShowing) return@setPositiveButton
+                if (!dialog.isShowing) return@setPositiveButton
                 val days = checked.foldIndexed(0) { i, acc, on -> if (on) acc or (1 shl i) else acc }
                 if (days == 0) return@setPositiveButton
                 val start = initial?.startMin ?: 9 * 60
                 TimePickerDialog(ctx, { _, h, m ->
-                    if (!isShowing) return@TimePickerDialog
+                    if (!dialog.isShowing) return@TimePickerDialog
                     val end = initial?.endMin ?: 17 * 60
                     TimePickerDialog(ctx, { _, h2, m2 ->
-                        if (!isShowing) return@TimePickerDialog
+                        if (!dialog.isShowing) return@TimePickerDialog
                         onDone(FocusSchedule.Window(days, h * 60 + m, h2 * 60 + m2))
                     }, end / 60, end % 60, is24h).apply { setTitle(R.string.focus_schedule_end) }.show()
                 }, start / 60, start % 60, is24h).apply { setTitle(R.string.focus_schedule_start) }.show()
@@ -364,41 +358,12 @@ class FocusModeDialog(
         }
     }
 
-    private fun createTitle(ctx: Context, text: String): TextView {
-        return TextView(ctx).apply {
-            this.text = text
-            setTextColor(ctx.getColorFromAttr(R.attr.textSecondaryColor))
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
-            gravity = Gravity.START
-            setPadding(0, 0, 0, 8.dpToPx())
-            ViewCompat.setAccessibilityHeading(this, true)
-        }
-    }
-
     private fun createSectionLabel(ctx: Context, text: String): TextView {
         return TextView(ctx).apply {
             this.text = text
             setTextColor(ctx.getColorFromAttr(R.attr.textSecondaryColor))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             setPadding(0, 8.dpToPx(), 0, 4.dpToPx())
-        }
-    }
-
-    /** Text-button row, replacing the stock Button widgets the sheet used to mix in. */
-    private fun createActionRow(ctx: Context, text: String, onClick: () -> Unit): TextView {
-        return TextView(ctx).apply {
-            this.text = text
-            setTextColor(ctx.getColorFromAttr(R.attr.textColor))
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { topMargin = 8.dpToPx() }
-            setPadding(0, 14.dpToPx(), 0, 14.dpToPx())
-            setBackgroundResource(ctx.selectableBackgroundRes())
-            setOnClickListener { onClick() }
         }
     }
 }

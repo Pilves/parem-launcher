@@ -2,14 +2,11 @@ package com.parem.launcher.ui
 
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
 import android.provider.Settings
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
-import androidx.core.view.ViewCompat
 import com.parem.launcher.R
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.appLabelOrNull
@@ -27,9 +24,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
  * @param appUsageMap Map of packageName to today's usage in milliseconds, from the ViewModel
  */
 class ScreenTimeLimitDialog(
-    context: Context,
+    private val context: Context,
     private val appUsageMap: Map<String, Long>
-) : BottomSheetDialog(context) {
+) {
 
     private data class LimitOption(val label: String, val minutes: Int)
 
@@ -41,37 +38,17 @@ class ScreenTimeLimitDialog(
         LimitOption("Unlimited", -1)
     )
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    fun show(): BottomSheetDialog {
+        lateinit var dialog: BottomSheetDialog
+        val menu = BottomSheetMenu(context).title(context.getString(R.string.app_limits))
 
         val textColor = context.getColorFromAttr(R.attr.textColor)
         val secondaryTextColor = context.getColorFromAttr(R.attr.textSecondaryColor)
 
         val rootLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(16.dpToPx(), 12.dpToPx(), 16.dpToPx(), 16.dpToPx())
-            setBackgroundResource(R.drawable.bg_bottom_sheet)
+            setPadding(16.dpToPx(), 0, 16.dpToPx(), 0)
         }
-
-        rootLayout.addView(View(context).apply {
-            layoutParams = LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-                bottomMargin = 16.dpToPx()
-            }
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            setBackgroundColor(secondaryTextColor)
-        })
-
-        // Title
-        val titleView = TextView(context).apply {
-            text = context.getString(R.string.app_limits)
-            textSize = 14f
-            setTextColor(secondaryTextColor)
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            setPadding(0, 0, 0, 8.dpToPx())
-            ViewCompat.setAccessibilityHeading(this, true)
-        }
-        rootLayout.addView(titleView)
 
         // Access can be revoked while the dialog's usage map is still cached:
         // say so in the sheet instead of listing limits that can never fire
@@ -83,7 +60,7 @@ class ScreenTimeLimitDialog(
                 setPadding(0, 8.dpToPx(), 0, 8.dpToPx())
                 setBackgroundResource(context.selectableBackgroundRes())
                 setOnClickListener {
-                    dismiss()
+                    dialog.dismiss()
                     context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
                 }
             })
@@ -177,14 +154,8 @@ class ScreenTimeLimitDialog(
 
         rootLayout.addView(listLayout)
 
-        // Whole sheet scrolls (the old inner wrap-content ScrollView never
-        // actually scrolled); expanded so landscape's short peek doesn't
-        // open it half-hidden
-        setContentView(ScrollView(context).apply { addView(rootLayout) })
-        transparentSheetFrame()
-        disableAnimationsOnEink()
-        behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
-        behavior.skipCollapsed = true
+        dialog = menu.customView(rootLayout).show()
+        return dialog
     }
 
     // A themed sheet instead of the system PopupMenu, whose Material styling

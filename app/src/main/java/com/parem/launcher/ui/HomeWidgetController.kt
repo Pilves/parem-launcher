@@ -619,19 +619,8 @@ class HomeWidgetController(
                 return items
             }
 
-            val dialog = BottomSheetDialog(context)
-            val container = android.widget.LinearLayout(context).apply {
-                orientation = android.widget.LinearLayout.VERTICAL
-                setBackgroundResource(R.drawable.bg_bottom_sheet)
-                setPadding(0, 12.dpToPx(), 0, 0)
-            }
-            container.addView(View(context).apply {
-                layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                    gravity = Gravity.CENTER_HORIZONTAL
-                    bottomMargin = 12.dpToPx()
-                }
-                setBackgroundColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
-            })
+            lateinit var dialog: BottomSheetDialog
+            val menu = BottomSheetMenu(context)
             val searchField = android.widget.EditText(context).apply {
                 hint = context.getString(R.string.search_widgets)
                 setPadding(16.dpToPx(), 12.dpToPx(), 16.dpToPx(), 12.dpToPx())
@@ -732,21 +721,13 @@ class HomeWidgetController(
                 onSelected(entry.provider)
             }
 
-            container.addView(searchField)
-            container.addView(listView, android.widget.LinearLayout.LayoutParams(
+            menu.customView(searchField)
+            listView.layoutParams = android.widget.LinearLayout.LayoutParams(
                 android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                 android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                1f
-            ))
-            dialog.setContentView(container)
-            dialog.transparentSheetFrame()
-            dialog.disableAnimationsOnEink()
-            dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-            dialog.show()
-
-            // Expand to full height so search + list stay visible above keyboard
-            dialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
-            dialog.behavior.skipCollapsed = true
+                1f,
+            )
+            dialog = menu.customView(listView).show(resizeForKeyboard = true, scrollContent = false)
         }
     }
 

@@ -2,17 +2,11 @@ package com.parem.launcher.ui
 
 import android.content.Context
 import android.content.res.ColorStateList
-import android.graphics.Typeface
 import android.os.Process
-import android.view.Gravity
-import android.view.View
-import android.view.WindowManager
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.widget.NestedScrollView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.R
 import com.parem.launcher.data.AppModel
@@ -39,29 +33,13 @@ class CreateFolderDialog(
     }
 
     fun show(): BottomSheetDialog {
-        val dialog = BottomSheetDialog(context)
+        lateinit var dialog: BottomSheetDialog
+        val menu = BottomSheetMenu(context)
         val container = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundResource(R.drawable.bg_bottom_sheet)
-            setPadding(24.dpToPx(), 12.dpToPx(), 24.dpToPx(), 24.dpToPx())
+            setPadding(24.dpToPx(), 0, 24.dpToPx(), 0)
         }
-        container.addView(View(context).apply {
-            layoutParams = LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-                bottomMargin = 16.dpToPx()
-            }
-            setBackgroundColor(context.getColorFromAttr(R.attr.textSecondaryColor))
-        })
-
-        // Title
-        val title = TextView(context).apply {
-            text = context.getString(R.string.create_folder)
-            textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
-            setTypeface(null, Typeface.BOLD)
-            setPadding(0, 0, 0, 12.dpToPx())
-        }
-        container.addView(title)
+        menu.title(context.getString(R.string.create_folder))
 
         // Folder name input
         val nameLabel = TextView(context).apply {
@@ -137,42 +115,24 @@ class CreateFolderDialog(
         })
         container.addView(websiteRows)
 
-        // Save button
-        val saveButton = TextView(context).apply {
-            text = context.getString(R.string.save)
-            textSize = 16f
-            setTextColor(context.getColorFromAttr(R.attr.textColor))
-            setTypeface(null, Typeface.BOLD)
-            setPadding(0, 16.dpToPx(), 0, 0)
-            setOnClickListener {
-                val folderName = nameInput.text.toString().trim()
-                val selectedApps = pickerAdapter.selectedIds.mapNotNull { appsById[it] }.map {
-                    FolderApp(it.appLabel, it.appPackage, it.activityClassName ?: "", it.user.toString())
-                } + websites
-                if (folderName.isEmpty() || selectedApps.isEmpty()) {
-                    context.showToast(context.getString(R.string.folder_needs_name_and_app))
-                    return@setOnClickListener
-                }
-                if (selectedApps.size > MAX_ITEMS) {
-                    context.showToast(context.getString(R.string.folder_full))
-                    return@setOnClickListener
-                }
-                onSave(folderName, selectedApps)
-                dialog.dismiss()
+        menu.customView(container).option(context.getString(R.string.save), dismissOnClick = false) {
+            val folderName = nameInput.text.toString().trim()
+            val selectedApps = pickerAdapter.selectedIds.mapNotNull { appsById[it] }.map {
+                FolderApp(it.appLabel, it.appPackage, it.activityClassName ?: "", it.user.toString())
+            } + websites
+            if (folderName.isEmpty() || selectedApps.isEmpty()) {
+                context.showToast(context.getString(R.string.folder_needs_name_and_app))
+                return@option
             }
+            if (selectedApps.size > MAX_ITEMS) {
+                context.showToast(context.getString(R.string.folder_full))
+                return@option
+            }
+            onSave(folderName, selectedApps)
+            dialog.dismiss()
         }
-        container.addView(saveButton)
 
-        // Nested-scroll wrapper + expanded: on landscape heights the sheet
-        // exceeds the screen and the save row must stay reachable
-        dialog.setContentView(NestedScrollView(context).apply { addView(container) })
-        dialog.transparentSheetFrame()
-        dialog.disableAnimationsOnEink()
-        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.behavior.skipCollapsed = true
-        // Keep the filtered list visible above the keyboard, as the widget picker does
-        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-        dialog.show()
+        dialog = menu.show(resizeForKeyboard = true)
         return dialog
     }
 }
