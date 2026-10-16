@@ -273,17 +273,7 @@ class AppDrawerFragment : BaseFragment() {
                 // and Filter supersedes stale requests itself — instant beats smooth
                 try {
                     adapter.filter.filter(newText) {
-                        _binding?.let { b ->
-                            if (omniboxMode != OmniboxMode.None) return@let
-                            hiddenHintShown = flag == Constants.FLAG_LAUNCH_APP &&
-                                HiddenAppHint.show(newText, adapter.itemCount, isPrivateSpaceLocked(), hiddenLabels)
-                            if (adapter.itemCount == 0 && newText.isNotBlank()) {
-                                b.appDrawerTip.text = getString(if (hiddenHintShown) R.string.hidden_apps_hint else R.string.no_apps_found)
-                                b.appDrawerTip.visibility = View.VISIBLE
-                            } else {
-                                b.appDrawerTip.visibility = View.GONE
-                            }
-                        }
+                        if (_binding?.search?.query?.toString() == newText) refreshEmptyResultTip()
                     }
                 } catch (e: Exception) {
                     CrashReporter.reportNonFatal("AppDrawerFragment: Error filtering app list", e)
@@ -324,6 +314,20 @@ class AppDrawerFragment : BaseFragment() {
         }
         if (tip != null) b.appDrawerTip.text = tip
         b.appDrawerTip.visibility = if (tip != null) View.VISIBLE else View.GONE
+    }
+
+    private fun refreshEmptyResultTip() {
+        val b = _binding ?: return
+        if (omniboxMode != OmniboxMode.None) return
+        val query = b.search.query.toString()
+        hiddenHintShown = flag == Constants.FLAG_LAUNCH_APP &&
+            HiddenAppHint.show(query, adapter.itemCount, isPrivateSpaceLocked(), hiddenLabels)
+        if (adapter.itemCount == 0 && query.isNotBlank()) {
+            b.appDrawerTip.text = getString(if (hiddenHintShown) R.string.hidden_apps_hint else R.string.no_apps_found)
+            b.appDrawerTip.visibility = View.VISIBLE
+        } else {
+            b.appDrawerTip.visibility = View.GONE
+        }
     }
 
     /** Locked means a private profile exists and is in quiet mode; no profile is not locked. */
@@ -518,6 +522,8 @@ class AppDrawerFragment : BaseFragment() {
             if (flag == Constants.FLAG_LAUNCH_APP) {
                 viewModel.hiddenApps.observe(viewLifecycleOwner) { apps ->
                     hiddenLabels = apps?.map { it.appLabel }.orEmpty()
+                    // Labels may arrive after the user's filter finished.
+                    if (_binding?.search?.query?.isNotBlank() == true) refreshEmptyResultTip()
                 }
                 if (prefs.hiddenApps.isNotEmpty()) viewModel.getHiddenApps()
             }
