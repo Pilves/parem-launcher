@@ -1183,6 +1183,290 @@
                     tools:text="@string/lock_admin_off_row" />
             </LinearLayout>
 
+            <!-- Card 5: Digital Wellbeing -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:layout_marginTop="@dimen/section_gap"
+                android:orientation="vertical"
+                android:padding="0dp">
+
+                <TextView
+                    style="@style/TextLarge"
+                    android:accessibilityHeading="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/wellbeing"
+                    android:textColor="?attr/textColor" />
+
+                <!-- App limits -->
+                <LinearLayout
+                    android:id="@+id/screenTimeLimitsRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/app_limits"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        style="@style/TextSmall"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="24dp"
+                        android:layout_weight="1"
+                        android:lines="1"
+                        android:paddingVertical="8dp"
+                        android:text="@string/app_limits"
+                        android:textColor="?attr/textColor" />
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        android:id="@+id/screenTimeLimitsToggle"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|center_vertical"
+                        android:layout_marginEnd="4dp"
+                        android:lines="1"
+                        android:padding="8dp"
+                        android:text="@string/configure" />
+                </LinearLayout>
+
+                <!-- Focus mode -->
+                <LinearLayout
+                    android:id="@+id/focusModeRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/focus_mode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        style="@style/TextSmall"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="24dp"
+                        android:layout_weight="1"
+                        android:lines="1"
+                        android:paddingVertical="8dp"
+                        android:text="@string/focus_mode"
+                        android:textColor="?attr/textColor" />
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        android:id="@+id/focusModeToggle"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|center_vertical"
+                        android:layout_marginEnd="4dp"
+                        android:lines="1"
+                        android:padding="8dp"
+                        android:text="@string/off" />
+                </LinearLayout>
+
+                <!-- Grayscale -->
+                <LinearLayout
+                    android:id="@+id/grayscaleRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/grayscale"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        style="@style/TextSmall"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="24dp"
+                        android:layout_weight="1"
+                        android:lines="1"
+                        android:paddingVertical="8dp"
+                        android:text="@string/grayscale"
+                        android:textColor="?attr/textColor" />
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        android:id="@+id/grayscaleToggle"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|center_vertical"
+                        android:layout_marginEnd="4dp"
+                        android:lines="1"
+                        android:padding="8dp"
+                        android:text="@string/off" />
+                </LinearLayout>
+
+                <!-- Hide from shade, keep for later (the card hides it below API 26) -->
+                <LinearLayout
+                    android:id="@+id/quietNotifLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/quietNotifRow"
+                        android:minHeight="@dimen/touch_target_min"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:screenReaderFocusable="true"
+                        android:contentDescription="@string/quiet_notif"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:importantForAccessibility="no"
+                            style="@style/TextSmall"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="24dp"
+                            android:layout_weight="1"
+                            android:paddingVertical="8dp"
+                            android:text="@string/quiet_notif"
+                            android:textColor="?attr/textColor" />
+
+                        <TextView
+                            android:importantForAccessibility="no"
+                            android:id="@+id/quietNotifToggle"
+                            style="@style/TextSmallBold"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end|center_vertical"
+                            android:layout_marginEnd="4dp"
+                            android:lines="1"
+                            android:padding="8dp"
+                            android:text="@string/off" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/quietNotifRows"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:id="@+id/quietNotifAllowedRow"
+                            android:minHeight="@dimen/touch_target_min"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:screenReaderFocusable="true"
+                            android:contentDescription="@string/quiet_allowed_apps"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:importantForAccessibility="no"
+                                style="@style/TextSmall"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginEnd="24dp"
+                                android:layout_weight="1"
+                                android:paddingVertical="8dp"
+                                android:text="@string/quiet_allowed_apps"
+                                android:textColor="?attr/textColor" />
+
+                            <TextView
+                                android:importantForAccessibility="no"
+                                android:id="@+id/quietNotifAllowed"
+                                style="@style/TextSmallBold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end|center_vertical"
+                                android:layout_marginEnd="4dp"
+                                android:lines="1"
+                                android:padding="8dp"
+                                android:text="@string/configure" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/quietNotifSilentRow"
+                            android:minHeight="@dimen/touch_target_min"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:screenReaderFocusable="true"
+                            android:contentDescription="@string/quiet_make_silent"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:importantForAccessibility="no"
+                                style="@style/TextSmall"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginEnd="24dp"
+                                android:layout_weight="1"
+                                android:paddingVertical="8dp"
+                                android:text="@string/quiet_make_silent"
+                                android:textColor="?attr/textColor" />
+
+                            <TextView
+                                android:importantForAccessibility="no"
+                                android:id="@+id/quietNotifSilent"
+                                style="@style/TextSmallBold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end|center_vertical"
+                                android:layout_marginEnd="4dp"
+                                android:lines="1"
+                                android:padding="8dp"
+                                android:text="@string/configure" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/quietNotifHint"
+                        style="@style/TextSmall"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="24dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="?attr/textSecondaryColor"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+
+
+            </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
