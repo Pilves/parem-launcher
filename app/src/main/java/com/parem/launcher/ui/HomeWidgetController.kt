@@ -411,6 +411,7 @@ class HomeWidgetController(
                             if (widthDp > 0 && finalHeightDp > 0) {
                                 hostView.updateAppWidgetSize(null, widthDp, finalHeightDp, widthDp, finalHeightDp)
                             }
+                            onWidgetsChanged?.invoke()
                         }
                         // Re-allow scroll interception
                         parent?.requestDisallowInterceptTouchEvent(false)
@@ -799,16 +800,16 @@ class HomeWidgetController(
     /**
      * Like the apps-count picker refuses counts the widgets leave no room for,
      * adding a widget refuses when its default height would push a home app
-     * off screen. Only portrait shares the column; -1 means not measured yet.
+     * off screen. Only portrait shares the column; null means not measured yet.
      */
     private fun newWidgetFits(): Boolean {
         val slots = fragment.slotsController ?: return true
-        if (!slots.widgetsShareColumn || slots.widgetRoomPx < 0) return true
+        if (!slots.widgetsShareColumn) return true
         val density = context.resources.displayMetrics.density
         // Prefs.getWidgetHeight default (200dp) plus the scroll view's 8dp margin the first widget brings in
         val firstWidget = prefs.getWidgetIdList().isEmpty()
         val widgetPx = (200 * density).toInt() + if (firstWidget) (8 * density).toInt() else 0
-        return widgetPx <= slots.widgetRoomPx
+        return com.parem.launcher.helper.HomeCapacity.canAddWidget(slots.widgetRoomPx, widgetPx)
     }
 
     private fun onWidgetBound(widgetId: Int, providerInfo: AppWidgetProviderInfo, replaceIndex: Int) {

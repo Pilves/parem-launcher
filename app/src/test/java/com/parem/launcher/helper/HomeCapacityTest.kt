@@ -33,4 +33,13 @@ class HomeCapacityTest {
         assertEquals(0, HomeCapacity.room(usableHeightPx = 800, rowHeightPx = 100, rows = 8))
         assertEquals(-200, HomeCapacity.room(usableHeightPx = 600, rowHeightPx = 100, rows = 8))
     }
+    @Test
+    fun measuredOverflowNeverCountsAsUnknownSpace() {
+        org.junit.Assert.assertTrue(HomeCapacity.canAddWidget(null, 200))
+        org.junit.Assert.assertFalse(HomeCapacity.canAddWidget(-1, 200))
+        org.junit.Assert.assertFalse(HomeCapacity.canAddWidget(-200, 200))
+        org.junit.Assert.assertFalse(HomeCapacity.canAddWidget(199, 200))
+        org.junit.Assert.assertTrue(HomeCapacity.canAddWidget(200, 200))
+    }
+
 }

@@ -17,6 +17,9 @@ object HomeCapacity {
         return slotLabels.take(shown).drop(capacity.coerceAtLeast(0)).filter { it.isNotBlank() }
     }
 
+    fun canAddWidget(roomPx: Int?, widgetHeightPx: Int): Boolean =
+        roomPx == null || widgetHeightPx <= roomPx
+
     /** Pixels left under [rows] rows of [rowHeightPx]; negative when they already overflow. */
     fun room(usableHeightPx: Int, rowHeightPx: Int, rows: Int): Int =
         usableHeightPx - rows * rowHeightPx

@@ -79,10 +79,10 @@ class HomeSlotsController(
 
     /**
      * Pixels left in the app column after the configured rows, measured by the
-     * last fitting pass; -1 until one has run. HomeWidgetController checks a
+     * last fitting pass; null until one has run. HomeWidgetController checks a
      * new widget against it so adding one never hides an app.
      */
-    var widgetRoomPx: Int = -1
+    var widgetRoomPx: Int? = null
         private set
 
     /**
@@ -131,6 +131,7 @@ class HomeSlotsController(
 
         fragment.clockController?.populateScreenTime()
 
+        widgetRoomPx = null
         val homeAppsNum = prefs.homeAppsNum.coerceAtMost(homeAppViews.size)
 
         for (i in 0 until homeAppsNum) {
@@ -191,7 +192,7 @@ class HomeSlotsController(
                     if (!isActive()) return@fitApps
 
                     val availableHeight = layout.height - layout.paddingTop - layout.paddingBottom
-                    if (availableHeight <= 0) return@fitApps
+                    if (layout.height <= 0) return@fitApps
 
                     // Subtract widget container height — but only when the widgets
                     // actually share this vertical column (portrait). The landscape
@@ -199,13 +200,15 @@ class HomeSlotsController(
                     // their height must not shrink the app rows.
                     val widgetHeight = activeWidgetScroll()
                         ?.takeIf { it.isVisible && it.parent === layout }
-                        ?.height ?: 0
+                        ?.let { scroll ->
+                            val margins = scroll.layoutParams as? ViewGroup.MarginLayoutParams
+                            scroll.height + (margins?.topMargin ?: 0) + (margins?.bottomMargin ?: 0)
+                        } ?: 0
 
                     // The touch-exploration "All apps" row shares the column too
                     val allAppsHeight = binding.homeAllApps.takeIf { it.isVisible }?.height ?: 0
 
                     val usableHeight = availableHeight - widgetHeight - allAppsHeight
-                    if (usableHeight <= 0) return@fitApps
 
                     // Measure height of a single app view
                     val firstVisible = homeAppViews.firstOrNull { it.isVisible }
