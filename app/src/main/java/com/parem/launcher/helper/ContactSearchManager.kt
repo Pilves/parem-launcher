@@ -76,7 +76,7 @@ object ContactSearchManager {
                     // number we see for a lookup key is the one we keep.
                     val dedupeKey = lookup ?: "$name|$number"
                     if (!seen.add(dedupeKey)) continue
-                    out.add(ContactMatcher.Contact(name, number, lookup))
+                    out.add(ContactMatcher.Contact(name, number))
                 }
             }
         } catch (e: Exception) {

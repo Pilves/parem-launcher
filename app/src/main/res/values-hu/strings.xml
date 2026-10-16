@@ -40,10 +40,9 @@
     <string name="dark">Sötét</string>
     <string name="light">Világos</string>
     <string name="app_usage_message">A képernyőidő megjelenítéséhez/elrejtéséhez a kezdőképernyőn engedélyezze vagy tagadja meg az alkalmazás használati engedélyét.
-        \n\nMegjegyzés: Nem gyűjtünk alkalmazás-használati adatokat. Minden az Ön eszközén kerül feldolgozásra.</string><string name="accessibility_service_description">A hozzáférhetőségi engedély szükséges a dupla koppintás általi zároláshoz. Az Parem Launcher által ezen a szolgáltatáson keresztül megszerzett adatok nem hagyják el a készüléket.</string><string name="open">Link megnyitása</string>
+        \n\nMegjegyzés: Nem gyűjtünk alkalmazás-használati adatokat. Minden az Ön eszközén kerül feldolgozásra.</string><string name="accessibility_service_description">A hozzáférhetőségi engedély szükséges a dupla koppintás általi zároláshoz. Az Parem Launcher által ezen a szolgáltatáson keresztül megszerzett adatok nem hagyják el a készüléket.</string>
     <string name="close">Bezárás</string>
     <string name="not_now">Később</string>
-    <string name="instagram">Instagram</string>
     <string name="date">Dátum</string>
     <string name="date_only">Csak dátum</string>
     <string name="bottom_on">Alsó: Be</string>

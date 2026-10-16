@@ -63,10 +63,9 @@
     <string name="dark">ダーク</string>
     <string name="light">ライト</string>
     <string name="app_usage_message">ホーム画面で画面時間を表示/非表示するには、アプリの使用権限を許可または拒否してください。
-        \n\n注意: アプリの使用データは収集されません。すべての処理はあなたのデバイスで行われます。</string><string name="accessibility_service_description">ダブルタップしてロックを有効にするには、アクセシビリティ許可が必要です。このサービスを通じて Parem Launcher が取得したデータは、デバイスから流出することはありません。</string><string name="open">リンクを開く</string>
+        \n\n注意: アプリの使用データは収集されません。すべての処理はあなたのデバイスで行われます。</string><string name="accessibility_service_description">ダブルタップしてロックを有効にするには、アクセシビリティ許可が必要です。このサービスを通じて Parem Launcher が取得したデータは、デバイスから流出することはありません。</string>
     <string name="close">閉じる</string>
     <string name="not_now">今はやめろ</string>
-    <string name="instagram">インスタグラム</string>
     <string name="date">日にち</string>
     <string name="date_only">日付のみ</string>
     <string name="bottom_on">下: オン</string>

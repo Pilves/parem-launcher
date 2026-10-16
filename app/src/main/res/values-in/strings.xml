@@ -41,10 +41,9 @@
     <string name="dark">Gelap</string>
     <string name="light">Terang</string>
     <string name="app_usage_message">Untuk menampilkan/menyembunyikan waktu layar di layar utama, izinkan atau tolak izin penggunaan aplikasi.
-        \n\nCatatan: Tidak ada data penggunaan aplikasi yang dikumpulkan. Semua diproses di perangkat Anda.</string><string name="accessibility_service_description">Izin aksesibilitas diperlukan untuk mengaktifkan ketuk dua kali untuk mengunci. Data apa pun yang diperoleh Parem Launcher melalui layanan ini tidak akan meninggalkan perangkat Anda.</string><string name="open">Buka tautan</string>
+        \n\nCatatan: Tidak ada data penggunaan aplikasi yang dikumpulkan. Semua diproses di perangkat Anda.</string><string name="accessibility_service_description">Izin aksesibilitas diperlukan untuk mengaktifkan ketuk dua kali untuk mengunci. Data apa pun yang diperoleh Parem Launcher melalui layanan ini tidak akan meninggalkan perangkat Anda.</string>
     <string name="close">Tutup</string>
     <string name="not_now">Tidak sekarang</string>
-    <string name="instagram">Instagram</string>
     <string name="date">Tanggal</string>
     <string name="date_only">Tanggal saja</string>
     <string name="bottom_on">Bawah: Nyala</string>

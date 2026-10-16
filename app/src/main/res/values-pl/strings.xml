@@ -62,10 +62,9 @@
     <string name="dark">Ciemny</string>
     <string name="light">Jasny</string>
     <string name="app_usage_message">Aby wyświetlić/ukryć czas ekranu na ekranie głównym, pozwól lub zabroń aplikacji na dostęp do danych o użyciu.
-        \n\nUwaga: Nie są gromadzone żadne dane o użyciu aplikacji. Wszystko jest przetwarzane na Twoim urządzeniu.</string><string name="accessibility_service_description">Uprawnienia dostępu są wymagane, aby włączyć podwójne dotknięcie, aby zablokować. Wszelkie dane pozyskane przez Parem Launcher za pośrednictwem tej usługi nie opuszczą Twojego urządzenia.</string><string name="open">Otwórz łącze</string>
+        \n\nUwaga: Nie są gromadzone żadne dane o użyciu aplikacji. Wszystko jest przetwarzane na Twoim urządzeniu.</string><string name="accessibility_service_description">Uprawnienia dostępu są wymagane, aby włączyć podwójne dotknięcie, aby zablokować. Wszelkie dane pozyskane przez Parem Launcher za pośrednictwem tej usługi nie opuszczą Twojego urządzenia.</string>
     <string name="close">Zamknij</string>
     <string name="not_now">Nie teraz</string>
-    <string name="instagram">Instagram</string>
     <string name="date">Data</string>
     <string name="date_only">Tylko data</string>
     <string name="bottom_on">Dół: włączony</string>

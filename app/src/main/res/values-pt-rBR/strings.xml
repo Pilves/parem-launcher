@@ -41,10 +41,9 @@
     <string name="dark">Escuro</string>
     <string name="light">Claro</string>
     <string name="app_usage_message">Para exibir/ocultar o tempo de tela na tela inicial, permita ou negue a permissão de uso do aplicativo.
-        \n\nNota: Não são coletados dados de uso do aplicativo. Tudo é processado no seu dispositivo.</string><string name="accessibility_service_description">A permissão de acessibilidade é necessária para ativar o toque duplo para bloquear. Quaisquer dados adquiridos pelo Parem Launcher através deste serviço não sairão do seu dispositivo.</string><string name="open">Abrir link</string>
+        \n\nNota: Não são coletados dados de uso do aplicativo. Tudo é processado no seu dispositivo.</string><string name="accessibility_service_description">A permissão de acessibilidade é necessária para ativar o toque duplo para bloquear. Quaisquer dados adquiridos pelo Parem Launcher através deste serviço não sairão do seu dispositivo.</string>
     <string name="close">Fechar</string>
     <string name="not_now">Agora não</string>
-    <string name="instagram">Instagram</string>
     <string name="date">Data</string>
     <string name="date_only">Apenas data</string>
     <string name="bottom_on">Fundo: Ativado</string>

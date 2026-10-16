@@ -41,10 +41,9 @@
     <string name="dark">Темная</string>
     <string name="light">Светлая</string>
     <string name="app_usage_message">Чтобы показать/скрыть время экрана на домашнем экране, разрешите или запретите разрешение на использование приложения.
-        \n\nПримечание: Не собираются данные об использовании приложения. Все обрабатывается на вашем устройстве.</string><string name="accessibility_service_description">" Разрешение на доступ требуется, чтобы включить двойное касание для блокировки. Любые данные, полученные Parem Launcher через этот сервис, не покинут ваше устройство."</string><string name="open">Открыть ссылку</string>
+        \n\nПримечание: Не собираются данные об использовании приложения. Все обрабатывается на вашем устройстве.</string><string name="accessibility_service_description">" Разрешение на доступ требуется, чтобы включить двойное касание для блокировки. Любые данные, полученные Parem Launcher через этот сервис, не покинут ваше устройство."</string>
     <string name="close">Закрыть</string>
     <string name="not_now">Не сейчас</string>
-    <string name="instagram">Instagram</string>
     <string name="date">Дата</string>
     <string name="date_only">Только дата</string>
     <string name="bottom_on">Внизу: Вкл</string>

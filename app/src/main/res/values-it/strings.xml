@@ -41,10 +41,9 @@
     <string name="dark">Scuro</string>
     <string name="light">Chiaro</string>
     <string name="app_usage_message">Per visualizzare/nascondere il tempo di utilizzo dello schermo sulla schermata iniziale, conceda o neghi il permesso di utilizzo dell\'app.
-        \n\nNota: Non vengono raccolti dati sull\'utilizzo dell\'app. Tutto viene elaborato sul tuo dispositivo.</string><string name="accessibility_service_description">L\'autorizzazione di accessibilità è necessaria per abilitare il doppio tocco per il blocco schermo. Qualsiasi dato acquisito da Parem Launcher tramite questo servizio rimarrà all’interno del telefono</string><string name="open">Link aperto</string>
+        \n\nNota: Non vengono raccolti dati sull\'utilizzo dell\'app. Tutto viene elaborato sul tuo dispositivo.</string><string name="accessibility_service_description">L\'autorizzazione di accessibilità è necessaria per abilitare il doppio tocco per il blocco schermo. Qualsiasi dato acquisito da Parem Launcher tramite questo servizio rimarrà all’interno del telefono</string>
     <string name="close">chiudi</string>
     <string name="not_now">Non ora</string>
-    <string name="instagram">Instagram</string>
     <string name="date">Data</string>
     <string name="date_only">Solo data</string>
     <string name="bottom_on">In basso: acceso</string>

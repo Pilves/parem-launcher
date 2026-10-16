@@ -62,10 +62,9 @@
     <string name="dark">مظلم</string>
     <string name="light">مضيء</string>
     <string name="app_usage_message">لعرض/إخفاء وقت استخدام الشاشة على الشاشة الرئيسية، يرجى السماح أو منع إذن استخدام التطبيق.
-        \n\nملاحظة: لا يتم جمع أي بيانات حول استخدام التطبيقات. يتم معالجة كل شيء على جهازك.</string><string name="accessibility_service_description">إذن الوصول مطلوب لتمكين النقر المزدوج للقفل. أي بيانات حصل عليها Parem Launcher عبر هذه الخدمة لن تترك جهازك.</string><string name="open">افتح الرابط</string>
+        \n\nملاحظة: لا يتم جمع أي بيانات حول استخدام التطبيقات. يتم معالجة كل شيء على جهازك.</string><string name="accessibility_service_description">إذن الوصول مطلوب لتمكين النقر المزدوج للقفل. أي بيانات حصل عليها Parem Launcher عبر هذه الخدمة لن تترك جهازك.</string>
     <string name="close">يغلق</string>
     <string name="not_now">ليس الآن</string>
-    <string name="instagram">انستغرام</string>
     <string name="date">تاريخ</string>
     <string name="date_only">التاريخ فقط</string>
     <string name="bottom_on">المحاذاة ﻷسفل</string>

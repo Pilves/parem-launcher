@@ -40,10 +40,9 @@
     <string name="dark">Tamna</string>
     <string name="light">Svijetla</string>
     <string name="app_usage_message">Da biste prikazali/sakrili vrijeme korištenja ekrana na početnom zaslonu, molimo dozvolite ili onemogućite dopuštenje korištenja aplikacije.
-        \n\nNapomena: Ne prikupljaju se podaci o korištenju aplikacije. Sve se obrađuje na vašem uređaju.</string><string name="accessibility_service_description">Dozvola za pristupačnost potrebna je za omogućavanje zaključavanja dvostrukim dodirom. Bilo koji podatci prikupljeni ovim servisom neće napustiti tvoj uređaj.</string><string name="open">Otvori poveznicu</string>
+        \n\nNapomena: Ne prikupljaju se podaci o korištenju aplikacije. Sve se obrađuje na vašem uređaju.</string><string name="accessibility_service_description">Dozvola za pristupačnost potrebna je za omogućavanje zaključavanja dvostrukim dodirom. Bilo koji podatci prikupljeni ovim servisom neće napustiti tvoj uređaj.</string>
     <string name="close">Zatvori</string>
     <string name="not_now">Ne sad</string>
-    <string name="instagram">Instagram</string>
     <string name="date">Datum</string>
     <string name="date_only">Samo datum</string>
     <string name="bottom_on">Dno: uklj.</string>

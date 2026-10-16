@@ -62,10 +62,9 @@
     <string name="dark">Koyu</string>
     <string name="light">Açık</string>
     <string name="app_usage_message">Ana ekranınızda ekran sürenizi göstermek/gizlemek için lütfen uygulama kullanım iznini onaylayın veya reddedin.
-        \n\nNot: Uygulama kullanım verileri toplanmaz. Her şey cihazınızda işlenir.</string><string name="accessibility_service_description">Kilitlemek için çift dokunmayı etkinleştirmek için erişilebilirlik izni gereklidir. Parem Launcher tarafından bu hizmet aracılığıyla elde edilen hiçbir veri cihazınızdan ayrılmayacaktır.</string><string name="open">Linki aç</string>
+        \n\nNot: Uygulama kullanım verileri toplanmaz. Her şey cihazınızda işlenir.</string><string name="accessibility_service_description">Kilitlemek için çift dokunmayı etkinleştirmek için erişilebilirlik izni gereklidir. Parem Launcher tarafından bu hizmet aracılığıyla elde edilen hiçbir veri cihazınızdan ayrılmayacaktır.</string>
     <string name="close">Kapat</string>
     <string name="not_now">Şimdi değil</string>
-    <string name="instagram">Instagram</string>
     <string name="date">Tarih</string>
     <string name="date_only">Sadece tarih</string>
     <string name="bottom_on">Alt: Açık</string>

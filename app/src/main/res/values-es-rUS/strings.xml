@@ -41,10 +41,9 @@
     <string name="dark">Oscuro</string>
     <string name="light">Claro</string>
     <string name="app_usage_message">Para mostrar/ocultar el tiempo de pantalla en la pantalla de inicio, permita o deniegue el permiso de uso de la aplicación.
-        \n\nNota: No se recopilan datos de uso de la aplicación. Todo se procesa en su dispositivo.</string><string name="accessibility_service_description">Se necesita el permiso de Accesibilidad para activar el bloqueo con doble toque. Cualquier dato recolectado por Parem Launcher no saldrá de su dispositivo.</string><string name="open">Abrir enlace</string>
+        \n\nNota: No se recopilan datos de uso de la aplicación. Todo se procesa en su dispositivo.</string><string name="accessibility_service_description">Se necesita el permiso de Accesibilidad para activar el bloqueo con doble toque. Cualquier dato recolectado por Parem Launcher no saldrá de su dispositivo.</string>
     <string name="close">Cerrar</string>
     <string name="not_now">Ahora no</string>
-    <string name="instagram">Instagram</string>
     <string name="date">Fecha</string>
     <string name="date_only">Sólo fecha</string>
     <string name="bottom_on">Abajo: Sí</string>

@@ -41,10 +41,9 @@
     <string name="dark">Темна</string>
     <string name="light">Світла</string>
     <string name="app_usage_message">Щоб показати/ховати час роботи з екраном на головному екрані, будь ласка, дозвольте або забороніть дозвіл на використання програми.
-        \n\nПримітка: Не збираються дані про використання програми. Все обробляється на вашому пристрої.</string><string name="accessibility_service_description">" Дозвіл на доступ потрібний, щоб увімкнути подвійне торкання для блокування. Будь-які дані, отримані Parem Launcher через цей сервіс, не залишать ваш пристрій."</string><string name="open">Відкрити посилання</string>
+        \n\nПримітка: Не збираються дані про використання програми. Все обробляється на вашому пристрої.</string><string name="accessibility_service_description">" Дозвіл на доступ потрібний, щоб увімкнути подвійне торкання для блокування. Будь-які дані, отримані Parem Launcher через цей сервіс, не залишать ваш пристрій."</string>
     <string name="close">Закрити</string>
     <string name="not_now">Не зараз</string>
-    <string name="instagram">Instagram</string>
     <string name="date">Дата</string>
     <string name="date_only">Толільки дата</string>
     <string name="bottom_on">Внизу: Вкл</string>

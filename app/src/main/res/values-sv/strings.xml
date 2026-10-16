@@ -40,10 +40,9 @@
     <string name="dark">Mörkt</string>
     <string name="light">Ljust</string>
     <string name="app_usage_message">För att visa/dölja din skärmtid på startsidan, vänligen tillåt eller neka appanvändningsbehörigheten.
-        \n\nObs: Inga data om appanvändning samlas in. Allt bearbetas på din enhet.</string><string name="accessibility_service_description">Tillgänglighetsbehörigheten krävs för att aktivera dubbeltryck för att låsa. Eventuella data förvärvade av Parem Launcher genom denna tjänst kommer inte att lämna din enhet.</string><string name="open">Öppna länk</string>
+        \n\nObs: Inga data om appanvändning samlas in. Allt bearbetas på din enhet.</string><string name="accessibility_service_description">Tillgänglighetsbehörigheten krävs för att aktivera dubbeltryck för att låsa. Eventuella data förvärvade av Parem Launcher genom denna tjänst kommer inte att lämna din enhet.</string>
     <string name="close">Stäng</string>
     <string name="not_now">Inte nu</string>
-    <string name="instagram">Instagram</string>
     <string name="date">Datum</string>
     <string name="date_only">Endast datum</string>
     <string name="bottom_on">Botten: På</string>

@@ -14,7 +14,7 @@ import java.text.Normalizer
  */
 object ContactMatcher {
 
-    data class Contact(val name: String, val number: String, val lookupKey: String? = null) {
+    data class Contact(val name: String, val number: String) {
         // Computed eagerly so the cost lands at load time (Dispatchers.IO in
         // ContactSearchManager) — match() runs per keystroke on the main
         // thread and must not re-normalize every contact's name there.

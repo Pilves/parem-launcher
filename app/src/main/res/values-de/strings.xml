@@ -62,10 +62,9 @@
     <string name="dark">Dunkel</string>
     <string name="light">Hell</string>
     <string name="app_usage_message">Um die Bildschirmzeit auf dem Startbildschirm anzuzeigen oder zu verbergen, erteilen Sie bitte die Erlaubnis für die App-Nutzung oder verweigern Sie sie.
-        \n\nHinweis: Es werden keine Daten zur App-Nutzung gesammelt. Alles wird auf Ihrem Gerät verarbeitet.</string><string name="accessibility_service_description">Die Zugriffsberechtigung ist erforderlich, um das Sperren durch Doppeltippen zu ermöglichen. Die von Parem Launcher über diesen Dienst erfassten Daten verlassen Ihr Gerät nicht.</string><string name="open">Verbindung öffnen</string>
+        \n\nHinweis: Es werden keine Daten zur App-Nutzung gesammelt. Alles wird auf Ihrem Gerät verarbeitet.</string><string name="accessibility_service_description">Die Zugriffsberechtigung ist erforderlich, um das Sperren durch Doppeltippen zu ermöglichen. Die von Parem Launcher über diesen Dienst erfassten Daten verlassen Ihr Gerät nicht.</string>
     <string name="close">Schließen</string>
     <string name="not_now">Nicht jetzt</string>
-    <string name="instagram">Instagram</string>
     <string name="date">Datum</string>
     <string name="date_only">Nur Datum</string>
     <string name="bottom_on">Unten: Ein</string>
