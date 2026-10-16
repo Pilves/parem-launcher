@@ -16,7 +16,11 @@ is the same bytes plus a ~1–2 KB signing block.
 |---|---|---|
 | before (504f17b) | 2,976,915 | 2.84 |
 | initial draft (before review) | 2,945,283 | 2.81 |
-| final reviewed change | pending rebuild | pending |
+| final reviewed change (7ecf485) | 2,941,991 | 2.81 |
+
+The final build includes WP62 and WP45 from 6a25ddc; the 34,924-byte reduction
+against 504f17b is a cross-revision observation, not an isolated optimisation
+benchmark. Release and debug builds passed; device timings remain unmeasured.
 
 What is inside (before): `classes.dex` 2.05 MB uncompressed, `resources.arsc`
 0.60 MB (19 locales, already filtered by `resourceConfigurations`), ~0.2 MB
