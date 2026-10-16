@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.view.Gravity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
+import com.parem.launcher.helper.CsvPairs
 import org.json.JSONObject
 
 /** The single SharedPreferences file every feature manager reads and writes. */
@@ -261,7 +262,7 @@ class Prefs(context: Context) {
 
     fun getCachedUsageStats(): Map<String, Long> {
         usageStatsCache?.let { return it }
-        val parsed = csvPairs(prefs.getString(CACHED_USAGE_STATS, "").toString(), '=')
+        val parsed = CsvPairs.parse(prefs.getString(CACHED_USAGE_STATS, "").toString(), '=', trim = false)
             .mapNotNull { (pkg, time) -> time.toLongOrNull()?.let { pkg to it } }.toMap()
         usageStatsCache = parsed
         return parsed
@@ -325,7 +326,7 @@ class Prefs(context: Context) {
 
     private fun parseWidgetHeights(): Map<Int, Int> {
         widgetHeightsCache?.let { return it }
-        val parsed = csvPairs(widgetHeights, ':')
+        val parsed = CsvPairs.parse(widgetHeights, ':')
             .mapNotNull { (id, h) -> id.toIntOrNull()?.let { i -> h.toIntOrNull()?.let { i to it } } }.toMap()
         widgetHeightsCache = parsed
         return parsed
@@ -355,18 +356,11 @@ class Prefs(context: Context) {
     private fun parseWidgetProviders(): Map<Int, String> {
         widgetProvidersCache?.let { return it }
         // Format: "id:component/class" — split only on first ':'
-        val parsed = csvPairs(widgetProviders, ':')
+        val parsed = CsvPairs.parse(widgetProviders, ':')
             .mapNotNull { (id, comp) -> id.toIntOrNull()?.takeIf { comp.isNotBlank() }?.let { it to comp } }.toMap()
         widgetProvidersCache = parsed
         return parsed
     }
-
-    /** Splits "k<sep>v,k<sep>v" into trimmed pairs, splitting each entry on its first [sep]. */
-    private fun csvPairs(raw: String, sep: Char): List<Pair<String, String>> =
-        raw.split(",").mapNotNull { entry ->
-            val i = entry.indexOf(sep)
-            if (i > 0) entry.substring(0, i).trim() to entry.substring(i + 1).trim() else null
-        }
 
     fun migrateWidgetIfNeeded(appWidgetManager: android.appwidget.AppWidgetManager? = null) {
         if (widgetId != -1 && widgetIds.isBlank()) {
