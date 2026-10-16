@@ -68,13 +68,25 @@ object CurrencyConverter {
     fun convert(input: String, rates: Rates): Result? {
         if (!looksLikeCurrency(input)) return null
         val match = CURRENCY_REGEX.matchEntire(input.trim()) ?: return null
-        val amount = match.groupValues[1].replace(',', '.').toDoubleOrNull() ?: return null
+        val amount = parseAmount(match.groupValues[1]) ?: return null
         val from = match.groupValues[2].uppercase()
         val to = match.groupValues[3].uppercase()
         val fromRate = rateOf(from, rates) ?: return null
         val toRate = rateOf(to, rates) ?: return null
         return Result(amount / fromRate * toRate, to, rates.date)
     }
+
+    /**
+     * "1,5" is a decimal comma; "1,000" is a thousands separator (a comma
+     * followed by exactly three digits), not one unit — the regex allows a
+     * single separator, so the two shapes can't be confused with each other.
+     */
+    fun parseAmount(text: String): Double? {
+        val normalized = if (THOUSANDS.matches(text)) text.replace(",", "") else text.replace(',', '.')
+        return normalized.toDoubleOrNull()
+    }
+
+    private val THOUSANDS = Regex("\\d{1,3},\\d{3}")
 
     private fun rateOf(code: String, rates: Rates): Double? =
         if (code == "EUR") 1.0 else rates.perEur[code]

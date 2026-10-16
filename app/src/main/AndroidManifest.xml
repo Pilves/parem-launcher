@@ -53,6 +53,8 @@
     <application
         android:name=".ParemApp"
         android:allowBackup="true"
+        android:backupAgent=".ParemBackupAgent"
+        android:fullBackupOnly="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"

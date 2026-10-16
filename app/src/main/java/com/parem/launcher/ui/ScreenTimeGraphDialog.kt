@@ -129,6 +129,8 @@ class ScreenTimeGraphDialog(
                 val weekly = mutableMapOf<String, Long>()
                 // The 7 days before the graph's, oldest first, for the weekly review
                 val lastWeekMaps = mutableListOf<Map<String, Long>>()
+                // How much of today has elapsed, so the review weighs the partial day fairly
+                var todayFraction = 1.0
 
                 for (offset in (2 * WeeklyReview.DAYS - 1) downTo 0) {
                     calendar.timeInMillis = now
@@ -143,6 +145,7 @@ class ScreenTimeGraphDialog(
                     val dayEnd = calendar.timeInMillis
 
                     val perApp = if (offset == 0) {
+                        todayFraction = (now - dayStart).toDouble() / (dayEnd - dayStart)
                         // Today rides the shared 60s cache all other screen-time
                         // consumers use instead of running its own scan
                         UsageStatsHelper.getPerAppUsageToday(appContext)
@@ -174,7 +177,7 @@ class ScreenTimeGraphDialog(
                         .take(TOP_APPS_COUNT)
                         .toList()
 
-                val review = WeeklyReview.compare(dayMaps, lastWeekMaps)
+                val review = WeeklyReview.compare(dayMaps, lastWeekMaps, todayFraction)
                 // Same rule as the top list: the first change with a resolvable
                 // label wins, so an uninstalled app never shows as a package name
                 fun changeLine(changes: List<WeeklyReview.AppChange>?, format: Int): String? =

@@ -35,8 +35,8 @@ suspend fun getAppsList(
     prefs: Prefs,
     includeRegularApps: Boolean = true,
     includeHiddenApps: Boolean = false,
-    // Off by default so a caller that does not opt in (folder picker, focus
-    // whitelist) can never receive a Private Space app.
+    // Off by default so a caller that does not opt in (folder picker) can
+    // never receive a Private Space app.
     includePrivate: Boolean = false,
 ): MutableList<AppModel> {
     return withContext(Dispatchers.IO) {
@@ -195,13 +195,7 @@ private fun queryShortcutRaws(context: Context, launcherApps: LauncherApps): Pai
 // This is to ensure backward compatibility with older app versions
 // which did not support multiple user profiles
 private fun upgradeHiddenApps(prefs: Prefs) {
-    val hiddenAppsSet = prefs.hiddenApps
-    val newHiddenAppsSet = mutableSetOf<String>()
-    for (hiddenPackage in hiddenAppsSet) {
-        if (hiddenPackage.contains("|")) newHiddenAppsSet.add(hiddenPackage)
-        else newHiddenAppsSet.add(hiddenPackage + android.os.Process.myUserHandle().toString())
-    }
-    prefs.hiddenApps = newHiddenAppsSet
+    prefs.hiddenApps = AppListRebuilder.upgradeHiddenApps(prefs.hiddenApps, android.os.Process.myUserHandle().toString()).toMutableSet()
     prefs.hiddenAppsUpdated = true
 }
 

@@ -183,8 +183,10 @@ class WellbeingSettingsCard(
 
     private fun showFocusModeFromSettings() {
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            // Same source as the app drawer and folder picker: all user profiles, non-hidden apps, no cap.
-            val apps = getAppsList(context, prefs, includeRegularApps = true, includeHiddenApps = false)
+            // Every launchable app: hidden ones (still opened from the hidden-apps
+            // drawer, which focus gates) and Private Space apps while the space is
+            // unlocked, so anything focus can block can also be allowed.
+            val apps = getAppsList(context, prefs, includeRegularApps = true, includeHiddenApps = true, includePrivate = true)
 
             if (!fragment.isAdded || !fragment.isBindingAlive()) return@launch
 

@@ -2,6 +2,7 @@ package com.parem.launcher.helper
 
 import android.content.Context
 import com.parem.launcher.helper.usageStats.EventLogWrapper
+import java.time.LocalDate
 
 /**
  * Utility for querying per-app usage stats.
@@ -17,6 +18,11 @@ object UsageStatsHelper {
     @Volatile
     private var cachedAt = 0L
 
+    // Local day (epoch day) the cached map belongs to: a map filled at 23:59:40
+    // is "today's" usage for 60 s only on the day it was scanned.
+    @Volatile
+    private var cachedDay = Long.MIN_VALUE
+
     @Volatile
     private var cachedUsage: Map<String, Long> = emptyMap()
 
@@ -30,7 +36,8 @@ object UsageStatsHelper {
         if (!context.appUsagePermissionGranted()) return emptyMap()
 
         val now = System.currentTimeMillis()
-        if (now - cachedAt > CACHE_TTL_MS) {
+        val today = LocalDate.now().toEpochDay()
+        if (isCacheStale(now, cachedAt, today, cachedDay)) {
             cachedUsage = try {
                 val wrapper = EventLogWrapper(context)
                 val foregroundStats = wrapper.getForegroundStatsByRelativeDay(0)
@@ -39,9 +46,14 @@ object UsageStatsHelper {
                 emptyMap()
             }
             cachedAt = now
+            cachedDay = today
         }
         return cachedUsage
     }
+
+    /** Stale after [CACHE_TTL_MS], and at midnight: yesterday's total must never gate today's first launch. */
+    fun isCacheStale(nowMs: Long, cachedAtMs: Long, today: Long, cachedDay: Long): Boolean =
+        nowMs - cachedAtMs > CACHE_TTL_MS || today != cachedDay
 
     /**
      * Returns today's total foreground usage for the given app in milliseconds.
