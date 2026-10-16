@@ -7,6 +7,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import com.parem.launcher.ui.FocusModeDialog
+import com.parem.launcher.ui.dismissOnDestroy
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -122,14 +123,13 @@ class SmokeTest {
     fun focusSearchKeepsResultsAboveKeyboard() {
         var sheet: BottomSheetDialog? = null
         try {
-            device.setOrientationLandscape()
             device.waitForIdle(TIMEOUT)
             instrumentation.runOnMainSync {
                 val activity = ActivityLifecycleMonitorRegistry.getInstance()
                     .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
                 sheet = FocusModeDialog(activity, (1..12).map {
                     "example.$it" to "Example $it"
-                }).show()
+                }).show().dismissOnDestroy(activity)
             }
             val search = device.wait(Until.findObject(By.clazz(EditText::class.java)
                 .text(context.getString(R.string.search_apps))), TIMEOUT)
@@ -158,7 +158,6 @@ class SmokeTest {
             assertTrue("Focus results hidden below keyboard: $bounds", visible)
         } finally {
             instrumentation.runOnMainSync { sheet?.dismiss() }
-            device.setOrientationNatural()
         }
     }
 

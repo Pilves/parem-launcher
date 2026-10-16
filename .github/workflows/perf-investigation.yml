@@ -1,0 +1,55 @@
+name: Compare performance on one runner
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+      - name: Build reference and candidate APKs
+        run: |
+          mkdir -p app/build/perf-investigation
+          git worktree add ../perf-reference 996ef0c
+          (cd ../perf-reference && ./gradlew assembleDebug)
+          cp ../perf-reference/app/build/outputs/apk/debug/app-debug.apk app/build/perf-investigation/reference.apk
+          ./gradlew assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk app/build/perf-investigation/candidate.apk
+          # Diagnostic only: isolate debug logging overhead; never publish this APK.
+          sed -i 's/if (BuildConfig.DEBUG) installStrictMode()/if (false) installStrictMode()/' app/src/main/java/com/parem/launcher/ParemApp.kt
+          ./gradlew assembleDebug
+          cp app/build/outputs/apk/debug/app-debug.apk app/build/perf-investigation/without-strictmode.apk
+          git restore app/src/main/java/com/parem/launcher/ParemApp.kt
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          profile: pixel_6
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: bash scripts/perf-investigation.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: perf-investigation
+          path: |
+            app/build/perf-investigation/**/*.json
+            app/build/perf-investigation/**/*.xml
+            app/build/perf-investigation/**/*.png
+            app/build/perf-investigation/**/*.txt
+          retention-days: 14
