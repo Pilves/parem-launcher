@@ -2,6 +2,7 @@ package com.parem.launcher.helper
 
 import android.content.Context
 import android.util.Log
+import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -47,14 +48,14 @@ object WeatherManager {
         prefs(context).getBoolean(WEATHER_ENABLED, false)
 
     fun setEnabled(context: Context, enabled: Boolean) {
-        prefs(context).edit().putBoolean(WEATHER_ENABLED, enabled).apply()
+        prefs(context).edit { putBoolean(WEATHER_ENABLED, enabled) }
     }
 
     fun setLocation(context: Context, lat: String, lng: String) {
-        prefs(context).edit()
-            .putString(WEATHER_LAT, lat)
-            .putString(WEATHER_LNG, lng)
-            .apply()
+        prefs(context).edit {
+            putString(WEATHER_LAT, lat)
+            putString(WEATHER_LNG, lng)
+        }
     }
 
     fun getLocation(context: Context): Pair<String, String> {
@@ -69,7 +70,7 @@ object WeatherManager {
         prefs(context).getString(WEATHER_CITY_NAME, "") ?: ""
 
     fun setCityName(context: Context, name: String) {
-        prefs(context).edit().putString(WEATHER_CITY_NAME, name).apply()
+        prefs(context).edit { putString(WEATHER_CITY_NAME, name) }
     }
 
     fun getCachedTemp(context: Context): String =
@@ -171,17 +172,17 @@ object WeatherManager {
             val temperature = currentWeather.getDouble("temperature")
             val formatted = "${temperature.toInt()}\u00B0"
 
-            p.edit()
-                .putString(WEATHER_CACHED_TEMP, formatted)
-                .putLong(WEATHER_LAST_FETCHED, now)
-                .putLong(WEATHER_LAST_SUCCESS, now)
-                .apply()
+            p.edit {
+                putString(WEATHER_CACHED_TEMP, formatted)
+                putLong(WEATHER_LAST_FETCHED, now)
+                putLong(WEATHER_LAST_SUCCESS, now)
+            }
 
             formatted
         } catch (e: Exception) {
             Log.e("WeatherManager", "Failed to fetch weather", e)
             // Backoff: don't retry for 10 minutes on failure
-            p.edit().putLong(WEATHER_LAST_FETCHED, now - FETCH_INTERVAL_MS + 10 * 60 * 1000L).apply()
+            p.edit { putLong(WEATHER_LAST_FETCHED, now - FETCH_INTERVAL_MS + 10 * 60 * 1000L) }
             val cached = getCachedTemp(context)
             cached.ifEmpty { null }
         } finally {

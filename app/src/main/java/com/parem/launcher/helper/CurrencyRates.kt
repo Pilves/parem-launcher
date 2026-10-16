@@ -2,6 +2,7 @@ package com.parem.launcher.helper
 
 import android.content.Context
 import android.util.Log
+import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
@@ -40,7 +41,7 @@ object CurrencyRates {
         if (sinceSuccess in 0 until FETCH_INTERVAL_MS || sinceAttempt in 0 until RETRY_BACKOFF_MS)
             return@withContext cached(context)
 
-        p.edit().putLong(CURRENCY_LAST_ATTEMPT_MS, now).apply()
+        p.edit { putLong(CURRENCY_LAST_ATTEMPT_MS, now) }
         var connection: HttpURLConnection? = null
         try {
             connection = URL(ECB_URL).openConnection() as HttpURLConnection
@@ -51,10 +52,10 @@ object CurrencyRates {
             val xml = connection.inputStream.bufferedReader().use { it.readText() }
             // A format change parses to null and keeps the old cache.
             val rates = CurrencyConverter.parseEcbXml(xml) ?: return@withContext cached(context)
-            p.edit()
-                .putString(CURRENCY_RATES, rates.serialize())
-                .putLong(CURRENCY_LAST_SUCCESS_MS, now)
-                .apply()
+            p.edit {
+                putString(CURRENCY_RATES, rates.serialize())
+                putLong(CURRENCY_LAST_SUCCESS_MS, now)
+            }
             rates
         } catch (e: Exception) {
             Log.e("CurrencyRates", "Failed to fetch ECB rates", e)

@@ -1,6 +1,7 @@
 package com.parem.launcher.helper
 
 import android.content.Context
+import androidx.core.content.edit
 import com.parem.launcher.data.Constants
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -29,21 +30,21 @@ object ThemeScheduleManager {
         prefs(context).getInt(THEME_SCHEDULE_MODE, Constants.ThemeScheduleMode.MANUAL)
 
     fun setMode(context: Context, mode: Int) {
-        prefs(context).edit().putInt(THEME_SCHEDULE_MODE, mode).apply()
+        prefs(context).edit { putInt(THEME_SCHEDULE_MODE, mode) }
     }
 
     fun getLightTime(context: Context): String =
         prefs(context).getString(THEME_LIGHT_TIME, "07:00") ?: "07:00"
 
     fun setLightTime(context: Context, time: String) {
-        prefs(context).edit().putString(THEME_LIGHT_TIME, time).apply()
+        prefs(context).edit { putString(THEME_LIGHT_TIME, time) }
     }
 
     fun getDarkTime(context: Context): String =
         prefs(context).getString(THEME_DARK_TIME, "19:00") ?: "19:00"
 
     fun setDarkTime(context: Context, time: String) {
-        prefs(context).edit().putString(THEME_DARK_TIME, time).apply()
+        prefs(context).edit { putString(THEME_DARK_TIME, time) }
     }
 
     fun startWorker(context: Context) {
@@ -74,36 +75,21 @@ object ThemeScheduleManager {
 
         return when (mode) {
             Constants.ThemeScheduleMode.SCHEDULED -> {
-                val lightTime = try {
-                    LocalTime.parse(getLightTime(context), timeFormatter)
-                } catch (_: Exception) { LocalTime.of(7, 0) }
-                val darkTime = try {
-                    LocalTime.parse(getDarkTime(context), timeFormatter)
-                } catch (_: Exception) { LocalTime.of(19, 0) }
+                val (lightTime, darkTime) = scheduledTimes(context)
                 isInDarkPeriod(now, lightTime, darkTime)
             }
 
             Constants.ThemeScheduleMode.SUNRISE_SUNSET -> {
                 val (latStr, lngStr) = WeatherManager.getLocation(context)
                 if (latStr.isBlank() || lngStr.isBlank()) {
-                    val lightTime = try {
-                        LocalTime.parse(getLightTime(context), timeFormatter)
-                    } catch (_: Exception) { LocalTime.of(7, 0) }
-                    val darkTime = try {
-                        LocalTime.parse(getDarkTime(context), timeFormatter)
-                    } catch (_: Exception) { LocalTime.of(19, 0) }
+                    val (lightTime, darkTime) = scheduledTimes(context)
                     isInDarkPeriod(now, lightTime, darkTime)
                 } else {
                     val lat = latStr.toDoubleOrNull()
                     val lng = lngStr.toDoubleOrNull()
                     if (lat == null || lng == null) {
                         // Fall back to scheduled times if lat/lng parsing fails
-                        val lightTime = try {
-                            LocalTime.parse(getLightTime(context), timeFormatter)
-                        } catch (_: Exception) { LocalTime.of(7, 0) }
-                        val darkTime = try {
-                            LocalTime.parse(getDarkTime(context), timeFormatter)
-                        } catch (_: Exception) { LocalTime.of(19, 0) }
+                        val (lightTime, darkTime) = scheduledTimes(context)
                         return isInDarkPeriod(now, lightTime, darkTime)
                     }
                     val (sunrise, sunset) = SunriseSunsetCalculator.calculate(lat, lng, LocalDate.now())
@@ -113,6 +99,16 @@ object ThemeScheduleManager {
 
             else -> false // MANUAL, no automatic determination
         }
+    }
+
+    private fun scheduledTimes(context: Context): Pair<LocalTime, LocalTime> {
+        val lightTime = try {
+            LocalTime.parse(getLightTime(context), timeFormatter)
+        } catch (_: Exception) { LocalTime.of(7, 0) }
+        val darkTime = try {
+            LocalTime.parse(getDarkTime(context), timeFormatter)
+        } catch (_: Exception) { LocalTime.of(19, 0) }
+        return lightTime to darkTime
     }
 
     /**

@@ -2,6 +2,7 @@ package com.parem.launcher.helper
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import java.util.Calendar
 
 /**
@@ -57,9 +58,7 @@ object FocusModeManager {
 
     fun setSchedule(context: Context, windows: List<FocusSchedule.Window>) {
         context.getSharedPreferences(PREFS_NAME, 0)
-            .edit()
-            .putString(KEY_SCHEDULE, FocusSchedule.serialize(windows))
-            .apply()
+            .edit { putString(KEY_SCHEDULE, FocusSchedule.serialize(windows)) }
     }
 
     fun isScheduleEnabled(context: Context): Boolean =
@@ -67,9 +66,7 @@ object FocusModeManager {
 
     fun setScheduleEnabled(context: Context, enabled: Boolean) {
         context.getSharedPreferences(PREFS_NAME, 0)
-            .edit()
-            .putBoolean(KEY_SCHEDULE_ENABLED, enabled)
-            .apply()
+            .edit { putBoolean(KEY_SCHEDULE_ENABLED, enabled) }
     }
 
     /**
@@ -89,7 +86,7 @@ object FocusModeManager {
         val end = if (runEnd == FocusSchedule.NO_END) {
             FocusSchedule.currentWindowEnd(windows, day, minute) ?: return
         } else runEnd
-        p.edit().putLong(KEY_SKIP_UNTIL, FocusSchedule.toEpochMs(now, end)).apply()
+        p.edit { putLong(KEY_SKIP_UNTIL, FocusSchedule.toEpochMs(now, end)) }
     }
 
     /** What the active sheet and the block toast say about the current session. */
@@ -142,10 +139,10 @@ object FocusModeManager {
             System.currentTimeMillis() + durationMinutes * 60_000L
         }
         context.getSharedPreferences(PREFS_NAME, 0)
-            .edit()
-            .putBoolean(KEY_ENABLED, true)
-            .putLong(KEY_END_TIME, endTime)
-            .apply()
+            .edit {
+                putBoolean(KEY_ENABLED, true)
+                putLong(KEY_END_TIME, endTime)
+            }
     }
 
     /**
@@ -153,10 +150,10 @@ object FocusModeManager {
      */
     fun disable(context: Context) {
         context.getSharedPreferences(PREFS_NAME, 0)
-            .edit()
-            .putBoolean(KEY_ENABLED, false)
-            .putLong(KEY_END_TIME, END_TIME_UNLIMITED)
-            .apply()
+            .edit {
+                putBoolean(KEY_ENABLED, false)
+                putLong(KEY_END_TIME, END_TIME_UNLIMITED)
+            }
     }
 
     /**
@@ -173,13 +170,7 @@ object FocusModeManager {
             val telecom = context.getSystemService(Context.TELECOM_SERVICE) as? android.telecom.TelecomManager
             if (telecom?.defaultDialerPackage == packageName) return true
         } catch (_: Exception) {}
-        val csv = p.getString(KEY_WHITELIST, "") ?: ""
-        if (csv.isBlank()) return false
-        val whitelist = csv.split(",")
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-            .toSet()
-        return packageName in whitelist
+        return packageName in MindfulPause.parse(p.getString(KEY_WHITELIST, ""))
     }
 
     /**
@@ -187,12 +178,7 @@ object FocusModeManager {
      */
     fun getWhitelist(context: Context): Set<String> {
         val prefs = context.getSharedPreferences(PREFS_NAME, 0)
-        val csv = prefs.getString(KEY_WHITELIST, "") ?: ""
-        if (csv.isBlank()) return emptySet()
-        return csv.split(",")
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-            .toSet()
+        return MindfulPause.parse(prefs.getString(KEY_WHITELIST, ""))
     }
 
     /**
@@ -202,9 +188,7 @@ object FocusModeManager {
         val limited = packages.take(MAX_WHITELIST_SIZE)
         val csv = limited.joinToString(",")
         context.getSharedPreferences(PREFS_NAME, 0)
-            .edit()
-            .putString(KEY_WHITELIST, csv)
-            .apply()
+            .edit { putString(KEY_WHITELIST, csv) }
     }
 
     /**

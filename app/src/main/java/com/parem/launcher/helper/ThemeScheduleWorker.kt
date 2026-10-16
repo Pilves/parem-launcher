@@ -3,6 +3,7 @@ package com.parem.launcher.helper
 import android.content.Context
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.edit
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.parem.launcher.data.Constants
@@ -40,9 +41,7 @@ class ThemeScheduleWorker(appContext: Context, workerParams: WorkerParameters) :
                 AppCompatDelegate.MODE_NIGHT_NO
             }
 
-            prefs.edit()
-                .putInt(Prefs.KEY_APP_THEME, newTheme)
-                .apply()
+            prefs.edit { putInt(Prefs.KEY_APP_THEME, newTheme) }
         }
 
         return Result.success()

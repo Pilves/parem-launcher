@@ -1,6 +1,7 @@
 package com.parem.launcher.helper
 
 import android.content.Context
+import androidx.core.content.edit
 
 /**
  * Manages per-app daily time limits.
@@ -90,9 +91,7 @@ object AppLimitManager {
 
     private fun savePause(context: Context, packages: Set<String>) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_MINDFUL_PAUSE, MindfulPause.serialize(packages))
-            .apply()
+            .edit { putString(KEY_MINDFUL_PAUSE, MindfulPause.serialize(packages)) }
         cachedPause = packages
     }
 
@@ -123,8 +122,6 @@ object AppLimitManager {
     private fun save(context: Context, limits: Map<String, Int>) {
         val csv = limits.entries.joinToString(",") { "${it.key}=${it.value}" }
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_APP_LIMITS, csv)
-            .apply()
+            .edit { putString(KEY_APP_LIMITS, csv) }
     }
 }

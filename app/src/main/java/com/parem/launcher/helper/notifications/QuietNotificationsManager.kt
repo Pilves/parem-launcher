@@ -11,6 +11,8 @@ import android.provider.Telephony
 import android.telecom.TelecomManager
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.edit
+import com.parem.launcher.helper.MindfulPause
 
 /**
  * State and storage for "Hide from shade, keep for later" (filtered notifications).
@@ -77,15 +79,12 @@ object QuietNotificationsManager {
     }
 
     fun getAllowed(context: Context): Set<String> {
-        val csv = context.getSharedPreferences(PREFS_NAME, 0).getString(KEY_ALLOWED, "") ?: ""
-        return csv.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+        return MindfulPause.parse(context.getSharedPreferences(PREFS_NAME, 0).getString(KEY_ALLOWED, ""))
     }
 
     fun setAllowed(context: Context, packages: Set<String>) {
         context.getSharedPreferences(PREFS_NAME, 0)
-            .edit()
-            .putString(KEY_ALLOWED, packages.joinToString(","))
-            .apply()
+            .edit { putString(KEY_ALLOWED, packages.joinToString(",")) }
     }
 
     fun defaultDialer(context: Context): String? = try {
@@ -107,7 +106,7 @@ object QuietNotificationsManager {
 
     // The set returned by getStringSet must not be mutated, so writes always copy
     fun setOurKeys(context: Context, keys: Set<String>) {
-        keysPrefs(context).edit().putStringSet(KEY_SNOOZED, HashSet(keys)).apply()
+        keysPrefs(context).edit { putStringSet(KEY_SNOOZED, HashSet(keys)) }
     }
 
     fun addKey(context: Context, key: String) {

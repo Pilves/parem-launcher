@@ -1,6 +1,7 @@
 package com.parem.launcher.helper
 
 import android.content.Context
+import androidx.core.content.edit
 
 /**
  * Manages gesture-letter mappings: which letter launches which app.
@@ -31,9 +32,7 @@ object GestureLetterManager {
      */
     fun setEnabled(context: Context, enabled: Boolean) {
         context.getSharedPreferences(PREFS_NAME, 0)
-            .edit()
-            .putBoolean(KEY_ENABLED, enabled)
-            .apply()
+            .edit { putBoolean(KEY_ENABLED, enabled) }
     }
 
     /**
@@ -50,9 +49,7 @@ object GestureLetterManager {
             val mappings = parseMappings(context).toMutableMap()
             mappings[letter.uppercaseChar()] = Triple(packageName, activityClassName, userString)
             context.getSharedPreferences(PREFS_NAME, 0)
-                .edit()
-                .putString(KEY_MAPPINGS, serializeMappings(mappings))
-                .apply()
+                .edit { putString(KEY_MAPPINGS, serializeMappings(mappings)) }
         }
     }
 
@@ -74,9 +71,7 @@ object GestureLetterManager {
             val mappings = parseMappings(context).toMutableMap()
             mappings.remove(letter.uppercaseChar())
             context.getSharedPreferences(PREFS_NAME, 0)
-                .edit()
-                .putString(KEY_MAPPINGS, serializeMappings(mappings))
-                .apply()
+                .edit { putString(KEY_MAPPINGS, serializeMappings(mappings)) }
         }
     }
 

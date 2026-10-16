@@ -1,6 +1,7 @@
 package com.parem.launcher.helper
 
 import android.content.Context
+import androidx.core.content.edit
 import java.time.LocalDate
 
 /**
@@ -26,10 +27,10 @@ object AppOpenCounter {
         else
             mutableMapOf()
         counts[packageName] = (counts[packageName] ?: 0) + 1
-        p.edit()
-            .putLong(KEY_DAY, today)
-            .putString(KEY_COUNTS, counts.entries.joinToString(",") { "${it.key}=${it.value}" })
-            .apply()
+        p.edit {
+            putLong(KEY_DAY, today)
+            putString(KEY_COUNTS, counts.entries.joinToString(",") { "${it.key}=${it.value}" })
+        }
     }
 
     fun getCounts(context: Context): Map<String, Int> {

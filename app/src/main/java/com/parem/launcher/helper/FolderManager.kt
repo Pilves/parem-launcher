@@ -1,6 +1,7 @@
 package com.parem.launcher.helper
 
 import android.content.Context
+import androidx.core.content.edit
 import com.parem.launcher.data.FolderApp
 import com.parem.launcher.data.FolderGroup
 import org.json.JSONArray
@@ -122,7 +123,7 @@ class FolderManager(context: Context) {
     private fun writeJson(json: JSONObject) {
         cachedRoot = json
         cachedRaw = json.toString()
-        prefs.edit().putString(KEY_FOLDER_DATA, cachedRaw).apply()
+        prefs.edit { putString(KEY_FOLDER_DATA, cachedRaw) }
     }
 
     private fun parseFolderGroup(obj: JSONObject): FolderGroup {

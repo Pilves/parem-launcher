@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.provider.ContactsContract
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 
 /**
  * Opt-in omnibox contact search (PAREM-104). Owns its own preference key in the
@@ -31,7 +32,7 @@ object ContactSearchManager {
         prefs(context).getBoolean(CONTACT_SEARCH_ENABLED, false)
 
     fun setEnabled(context: Context, enabled: Boolean) {
-        prefs(context).edit().putBoolean(CONTACT_SEARCH_ENABLED, enabled).apply()
+        prefs(context).edit { putBoolean(CONTACT_SEARCH_ENABLED, enabled) }
     }
 
     fun hasPermission(context: Context): Boolean =
