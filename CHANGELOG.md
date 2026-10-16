@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- Fixed: the Focus "allowed apps" picker now lists hidden apps and unlocked Private Space apps, and saving keeps allowed apps the picker could not show instead of silently blocking them.
+- Fixed: the weekly review weighs today by the hours elapsed, so an unchanged habit no longer reads as "down 10%" every morning.
+- Fixed: today's screen time (and app limits) reset at midnight instead of up to a minute later; "1,000 usd in eur" converts a thousand, not one.
+- Fixed: hidden apps from very old backups stay hidden after import; lock-service and grayscale device state is cleared after an Android backup restore or device transfer.
 - Gesture letters match resampled shapes, tolerating drawing size, speed, modest slant and reversed strokes; ambiguous marks and straight swipes are rejected.
 - App actions use consistent labelled sheets on home and in the app list; home keeps its replacement actions, removal offers Undo, and a locked layout offers Unlock. Renames stay local to home or the personal app list, and package-only controls no longer affect work-profile copies.
 - Onboarding offers optional explanations for home, search, gestures, Calm tools, appearance and backup; setup states and spoken captions now explain what is enabled.
