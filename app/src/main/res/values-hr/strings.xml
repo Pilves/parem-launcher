@@ -4,17 +4,11 @@
     <string name="set_as_default_launcher">Postavi kao zadani pokretač</string>
     <string name="set_as_default_launcher_u"><u>Postavi kao zadani pokretač</u></string>
     <string name="set_as_default_launcher_first">Postavi kao zadani pokretač</string>
-    <string name="app_text_color">Boja teksta</string>
     <string name="double_tap_to_lock_screen">Dvostruki dodir za zaključavanje</string>
-    <string name="about">Informacije</string>
     <string name="off">Isklj.</string>
     <string name="on">Uklj.</string>
-    <string name="black">Crno</string>
-    <string name="white">Bijelo</string>
     <string name="change_default_launcher">Promijeni zadani pokretač</string>
-    <string name="privacy">Privatnost</string><string name="follow">Prati</string>
-    <string name="email">E-pošta</string>
-    <string name="donate">Doniraj</string>
+    <string name="privacy">Privatnost</string>
     <string name="swipe_up_for_apps">1. Povuci prema gore za aplikacije\n2. Dugo pritisnite bilo gdje za postavke</string>
     <string name="apps_on_home_screen">Aplikacije na početnoj stranici</string>
     <string name="daily_wallpaper_update">Dnevne pozadine</string>
@@ -35,9 +29,7 @@
     <string name="_8">8</string>
     <string name="app_drawer_tips">Savjet: Povuci prema dolje za zatvaranje. Pomakni zaslon za zatvaranje tipkovnice.</string>
     <string name="okay">U redu</string>
-    <string name="cool">Cool!</string>
     <string name="auto_show_keyboard">Automatski prikaži tipkovnicu</string>
-    <string name="hide">Sakrij</string>
     <string name="status_bar">Prikaži statusnu traku</string>
     <string name="rename">Preimenuj</string>
     <string name="show_date_time">Prikaži datum i vrijeme</string>
@@ -47,38 +39,22 @@
     <string name="system_default">Sustav</string>
     <string name="dark">Tamna</string>
     <string name="light">Svijetla</string>
-    <string name="welcome_to_parem_settings">Dobrodošli u postavke!
-        \n\nZapamtite, ako imate bilo kakvih pitanja, naša stranica O nama ima odgovor.</string><string name="keyboard_message">Bok, tipkovnica je najbrži način za pronalaženje i pokretanje aplikacija u Parem Launcheru. Možemo li vas zamoliti da to zadržite uključeno još nekoliko dana, a zatim odlučite?
-        \n\nIzbor je uvijek vaš.</string>
-    <string name="digital_wellbeing_message">Ako želite postaviti vremenska ograničenja za određene aplikacije, značajka Digital Wellbeing na Androidu može vam pomoći u tome.
-        \n\nPotražite Digital Wellbeing u postavkama telefona i omogućite ga.</string>
     <string name="app_usage_message">Da biste prikazali/sakrili vrijeme korištenja ekrana na početnom zaslonu, molimo dozvolite ili onemogućite dopuštenje korištenja aplikacije.
         \n\nNapomena: Ne prikupljaju se podaci o korištenju aplikacije. Sve se obrađuje na vašem uređaju.</string><string name="accessibility_service_description">Dozvola za pristupačnost potrebna je za omogućavanje zaključavanja dvostrukim dodirom. Bilo koji podatci prikupljeni ovim servisom neće napustiti tvoj uređaj.</string><string name="open">Otvori poveznicu</string>
-    <string name="copy">Kopiraj</string>
     <string name="close">Zatvori</string>
     <string name="not_now">Ne sad</string>
-    <string name="public_roadmap">Javni plan razvoja Parem Launchera</string>
-    <string name="instagram">Instagram</string><string name="roadmap">Plan razvoja</string>
+    <string name="instagram">Instagram</string>
     <string name="date">Datum</string>
     <string name="date_only">Samo datum</string>
     <string name="bottom_on">Dno: uklj.</string>
     <string name="bottom_off">Dno: isklj.</string>
     <string name="please_set_parem_as_default_first">Prvo postavite Parem Launcher kao zadani pokretač</string>
-    <string name="affiliate">Sponzorstvo</string>
-    <string name="tip_start_typing_for_rename">Savjet: počni pisati za opciju preimenovanja aplikacija</string>
     <string name="hidden_apps_message">Pazi: Dodirni \'Parem Launcher\' na vrhu da pronađeš svoje skrivene aplikacije.\n\nViše detalja dostupno dolje na našoj stranici Informacije.</string>
     <string name="swipe_down_for">Povuci prema dolje za</string>
     <string name="search">Pretraživanje</string>
     <string name="notifications">Obavijesti</string>
-    <string name="learn_more">Saznajte više</string><string name="screen_time">Vrijeme na ekranu</string><string name="accessibility_disclosure">Molimo vas da uključite ili isključite Parem Launcherovu uslugu pristupa u postavkama vašeg uređaja kako biste omogućili ili onemogućili ovu funkciju.\n\nImajte na umu da se ova usluga koristi samo za isključivanje ekrana vašeg uređaja pomoću geste dvostrukog dodira. Naša usluga pristupa ne prikuplja niti dijeli bilo kakve podatke.</string>
-    <string name="accept">Prihvati</string>
-    <string name="permission">Dozvola</string>
     <string name="double_tap_lock">Dvostruki dodir za zaključavanje</string>
-    <string name="enable">Omogući</string>
     <string name="disable">Onemogući</string>
-    <string name="not_working"><u>Ne radi?</u></string>
-    <string name="info">Informacije</string>
-    <string name="delete">Izbriši</string>
     <string name="text_size">Veličina teksta</string>
     <string name="enabled">Omogućeno</string>
     <string name="disabled">Onemogućeno</string>
@@ -87,11 +63,8 @@
     <string name="long_press_to_select_app">Dugo pritisnite za odabir aplikacije</string>
     <string name="unable_to_open_app">Nije moguće otvoriti informacije o aplikaciji</string>
     <string name="copied">Kopirano</string>
-    <string name="system_app_cannot_delete">Sistemska aplikacija, ne može se izbrisati</string>
     <string name="type_a_new_app_name_first">Prvo upišite novo ime aplikacije</string>
     <string name="app_not_found">Aplikacija nije pronađena</string>
-    <string name="unable_to_launch_app">Nije moguće pokrenuti aplikaciju</string>
-    <string name="search_for_Launcher_or_home_app">Pretraži Launcher ili Home aplikaciju</string>
     <string name="swipe_left_app_enabled">Povucite lijevo, aplikacija omogućena</string>
     <string name="swipe_right_app_enabled">Povucite desno, aplikacija omogućena</string>
     <string name="swipe_left_app_disabled">Povucite lijevo, aplikacija onemogućena</string>
@@ -101,8 +74,6 @@
     <string name="long_press_to_enable">Dugo pritisnite za omogućavanje</string>
     <string name="no_hidden_apps">Nema skrivenih aplikacija</string>
     <string name="hidden_apps">Skrivene aplikacije</string>
-    <string name="adapter_show">Prikaži</string>
-    <string name="adapter_hide">Sakrij</string><string name="about_parem">O Parem Launcher-u i ČPP</string>
     <string name="alignment_changed">Poravnanje promijenjeno ✅</string>
     <string name="home_screen">Početni ekran</string><string name="notification_bar">Traka obavijesti</string>
 </resources><!-- Croatian -->

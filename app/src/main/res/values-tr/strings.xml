@@ -15,8 +15,6 @@
     <string name="_8">8</string>
     <string name="app_drawer_tips">İpucu: Otomatik başlatmak için bir uygulama adı yazın</string>
     <string name="okay">Tamam</string>
-    <string name="cool">Harika!</string>
-    <string name="tip_start_typing_for_rename">İpucu: Uygulama ismi değiştirmek için yazmaya başlayın</string>
     <string name="your_wallpaper_will_update_shortly">Duvar kağıdınız birazdan güncellenecek</string>
     <string name="parem_is_not_default_launcher">Parem Launcher varsayılan başlatıcınız değil. Günlük duvar kağıtları hatalı çalışabilir.</string>
     <string name="long_press_to_enable">Etkinleştirmek için uzun basın</string>
@@ -27,16 +25,8 @@
     <string name="swipe_down_for">Aşağı kaydır:</string>
     <string name="search">Ara</string>
     <string name="notifications">Bildirimler</string>
-    <string name="accessibility_disclosure">Bu özelliği etkinleştirmek veya devre dışı bırakmak için lütfen cihazınızın ayarlarında Parem Launcher\'ın erişilebilirlik hizmetini açın veya kapatın.
-        \n\nLütfen bu hizmetin yalnızca ekranı çift dokunma hareketini kullanarak kapatmanıza izin vermek için kullanıldığını unutmayın. Erişilebilirlik hizmetimiz herhangi bir veri toplamaz veya paylaşmaz.</string>
-    <string name="accept">Kabul et</string>
-    <string name="permission">İzin</string>
     <string name="double_tap_lock">Kilitlemek için iki kez dokunun</string>
-    <string name="enable">Etkinleştir</string>
     <string name="disable">Devre dışı bırak</string>
-    <string name="not_working"><u>Çalışmıyor mu?</u></string>
-    <string name="info">Bilgi</string>
-    <string name="delete">Sil</string>
     <string name="text_size">Yazı Boyutu</string>
     <string name="enabled">Etkin</string>
     <string name="disabled">Devre Dışı</string>
@@ -45,22 +35,13 @@
     <string name="long_press_to_select_app">Uygulamayı seçmek için uzun basın</string>
     <string name="unable_to_open_app">Uygulama bilgisi açılamıyor</string>
     <string name="copied">Kopyalandı</string>
-    <string name="system_app_cannot_delete">Sistem uygulaması, silinemez</string>
     <string name="type_a_new_app_name_first">Önce yeni bir uygulama adı yazın</string>
-    <string name="adapter_show">Göster</string>
-    <string name="adapter_hide">Gizle</string>
-    <string name="app_text_color">Metin rengi</string>
     <string name="double_tap_to_lock_screen">Kilitlemek için çift dokunun</string>
-    <string name="about">Hakkında</string>
     <string name="off">Kapalı</string>
     <string name="on">Açık</string>
-    <string name="black">Siyah</string>
-    <string name="white">Beyaz</string>
     <string name="change_default_launcher">Varsayılan başlatıcıyı değiştir</string>
-    <string name="privacy">Gizlilik</string><string name="follow">Takip et</string>
-    <string name="email">E-posta</string>
+    <string name="privacy">Gizlilik</string>
 
-    <string name="donate">Bağış yap</string>
     <string name="swipe_up_for_apps">1. Tüm uygulamalar için yukarı kaydırın\n2. Ayarlar için herhangi bir yere uzun basın</string>
     <string name="apps_on_home_screen">Ana ekran uygulamaları</string>
     <string name="daily_wallpaper_update">Günlük duvar kağıtları</string>
@@ -71,7 +52,6 @@
     <string name="swipe_left_app">Sola kaydırma uygulaması</string>
     <string name="swipe_right_app">Sağa kaydırma uygulaması</string>
     <string name="auto_show_keyboard">Klavyeyi otomatik göster</string>
-    <string name="hide">Sakla</string>
     <string name="status_bar">Durum çubuğunu göster</string>
     <string name="rename">Yeniden isimlendir</string>
     <string name="show_date_time">Tarih ve saati göster</string>
@@ -81,32 +61,21 @@
     <string name="system_default">Sistem</string>
     <string name="dark">Koyu</string>
     <string name="light">Açık</string>
-    <string name="welcome_to_parem_settings">Ayarlar sayfasına hoş geldiniz!
-        \n\nUnutmayın, herhangi bir sorunuz olursa "Hakkında" sayfamıza danışabilirsiniz.</string><string name="keyboard_message">Merhaba, klavye, Parem Launcher\'da uygulamaları bulmanın ve başlatmanın en hızlı yoludur. Birkaç gün daha kullanıp karar vermenizi rica ederiz.
-        \n\nSeçim her zaman sizindir.</string>
-    <string name="digital_wellbeing_message">Belirli uygulamalar için zaman sınırları belirlemek istiyorsanız Android\'in Dijital Denge özelliği bunu yapmanıza yardımcı olacaktır.
-        \n\nLütfen telefon ayarlarınızda Dijital Denge\'yi arayın ve etkinleştirin.</string>
     <string name="app_usage_message">Ana ekranınızda ekran sürenizi göstermek/gizlemek için lütfen uygulama kullanım iznini onaylayın veya reddedin.
         \n\nNot: Uygulama kullanım verileri toplanmaz. Her şey cihazınızda işlenir.</string><string name="accessibility_service_description">Kilitlemek için çift dokunmayı etkinleştirmek için erişilebilirlik izni gereklidir. Parem Launcher tarafından bu hizmet aracılığıyla elde edilen hiçbir veri cihazınızdan ayrılmayacaktır.</string><string name="open">Linki aç</string>
-    <string name="copy">Kopyala</string>
     <string name="close">Kapat</string>
     <string name="not_now">Şimdi değil</string>
-    <string name="public_roadmap">Parem Launcher Yol Çizelgesi</string>
-    <string name="instagram">Instagram</string><string name="roadmap">Yol Çizelgesi</string>
+    <string name="instagram">Instagram</string>
     <string name="date">Tarih</string>
     <string name="date_only">Sadece tarih</string>
     <string name="bottom_on">Alt: Açık</string>
     <string name="bottom_off">Alt: Kapalı</string>
     <string name="please_set_parem_as_default_first">Lütfen önce Parem Launcher\'ı varsayılan başlatıcınız olarak ayarlayın</string>
-    <string name="affiliate">Ortak</string>
     <string name="app_not_found">Uygulama bulunamadı</string>
-    <string name="unable_to_launch_app">Uygulama başlatılamadı</string>
-    <string name="search_for_Launcher_or_home_app">Başlatıcı veya Ana Menü uygulamasını arayın</string>
     <string name="swipe_left_app_enabled">Sola kaydırma uygulaması etkin</string>
     <string name="swipe_right_app_enabled">Sağa kaydırma uygulaması etkin</string>
     <string name="swipe_left_app_disabled">Sola kaydırma uygulaması devre dışı</string>
     <string name="swipe_right_app_disabled">Sağa kaydırma uygulaması devre dışı</string><string name="about_parem">Parem Launcher Hakkında</string>
-    <string name="learn_more">Daha fazla bilgi</string>
     <string name="screen_time">Ekran süresi</string><string name="alignment_changed">Hizalama değiştirildi ✅</string>
     <string name="home_screen">Ana ekran</string><string name="notification_bar">Bildirim çubuğu</string>
 </resources><!-- Turkish -->

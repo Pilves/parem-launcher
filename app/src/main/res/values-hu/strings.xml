@@ -4,17 +4,11 @@
     <string name="set_as_default_launcher">Beállítás alapért. indítóként</string>
     <string name="set_as_default_launcher_u"><u>Beállítás alapért. indítóként</u></string>
     <string name="set_as_default_launcher_first">Beállítás alapértelmezett indítóként</string>
-    <string name="app_text_color">Szövegszín</string>
     <string name="double_tap_to_lock_screen">Dupla koppintás a képernyő lezárásához</string>
-    <string name="about">Névjegy</string>
     <string name="off">Ki</string>
     <string name="on">Be</string>
-    <string name="black">Fekete</string>
-    <string name="white">Fehér</string>
     <string name="change_default_launcher">Alapértelmezett indító módosítása</string>
-    <string name="privacy">Adatvédelem</string><string name="follow">Követés</string>
-    <string name="email">E-mail</string>
-    <string name="donate">Adományozás</string>
+    <string name="privacy">Adatvédelem</string>
     <string name="swipe_up_for_apps">1. Simítson felfelé az összes alkalmazás megjelenítéséhez\n2. Nyomja meg hosszan bármelyik ponton a beállításokhoz</string>
     <string name="apps_on_home_screen">Alkalmazások a kezdőképernyőn</string>
     <string name="daily_wallpaper_update">Naponta új háttérkép</string>
@@ -35,9 +29,7 @@
     <string name="_8">8</string>
     <string name="app_drawer_tips">Tipp: Kezdje el begépelni egy alkalmazás nevét annak automatikus indításához</string>
     <string name="okay">Rendben</string>
-    <string name="cool">Szuper!</string>
     <string name="auto_show_keyboard">Billentyűzet auto. megjelenítése</string>
-    <string name="hide">Elrejtés</string>
     <string name="status_bar">Állapotsor megjelenítése fent</string>
     <string name="rename">Átnevezés</string>
     <string name="show_date_time">Dátum és idő megjelenítése</string>
@@ -47,41 +39,23 @@
     <string name="system_default">Rendszer</string>
     <string name="dark">Sötét</string>
     <string name="light">Világos</string>
-    <string name="welcome_to_parem_settings">Üdvözöljük a beállításokban!
-        \n\nNe feledje, ha bármilyen kérdése van, az „Rólunk” oldalunk tartalmazza a választ.</string><!---->
-    <string name="keyboard_message">Üdvözöljük! A billentyűzet a leggyorsabb módja az alkalmazások megtalálásához és elindításához az Parem Launcherben. Megkérhetjük, hogy hagyja bekapcsolva még néhány napig, és utána döntsön?
-        \n\nA választás mindig az Öné.</string>
-    <string name="digital_wellbeing_message">Ha időkorlátokat szeretne beállítani bizonyos alkalmazásokhoz, az Android Digital Wellbeing funkciója segíthet ebben.
-        \n\nKeresse meg a Digitális jólét elemet a telefon beállításai között, és engedélyezze.</string>
     <string name="app_usage_message">A képernyőidő megjelenítéséhez/elrejtéséhez a kezdőképernyőn engedélyezze vagy tagadja meg az alkalmazás használati engedélyét.
         \n\nMegjegyzés: Nem gyűjtünk alkalmazás-használati adatokat. Minden az Ön eszközén kerül feldolgozásra.</string><string name="accessibility_service_description">A hozzáférhetőségi engedély szükséges a dupla koppintás általi zároláshoz. Az Parem Launcher által ezen a szolgáltatáson keresztül megszerzett adatok nem hagyják el a készüléket.</string><string name="open">Link megnyitása</string>
-    <string name="copy">Másolás</string>
     <string name="close">Bezárás</string>
     <string name="not_now">Később</string>
-    <string name="public_roadmap">Parem Launcher nyilvános ütemterv</string>
-    <string name="instagram">Instagram</string><string name="roadmap">Ütemterv</string>
+    <string name="instagram">Instagram</string>
     <string name="date">Dátum</string>
     <string name="date_only">Csak dátum</string>
     <string name="bottom_on">Alsó: Be</string>
     <string name="bottom_off">Alsó: Ki</string>
     <string name="please_set_parem_as_default_first">Kérjük, állítsa be az Parem Launcher-t alapértelmezett indítóként</string>
-    <string name="affiliate">Affiliate</string>
-    <string name="tip_start_typing_for_rename">Tipp: Kezdjen el gépelni az alkalmazás ÁTNEVEZÉSE opcióhoz</string>
     <string name="hidden_apps_message">Megjegyzés: A rejtett alkalmazások megtalálásához érintse meg az "Parem Launcher" elemet ennek a beállítás oldalnak a tetején.
     \n\nTöbb részlet elérhető az alábbi, Névjegy oldalon.</string>
     <string name="swipe_down_for">Simítson lefelé a következőért</string>
     <string name="search">Keresés</string>
     <string name="notifications">Értesítések</string>
-    <string name="accessibility_disclosure">Kérjük, kapcsolja be vagy ki az Parem Launcher hozzáférhetőségi szolgáltatását az eszköz beállításaiban, hogy engedélyezze vagy letiltsa ezt a funkciót.
-    \n\nKérjük, vegye figyelembe, hogy ezt a szolgáltatást csak a dupla koppintással történő képernyőzárás engedélyezésére használjuk. A hozzáférhetőségi szolgáltatásunk nem gyűjt vagy oszt meg semmilyen adatot.</string>
-    <string name="accept">Elfogad</string>
-    <string name="permission">Engedély</string>
     <string name="double_tap_lock">Dupla koppintás a lezáráshoz</string>
-    <string name="enable">Engedélyezés</string>
     <string name="disable">Letiltás</string>
-    <string name="not_working"><u>Nem működik?</u></string>
-    <string name="info">Információ</string>
-    <string name="delete">Törlés</string>
     <string name="text_size">Szövegméret</string>
     <string name="enabled">Engedélyezve</string>
     <string name="disabled">Letiltva</string>
@@ -90,11 +64,8 @@
     <string name="long_press_to_select_app">Hosszan nyomva tartás az alkalmazás kiválasztásához</string>
     <string name="unable_to_open_app">Nem lehet megnyitni az alkalmazás infóit</string>
     <string name="copied">Másolva</string>
-    <string name="system_app_cannot_delete">Rendszeralkalmazás, nem törölhető</string>
     <string name="type_a_new_app_name_first">Először írjon be egy új alkalmazásnevet</string>
     <string name="app_not_found">Alkalmazás nem található</string>
-    <string name="unable_to_launch_app">Nem lehet elindítani az alkalmazást</string>
-    <string name="search_for_Launcher_or_home_app">Keressen rá az Indító vagy a Kezdőképernyő alkalmazásra</string>
     <string name="swipe_left_app_enabled">Balra simítva indítható alkalmazás engedélyezve</string>
     <string name="swipe_right_app_enabled">Jobbra simítva indítható alkalmazás engedélyezve</string>
     <string name="swipe_left_app_disabled">Balra simítva indítható alkalmazás letiltva</string>
@@ -104,9 +75,6 @@
     <string name="long_press_to_enable">Hosszan nyomva tartás az engedélyezéshez</string>
     <string name="no_hidden_apps">Nincsenek rejtett alkalmazások</string>
     <string name="hidden_apps">Rejtett alkalmazások</string>
-    <string name="adapter_show">Mutasd!</string>
-    <string name="adapter_hide">Rejtsd el!</string><string name="about_parem">Az Parem Launcher-ről</string>
     <string name="screen_time">Képernyőidő</string>
-    <string name="learn_more">Tudjon meg többet</string><string name="alignment_changed">Az igazítás megváltozott ✅</string>
     <string name="home_screen">Kezdőképernyő</string><string name="notification_bar">Értesítési sáv</string>
 </resources><!-- Hungarian -->

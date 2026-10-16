@@ -4,18 +4,12 @@
     <string name="set_as_default_launcher">Tetapkan sebagai peluncur default</string>
     <string name="set_as_default_launcher_u"><u>Tetapkan sebagai peluncur default</u></string>
     <string name="set_as_default_launcher_first">Tetapkan sebagai peluncur default</string>
-    <string name="app_text_color">Warna teks</string>
     <string name="double_tap_to_lock_screen">Ketuk dua kali untuk mengunci</string>
-    <string name="about">Tentang</string>
     <string name="off">Mati</string>
     <string name="on">Nyala</string>
-    <string name="black">Hitam</string>
-    <string name="white">Putih</string>
     <string name="change_default_launcher">Ubah peluncur default</string>
-    <string name="privacy">Privasi</string><string name="follow">Ikuti</string>
-    <string name="email">Surel</string>
+    <string name="privacy">Privasi</string>
 
-    <string name="donate">Donasi</string>
     <string name="swipe_up_for_apps">1. Geser ke atas untuk semua aplikasi\n2. Tekan lama di mana saja untuk pengaturan</string>
     <string name="apps_on_home_screen">Aplikasi di layar awal</string>
     <string name="daily_wallpaper_update">Wallpaper baru setiap hari</string>
@@ -36,9 +30,7 @@
     <string name="_8">8</string>
     <string name="app_drawer_tips">Kiat: Mulai ketikkan nama aplikasi untuk meluncurkannya secara otomatis</string>
     <string name="okay">Oke</string>
-    <string name="cool">Keren!</string>
     <string name="auto_show_keyboard">Tampilkan keyboard secara otomatis</string>
-    <string name="hide">Sembunyikan</string>
     <string name="status_bar">Tampilkan bilah status</string>
     <string name="rename">Ganti nama</string>
     <string name="show_date_time">Tampilkan waktu tanggal</string>
@@ -48,37 +40,22 @@
     <string name="system_default">Sistem</string>
     <string name="dark">Gelap</string>
     <string name="light">Terang</string>
-    <string name="welcome_to_parem_settings">Selamat datang di pengaturan!
-        \n\nIngat, jika Anda memiliki pertanyaan, halaman Tentang kami memiliki jawabannya.</string><string name="keyboard_message">Hai, keyboard adalah cara tercepat untuk menemukan dan meluncurkan aplikasi di Parem Launcher. Bisakah kami meminta Anda untuk mengaktifkannya selama beberapa hari lagi dan kemudian memutuskan?           Pilihan selalu menjadi milik Anda.</string>
-    <string name="digital_wellbeing_message">Jika Anda ingin menetapkan batas waktu untuk aplikasi tertentu, fitur Digital Wellbeing Android dapat membantu Anda melakukannya.
-        \n\nSilakan cari Digital Wellbeing di pengaturan ponsel Anda dan aktifkan.</string>
     <string name="app_usage_message">Untuk menampilkan/menyembunyikan waktu layar di layar utama, izinkan atau tolak izin penggunaan aplikasi.
         \n\nCatatan: Tidak ada data penggunaan aplikasi yang dikumpulkan. Semua diproses di perangkat Anda.</string><string name="accessibility_service_description">Izin aksesibilitas diperlukan untuk mengaktifkan ketuk dua kali untuk mengunci. Data apa pun yang diperoleh Parem Launcher melalui layanan ini tidak akan meninggalkan perangkat Anda.</string><string name="open">Buka tautan</string>
-    <string name="copy">Salin</string>
     <string name="close">Tutup</string>
     <string name="not_now">Tidak sekarang</string>
-    <string name="public_roadmap">Peta jalan publik Parem Launcher</string>
-    <string name="instagram">Instagram</string><string name="roadmap">Peta jalan</string>
+    <string name="instagram">Instagram</string>
     <string name="date">Tanggal</string>
     <string name="date_only">Tanggal saja</string>
     <string name="bottom_on">Bawah: Nyala</string>
     <string name="bottom_off">Bawah: Mati</string>
     <string name="please_set_parem_as_default_first">Silakan atur Parem Launcher sebagai peluncur default Anda terlebih dahulu</string>
-    <string name="affiliate">Afiliasi</string>
-    <string name="tip_start_typing_for_rename">Tip: Mulailah mengetik untuk opsi RENAME aplikasi</string>
     <string name="hidden_apps_message">Catatan: Ketuk \'Parem Launcher\' di bagian atas halaman Pengaturan ini untuk menemukan aplikasi tersembunyi Anda.\n\nRincian lebih lanjut tersedia di halaman Tentang kami di bawah ini.</string>
     <string name="swipe_down_for">Geser ke bawah untuk</string>
     <string name="search">Cari</string>
     <string name="notifications">Notifikasi</string>
-    <string name="accessibility_disclosure">Harap aktifkan atau nonaktifkan layanan aksesibilitas Parem Launcher di pengaturan perangkat Anda untuk mengaktifkan atau menonaktifkan fitur ini.\n\nHarap perhatikan bahwa layanan ini hanya digunakan untuk memungkinkan Anda mematikan layar perangkat menggunakan gerakan ketuk dua kali. Layanan aksesibilitas kami tidak mengumpulkan atau membagikan data apa pun.</string>
-    <string name="accept">Terima</string>
-    <string name="permission">Izin</string>
     <string name="double_tap_lock">Ketuk dua kali untuk mengunci</string>
-    <string name="enable">Aktifkan</string>
     <string name="disable">Nonaktifkan</string>
-    <string name="not_working"><u>Tidak bekerja?</u></string>
-    <string name="info">Info</string>
-    <string name="delete">Hapus</string>
     <string name="text_size">Ukuran teks</string>
     <string name="enabled">Diaktifkan</string>
     <string name="disabled">Dinonaktifkan</string>
@@ -87,11 +64,8 @@
     <string name="long_press_to_select_app">Tekan lama untuk memilih aplikasi</string>
     <string name="unable_to_open_app">Tidak dapat membuka info aplikasi</string>
     <string name="copied">Disalin</string>
-    <string name="system_app_cannot_delete">Aplikasi sistem, tidak dapat dihapus</string>
     <string name="type_a_new_app_name_first">Ketikkan nama aplikasi baru terlebih dahulu</string>
     <string name="app_not_found">Aplikasi tidak ditemukan</string>
-    <string name="unable_to_launch_app">Tidak dapat meluncurkan aplikasi</string>
-    <string name="search_for_Launcher_or_home_app">Telusuri Peluncur atau aplikasi Beranda</string>
     <string name="swipe_left_app_enabled">Aplikasi geser ke kiri diaktifkan</string>
     <string name="swipe_right_app_enabled">Aplikasi geser ke kanan diaktifkan</string>
     <string name="swipe_left_app_disabled">Aplikasi geser ke kiri dinonaktifkan</string>
@@ -101,9 +75,6 @@
     <string name="long_press_to_enable">Tekan lama untuk mengaktifkan</string>
     <string name="no_hidden_apps">Aplikasi tersembunyi tidak ada</string>
     <string name="hidden_apps">Aplikasi tersembunyi</string>
-    <string name="adapter_show">perlihatkan</string>
-    <string name="adapter_hide">sembunyikan</string><string name="about_parem">Tentang Parem Launcher</string>
-    <string name="learn_more">Pelajari lebih lanjut</string>
     <string name="screen_time">Waktu layar</string><string name="alignment_changed">Penyelarasan diubah ✅</string>
     <string name="home_screen">Layar beranda</string><string name="notification_bar">Bilah pemberitahuan</string>
 </resources><!-- Indonesian -->

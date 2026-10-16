@@ -15,9 +15,7 @@
     <string name="_8">八</string>
     <string name="app_drawer_tips">ヒント: アプリ名の入力を開始すると、アプリが自動的に起動します</string>
     <string name="okay">わかった</string>
-    <string name="cool">いいね！</string>
 
-    <string name="tip_start_typing_for_rename">ヒント: アプリの RENAME オプションの入力を開始します</string>
     <string name="your_wallpaper_will_update_shortly">壁紙は間もなく更新されます</string>
     <string name="parem_is_not_default_launcher">Parem Launcher はデフォルトのランチャーではありません。 毎日の壁紙の更新に失敗する場合があります。</string>
     <string name="long_press_to_enable">長押しして有効にします</string>
@@ -28,16 +26,8 @@
     <string name="swipe_down_for">下にスワイプして</string>
     <string name="search">検索</string>
     <string name="notifications">通知</string>
-    <string name="accessibility_disclosure">この機能を有効または無効にするには、デバイスの設定で Parem Launcher のアクセシビリティ サービスをオンまたはオフにしてください。
-        \n\nこのサービスは、ダブルタップ ジェスチャを使用してデバイスの画面をオフにするためにのみ使用されることに注意してください。 当社のアクセシビリティ サービスは、いかなるデータも収集または共有しません。</string>
-    <string name="accept">受け入れる</string>
-    <string name="permission">許可</string>
     <string name="double_tap_lock">ダブルタップしてロックします</string>
-    <string name="enable">有効</string>
     <string name="disable">無効にする</string>
-    <string name="not_working"><u>機能しない場合</u></string>
-    <string name="info">情報</string>
-    <string name="delete">消去</string>
     <string name="text_size">文字サイズ</string>
     <string name="enabled">有効</string>
     <string name="disabled">無効</string>
@@ -46,22 +36,13 @@
     <string name="long_press_to_select_app">長押ししてアプリを選択します</string>
     <string name="unable_to_open_app">アプリ情報を開けません</string>
     <string name="copied">コピーされました</string>
-    <string name="system_app_cannot_delete">システムアプリ、削除できません</string>
     <string name="type_a_new_app_name_first">最初に新しいアプリ名を入力します</string>
-    <string name="adapter_show">見せる</string>
-    <string name="adapter_hide">隠れる</string>
-    <string name="app_text_color">テキストの色</string>
     <string name="double_tap_to_lock_screen">ダブルタップしてロックします</string>
-    <string name="about">アバウト</string>
     <string name="off">オフ</string>
     <string name="on">オン</string>
-    <string name="black">黒</string>
-    <string name="white">白</string>
     <string name="change_default_launcher">デフォルトのランチャーを変更する</string>
-    <string name="privacy">プライバシー</string><string name="follow">従う</string>
-    <string name="email">Eメール</string>
+    <string name="privacy">プライバシー</string>
 
-    <string name="donate">寄付</string>
     <string name="swipe_up_for_apps">1. 上にスワイプしてすべてのアプリを表示します\n2. 設定を行うには任意の場所を長押しします</string>
     <string name="apps_on_home_screen">ホーム画面のアプリ</string>
     <string name="daily_wallpaper_update">毎日新しい壁紙</string>
@@ -72,7 +53,6 @@
     <string name="swipe_left_app">アプリを左にスワイプ</string>
     <string name="swipe_right_app">アプリを右にスワイプ</string>
     <string name="auto_show_keyboard">キーボードの自動表示</string>
-    <string name="hide">隠れる</string>
     <string name="status_bar">ステータスバーを表示する</string>
     <string name="rename">名前の変更</string>
     <string name="show_date_time">日付時刻を表示する</string>
@@ -82,31 +62,21 @@
     <string name="system_default">システム</string>
     <string name="dark">ダーク</string>
     <string name="light">ライト</string>
-    <string name="welcome_to_parem_settings">設定へようこそ！
-        \n\n質問がある場合は、私たちの「About」ページに答えがありますので、覚えておいてください。</string><string name="keyboard_message">こんにちは、キーボードは Parem Launcher でアプリを見つけて起動する最も速い方法です。もう数日間これをオンにしてから判断していただくようお願いできますか?選択は常にあなた次第です。</string>
-    <string name="digital_wellbeing_message">特定のアプリに時間制限を設定したい場合は、Android の Digital Wellbeing 機能を使用すると便利です。
-        \n\n携帯電話の設定で Digital Wellbeing を検索し、有効にしてください。</string>
     <string name="app_usage_message">ホーム画面で画面時間を表示/非表示するには、アプリの使用権限を許可または拒否してください。
         \n\n注意: アプリの使用データは収集されません。すべての処理はあなたのデバイスで行われます。</string><string name="accessibility_service_description">ダブルタップしてロックを有効にするには、アクセシビリティ許可が必要です。このサービスを通じて Parem Launcher が取得したデータは、デバイスから流出することはありません。</string><string name="open">リンクを開く</string>
-    <string name="copy">コピー</string>
     <string name="close">閉じる</string>
     <string name="not_now">今はやめろ</string>
-    <string name="public_roadmap">Parem Launcher の公開ロードマップ</string>
-    <string name="instagram">インスタグラム</string><string name="roadmap">ロードマップ</string>
+    <string name="instagram">インスタグラム</string>
     <string name="date">日にち</string>
     <string name="date_only">日付のみ</string>
     <string name="bottom_on">下: オン</string>
     <string name="bottom_off">下：オフ</string>
     <string name="please_set_parem_as_default_first">まず Parem Launcher をデフォルトのランチャーとして設定してください</string>
-    <string name="affiliate">アフィリエイト</string>
     <string name="app_not_found">アプリが見つかりません</string>
-    <string name="unable_to_launch_app">アプリを起動できません</string>
-    <string name="search_for_Launcher_or_home_app">ランチャーまたはホームアプリを検索する</string>
     <string name="swipe_left_app_enabled">アプリを左にスワイプ有効化</string>
     <string name="swipe_right_app_enabled">アプリを右にスワイプ有効</string>
     <string name="swipe_left_app_disabled">左にスワイプするとアプリが無効になります</string>
     <string name="screen_time">スクリーンタイム</string>
     <string name="swipe_right_app_disabled">アプリを右にスワイプすると無効になります</string><string name="about_parem">アバウト Parem Launcher</string>
-    <string name="learn_more">もっと詳しく知る</string><string name="alignment_changed">アライメントが変更されました ✅</string>
     <string name="home_screen">ホーム画面</string><string name="notification_bar">通知バー</string>
 </resources> <!-- Japanese -->
