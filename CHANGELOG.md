@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Preserve home slot names when an installed-app lookup fails; record recovered failures in opt-in crash diagnostics.
+
 ## v6.0.0-beta.1 — 2026-10-16
 
 - Fixed: with a fixed Dark or Light theme that disagreed with the system dark mode, home could render invisible text and rebuild itself in a loop (only the wallpaper visible); the text-size step no longer overrides the activity's theme configuration, and the theme-check retry cap now survives recreate()

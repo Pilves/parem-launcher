@@ -78,7 +78,7 @@ suspend fun getAppsList(
                 AppModel(it.shownLabel, it.app.key, it.app.packageName, it.app.activityClassName, it.isNew, it.app.user, isPrivate = it.app.isPrivate)
             }
         } catch (e: Exception) {
-            Log.e("Utils", "Failed to get apps list", e)
+            CrashReporter.reportNonFatal("AppListSource.build", e)
             mutableListOf()
         }
     }
@@ -121,7 +121,7 @@ private fun queryRawApps(context: Context): Pair<List<AppListRebuilder.RawApp<Us
         }
         Pair(rawApps, true)
     } catch (e: Exception) {
-        Log.e("Utils", "Failed to query apps list", e)
+        CrashReporter.reportNonFatal("AppListSource.query", e)
         Pair(rawApps, false)
     }
 }

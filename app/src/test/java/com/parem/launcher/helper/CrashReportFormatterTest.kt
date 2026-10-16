@@ -62,4 +62,14 @@ class CrashReportFormatterTest {
         val capped = CrashReportFormatter.cap(text, 300)
         assertTrue(capped.toByteArray().size <= 300)
     }
+    @Test
+    fun cap_keepsExistingReportWhenAppendingRepeatedFailures() {
+        val first = format(IllegalStateException("original crash"))
+        var report = first
+        repeat(200) {
+            report = CrashReportFormatter.cap(report + "\nNon-fatal: retry\n" + format(Exception("retry")))
+        }
+        assertTrue(report.startsWith(first))
+        assertTrue(report.toByteArray().size <= CrashReportFormatter.MAX_BYTES)
+    }
 }

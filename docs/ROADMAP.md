@@ -220,6 +220,8 @@ Tiers: **BLOCKS 6.0** must land before the Play submission; **should land**; **c
 
 | M4-WP60 | **Done** (PR #0). Validate release smoke/performance driver state and wait for the actual Settings result before Enter | `scripts/perf-budget.mjs`, its tests, `SmokeTest.kt`, registration and handoff | Wrong screens and short frame phases fail with evidence; baseline and scroll workload unchanged; required checks pass |
 
+| M4-WP62 | Code health pass 2: report swallowed failures (audit 69–80), preserve home slot names on lookup failure, then audit remaining Kotlin/resources for none/low-risk simplifications; medium-risk items are proposals only | helper/CrashReporter and audited catch sites, home slot failure guard, proven unused Kotlin/resources outside WP42 items 1–56, tests and audit/handoff docs | No dependencies or UI changes beyond the requested failure preservation; traps 1–5 unchanged; compile after each group and all mandatory checks exit 0; no device work |
+
 **Launch quality bars** (Play vitals bad-behaviour lines are 1.09% crash / 0.47% ANR):
 crash-free ≥ 99.8%, ANR < 0.2%, battery < 1%/day, APK < 10 MB, no RAM growth over 24 h.
 Pricing: free, no ads, no accounts, donations only — the privacy story is the differentiator.

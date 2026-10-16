@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.AppModel
@@ -200,7 +201,15 @@ class HomeSlotsController(
 
     private fun setHomeAppText(textView: TextView, appName: String, packageName: String, userString: String): Boolean {
         // Cached check: up to 8 per-slot getActivityList IPCs per resume before PAREM-117
-        if (isPackageInstalledCached(context, packageName, userString)) {
+        val installed = try {
+            isPackageInstalledCached(context, packageName, userString)
+        } catch (e: Exception) {
+            CrashReporter.reportNonFatal("HomeSlotsController.installed", e)
+            // A failed lookup is not evidence of uninstall: preserve the slot.
+            textView.text = appName
+            return true
+        }
+        if (installed) {
             textView.text = appName
             if (prefs.showIcons && packageName.isNotEmpty()) {
                 val iconSize = 20.dpToPx()
