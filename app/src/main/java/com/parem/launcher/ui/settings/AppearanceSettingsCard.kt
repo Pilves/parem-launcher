@@ -245,7 +245,7 @@ class AppearanceSettingsCard(
 
     private fun setManualTheme(mode: Int) {
         ThemeScheduleManager.setMode(context, Constants.ThemeScheduleMode.MANUAL)
-        viewModel.cancelThemeScheduleWorker()
+        ThemeScheduleManager.cancelWorker(context)
         updateTheme(mode)
     }
 
@@ -261,7 +261,7 @@ class AppearanceSettingsCard(
     private fun applyScheduledTheme(scheduleMode: Int) {
         val ctx = context
         ThemeScheduleManager.setMode(ctx, scheduleMode)
-        viewModel.startThemeScheduleWorker()
+        ThemeScheduleManager.startWorker(ctx)
         // Apply immediately instead of waiting for the periodic worker's next run
         val newTheme = if (ThemeScheduleManager.shouldBeDark(ctx))
             AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO

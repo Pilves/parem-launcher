@@ -35,8 +35,6 @@ object UsageStatsHelper {
                 val wrapper = EventLogWrapper(context)
                 val foregroundStats = wrapper.getForegroundStatsByRelativeDay(0)
                 wrapper.aggregateForegroundStats(foregroundStats)
-                    .groupBy { it.applicationId }
-                    .mapValues { (_, stats) -> stats.sumOf { it.timeUsed } }
             } catch (e: Exception) {
                 emptyMap()
             }

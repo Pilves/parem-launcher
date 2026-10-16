@@ -30,11 +30,8 @@ class Prefs(context: Context) {
         )
     }
 
-    private val PREFS_FILENAME = PREFS_NAME
-
     private val FIRST_OPEN = "FIRST_OPEN"
     private val FIRST_OPEN_TIME = "FIRST_OPEN_TIME"
-    private val FIRST_HIDE = "FIRST_HIDE"
     private val LOCK_MODE = "LOCK_MODE"
     private val LOCK_SERVICE_CONNECTED = "LOCK_SERVICE_CONNECTED"
     private val LOCK_SERVICE_OFF_EXPLAINED = "LOCK_SERVICE_OFF_EXPLAINED"
@@ -92,12 +89,12 @@ class Prefs(context: Context) {
     private val CALENDAR_APP_USER = "CALENDAR_APP_USER"
     private val CALENDAR_APP_CLASS_NAME = "CALENDAR_APP_CLASS_NAME"
 
-    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_FILENAME, 0)
+    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, 0)
 
     // Omnibox history lives in its own file: the export only reads the main
     // file, and backup_rules / data_extraction_rules keep this one on the device.
     private val historyPrefs: SharedPreferences =
-        context.getSharedPreferences("$PREFS_FILENAME.omnibox_history", 0)
+        context.getSharedPreferences("$PREFS_NAME.omnibox_history", 0)
 
     private var widgetHeightsCache: Map<Int, Int>? = null
     private var widgetProvidersCache: Map<Int, String>? = null
@@ -110,10 +107,6 @@ class Prefs(context: Context) {
     var firstOpenTime: Long
         get() = prefs.getLong(FIRST_OPEN_TIME, 0L)
         set(value) = prefs.edit { putLong(FIRST_OPEN_TIME, value) }
-
-    var firstHide: Boolean
-        get() = prefs.getBoolean(FIRST_HIDE, true)
-        set(value) = prefs.edit { putBoolean(FIRST_HIDE, value) }
 
     var lockModeOn: Boolean
         get() = prefs.getBoolean(LOCK_MODE, false)
@@ -361,11 +354,6 @@ class Prefs(context: Context) {
             prefs.edit { putString(WIDGET_PROVIDERS, value) }
         }
 
-    fun getWidgetProvider(widgetId: Int): String? {
-        val map = parseWidgetProviders()
-        return map[widgetId]
-    }
-
     fun setWidgetProvider(widgetId: Int, provider: String) {
         val map = parseWidgetProviders().toMutableMap()
         map[widgetId] = provider
@@ -606,14 +594,7 @@ class Prefs(context: Context) {
                     key in FLOAT_PREF_KEYS -> putFloat(key, (value as Number).toFloat())
                     value is Boolean -> putBoolean(key, value)
                     value is String -> putString(key, value)
-                    value is Int -> {
-                        val doubleVal = value.toDouble()
-                        if (doubleVal != doubleVal.toLong().toDouble()) {
-                            putFloat(key, doubleVal.toFloat())
-                        } else {
-                            putInt(key, value)
-                        }
-                    }
+                    value is Int -> putInt(key, value)
                     value is Long -> putLong(key, value)
                     value is Double -> putFloat(key, value.toFloat())
                     value is org.json.JSONArray -> {

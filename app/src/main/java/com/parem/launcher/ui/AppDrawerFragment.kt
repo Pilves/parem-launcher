@@ -446,7 +446,7 @@ class AppDrawerFragment : BaseFragment() {
                 val overScroll = dx - scrollRange
                 val rv = _binding?.recyclerView ?: return scrollRange
                 if (overScroll < -10 && rv.scrollState == RecyclerView.SCROLL_STATE_DRAGGING)
-                    checkMessageAndExit()
+                    if (isAdded) findNavController().popBackStack()
                 return scrollRange
             }
         }
@@ -595,11 +595,6 @@ class AppDrawerFragment : BaseFragment() {
                 }
             }
         }
-    }
-
-    private fun checkMessageAndExit() {
-        if (!isAdded) return
-        findNavController().popBackStack()
     }
 
     // The action pops the drawer, so Back from Settings returns home

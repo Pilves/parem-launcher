@@ -45,13 +45,4 @@ object SwipeUpAppManager {
             putString(userKey(slot), userString)
         }
     }
-
-    fun clearSwipeUpApp(context: Context, slot: Int) {
-        prefs(context).edit {
-            putString(nameKey(slot), "")
-            putString(packageKey(slot), "")
-            putString(activityKey(slot), "")
-            putString(userKey(slot), "")
-        }
-    }
 }

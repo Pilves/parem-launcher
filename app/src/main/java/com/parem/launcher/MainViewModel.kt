@@ -63,7 +63,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val appList = MutableLiveData<List<AppModel>?>()
     val hiddenApps = MutableLiveData<List<AppModel>?>()
     val isParemDefault = MutableLiveData<Boolean>()
-    val launcherResetFailed = MutableLiveData<Boolean>()
     val homeAppAlignment = MutableLiveData<Int>()
     val screenTimeValue = MutableLiveData<Long>()
     val perAppScreenTime = MutableLiveData<Map<String, Long>>()
@@ -415,18 +414,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (temp != null) {
                 weatherValue.postValue(temp)
             } else {
-                val cached = WeatherManager.getDisplayString(appContext)
+                val cached = WeatherManager.getCachedTemp(appContext)
                 if (cached.isNotEmpty()) weatherValue.postValue(cached)
             }
         }
-    }
-
-    fun startThemeScheduleWorker() {
-        ThemeScheduleManager.startWorker(appContext)
-    }
-
-    fun cancelThemeScheduleWorker() {
-        ThemeScheduleManager.cancelWorker(appContext)
     }
 
     fun updateHomeAlignment(gravity: Int) {

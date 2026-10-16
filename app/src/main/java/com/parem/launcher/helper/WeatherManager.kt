@@ -75,7 +75,6 @@ object WeatherManager {
     fun getCachedTemp(context: Context): String =
         prefs(context).getString(WEATHER_CACHED_TEMP, "") ?: ""
 
-    fun getDisplayString(context: Context): String = getCachedTemp(context)
 
     /**
      * Staleness of the cached reading, per PAREM-106. A cache with no

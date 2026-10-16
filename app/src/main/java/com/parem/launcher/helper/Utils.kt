@@ -10,12 +10,9 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.util.Log
 import android.util.TypedValue
-import android.view.View
-import android.view.animation.LinearInterpolator
 import android.widget.Toast
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
-import androidx.appcompat.app.AppCompatDelegate
 import com.parem.launcher.BuildConfig
 import com.parem.launcher.R
 
@@ -42,18 +39,6 @@ fun getDefaultLauncherPackage(context: Context): String {
     return if (result?.activityInfo != null) {
         result.activityInfo.packageName
     } else "android"
-}
-
-fun getChangedAppTheme(context: Context, currentAppTheme: Int): Int {
-    return when (currentAppTheme) {
-        AppCompatDelegate.MODE_NIGHT_YES -> AppCompatDelegate.MODE_NIGHT_NO
-        AppCompatDelegate.MODE_NIGHT_NO -> AppCompatDelegate.MODE_NIGHT_YES
-        else -> {
-            if (context.isDarkThemeOn())
-                AppCompatDelegate.MODE_NIGHT_NO
-            else AppCompatDelegate.MODE_NIGHT_YES
-        }
-    }
 }
 
 fun Context.isDarkThemeOn(): Boolean {
@@ -99,15 +84,3 @@ fun Context.getColorFromAttr(
     return typedValue.data
 }
 
-fun View.animateAlpha(alpha: Float = 1.0f) {
-    if (context.skipAnimations()) {
-        this.alpha = alpha
-        return
-    }
-    this.animate().apply {
-        interpolator = LinearInterpolator()
-        duration = 200
-        alpha(alpha)
-        start()
-    }
-}

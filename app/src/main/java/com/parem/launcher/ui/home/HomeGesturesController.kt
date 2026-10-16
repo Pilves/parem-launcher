@@ -289,9 +289,6 @@ class HomeGesturesController(
                 )
             }
 
-            override fun onClick() {
-                super.onClick()
-            }
         }
     }
 
@@ -333,12 +330,12 @@ class HomeGesturesController(
             override fun onLongClick(view: View) {
                 super.onLongClick(view)
                 Haptics.longPress(view)
-                textOnLongClick(view)
+                fragment.onLongClick(view)
             }
 
             override fun onClick(view: View) {
                 super.onClick(view)
-                textOnClick(view)
+                fragment.onClick(view)
             }
         }
         viewTouchListeners.add(listener)
@@ -353,10 +350,6 @@ class HomeGesturesController(
             SwipeUpAppManager.getSwipeUpAppUser(context, slot)
         )
     }
-
-    private fun textOnClick(view: View) = fragment.onClick(view)
-
-    private fun textOnLongClick(view: View) = fragment.onLongClick(view)
 
     private fun swipeDownAction() {
         when (prefs.swipeDownAction) {

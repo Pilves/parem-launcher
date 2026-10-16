@@ -1,6 +1,7 @@
 package com.parem.launcher.helper
 
 import android.content.Context
+import com.parem.launcher.data.Constants
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -19,17 +20,13 @@ object ThemeScheduleManager {
 
     private const val WORKER_TAG = "THEME_SCHEDULE_WORKER"
 
-    const val MODE_MANUAL = 0
-    const val MODE_SCHEDULED = 1
-    const val MODE_SUNRISE_SUNSET = 2
-
     private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
     private fun prefs(context: Context) =
         context.getSharedPreferences(PREFS_NAME, 0)
 
     fun getMode(context: Context): Int =
-        prefs(context).getInt(THEME_SCHEDULE_MODE, MODE_MANUAL)
+        prefs(context).getInt(THEME_SCHEDULE_MODE, Constants.ThemeScheduleMode.MANUAL)
 
     fun setMode(context: Context, mode: Int) {
         prefs(context).edit().putInt(THEME_SCHEDULE_MODE, mode).apply()
@@ -76,7 +73,7 @@ object ThemeScheduleManager {
         val now = LocalTime.now()
 
         return when (mode) {
-            MODE_SCHEDULED -> {
+            Constants.ThemeScheduleMode.SCHEDULED -> {
                 val lightTime = try {
                     LocalTime.parse(getLightTime(context), timeFormatter)
                 } catch (_: Exception) { LocalTime.of(7, 0) }
@@ -86,7 +83,7 @@ object ThemeScheduleManager {
                 isInDarkPeriod(now, lightTime, darkTime)
             }
 
-            MODE_SUNRISE_SUNSET -> {
+            Constants.ThemeScheduleMode.SUNRISE_SUNSET -> {
                 val (latStr, lngStr) = WeatherManager.getLocation(context)
                 if (latStr.isBlank() || lngStr.isBlank()) {
                     val lightTime = try {
@@ -114,7 +111,7 @@ object ThemeScheduleManager {
                 }
             }
 
-            else -> false // MODE_MANUAL, no automatic determination
+            else -> false // MANUAL, no automatic determination
         }
     }
 

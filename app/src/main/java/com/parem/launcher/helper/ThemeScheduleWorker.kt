@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 
 class ThemeScheduleWorker(appContext: Context, workerParams: WorkerParameters) :
@@ -13,7 +14,7 @@ class ThemeScheduleWorker(appContext: Context, workerParams: WorkerParameters) :
     override suspend fun doWork(): Result {
         val mode = ThemeScheduleManager.getMode(applicationContext)
 
-        if (mode == ThemeScheduleManager.MODE_MANUAL) {
+        if (mode == Constants.ThemeScheduleMode.MANUAL) {
             return Result.success()
         }
 

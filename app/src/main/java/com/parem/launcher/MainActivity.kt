@@ -267,9 +267,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initObservers(viewModel: MainViewModel) {
-        viewModel.launcherResetFailed.observe(this) {
-            openLauncherChooser(it)
-        }
         viewModel.resetLauncherLiveData.observe(this) {
             if (isDefaultLauncher())
                 resetLauncherViaFakeActivity()
@@ -352,13 +349,6 @@ class MainActivity : AppCompatActivity() {
         if (this.isDarkThemeOn())
             setPlainWallpaper(this, android.R.color.black)
         else setPlainWallpaper(this, android.R.color.white)
-    }
-
-    private fun openLauncherChooser(resetFailed: Boolean) {
-        if (resetFailed) {
-            val intent = Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS)
-            startActivity(intent)
-        }
     }
 
     // PAREM-108 phase 3: the inherited Olauncher 4-hour self-recreate +

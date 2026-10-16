@@ -98,22 +98,6 @@ class FolderManager(context: Context) {
         }
     }
 
-    /** Returns every stored folder keyed by slot number. */
-    fun getAllFolders(): Map<Int, FolderGroup> {
-        synchronized(lock) {
-            val root = readJson()
-            val result = mutableMapOf<Int, FolderGroup>()
-            val keys = root.keys()
-            while (keys.hasNext()) {
-                val key = keys.next()
-                val slotNum = key.toIntOrNull() ?: continue
-                val obj = root.optJSONObject(key) ?: continue
-                result[slotNum] = parseFolderGroup(obj)
-            }
-            return result
-        }
-    }
-
     // ── Private helpers ─────────────────────────────────────────────────
 
     // Parsed-root cache: isFolderSlot() runs per slot on every home resume,

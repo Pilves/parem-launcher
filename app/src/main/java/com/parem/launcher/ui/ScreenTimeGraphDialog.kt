@@ -115,8 +115,6 @@ class ScreenTimeGraphDialog(private val context: Context) {
                     wrapper.aggregateForegroundStats(
                         wrapper.getForegroundStatsByTimestamps(dayStart, dayEnd)
                     )
-                        .groupBy { it.applicationId }
-                        .mapValues { (_, stats) -> stats.sumOf { it.timeUsed } }
 
                 val days = mutableListOf<Pair<String, Long>>()
                 val dayMaps = mutableListOf<Map<String, Long>>()
