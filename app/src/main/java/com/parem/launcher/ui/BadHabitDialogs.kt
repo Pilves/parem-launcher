@@ -155,7 +155,7 @@ object BadHabitDialogs {
         // tap during the countdown must do nothing
         val openRow = TextView(context).apply {
             textSize = 16f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
             minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
         }
@@ -183,7 +183,7 @@ object BadHabitDialogs {
                 // Live only for this one change: the countdown ticks above stay silent
                 ViewCompat.setAccessibilityLiveRegion(openRow, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE)
                 openRow.text = context.getString(R.string.mindful_pause_open, appName)
-                openRow.setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+                openRow.setTextColor(context.getColorFromAttr(R.attr.textColor))
                 openRow.setBackgroundResource(context.selectableBackgroundRes())
                 openRow.setOnClickListener {
                     proceeded = true
@@ -215,7 +215,7 @@ object BadHabitDialogs {
         return BottomSheetMenu(context)
             .title(context.getString(R.string.usage_access))
             .message(context.getString(if (granted) R.string.usage_access_granted_body else R.string.usage_access_limits_body))
-            .option(context.getString(R.string.usage_access_open_settings)) {
+            .option(context.getString(R.string.usage_access_open_settings), primaryAction = true) {
                 context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
             }
             .option(context.getString(R.string.not_now), dimmed = true) {}

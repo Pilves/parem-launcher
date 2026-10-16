@@ -86,7 +86,7 @@ object GrayscaleSheet {
         content.addView(TextView(context).apply {
             text = context.getString(R.string.grayscale_grant_computer)
             textSize = 16f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+            setTextColor(context.getColorFromAttr(R.attr.textColor))
             setPadding(24.dpToPx(), 16.dpToPx(), 24.dpToPx(), 8.dpToPx())
         })
         val urlView = TextView(context).apply {
@@ -94,7 +94,7 @@ object GrayscaleSheet {
             textSize = 18f
             typeface = Typeface.MONOSPACE
             setTextIsSelectable(true)
-            setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+            setTextColor(context.getColorFromAttr(R.attr.textColor))
             setPadding(24.dpToPx(), 4.dpToPx(), 24.dpToPx(), 8.dpToPx())
         }
         content.addView(urlView)
@@ -147,7 +147,7 @@ object GrayscaleSheet {
     }
 
     private fun showToggles(context: Context, onChanged: () -> Unit) {
-        val textColor = context.getColorFromAttr(R.attr.primaryColor)
+        val textColor = context.getColorFromAttr(R.attr.textColor)
         val content = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(16.dpToPx(), 0, 24.dpToPx(), 8.dpToPx())
@@ -180,7 +180,7 @@ object GrayscaleSheet {
             this.text = text
             textSize = 16f
             if (bold) setTypeface(null, Typeface.BOLD)
-            setTextColor(context.getColorFromAttr(if (dimmed) R.attr.primaryColorTrans50 else R.attr.primaryColor))
+            setTextColor(context.getColorFromAttr(if (dimmed) R.attr.primaryColorTrans50 else R.attr.textColor))
             setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
             setBackgroundResource(context.selectableBackgroundRes())
             setOnClickListener { onClick() }

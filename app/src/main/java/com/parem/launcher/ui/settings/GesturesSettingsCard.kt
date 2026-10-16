@@ -123,7 +123,7 @@ class GesturesSettingsCard(
         val enabled = if (isLeft) !prefs.swipeLeftEnabled else !prefs.swipeRightEnabled
         if (isLeft) prefs.swipeLeftEnabled = enabled else prefs.swipeRightEnabled = enabled
         (if (isLeft) binding.swipeLeftApp else binding.swipeRightApp)
-            .setTextColor(context.getColorFromAttr(if (enabled) R.attr.primaryColor else R.attr.primaryColorTrans50))
+            .setTextColor(context.getColorFromAttr(if (enabled) R.attr.primaryColor else R.attr.textSecondaryColor))
         context.showToast(context.getString(when {
             isLeft && enabled -> R.string.swipe_left_app_enabled
             isLeft -> R.string.swipe_left_app_disabled
@@ -177,9 +177,9 @@ class GesturesSettingsCard(
         binding.swipeLeftRow.bindValueRow(binding.swipeLeftApp.text)
         binding.swipeRightRow.bindValueRow(binding.swipeRightApp.text)
         if (!prefs.swipeLeftEnabled)
-            binding.swipeLeftApp.setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            binding.swipeLeftApp.setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
         if (!prefs.swipeRightEnabled)
-            binding.swipeRightApp.setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            binding.swipeRightApp.setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
     }
 
     private fun actionLabelRes(action: Int): Int? = when (action) {

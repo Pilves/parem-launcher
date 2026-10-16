@@ -481,7 +481,7 @@ class HomeGesturesController(
 
     private fun showHomeLongPressMenu() {
         BottomSheetMenu(context)
-            .title(context.getString(R.string.app_menu_home), prominent = true)
+            .title(context.getString(R.string.app_menu_home))
             .option(context.getString(R.string.a11y_all_apps)) {
                 if (fragment.isAlive) fragment.showAppList(Constants.FLAG_LAUNCH_APP)
             }

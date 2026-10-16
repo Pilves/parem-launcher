@@ -106,6 +106,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         if (prefs.boldFont) theme.applyStyle(R.style.BoldFontOverlay, true)
+        if (isEinkDisplay()) theme.applyStyle(R.style.ThemeOverlay_Parem_Eink, true)
 
         appWidgetManager = AppWidgetManager.getInstance(this)
         appWidgetHost = AppWidgetHost(this, Constants.APPWIDGET_HOST_ID)

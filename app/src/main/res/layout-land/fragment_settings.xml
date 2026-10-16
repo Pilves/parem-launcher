@@ -34,9 +34,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp"
-                android:background="@drawable/rounded_rect_shade_color"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="0dp">
 
                 <FrameLayout
                     android:layout_width="match_parent"
@@ -107,7 +106,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/hidden_apps"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -143,7 +142,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/crash_reports"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -164,11 +163,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="12dp"
-                android:background="@drawable/rounded_rect_shade_color"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="0dp">
 
                 <TextView
                     style="@style/TextLarge"
@@ -178,7 +176,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginBottom="8dp"
                     android:text="@string/home_screen"
-                    android:textColor="?attr/primaryColor" />
+                    android:textColor="?attr/textColor" />
 
                 <FrameLayout
                     android:id="@+id/homeAppsNumRow"
@@ -203,7 +201,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/apps_on_home_screen"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -221,7 +219,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:animateLayoutChanges="true"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -353,7 +351,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/show_date_time"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -372,7 +370,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:animateLayoutChanges="true"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -447,7 +445,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/home_layout_alignment"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -466,7 +464,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:animateLayoutChanges="true"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -497,7 +495,7 @@
                             android:layout_height="match_parent"
                             android:layout_marginVertical="4dp"
                             android:layout_marginEnd="24dp"
-                            android:background="?attr/primaryColorTrans50" />
+                            android:background="?attr/textSecondaryColor" />
 
                         <TextView
                             android:id="@+id/alignmentLeft"
@@ -557,7 +555,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/lock_home_layout"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -596,7 +594,7 @@
                         android:paddingVertical="8dp"
                         android:importantForAccessibility="no"
                         android:text="@string/auto_launch_single_match"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:id="@+id/autoLaunchToggle"
@@ -635,7 +633,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/usage_access"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -656,11 +654,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="12dp"
-                android:background="@drawable/rounded_rect_shade_color"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="0dp">
 
                 <TextView
                     style="@style/TextLarge"
@@ -670,7 +667,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginBottom="8dp"
                     android:text="@string/appearance"
-                    android:textColor="?attr/primaryColor" />
+                    android:textColor="?attr/textColor" />
 
                 <FrameLayout
                     android:id="@+id/autoShowKeyboardRow"
@@ -693,7 +690,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/auto_show_keyboard"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -801,7 +798,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/status_bar"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -836,7 +833,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/theme_mode"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -855,7 +852,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:animateLayoutChanges="true"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -929,7 +926,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/text_size"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -950,7 +947,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:animateLayoutChanges="true"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -1031,7 +1028,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/bold_font"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1052,9 +1049,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp"
-                android:background="@drawable/rounded_rect_shade_color"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="0dp">
 
                 <TextView
                     android:id="@+id/tvGestures"
@@ -1064,7 +1060,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:text="@string/gestures"
-                    android:textColor="?attr/primaryColor" />
+                    android:textColor="?attr/textColor" />
 
                 <LinearLayout
                     android:id="@+id/swipeLeftRow"
@@ -1090,7 +1086,7 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/swipe_left_app"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1128,7 +1124,7 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/swipe_right_app"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1166,7 +1162,7 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/swipe_down_for"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1185,7 +1181,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:animateLayoutChanges="true"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -1238,7 +1234,7 @@
                         android:layout_height="wrap_content"
                         android:paddingVertical="8dp"
                         android:text="@string/double_tap_to_lock_screen"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:id="@+id/toggleLock"
@@ -1261,7 +1257,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="12dp"
                     android:paddingVertical="8dp"
-                    android:textColor="?attr/primaryColor"
+                    android:textColor="?attr/textColor"
                     android:visibility="gone"
                     tools:text="@string/lock_admin_off_row" />
             </LinearLayout>

@@ -39,21 +39,21 @@ class WebsiteDialog(
                 gravity = Gravity.CENTER_HORIZONTAL
                 bottomMargin = 16.dpToPx()
             }
-            setBackgroundColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setBackgroundColor(context.getColorFromAttr(R.attr.textSecondaryColor))
         })
 
         container.addView(TextView(context).apply {
             text = context.getString(R.string.add_website)
             textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             setTypeface(null, Typeface.BOLD)
             setPadding(0, 0, 0, 12.dpToPx())
         })
 
         fun input(hintRes: Int, type: Int) = EditText(context).apply {
             textSize = 16f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColor))
-            setHintTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.textColor))
+            setHintTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             hint = context.getString(hintRes)
             background = null
             inputType = type
@@ -68,7 +68,7 @@ class WebsiteDialog(
         container.addView(TextView(context).apply {
             text = context.getString(R.string.save)
             textSize = 16f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+            setTextColor(context.getColorFromAttr(R.attr.textColor))
             setTypeface(null, Typeface.BOLD)
             setPadding(0, 16.dpToPx(), 0, 0)
             setOnClickListener {

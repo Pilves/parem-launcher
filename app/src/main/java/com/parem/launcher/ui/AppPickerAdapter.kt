@@ -106,7 +106,7 @@ fun LinearLayout.addAppPicker(adapter: AppPickerAdapter, searchPaddingLeft: Int 
         hint = context.getString(R.string.search_apps)
         setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
         setTextColor(adapter.textColor)
-        setHintTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+        setHintTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
         background = null
         inputType = InputType.TYPE_CLASS_TEXT
         isSingleLine = true

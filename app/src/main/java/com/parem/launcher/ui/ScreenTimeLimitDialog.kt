@@ -44,8 +44,8 @@ class ScreenTimeLimitDialog(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val textColor = context.getColorFromAttr(R.attr.primaryColor)
-        val secondaryTextColor = context.getColorFromAttr(R.attr.primaryColorTrans50)
+        val textColor = context.getColorFromAttr(R.attr.textColor)
+        val secondaryTextColor = context.getColorFromAttr(R.attr.textSecondaryColor)
 
         val rootLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -133,7 +133,7 @@ class ScreenTimeLimitDialog(
             // Current usage
             val usageView = TextView(context).apply {
                 text = context.formattedTimeSpent(usageMs)
-                textSize = 13f
+                textSize = 14f
                 setTextColor(secondaryTextColor)
                 setPadding(8.dpToPx(), 0, 8.dpToPx(), 0)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO

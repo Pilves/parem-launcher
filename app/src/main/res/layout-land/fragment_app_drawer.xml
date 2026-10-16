@@ -17,6 +17,8 @@
 
         <androidx.appcompat.widget.SearchView
             android:id="@+id/search"
+            android:background="@drawable/bg_search_surface"
+            android:minHeight="@dimen/touch_target_min"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -24,7 +26,7 @@
             android:imeOptions="actionSearch"
             android:paddingHorizontal="8dp"
             android:paddingVertical="0dp"
-            android:textCursorDrawable="@null"
+            android:textCursorDrawable="@drawable/text_cursor"
             app:closeIcon="@null"
             app:iconifiedByDefault="false"
             app:queryBackground="@null"

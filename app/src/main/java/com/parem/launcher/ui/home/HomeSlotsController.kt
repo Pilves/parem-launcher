@@ -362,7 +362,7 @@ class HomeSlotsController(
                 })
         } else {
             val title = snapshot.folder?.name ?: snapshot.name.ifEmpty { context.getString(R.string.app_menu_add_home) }
-            val menu = BottomSheetMenu(context).title(BidiFormatter.getInstance().unicodeWrap(title), prominent = true)
+            val menu = BottomSheetMenu(context).title(BidiFormatter.getInstance().unicodeWrap(title))
             if (snapshot.url.isNotEmpty() || snapshot.packageName.isNotEmpty()) menu.option(context.getString(R.string.rename)) {
                 if (isActive()) AppMenu.rename(fragment, snapshot.name, onHome = true) { name ->
                     invalidateUndo()
@@ -392,7 +392,7 @@ class HomeSlotsController(
             if (isActive() && !prefs.homeLayoutLocked) showCreateFolderDialog(slot)
         }
         if (occupied) menu.gap().option(context.getString(
-            if (snapshot.folder != null) R.string.app_menu_remove_folder else R.string.app_menu_remove_home)) {
+            if (snapshot.folder != null) R.string.app_menu_remove_folder else R.string.app_menu_remove_home), destructive = true) {
             if (isActive() && !prefs.homeLayoutLocked) removeSlot(slot)
         }
     }

@@ -251,6 +251,11 @@ per package; the rest of each of those fragments is still in
   Not verified: with TalkBack on the Tab S8, that typing "m" with one match leaves the drawer open and that the row reads "Open single match automatically, On"; appended to the UX device pass.
   Easy to get wrong: the screen-reader state is read when the filter publishes, not cached, so toggling TalkBack mid-session needs no listener; the setting is read from Prefs on every publish for the same reason.
   Verified: ADB on Nothing A069 / Android 16: disabling auto-launch leaves a sole Calculator result in the drawer; preference survives restart; at 200% system font the label wraps without overlapping Off and the row exposes its accessible title.
+- **M4-WP50 (PR #0):** Width-based typography, tinted mono surfaces and moss-teal action roles now share theme resources; settings sections have no card plates.
+  Contract: home text stays monochrome; e-ink overlays opaque monochrome roles; wallpaper dimming is independent; Material You remains deferred.
+  Source checks preserve existing accessibility attributes; contrast evidence and the 90% scrim rationale are in docs/plans/2026-10-16-colour-implementation.md.
+  Not verified: device screenshots, large-font fitting, keyboard/insets, TalkBack/D-pad and e-ink rendering; existing graph paint sizing is unchanged.
+  Easy to get wrong: primaryColor still means monochrome home text and participates in theme checks; surface text must use textColor/textSecondaryColor.
 - **M4-WP53 (PR #0):** App and home menus use BottomSheetMenu: shared labelled app actions, a separate Home slot group, five background actions, local rename, Undo removal and Unlock refusal.
   Contract: home rename edits one slot; legacy drawer aliases apply only to personal-profile rows; work/private menus omit unsafe package-only settings; all app selections still use selectedApp.
   Contract: SlotSnapshot captures all home/swipe fields and FolderData; stale/superseded Undo cannot overwrite a newer slot; Material feedback has an instant local overlay under skipAnimations.

@@ -56,7 +56,7 @@ class GestureLetterConfigDialog(
             val letterTv = TextView(context).apply {
                 text = if (appLabel != null) "$letter  →  $appLabel" else "$letter  —  Not set"
                 textSize = 16f
-                setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+                setTextColor(context.getColorFromAttr(R.attr.textColor))
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
                 setOnClickListener {
                     dialog.dismiss()
@@ -69,7 +69,7 @@ class GestureLetterConfigDialog(
                 val clearBtn = TextView(context).apply {
                     text = "✕"
                     textSize = 16f
-                    setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+                    setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
                     setPadding(12.dpToPx(), 0, 0, 0)
                     setOnClickListener {
                         GestureLetterManager.removeMapping(context, letter)

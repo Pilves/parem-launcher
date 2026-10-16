@@ -65,8 +65,8 @@ class ScreenTimeGraphDialog(
             }
         }
         val averageView = TextView(context).apply {
-            textSize = 12f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans60))
+            textSize = 14f
+            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             gravity = Gravity.END
             setPadding(24.dpToPx(), 2.dpToPx(), 24.dpToPx(), 4.dpToPx())
         }
@@ -227,7 +227,7 @@ class ScreenTimeGraphDialog(
         column.addView(TextView(context).apply {
             text = context.getString(R.string.weekly_review_title)
             textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans60))
+            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             setTypeface(null, Typeface.BOLD)
             setPadding(24.dpToPx(), 12.dpToPx(), 24.dpToPx(), 4.dpToPx())
         })
@@ -253,7 +253,7 @@ class ScreenTimeGraphDialog(
             column.addView(TextView(context).apply {
                 text = line
                 textSize = 14f
-                setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+                setTextColor(context.getColorFromAttr(R.attr.textColor))
                 setPadding(24.dpToPx(), 4.dpToPx(), 24.dpToPx(), 4.dpToPx())
             })
         }
@@ -270,7 +270,7 @@ class ScreenTimeGraphDialog(
         val header = TextView(context).apply {
             text = headerText
             textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans60))
+            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             setTypeface(null, Typeface.BOLD)
             setPadding(24.dpToPx(), 12.dpToPx(), 24.dpToPx(), 8.dpToPx())
         }
@@ -286,7 +286,7 @@ class ScreenTimeGraphDialog(
             val nameView = TextView(context).apply {
                 text = label
                 textSize = 16f
-                setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+                setTextColor(context.getColorFromAttr(R.attr.textColor))
                 isSingleLine = true
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 AppIconCache.get(context, pkg)?.let { icon ->
@@ -299,7 +299,7 @@ class ScreenTimeGraphDialog(
             val timeView = TextView(context).apply {
                 text = context.formattedTimeSpent(ms)
                 textSize = 14f
-                setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans60))
+                setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             }
             row.addView(timeView)
             column.addView(row)

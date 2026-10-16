@@ -54,7 +54,7 @@ object AppMenu {
         val hiddenKey = AppListRebuilder.hiddenKey(app.appPackage, app.user.toString())
         val isHidden = hidden || hiddenKey in prefs.hiddenApps || app.appPackage in prefs.hiddenApps
         val limit = AppLimitManager.getLimit(context, app.appPackage)
-        val menu = BottomSheetMenu(context).title(BidiFormatter.getInstance().unicodeWrap(app.appLabel), prominent = true)
+        val menu = BottomSheetMenu(context).title(BidiFormatter.getInstance().unicodeWrap(app.appLabel))
         val actions = AppMenuPolicy.actions(personal, app.isPrivate, hidden, homeSlot != null,
             limit != null, personal && !context.isSystemApp(app.appPackage))
         for (action in actions) when (action) {
@@ -107,7 +107,7 @@ object AppMenu {
                     onChanged()
                 }
             }
-            Action.UNINSTALL -> menu.gap().option(context.getString(R.string.app_menu_uninstall)) {
+            Action.UNINSTALL -> menu.gap().option(context.getString(R.string.app_menu_uninstall), destructive = true) {
                 if (fragment.isAlive) context.uninstall(app.appPackage)
             }
         }
@@ -122,8 +122,8 @@ object AppMenu {
         if (fragment.view == null) return
         val input = AppCompatEditText(context).apply {
             id = View.generateViewId()
-            TextViewCompat.setTextAppearance(this, R.style.TextSmall)
-            setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_Body)
+            setTextColor(context.getColorFromAttr(R.attr.textColor))
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
             imeOptions = EditorInfo.IME_ACTION_DONE
             isSingleLine = true
@@ -135,10 +135,10 @@ object AppMenu {
             orientation = LinearLayout.VERTICAL
             setPadding(24.dpToPx(), 8.dpToPx(), 24.dpToPx(), 8.dpToPx())
             addView(TextView(context).apply {
-                TextViewCompat.setTextAppearance(this, R.style.TextSmall)
+                TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_Body)
                 text = context.getString(R.string.app_menu_name)
                 labelFor = input.id
-                setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans80))
+                setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             })
             addView(input, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         }
@@ -152,7 +152,7 @@ object AppMenu {
             dialog.dismiss()
         }
         val menu = BottomSheetMenu(context)
-            .title(context.getString(if (onHome) R.string.app_menu_rename_home else R.string.app_menu_rename_list), prominent = true)
+            .title(context.getString(if (onHome) R.string.app_menu_rename_home else R.string.app_menu_rename_list))
             .customView(fields)
             .option(context.getString(R.string.save), dismissOnClick = false) { save() }
         input.setOnEditorActionListener { _, action, _ ->

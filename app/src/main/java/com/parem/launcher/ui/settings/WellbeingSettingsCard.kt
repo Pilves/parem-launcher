@@ -9,6 +9,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import com.parem.launcher.MainViewModel
+import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
@@ -133,6 +134,8 @@ class WellbeingSettingsCard(
                 else -> R.string.off
             }
         )
+        binding.grayscaleToggle?.setTextColor(context.getColorFromAttr(
+            if (row == Row.SET_UP) R.attr.accentColor else R.attr.textColor))
         binding.grayscaleRow?.bindValueRow(binding.grayscaleToggle?.text)
     }
 
@@ -146,6 +149,8 @@ class WellbeingSettingsCard(
                 State.ON -> R.string.on
             }
         )
+        binding.quietNotifToggle?.setTextColor(context.getColorFromAttr(
+            if (state == State.NEEDS_ACCESS) R.attr.accentColor else R.attr.textColor))
         binding.quietNotifRow?.bindValueRow(binding.quietNotifToggle?.text)
         binding.quietNotifAllowedRow?.bindValueRow(binding.quietNotifAllowed?.text)
         binding.quietNotifSilentRow?.bindValueRow(binding.quietNotifSilent?.text)
@@ -176,7 +181,8 @@ class WellbeingSettingsCard(
         val needsAccess = WellbeingRowState.appLimits(granted) == Row.NEEDS_ACCESS
         binding.screenTimeLimitsToggle?.apply {
             text = context.getString(if (needsAccess) R.string.quiet_needs_access else R.string.configure)
-            alpha = if (needsAccess) 0.5f else 1f
+            alpha = 1f
+            setTextColor(context.getColorFromAttr(if (needsAccess) R.attr.accentColor else R.attr.textColor))
         }
         binding.screenTimeLimitsRow?.bindValueRow(binding.screenTimeLimitsToggle?.text)
     }

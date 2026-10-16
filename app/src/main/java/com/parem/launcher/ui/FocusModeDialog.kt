@@ -56,7 +56,7 @@ class FocusModeDialog(
         val container = findViewById<LinearLayout>(R.id.focusModeContainer) ?: return
         val ctx = container.context
 
-        val primaryColor = ctx.getColorFromAttr(R.attr.primaryColor)
+        val primaryColor = ctx.getColorFromAttr(R.attr.textColor)
 
         if (FocusModeManager.isActive(ctx)) {
             buildActiveView(container, ctx, primaryColor)
@@ -95,7 +95,7 @@ class FocusModeDialog(
                 FocusModeManager.ActiveLabel.ScheduledNoEnd -> ctx.getString(R.string.focus_schedule_no_end)
                 FocusModeManager.ActiveLabel.Unlimited, null -> ctx.getString(R.string.focus_until_disabled_status)
             }
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(ctx.getColorFromAttr(R.attr.textSecondaryColor))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             setPadding(0, 0, 0, 16.dpToPx())
         }
@@ -358,7 +358,7 @@ class FocusModeDialog(
     private fun createMutedLine(ctx: Context, text: String): TextView {
         return TextView(ctx).apply {
             this.text = text
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(ctx.getColorFromAttr(R.attr.textSecondaryColor))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
             setPadding(8.dpToPx(), 0, 0, 8.dpToPx())
         }
@@ -367,7 +367,7 @@ class FocusModeDialog(
     private fun createTitle(ctx: Context, text: String): TextView {
         return TextView(ctx).apply {
             this.text = text
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(ctx.getColorFromAttr(R.attr.textSecondaryColor))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             setTypeface(typeface, android.graphics.Typeface.BOLD)
             gravity = Gravity.START
@@ -379,7 +379,7 @@ class FocusModeDialog(
     private fun createSectionLabel(ctx: Context, text: String): TextView {
         return TextView(ctx).apply {
             this.text = text
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(ctx.getColorFromAttr(R.attr.textSecondaryColor))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             setPadding(0, 8.dpToPx(), 0, 4.dpToPx())
         }
@@ -389,7 +389,7 @@ class FocusModeDialog(
     private fun createActionRow(ctx: Context, text: String, onClick: () -> Unit): TextView {
         return TextView(ctx).apply {
             this.text = text
-            setTextColor(ctx.getColorFromAttr(R.attr.primaryColor))
+            setTextColor(ctx.getColorFromAttr(R.attr.textColor))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             setTypeface(null, android.graphics.Typeface.BOLD)
             layoutParams = LinearLayout.LayoutParams(

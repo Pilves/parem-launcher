@@ -21,4 +21,30 @@
     <color name="blackTrans35">#59000000</color>
     <color name="blackTrans25">#40000000</color>
     <color name="blackTrans10">#1A000000</color>
+
+    <!-- Direction B: tinted mono. Home text keeps black/white. -->
+    <color name="parem_text_light">#1C1B18</color>
+    <color name="parem_text_dark">#ECE9E3</color>
+    <color name="parem_secondary_light">#56534C</color>
+    <color name="parem_secondary_dark">#B9B4AA</color>
+    <color name="parem_surface_light">#F7F5F0</color>
+    <color name="parem_surface_dark">#151412</color>
+    <color name="parem_variant_light">#ECE8E0</color>
+    <color name="parem_variant_dark">#222120</color>
+    <color name="parem_outline_light">#857F74</color>
+    <color name="parem_outline_dark">#7D786E</color>
+    <color name="parem_accent_light">#1E6B59</color>
+    <color name="parem_accent_dark">#8ED3BD</color>
+    <color name="parem_on_accent_light">#FFFFFF</color>
+    <color name="parem_on_accent_dark">#003C30</color>
+    <color name="parem_accent_container_light">#CBEADF</color>
+    <color name="parem_accent_container_dark">#1F4F43</color>
+    <color name="parem_on_accent_container_light">#06312A</color>
+    <color name="parem_on_accent_container_dark">#CBEADF</color>
+    <color name="parem_destructive_light">#9E2F1F</color>
+    <color name="parem_destructive_dark">#FFB09F</color>
+    <color name="parem_scrim_light">#E6F7F5F0</color>
+    <color name="parem_ripple_light">#1F1E6B59</color>
+    <color name="parem_scrim_dark">#E6151412</color>
+    <color name="parem_ripple_dark">#1F8ED3BD</color>
 </resources>

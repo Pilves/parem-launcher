@@ -53,7 +53,7 @@ class ScreenTimeGraphView @JvmOverloads constructor(
     private var downY = 0f
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
 
-    private val primaryColor = context.getColorFromAttr(R.attr.primaryColor)
+    private val primaryColor = context.getColorFromAttr(R.attr.textColor)
 
     // Past days are dimmed, today gets the full-strength variants below.
     // 60% text on the sheet background is 5.7:1 in the light theme (WCAG

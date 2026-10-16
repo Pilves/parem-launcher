@@ -50,14 +50,14 @@ class CreateFolderDialog(
                 gravity = Gravity.CENTER_HORIZONTAL
                 bottomMargin = 16.dpToPx()
             }
-            setBackgroundColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setBackgroundColor(context.getColorFromAttr(R.attr.textSecondaryColor))
         })
 
         // Title
         val title = TextView(context).apply {
             text = context.getString(R.string.create_folder)
             textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             setTypeface(null, Typeface.BOLD)
             setPadding(0, 0, 0, 12.dpToPx())
         }
@@ -67,14 +67,14 @@ class CreateFolderDialog(
         val nameLabel = TextView(context).apply {
             text = context.getString(R.string.folder_name)
             textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
         }
         container.addView(nameLabel)
 
         val nameInput = EditText(context).apply {
             textSize = 16f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColor))
-            setHintTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.textColor))
+            setHintTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             hint = context.getString(R.string.folder_name_hint)
             background = null
             setPadding(0, 8.dpToPx(), 0, 16.dpToPx())
@@ -85,7 +85,7 @@ class CreateFolderDialog(
         val appsLabel = TextView(context).apply {
             text = context.getString(R.string.select_apps)
             textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             setPadding(0, 8.dpToPx(), 0, 4.dpToPx())
         }
         container.addView(appsLabel)
@@ -95,7 +95,7 @@ class CreateFolderDialog(
         fun rowId(app: AppModel) = "${app.appPackage}|${app.activityClassName ?: ""}|${app.user}"
         val appsById = apps.associateBy(::rowId)
         val pickerAdapter = AppPickerAdapter(
-            textColor = context.getColorFromAttr(R.attr.primaryColor),
+            textColor = context.getColorFromAttr(R.attr.textColor),
             maxSelected = MAX_ITEMS,
             entries = apps.map { AppPickerAdapter.Entry(rowId(it), it.appLabel) }
         )
@@ -106,7 +106,7 @@ class CreateFolderDialog(
         // unchecking one drops it
         val websites = mutableListOf<FolderApp>()
         val websiteRows = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-        val textColor = context.getColorFromAttr(R.attr.primaryColor)
+        val textColor = context.getColorFromAttr(R.attr.textColor)
         container.addView(TextView(context).apply {
             text = context.getString(R.string.add_website)
             textSize = 14f
@@ -141,7 +141,7 @@ class CreateFolderDialog(
         val saveButton = TextView(context).apply {
             text = context.getString(R.string.save)
             textSize = 16f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+            setTextColor(context.getColorFromAttr(R.attr.textColor))
             setTypeface(null, Typeface.BOLD)
             setPadding(0, 16.dpToPx(), 0, 0)
             setOnClickListener {

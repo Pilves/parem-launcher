@@ -2,20 +2,56 @@
 
     <!-- Colour items only; everything else lives in Base.AppTheme (values/styles.xml) -->
     <style name="AppTheme" parent="Base.AppTheme">
-        <item name="colorPrimary">@color/white</item>
-        <item name="colorAccent">@color/white</item>
+        <item name="colorPrimary">@color/parem_text_dark</item>
+        <item name="colorAccent">@color/parem_accent_dark</item>
 
         <item name="primaryColor">@color/white</item>
-        <item name="primaryInverseColor">@color/black</item>
+        <item name="primaryInverseColor">@color/parem_surface_dark</item>
         <item name="primaryTextShadowColor">@color/blackTrans50</item>
         <item name="primaryColorTrans50">@color/whiteTrans50</item>
         <item name="primaryColorTrans60">@color/whiteTrans60</item>
         <item name="primaryColorTrans80">@color/whiteTrans80</item>
         <item name="primaryColorInverseTrans80">@color/blackTrans80</item>
-        <item name="primaryShadeColor">@color/blackTrans10</item>
-        <item name="primaryShadeDarkColor">@color/blackTrans25</item>
-        <item name="surfaceScrimColor">@color/blackTrans85</item>
+        <item name="primaryShadeColor">@color/parem_variant_dark</item>
+        <item name="primaryShadeDarkColor">@color/parem_accent_container_dark</item>
+        <item name="surfaceScrimColor">@color/parem_scrim_dark</item>
         <item name="wallpaperDimColor">@color/blackTrans35</item>
+        <item name="textColor">@color/parem_text_dark</item>
+        <item name="textSecondaryColor">@color/parem_secondary_dark</item>
+        <item name="surfaceColor">@color/parem_surface_dark</item>
+        <item name="surfaceVariantColor">@color/parem_variant_dark</item>
+        <item name="outlineColor">@color/parem_outline_dark</item>
+        <item name="accentColor">@color/parem_accent_dark</item>
+        <item name="onAccentColor">@color/parem_on_accent_dark</item>
+        <item name="accentContainerColor">@color/parem_accent_container_dark</item>
+        <item name="onAccentContainerColor">@color/parem_on_accent_container_dark</item>
+        <item name="destructiveColor">@color/parem_destructive_dark</item>
+        <item name="colorControlHighlight">@color/parem_ripple_dark</item>
+        <item name="colorControlActivated">@color/parem_accent_dark</item>
     </style>
 
+
+    <style name="ThemeOverlay.Parem.Eink" parent="">
+        <item name="textColor">@color/white</item>
+        <item name="textSecondaryColor">@color/white</item>
+        <item name="surfaceColor">@color/black</item>
+        <item name="surfaceVariantColor">@color/black</item>
+        <item name="outlineColor">@color/white</item>
+        <item name="accentColor">@color/white</item>
+        <item name="onAccentColor">@color/black</item>
+        <item name="accentContainerColor">@color/black</item>
+        <item name="onAccentContainerColor">@color/white</item>
+        <item name="destructiveColor">@color/white</item>
+        <item name="primaryInverseColor">@color/black</item>
+        <item name="primaryShadeColor">@color/black</item>
+        <item name="primaryShadeDarkColor">@color/black</item>
+        <item name="primaryColorTrans50">@color/white</item>
+        <item name="primaryColorTrans60">@color/white</item>
+        <item name="primaryColorTrans80">@color/white</item>
+        <item name="surfaceScrimColor">@color/black</item>
+        <item name="colorAccent">@color/white</item>
+        <item name="colorControlActivated">@color/white</item>
+        <item name="colorControlHighlight">@color/white</item>
+        <item name="primaryTextShadowColor">@android:color/transparent</item>
+    </style>
 </resources>

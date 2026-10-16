@@ -96,7 +96,7 @@ object QuietListSheet {
         preselected: Set<String>,
         onDone: (Set<String>) -> Unit,
     ) {
-        val textColor = context.getColorFromAttr(R.attr.primaryColor)
+        val textColor = context.getColorFromAttr(R.attr.textColor)
         val adapter = AppPickerAdapter(
             textColor = textColor,
             maxSelected = Int.MAX_VALUE,

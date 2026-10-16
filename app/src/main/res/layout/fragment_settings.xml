@@ -35,9 +35,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp"
-                android:background="@drawable/rounded_rect_shade_color"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="0dp">
 
                 <FrameLayout
                     android:layout_width="match_parent"
@@ -137,7 +136,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/hidden_apps"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -173,7 +172,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/crash_reports"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -195,12 +194,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="12dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/rounded_rect_shade_color"
+                android:layout_marginTop="@dimen/section_gap"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:orientation="vertical"
-                android:padding="12dp"
+                android:padding="0dp"
                 tools:visibility="visible">
 
                 <TextView
@@ -211,7 +209,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="12dp"
                     android:text="@string/home_screen"
-                    android:textColor="?attr/primaryColor" />
+                    android:textColor="?attr/textColor" />
 
                 <!-- Apps on home screen -->
                 <FrameLayout
@@ -237,7 +235,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/apps_on_home_screen"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -256,7 +254,7 @@
                         android:id="@+id/appsNumSelectLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -389,7 +387,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/show_date_time"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -406,7 +404,7 @@
                         android:id="@+id/dateTimeSelectLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -482,7 +480,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/home_layout_alignment"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -499,7 +497,7 @@
                         android:id="@+id/alignmentSelectLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:fadingEdgeLength="8dp"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -537,7 +535,7 @@
                                 android:layout_height="match_parent"
                                 android:layout_marginVertical="4dp"
                                 android:layout_marginEnd="16dp"
-                                android:background="?attr/primaryColorTrans50" />
+                                android:background="?attr/textSecondaryColor" />
 
                             <TextView
                                 android:id="@+id/alignmentLeft"
@@ -598,7 +596,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/lock_home_layout"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -634,7 +632,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/show_icons"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -672,7 +670,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/sort_apps_by_usage"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -708,7 +706,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/contact_search"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -744,7 +742,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/search_history"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -801,7 +799,7 @@
                         android:paddingVertical="8dp"
                         android:importantForAccessibility="no"
                         android:text="@string/auto_launch_single_match"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:id="@+id/autoLaunchToggle"
@@ -839,7 +837,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/widget_placement"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -861,12 +859,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="12dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/rounded_rect_shade_color"
+                android:layout_marginTop="@dimen/section_gap"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:orientation="vertical"
-                android:padding="12dp"
+                android:padding="0dp"
                 tools:visibility="visible">
 
                 <TextView
@@ -877,7 +874,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="12dp"
                     android:text="@string/appearance"
-                    android:textColor="?attr/primaryColor" />
+                    android:textColor="?attr/textColor" />
 
                 <!-- Theme mode (opens bottom sheet) -->
                 <FrameLayout
@@ -900,7 +897,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/theme_mode"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -939,7 +936,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/text_size"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -958,7 +955,7 @@
                         android:id="@+id/textSizesLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -1038,7 +1035,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/bold_font"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1146,7 +1143,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/notification_bar"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1186,7 +1183,7 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/weather"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1208,10 +1205,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="12dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/rounded_rect_shade_color"
+                android:layout_marginTop="@dimen/section_gap"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="0dp">
 
                 <TextView
                     android:id="@+id/tvGestures"
@@ -1222,7 +1218,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="12dp"
                     android:text="@string/gestures"
-                    android:textColor="?attr/primaryColor" />
+                    android:textColor="?attr/textColor" />
 
                 <!-- Swipe left action -->
                 <LinearLayout
@@ -1249,7 +1245,7 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/swipe_left_action"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1288,7 +1284,7 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/swipe_right_action"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1327,7 +1323,7 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/swipe_down_for"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1345,7 +1341,7 @@
                         android:id="@+id/swipeDownSelectLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -1410,7 +1406,7 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/double_tap_action"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1436,7 +1432,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="12dp"
                     android:paddingVertical="8dp"
-                    android:textColor="?attr/primaryColor"
+                    android:textColor="?attr/textColor"
                     android:visibility="gone"
                     tools:text="@string/lock_admin_off_row" />
 
@@ -1461,7 +1457,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/auto_show_keyboard"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1501,7 +1497,7 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/gesture_letters"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1523,10 +1519,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="12dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/rounded_rect_shade_color"
+                android:layout_marginTop="@dimen/section_gap"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="0dp">
 
                 <TextView
                     style="@style/TextLarge"
@@ -1536,7 +1531,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="12dp"
                     android:text="@string/wellbeing"
-                    android:textColor="?attr/primaryColor" />
+                    android:textColor="?attr/textColor" />
 
                 <!-- Screen time (moved from Home Screen) -->
                 <FrameLayout
@@ -1561,7 +1556,7 @@
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/usage_access"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1601,7 +1596,7 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/app_limits"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1641,7 +1636,7 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/focus_mode"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1681,7 +1676,7 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/grayscale"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
                         android:importantForAccessibility="no"
@@ -1726,7 +1721,7 @@
                             android:layout_weight="1"
                             android:paddingVertical="8dp"
                             android:text="@string/quiet_notif"
-                            android:textColor="?attr/primaryColor" />
+                            android:textColor="?attr/textColor" />
 
                         <TextView
                             android:importantForAccessibility="no"
@@ -1771,7 +1766,7 @@
                                 android:layout_weight="1"
                                 android:paddingVertical="8dp"
                                 android:text="@string/quiet_allowed_apps"
-                                android:textColor="?attr/primaryColor" />
+                                android:textColor="?attr/textColor" />
 
                             <TextView
                                 android:importantForAccessibility="no"
@@ -1809,7 +1804,7 @@
                                 android:layout_weight="1"
                                 android:paddingVertical="8dp"
                                 android:text="@string/quiet_make_silent"
-                                android:textColor="?attr/primaryColor" />
+                                android:textColor="?attr/textColor" />
 
                             <TextView
                                 android:importantForAccessibility="no"
@@ -1833,7 +1828,7 @@
                         android:layout_marginStart="8dp"
                         android:layout_marginEnd="24dp"
                         android:paddingVertical="4dp"
-                        android:textColor="?attr/primaryColorTrans50"
+                        android:textColor="?attr/textSecondaryColor"
                         android:visibility="gone" />
                 </LinearLayout>
 

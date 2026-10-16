@@ -15,4 +15,14 @@
     <!-- End colour of the opt-in home gradient behind the text (DESIGN 5) -->
     <attr name="wallpaperDimColor" format="color" />
     <attr name="mainFontFamily" format="string" />
+    <attr name="textColor" format="color" />
+    <attr name="textSecondaryColor" format="color" />
+    <attr name="surfaceColor" format="color" />
+    <attr name="surfaceVariantColor" format="color" />
+    <attr name="outlineColor" format="color" />
+    <attr name="accentColor" format="color" />
+    <attr name="onAccentColor" format="color" />
+    <attr name="accentContainerColor" format="color" />
+    <attr name="onAccentContainerColor" format="color" />
+    <attr name="destructiveColor" format="color" />
 </resources>

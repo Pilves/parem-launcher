@@ -58,8 +58,8 @@ class WeatherSettingsDialog(
         }
 
         val cities = mutableListOf<CityResult>()
-        val textColor = context.getColorFromAttr(R.attr.primaryColor)
-        val subtextColor = context.getColorFromAttr(R.attr.primaryColorTrans50)
+        val textColor = context.getColorFromAttr(R.attr.textColor)
+        val subtextColor = context.getColorFromAttr(R.attr.textSecondaryColor)
 
         val adapter = object : BaseAdapter() {
             override fun getCount() = cities.size
@@ -86,7 +86,7 @@ class WeatherSettingsDialog(
                 if (detail.isNotEmpty()) {
                     val detailTv = TextView(context).apply {
                         text = detail
-                        textSize = 13f
+                        textSize = 14f
                         setTextColor(subtextColor)
                     }
                     container.addView(detailTv)
