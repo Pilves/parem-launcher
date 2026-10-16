@@ -267,5 +267,11 @@ per package; the rest of each of those fragments is still in
   Verified: the installed SDK device catalog lists 7.6in Foldable and pixel_tablet; compile, JVM tests, debug assembly and handoff harness pass.
   Not verified: the corrected foldable CI leg has not run yet; the old job failed before emulator creation or any application test.
   Easy to get wrong: Studio device names are not necessarily avdmanager profile IDs; rerun the workflow on the corrected commit, not the failed job at the old SHA.
+- **M4-WP60 (PR #0):** The perf driver validates home/drawer resource nodes and search focus, captures phase hierarchies with screenshots, and rejects wrong screens or fewer than 30 frames.
+  Contract: baseline, tolerance and scroll workload are unchanged; cold/return regressions remain reported even when a frame phase is invalid; invalid runs cannot overwrite the baseline.
+  Contract: new perf debug prefs disable single-match auto-launch; the functional launch test targets search_src_text and waits for Settings results before submitting Enter.
+  Verified: parser/measurement guard tests cover wrong package/resource, missing frames and preserving cold-start failures; required repository checks pass.
+  Not verified: emulator CI and physical-device measurements on this commit; observed drawer-close/notification-shade escapes may now fail explicitly and still need follow-up.
+  Easy to get wrong: the CI functional reports previously contained no failure screen; Settings launch failures now include package and hierarchy, so diagnose that evidence before changing app behavior.
 
 <!-- handoff:end -->

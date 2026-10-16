@@ -122,6 +122,32 @@ export function summaryTable(baseline, current) {
 const sleepMs = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 const adb = (...args) => execFileSync('adb', ['shell', ...args], { encoding: 'utf8' });
 
+// Require visible app content, not a stale package name behind System UI.
+export function hasScreen(xml, pkg, resource) {
+  return [...xml.matchAll(/<node\b[^>]*>/g)].some(([node]) =>
+    node.includes(`package="${pkg}"`)
+    && new RegExp(`resource-id="[^" ]+:id/${resource}"`).test(node));
+}
+
+export function measurementProblems(result) {
+  return ['drawerScroll', 'omniboxTyping'].flatMap((phase) => {
+    const value = result[phase];
+    if (value?.error) return [`${phase}: ${value.error}`];
+    return value?.frames >= MIN_FRAMES ? [] : [`${phase}: only ${value?.frames ?? 0} frames (need ${MIN_FRAMES})`];
+  });
+}
+
+function hierarchy() {
+  adb('uiautomator dump /data/local/tmp/parem-perf.xml');
+  return adb('cat /data/local/tmp/parem-perf.xml');
+}
+
+function requireScreen(pkg, resource) {
+  const xml = hierarchy();
+  if (!hasScreen(xml, pkg, resource)) throw new Error(`expected ${pkg} ${resource}; hierarchy: ${xml}`);
+  return xml;
+}
+
 function seedPrefs(pkg) {
   // Skip the role chooser and onboarding, as SmokeTest does; never overwrite
   // existing prefs. Fails harmlessly on a non-debuggable build.
@@ -130,7 +156,8 @@ function seedPrefs(pkg) {
   const file = 'shared_prefs/com.parem.launcher.xml';
   const xml = `<?xml version=\\"1.0\\" encoding=\\"utf-8\\" standalone=\\"yes\\" ?><map>`
     + `<boolean name=\\"FIRST_OPEN\\" value=\\"false\\" />`
-    + `<int name=\\"ONBOARDING_VERSION_SEEN\\" value=\\"${version}\\" /></map>`;
+    + `<int name=\\"ONBOARDING_VERSION_SEEN\\" value=\\"${version}\\" />`
+    + `<boolean name=\\"AUTO_LAUNCH_SINGLE_MATCH\\" value=\\"false\\" /></map>`;
   try {
     adb(`run-as ${pkg} sh -c 'mkdir -p shared_prefs && (test -f ${file} || printf %s "${xml}" > ${file})'`);
   } catch {
@@ -169,17 +196,30 @@ export const enoughFrames = (f) => (f.frames !== null && f.frames >= MIN_FRAMES 
 // shot: where to save a screenshot of what the phase ended on, so a run with
 // too few frames can be diagnosed from the CI artifact
 function frames(pkg, open, act, shot) {
-  startHome();
-  sleepMs(1500);
-  open();
-  sleepMs(1500);
-  adb(`dumpsys gfxinfo ${pkg} reset`);
-  act();
-  sleepMs(1000);
-  const out = parseGfxinfo(adb(`dumpsys gfxinfo ${pkg}`));
-  if (shot) writeFileSync(shot, execFileSync('adb', ['exec-out', 'screencap', '-p']));
-  startHome();
-  return enoughFrames(out);
+  let out;
+  try {
+    startHome();
+    sleepMs(1500);
+    requireScreen(pkg, 'homeAppsLayout');
+    open();
+    sleepMs(1500);
+    requireScreen(pkg, 'search_src_text');
+    adb(`dumpsys gfxinfo ${pkg} reset`);
+    act();
+    sleepMs(1000);
+    out = parseGfxinfo(adb(`dumpsys gfxinfo ${pkg}`));
+    requireScreen(pkg, 'search_src_text');
+  } catch (error) {
+    out = { error: error.message };
+  } finally {
+    // Preserve the failed screen instead of silently measuring another app.
+    if (shot) {
+      writeFileSync(shot, execFileSync('adb', ['exec-out', 'screencap', '-p']));
+      writeFileSync(shot.replace(/\.png$/, '.xml'), hierarchy());
+    }
+    startHome();
+  }
+  return out.error ? out : enoughFrames(out);
 }
 
 function samples(label, runs, fn, accept) {
@@ -215,8 +255,19 @@ export function measure(pkg, shotDir) {
       }
     }
   }, shot('drawer-scroll.png'));
-  // A leading space turns off auto-launch on a single match
-  const omniboxTyping = frames(pkg, openDrawer, () => {
+  // Seeded debug prefs disable auto-launch; focus the actual input explicitly.
+  const omniboxTyping = frames(pkg, () => {
+    openDrawer();
+    sleepMs(1500);
+    const xml = requireScreen(pkg, 'search_src_text');
+    const node = [...xml.matchAll(/<node\b[^>]*>/g)].find(([n]) => /resource-id="[^" ]+:id\/search_src_text"/.test(n))?.[0];
+    const bounds = node?.match(/bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);
+    if (!bounds) throw new Error('search field has no bounds');
+    adb(`input tap ${Math.round((Number(bounds[1]) + Number(bounds[3])) / 2)} ${Math.round((Number(bounds[2]) + Number(bounds[4])) / 2)}`);
+    const focused = [...hierarchy().matchAll(/<node\b[^>]*>/g)].some(([n]) =>
+      /resource-id="[^" ]+:id\/search_src_text"/.test(n) && n.includes('focused="true"'));
+    if (!focused) throw new Error('search text field is not focused');
+  }, () => {
     for (let round = 0; round < 3; round++) {
       for (const c of ['%s', ...'settings']) {
         adb(`input text ${c}`);
@@ -242,7 +293,12 @@ function main(argv) {
   const current = measure(pkg, outDir);
   const json = JSON.stringify(current, null, 2) + '\n';
   if (outDir) writeFileSync(opt('--out'), json);
+  const invalid = measurementProblems(current);
   if (argv.includes('--write-baseline')) {
+    if (invalid.length) {
+      console.error(json + invalid.join('\n'));
+      return 1;
+    }
     writeFileSync(BASELINE_FILE, json);
     console.log(`wrote ${BASELINE_FILE}`);
     return 0;
@@ -256,10 +312,10 @@ function main(argv) {
   const table = summaryTable(baseline, current);
   const problems = compare(baseline, current);
   const budget = overBudget(current);
-  const report = [table, '', ...problems.map((p) => `REGRESSION ${p}`), ...budget.map((b) => `over budget (not gated) ${b}`)].join('\n');
+  const report = [table, '', ...invalid.map((p) => `INVALID MEASUREMENT ${p}`), ...problems.map((p) => `REGRESSION ${p}`), ...budget.map((b) => `over budget (not gated) ${b}`)].join('\n');
   console.log(json + '\n' + report);
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Performance\n\n${report}\n`);
-  return problems.length ? 1 : 0;
+  return problems.length || invalid.length ? 1 : 0;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

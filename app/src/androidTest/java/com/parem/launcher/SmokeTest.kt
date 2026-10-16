@@ -13,6 +13,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.ByteArrayOutputStream
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
@@ -62,19 +63,25 @@ class SmokeTest {
     fun omniboxLaunchesApp() {
         openDrawer()
         // R.id.search is the SearchView container; setText only works on its inner field
-        val field = device.wait(Until.findObject(By.focused(true)), TIMEOUT)
-            ?: device.wait(
-                Until.findObject(By.res("${searchId.substringBefore(':')}:id/search_src_text")),
-                TIMEOUT
-            )
-        assertNotNull("search field not found", field)
-        field.text = "Settings"
-        // Auto-launch may already have opened Settings; Enter is then harmless
-        device.pressEnter()
-        assertTrue(
-            "Settings not launched",
-            device.wait(Until.hasObject(By.pkg(SETTINGS_PKG).depth(0)), TIMEOUT)
+        val field = device.wait(
+            Until.findObject(By.res("${searchId.substringBefore(':')}:id/search_src_text")),
+            TIMEOUT
         )
+        assertNotNull("search field not found", field)
+        field.click()
+        field.text = "Settings"
+        // Filtering and list submission are asynchronous. Do not submit an old row.
+        val settingsRow = By.res(context.resources.getResourceName(R.id.appTitle)).text("Settings")
+        val ready = device.wait(Until.hasObject(By.pkg(SETTINGS_PKG).depth(0)), 500L)
+            || device.wait(Until.hasObject(settingsRow), TIMEOUT)
+        if (ready && device.currentPackageName != SETTINGS_PKG) device.pressEnter()
+        val launched = device.wait(Until.hasObject(By.pkg(SETTINGS_PKG).depth(0)), TIMEOUT)
+        if (!launched) {
+            val hierarchy = ByteArrayOutputStream()
+            device.dumpWindowHierarchy(hierarchy)
+            assertTrue("Settings not launched; package=${device.currentPackageName}; " +
+                hierarchy.toString("UTF-8"), false)
+        }
     }
 
     @Test
