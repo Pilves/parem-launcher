@@ -6,6 +6,7 @@ import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.icu.util.Calendar
 import android.util.Log
+import com.parem.launcher.helper.convertEpochToMidnight
 import kotlin.math.min
 
 class EventLogWrapper(context: Context) {
@@ -229,11 +230,7 @@ class EventLogWrapper(context: Context) {
     fun getForegroundStatsByRelativeDay(offset: Int): List<ComponentForegroundStat> {
         val cal = Calendar.getInstance()
         cal.add(Calendar.DAY_OF_YEAR, -offset)
-        // Set to start of the day
-        cal.set(Calendar.HOUR_OF_DAY, 0)
-        cal.set(Calendar.MINUTE, 0)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
+        cal.timeInMillis = cal.timeInMillis.convertEpochToMidnight()
         val beginTime = cal.timeInMillis
 
         // Set to start of the next day

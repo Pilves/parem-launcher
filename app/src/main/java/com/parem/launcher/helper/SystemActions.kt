@@ -49,32 +49,19 @@ fun expandNotificationDrawer(context: Context) {
     }
 }
 
-fun openDialerApp(context: Context) {
+private fun Context.startOrLog(intent: Intent, what: String) {
     try {
-        val sendIntent = Intent(Intent.ACTION_DIAL)
-        context.startActivity(sendIntent)
+        startActivity(intent)
     } catch (e: Exception) {
-        Log.e("Utils", "Failed to open dialer app", e)
+        Log.e("Utils", "Failed to open $what", e)
     }
 }
 
-fun openCameraApp(context: Context) {
-    try {
-        val sendIntent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
-        context.startActivity(sendIntent)
-    } catch (e: Exception) {
-        Log.e("Utils", "Failed to open camera app", e)
-    }
-}
+fun openDialerApp(context: Context) = context.startOrLog(Intent(Intent.ACTION_DIAL), "dialer app")
 
-fun openAlarmApp(context: Context) {
-    try {
-        val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
-        context.startActivity(intent)
-    } catch (e: Exception) {
-        Log.e("Utils", "Failed to open alarm app", e)
-    }
-}
+fun openCameraApp(context: Context) = context.startOrLog(Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA), "camera app")
+
+fun openAlarmApp(context: Context) = context.startOrLog(Intent(AlarmClock.ACTION_SHOW_ALARMS), "alarm app")
 
 fun openCalendar(context: Context) {
     try {

@@ -8,6 +8,7 @@ import android.widget.TextView
 import com.parem.launcher.R
 import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.UsageStatsHelper
+import com.parem.launcher.helper.convertEpochToMidnight
 import com.parem.launcher.helper.WeeklyReview
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.dpToPx
@@ -129,10 +130,7 @@ class ScreenTimeGraphDialog(private val context: Context) {
 
                     // Scan by explicit day bounds so the cache key and the
                     // scanned range can't disagree if midnight passes mid-loop
-                    calendar.set(Calendar.HOUR_OF_DAY, 0)
-                    calendar.set(Calendar.MINUTE, 0)
-                    calendar.set(Calendar.SECOND, 0)
-                    calendar.set(Calendar.MILLISECOND, 0)
+                    calendar.timeInMillis = calendar.timeInMillis.convertEpochToMidnight()
                     val dayStart = calendar.timeInMillis
                     calendar.add(Calendar.DAY_OF_YEAR, 1)
                     val dayEnd = calendar.timeInMillis

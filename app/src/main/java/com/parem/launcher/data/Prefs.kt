@@ -258,16 +258,8 @@ class Prefs(context: Context) {
 
     fun getCachedUsageStats(): Map<String, Long> {
         usageStatsCache?.let { return it }
-        val raw = prefs.getString(CACHED_USAGE_STATS, "").toString()
-        if (raw.isBlank()) return emptyMap()
-        val parsed = raw.split(",").mapNotNull { entry ->
-            val sep = entry.indexOf('=')
-            if (sep > 0) {
-                val pkg = entry.substring(0, sep)
-                val time = entry.substring(sep + 1).toLongOrNull()
-                if (time != null) pkg to time else null
-            } else null
-        }.toMap()
+        val parsed = csvPairs(prefs.getString(CACHED_USAGE_STATS, "").toString(), '=')
+            .mapNotNull { (pkg, time) -> time.toLongOrNull()?.let { pkg to it } }.toMap()
         usageStatsCache = parsed
         return parsed
     }
@@ -323,26 +315,15 @@ class Prefs(context: Context) {
     }
 
     fun removeWidgetHeight(widgetId: Int) {
-        val current = widgetHeightsCache ?: parseWidgetHeights()
-        val updated = current.toMutableMap()
-        updated.remove(widgetId)
-        val raw = updated.entries.joinToString(",") { "${it.key}:${it.value}" }
-        prefs.edit { putString(WIDGET_HEIGHTS, raw) }
-        widgetHeightsCache = updated
+        val map = parseWidgetHeights().toMutableMap()
+        map.remove(widgetId)
+        widgetHeights = map.entries.joinToString(",") { "${it.key}:${it.value}" }
     }
 
     private fun parseWidgetHeights(): Map<Int, Int> {
         widgetHeightsCache?.let { return it }
-        val raw = widgetHeights
-        if (raw.isBlank()) return emptyMap()
-        val parsed = raw.split(",").mapNotNull { entry ->
-            val parts = entry.split(":")
-            if (parts.size == 2) {
-                val id = parts[0].trim().toIntOrNull()
-                val h = parts[1].trim().toIntOrNull()
-                if (id != null && h != null) id to h else null
-            } else null
-        }.toMap()
+        val parsed = csvPairs(widgetHeights, ':')
+            .mapNotNull { (id, h) -> id.toIntOrNull()?.let { i -> h.toIntOrNull()?.let { i to it } } }.toMap()
         widgetHeightsCache = parsed
         return parsed
     }
@@ -370,20 +351,19 @@ class Prefs(context: Context) {
 
     private fun parseWidgetProviders(): Map<Int, String> {
         widgetProvidersCache?.let { return it }
-        val raw = widgetProviders
-        if (raw.isBlank()) return emptyMap()
-        val parsed = raw.split(",").mapNotNull { entry ->
-            // Format: "id:component/class" — split only on first ':'
-            val sep = entry.indexOf(':')
-            if (sep > 0) {
-                val id = entry.substring(0, sep).trim().toIntOrNull()
-                val comp = entry.substring(sep + 1).trim()
-                if (id != null && comp.isNotBlank()) id to comp else null
-            } else null
-        }.toMap()
+        // Format: "id:component/class" — split only on first ':'
+        val parsed = csvPairs(widgetProviders, ':')
+            .mapNotNull { (id, comp) -> id.toIntOrNull()?.takeIf { comp.isNotBlank() }?.let { it to comp } }.toMap()
         widgetProvidersCache = parsed
         return parsed
     }
+
+    /** Splits "k<sep>v,k<sep>v" into trimmed pairs, splitting each entry on its first [sep]. */
+    private fun csvPairs(raw: String, sep: Char): List<Pair<String, String>> =
+        raw.split(",").mapNotNull { entry ->
+            val i = entry.indexOf(sep)
+            if (i > 0) entry.substring(0, i).trim() to entry.substring(i + 1).trim() else null
+        }
 
     fun migrateWidgetIfNeeded(appWidgetManager: android.appwidget.AppWidgetManager? = null) {
         if (widgetId != -1 && widgetIds.isBlank()) {

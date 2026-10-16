@@ -22,7 +22,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.parem.launcher.BuildConfig
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import java.util.Calendar
@@ -73,11 +72,6 @@ fun Context.resetDefaultLauncher() {
     } catch (e: Exception) {
         Log.e("Extensions", "Failed to reset default launcher", e)
     }
-}
-
-fun Context.isDefaultLauncher(): Boolean {
-    val launcherPackageName = getDefaultLauncherPackage(this)
-    return BuildConfig.APPLICATION_ID == launcherPackageName
 }
 
 fun Context.resetLauncherViaFakeActivity() {

@@ -33,7 +33,7 @@ import com.parem.launcher.helper.HomeKeyInput
 import com.parem.launcher.helper.TextScale
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.isDarkThemeOn
-import com.parem.launcher.helper.isDefaultLauncher
+import com.parem.launcher.helper.isParemDefault
 import com.parem.launcher.helper.isEinkDisplay
 import com.parem.launcher.helper.resetLauncherViaFakeActivity
 import com.parem.launcher.helper.setPlainWallpaper
@@ -128,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         ) { result ->
             // Only when the grant didn't take: once Parem holds the role, the fake-activity
             // reset would fire a HOME chooser and then open Default apps settings
-            if (result.resultCode == Activity.RESULT_OK && !isDefaultLauncher())
+            if (result.resultCode == Activity.RESULT_OK && !isParemDefault(this))
                 resetLauncherViaFakeActivity()
         }
 
@@ -268,7 +268,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initObservers(viewModel: MainViewModel) {
         viewModel.resetLauncherLiveData.observe(this) {
-            if (isDefaultLauncher())
+            if (isParemDefault(this))
                 resetLauncherViaFakeActivity()
             else
                 showLauncherSelector(launcherSelectorLauncher)

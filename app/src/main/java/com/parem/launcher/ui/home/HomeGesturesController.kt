@@ -314,7 +314,7 @@ class HomeGesturesController(
 
             override fun onSwipeUp() {
                 super.onSwipeUp()
-                val slot = try { view.tag.toString().toInt() } catch (_: Exception) { 0 }
+                val slot = view.tag?.toString()?.toIntOrNull() ?: 0
                 if (slot in 1..8 && SwipeUpAppManager.hasSwipeUpApp(context, slot)) {
                     launchSwipeUpApp(slot)
                 } else {
