@@ -33,12 +33,9 @@
         <item name="primaryColorTrans50">@color/whiteTrans50</item>
         <item name="primaryColorTrans60">@color/whiteTrans60</item>
         <item name="primaryColorTrans80">@color/whiteTrans80</item>
-        <item name="primaryColorInverseTrans50">@color/whiteInverseTrans50</item>
         <item name="primaryColorInverseTrans80">@color/whiteInverseTrans80</item>
-        <item name="primaryColorInverseTrans90">@color/whiteInverseTrans90</item>
         <item name="primaryShadeColor">@color/whiteInverseTrans10</item>
         <item name="primaryShadeDarkColor">@color/whiteInverseTrans25</item>
-        <item name="dialogShadeColor">@color/whiteInverseTrans50</item>
 
         <item name="mainFontFamily">sans-serif-light</item>
 
