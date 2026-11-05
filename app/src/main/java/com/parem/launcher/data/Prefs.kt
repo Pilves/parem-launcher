@@ -324,6 +324,13 @@ class Prefs(context: Context) {
         widgetHeights = map.entries.joinToString(",") { "${it.key}:${it.value}" }
     }
 
+    /** Drops heights of widgets that no longer exist, including ones removed by older versions. */
+    fun pruneWidgetHeights(keep: Set<Int>) {
+        val map = parseWidgetHeights()
+        val kept = map.filterKeys { it in keep }
+        if (kept.size != map.size) widgetHeights = kept.entries.joinToString(",") { "${it.key}:${it.value}" }
+    }
+
     fun removeWidgetHeight(widgetId: Int) {
         val map = parseWidgetHeights().toMutableMap()
         map.remove(widgetId)

@@ -306,6 +306,12 @@ see DESIGN.md 13.2). Run with TalkBack on unless a line says otherwise.
 - [ ] Hebrew: "Left" in Settings puts the home apps on the left of the screen.
 - [ ] The focus-blocked toast fits 2 lines at 200% font on the Tab S8.
 
+### Polish (M4-WP30)
+
+- [ ] The focus-schedule and theme-schedule time pickers follow the app's light or dark theme and accent.
+- [ ] The app-count picker's numbers don't collide with its label, including at 200% font.
+- [ ] Editing a folder keeps its name, apps and websites; a hidden app in it survives Save.
+
 ## Sign-off
 
 - [ ] Every box above ticked on: device / Android version ___

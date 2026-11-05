@@ -31,6 +31,7 @@ import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
 import com.parem.launcher.helper.WidgetIdBookkeeping
+import com.parem.launcher.helper.WidgetPickerLabels
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.showToast
@@ -542,7 +543,9 @@ class HomeWidgetController(
         }
         // Invalidated widgets awaiting a rebind keep their place (see restoreWidgets)
         val restorable = prefs.getAllWidgetProviders().keys
-        prefs.setWidgetIdList(WidgetIdBookkeeping.idsToKeep(ids, validIds.toSet(), restorable))
+        val kept = WidgetIdBookkeeping.idsToKeep(ids, validIds.toSet(), restorable)
+        prefs.setWidgetIdList(kept)
+        prefs.pruneWidgetHeights(kept.toSet())
         updateWidgetContainerVisibility()
     }
 
@@ -550,6 +553,7 @@ class HomeWidgetController(
         val mainActivity = mainActivity ?: return
         mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
         prefs.removeWidgetProvider(widgetId)
+        prefs.removeWidgetHeight(widgetId)
 
         val ids = prefs.getWidgetIdList()
         ids.remove(widgetId)
@@ -603,7 +607,12 @@ class HomeWidgetController(
                 }.sortedWith(
                     compareBy<WidgetEntry, String>(String.CASE_INSENSITIVE_ORDER) { it.appName }
                         .thenBy { it.isOtherProfile }
-                )
+                ).let { entries ->
+                    val needsSize = WidgetPickerLabels.needsSize(entries.map { WidgetPickerLabels.Row(it.header, it.widgetLabel) })
+                    entries.mapIndexed { index, entry ->
+                        if (needsSize[index]) entry.copy(widgetLabel = sizedLabel(entry.widgetLabel, entry.provider)) else entry
+                    }
+                }
             }
 
             if (!isActive()) return@launch
@@ -742,6 +751,18 @@ class HomeWidgetController(
         }
     }
 
+    private fun sizedLabel(label: String, provider: AppWidgetProviderInfo): String {
+        val density = context.resources.displayMetrics.density
+        fun cells(target: Int, minPx: Int) = target.takeIf { it > 0 } ?: WidgetPickerLabels.cells((minPx / density).toInt())
+        // Target cells arrived in Android 12; reading them earlier throws
+        val targetCells = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        return context.getString(
+            R.string.widget_label_with_size, label,
+            cells(if (targetCells) provider.targetCellWidth else 0, provider.minWidth),
+            cells(if (targetCells) provider.targetCellHeight else 0, provider.minHeight),
+        )
+    }
+
     /** Android 15+ generated preview for the home-screen category, or null when the provider has none. */
     private fun loadGeneratedPreview(provider: AppWidgetProviderInfo): RemoteViews? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return null
@@ -842,6 +863,7 @@ class HomeWidgetController(
                 val oldId = ids[replaceIndex]
                 mainActivity.appWidgetHost.deleteAppWidgetId(oldId)
                 prefs.removeWidgetProvider(oldId)
+                prefs.removeWidgetHeight(oldId)
                 ids[replaceIndex] = widgetId
             } else {
                 // Add new

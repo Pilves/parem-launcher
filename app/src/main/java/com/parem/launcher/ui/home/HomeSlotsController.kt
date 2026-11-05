@@ -16,6 +16,8 @@ import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.AppModel
+import com.parem.launcher.data.FolderApp
+import com.parem.launcher.data.FolderGroup
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
@@ -386,9 +388,8 @@ class HomeSlotsController(
                 viewModel.selectedApp(AppModel(label, null, "", null, user = Process.myUserHandle(), url = url), slot)
             }.show().dismissOnDestroy(fragment.viewLifecycleOwner)
         }
-        menu.option(context.getString(R.string.create_folder), summary =
-            if (snapshot.folder != null) context.getString(R.string.app_menu_replace_folder) else null) {
-            if (isActive() && !prefs.homeLayoutLocked) showCreateFolderDialog(slot)
+        menu.option(context.getString(if (snapshot.folder != null) R.string.edit_folder else R.string.create_folder)) {
+            if (isActive() && !prefs.homeLayoutLocked) showCreateFolderDialog(slot, snapshot.folder ?: folderSeed(snapshot))
         }
         if (occupied) menu.gap().option(context.getString(
             if (snapshot.folder != null) R.string.app_menu_remove_folder else R.string.app_menu_remove_home), destructive = true) {
@@ -475,14 +476,19 @@ class HomeSlotsController(
         }.also { it.show() }
     }
 
-    private fun showCreateFolderDialog(slot: Int) {
+    /** A folder made from an occupied slot starts with what the slot holds. */
+    private fun folderSeed(slot: SlotSnapshot): FolderGroup? =
+        if (slot.packageName.isEmpty() && slot.url.isEmpty()) null
+        else FolderGroup("", listOf(FolderApp(slot.name, slot.packageName, slot.activity, slot.user, slot.url)))
+
+    private fun showCreateFolderDialog(slot: Int, initial: FolderGroup?) {
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             // Same source as the app drawer: all user profiles, non-hidden apps, no cap.
             val apps = getAppsList(context, prefs, includeRegularApps = true, includeHiddenApps = false)
 
             if (!isActive()) return@launch
 
-            CreateFolderDialog(context, apps) { folderName, selectedApps ->
+            CreateFolderDialog(context, apps, initial) { folderName, selectedApps ->
                 if (!isActive() || prefs.homeLayoutLocked) return@CreateFolderDialog
                 invalidateUndo()
                 prefs.setHomeAppName(slot, "")
