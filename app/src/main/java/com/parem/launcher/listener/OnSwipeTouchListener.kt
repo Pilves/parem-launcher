@@ -7,6 +7,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.ViewConfiguration
+import android.util.Log
+import com.parem.launcher.BuildConfig
 import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.helper.SwipeThresholds
 import com.parem.launcher.helper.SwipeDispatch
@@ -21,9 +23,15 @@ internal open class OnSwipeTouchListener(c: Context?, private val target: View? 
     private val config = SwipeConfig.from(c)
     private val swipe = SwipeDispatch(config.touchSlop, config.minFlingVelocity, config.density)
 
+    // Debug builds only: SmokeTest prints these when the drawer fails to open
+    private fun trace(message: String) {
+        if (BuildConfig.DEBUG) Log.d("ParemGesture", message)
+    }
+
     override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
         when (motionEvent.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                trace("down y=${motionEvent.y} on ${view.javaClass.simpleName} lag=${System.currentTimeMillis() - wallClockOf(motionEvent)}ms")
                 swipe.down(motionEvent.x, motionEvent.y)
                 if (target != null) view.isPressed = true
             }
@@ -32,6 +40,7 @@ internal open class OnSwipeTouchListener(c: Context?, private val target: View? 
                     view.isPressed = false
             }
             MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_CANCEL -> {
+                trace("cancelled by action ${motionEvent.actionMasked}")
                 if (target != null) view.isPressed = false
                 swipe.cancel()
             }
@@ -41,11 +50,15 @@ internal open class OnSwipeTouchListener(c: Context?, private val target: View? 
         val handled = detector.onTouchEvent(motionEvent)
         if (motionEvent.actionMasked == MotionEvent.ACTION_UP) {
             val direction = swipe.release(motionEvent.x, motionEvent.y)
+            trace("up y=${motionEvent.y} after ${motionEvent.eventTime - motionEvent.downTime}ms -> $direction")
             dispatchSwipe(direction)
             return handled || direction != null
         }
         return handled
     }
+
+    private fun wallClockOf(event: MotionEvent) =
+        System.currentTimeMillis() - (android.os.SystemClock.uptimeMillis() - event.eventTime)
 
     fun cleanup() {
         gestureDetector = null
@@ -57,6 +70,7 @@ internal open class OnSwipeTouchListener(c: Context?, private val target: View? 
         }
 
         override fun onSingleTapUp(e: MotionEvent): Boolean {
+            trace("single tap")
             swipe.cancel()
             onClick()
             return super.onSingleTapUp(e)
@@ -68,6 +82,7 @@ internal open class OnSwipeTouchListener(c: Context?, private val target: View? 
         }
 
         override fun onLongPress(e: MotionEvent) {
+            trace("long press after ${android.os.SystemClock.uptimeMillis() - e.downTime}ms")
             swipe.cancel()
             onLongClick()
         }

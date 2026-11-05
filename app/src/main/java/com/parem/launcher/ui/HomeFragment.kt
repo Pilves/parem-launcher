@@ -227,6 +227,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         try {
             findNavController().navigate(R.id.action_mainFragment_to_appListFragment, args)
         } catch (e: Exception) {
+            android.util.Log.w("ParemGesture", "drawer navigation failed", e)
             CrashReporter.reportNonFatal("HomeFragment: Navigation to app list failed, using fallback", e)
             findNavController().navigate(R.id.appListFragment, args)
         }

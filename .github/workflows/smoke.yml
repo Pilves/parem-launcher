@@ -13,6 +13,10 @@ on:
         description: Compare baseline, candidate and StrictMode overhead on one emulator
         type: boolean
         default: false
+      drawer_stress_runs:
+        description: Instead of the suite, run the drawer tests this many times per device, each in a fresh process
+        type: string
+        default: '0'
 
 permissions:
   contents: read
@@ -75,16 +79,16 @@ jobs:
           # suite warms Android. Historical timings use a different scroll driver.
           # Each script line runs independently, hence the one-line conditional.
           script: |
-            ./gradlew connectedPlayDebugAndroidTest
-            ./gradlew connectedFullDebugAndroidTest
-            if [ "${{ matrix.perf }}" = "true" ]; then bash scripts/perf-compare.sh; fi
+            bash scripts/run-instrumented.sh "${{ inputs.drawer_stress_runs }}"
+            if [ "${{ matrix.perf }}" = "true" ] && [ "${{ inputs.drawer_stress_runs || '0' }}" = "0" ]; then bash scripts/perf-compare.sh; fi
 
       - name: Upload test reports
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: smoke-test-reports-${{ matrix.profile }}-${{ matrix.api-level }}
           path: app/build/reports/androidTests/
+          if-no-files-found: ignore
           retention-days: 14
 
       - name: Upload perf result

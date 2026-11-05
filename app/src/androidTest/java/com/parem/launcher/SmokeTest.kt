@@ -25,14 +25,20 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestName
 import java.io.ByteArrayOutputStream
 import java.util.Locale
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class SmokeTest {
+
+    @get:Rule
+    val testName = TestName()
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val device = UiDevice.getInstance(instrumentation)
@@ -229,13 +235,40 @@ class SmokeTest {
         val w = device.displayWidth
         val h = device.displayHeight
         device.swipe(w / 2, h * 3 / 4, w / 2, h / 4, 20)
-        assertTrue(
-            "drawer not opened",
-            device.wait(Until.hasObject(By.res(searchId)), TIMEOUT)
-        )
+        if (!device.wait(Until.hasObject(By.res(searchId)), TIMEOUT)) {
+            val diagnostics = screenDiagnostics()
+            Log.e(TAG, diagnostics)
+            fail("drawer not opened\n$diagnostics")
+        }
     }
 
+    /** Taken at the moment of failure: instrumentation exit kills the process and the evidence with it. */
+    private fun screenDiagnostics(): String {
+        fun shell(command: String) = device.executeShellCommand(command)
+        val name = "${System.currentTimeMillis()}-${testName.methodName}"
+        shell("mkdir -p $DIAG_DIR")
+        shell("screencap -p $DIAG_DIR/$name.png")
+        val hierarchy = ByteArrayOutputStream().also { device.dumpWindowHierarchy(it) }.toString("UTF-8")
+        val resumed = shell("dumpsys activity activities").lines()
+            .filter { "ResumedActivity" in it || "mFocusedApp" in it || "topResumedActivity" in it }
+        val focus = shell("dumpsys window windows").lines().filter { "mCurrentFocus" in it || "mFocusedApp" in it }
+        val logs = shell("logcat -d -v threadtime -t 2500").lines().filter { line ->
+            LOG_MARKERS.any { it in line }
+        }.takeLast(120)
+        val nav = shell("settings get secure navigation_mode").trim()
+        return listOf(
+            "screenshot: $DIAG_DIR/$name.png  package=${device.currentPackageName} nav_mode=$nav",
+            "display: ${device.displayWidth}x${device.displayHeight} rotation=${device.displayRotation}",
+            "resumed: $resumed", "focus: $focus",
+            "logs:", logs.joinToString("\n"),
+            "hierarchy:", hierarchy,
+        ).joinToString("\n")
+    }
+
+
     private companion object {
+        const val DIAG_DIR = "/data/local/tmp/parem-diag"
+        val LOG_MARKERS = listOf("ParemGesture", "ActivityTaskManager", "InputDispatcher", "Choreographer", "AndroidRuntime", "Davey")
         const val TAG = "SmokeTest"
         const val TIMEOUT = 10_000L
         const val SETTINGS_PKG = "com.android.settings"
