@@ -241,6 +241,10 @@ per package; the rest of each of those fragments is still in
   Not verified: with TalkBack on the Tab S8, that typing "m" with one match leaves the drawer open and that the row reads "Open single match automatically, On"; appended to the UX device pass.
   Easy to get wrong: the screen-reader state is read when the filter publishes, not cached, so toggling TalkBack mid-session needs no listener; the setting is read from Prefs on every publish for the same reason.
   Verified: ADB on Nothing A069 / Android 16: disabling auto-launch leaves a sole Calculator result in the drawer; preference survives restart; at 200% system font the label wraps without overlapping Off and the row exposes its accessible title.
+- **M4-WP47 (PR #0):** Limit warnings and the mindful pause show "Go back" first at full colour and the way through second, dimmed; ending focus early runs the same countdown through `BadHabitDialogs.showPause`; the App limits sheet has "Add another app…"; the limit pickers have "Pause only".
+  Contract: `MINDFUL_PAUSE_APPS` no longer depends on a limit, so `AppLimitManager.hasPause` stands alone and `isGated` is the launch test; "No limit" clears both; `configuredApps` keeps zero-usage apps in the sheet; `AppMenuPolicy` takes `gated`.
+  Not verified: on a device, the countdown timing and the sheet order; pause-only on the home, gesture letter and swipe routes is by code path (`gateLaunch`), the JVM tests cover only `MindfulPause`, and the export round trip is an instrumented test on CI.
+  Easy to get wrong: a launch path that checks `hasLimit` instead of `isGated` skips pause-only apps, which is what `AppDrawerFragment` did until this package.
 - **M4-WP50 (PR #0):** Width-based typography, tinted mono surfaces and moss-teal action roles now share theme resources; settings sections have no card plates.
   Contract: home text stays monochrome; e-ink overlays opaque monochrome roles; wallpaper dimming is independent; Material You remains deferred.
   Source checks preserve existing accessibility attributes; contrast evidence and the 90% scrim rationale are in docs/plans/2026-10-16-colour-implementation.md.
