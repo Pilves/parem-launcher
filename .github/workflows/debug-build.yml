@@ -44,7 +44,9 @@ jobs:
           KEY_ALIAS: androiddebugkey
           KEY_PASSWORD: android
         run: |
-          export KEYSTORE_FILE="$HOME/.android/debug.keystore"
+          # AGP's location depends on the runner's environment, so look it up.
+          KEYSTORE_FILE="$(find "$HOME" -name debug.keystore -print -quit)"
+          export KEYSTORE_FILE
           ./gradlew assembleRelease
           ./gradlew bundleRelease
 
