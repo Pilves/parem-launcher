@@ -20,7 +20,7 @@ Nach oben wischen und tippen. Anfangsbuchstaben und Namensteile genügen, ein ei
 Alle sind aus, bis du sie einschaltest, und sagen vorher, was sie brauchen.
 • Bildschirmzeit: Tagessumme, 7-Tage-Grafik und Wochenrückblick.
 • App-Limits: Tageskontingent pro App, danach eine Warnung, die du übergehen kannst. Beide brauchen Zugriff auf Nutzungsdaten.
-• Achtsame Pause: bei einer App mit Limit eine Frage und fünf Sekunden Wartezeit.
+• Achtsame Pause: für jede gewählte App eine Frage und fünf Sekunden Wartezeit.
 • Fokusmodus: mit Timer oder Wochenplan. Bis zu 5 erlaubte Apps; die Telefon-App wird nie blockiert.
 • Stille Benachrichtigungen: Nicht erlaubte Apps wandern aus der Benachrichtigungsleiste in eine stille Liste. Anrufe, Wecker, Medien, Navigation und Notfallwarnungen bleiben sichtbar, Ausgeblendetes kehrt binnen 8 Stunden zurück. Ton oder Vibration sind möglich, solange du nicht „Make silent“ wählst. Braucht Benachrichtigungszugriff.
 • Graustufen: sofort, im Fokus, nach einem Limit oder pro App. Braucht einmalig eine Entwicklerberechtigung, erteilt am Computer.

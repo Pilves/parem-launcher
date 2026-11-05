@@ -341,7 +341,7 @@
     <string name="onboarding_calm_title" translatable="false">Calm phone (optional)</string>
     <string name="onboarding_calm_body" translatable="false">Turn on what helps. Each one explains itself first, and you can skip all of them.</string>
     <string name="onboarding_row_slow_down" translatable="false">Slow down an app</string>
-    <string name="onboarding_row_slow_down_caption" translatable="false">A short pause before an app with a time limit opens</string>
+    <string name="onboarding_row_slow_down_caption" translatable="false">A short pause before a chosen app opens</string>
     <string name="onboarding_row_quiet" translatable="false">Quiet notifications</string>
     <string name="onboarding_row_quiet_caption" translatable="false">Notifications from other apps wait in a quiet list</string>
     <string name="onboarding_row_grayscale_caption" translatable="false">One-time setup with a computer</string>

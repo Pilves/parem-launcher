@@ -1,5 +1,11 @@
 # Parem Launcher
 
+Parem was built with AI. Patrick has not written its code by hand. In his words:
+
+> i havent written a single line. olauncher was close but not it so i forked and vibed and then it diverged into parem and now we are here
+
+There has been no human code review, independent security audit or complete physical-phone pass for this release.
+
 **Minimal but hyperfunctional.** A text-based Android launcher that strips your home screen to what matters, then packs real utility behind a single search bar.
 
 No icons, no clutter — just the apps you need, the habits you want to build, and the tools to stay in control of your screen time.
@@ -46,7 +52,6 @@ The app drawer search bar is a single point of truth:
 ### Gestures & Shortcuts
 - **Custom Swipe Actions** — Left and right swipes can open an app, notifications, search, lock screen, camera, flashlight, or do nothing
 - **Gesture Letters** — Draw letter shapes (A, C, L, M, N, O, S, V, W, Z) on the home screen to launch assigned apps
-- **Swipe-Up Apps** — Assign a per-slot swipe-up companion app to any home screen slot
 - **App Folders** — Group up to 4 apps into a named folder on any home screen slot
 
 ### Personalization
@@ -58,7 +63,7 @@ The app drawer search bar is a single point of truth:
 ## Building
 
 ```
-# Requires Android SDK (min SDK 29, target 35), JDK 17+
+# Requires Android SDK (min SDK 29, target 36), JDK 17+
 ./gradlew assembleFullDebug
 ```
 

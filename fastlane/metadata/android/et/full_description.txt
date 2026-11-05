@@ -24,7 +24,7 @@ Pühi üles ja hakka tippima. Töötavad algustähed ja nimeosad ning ainus vast
 Kõik on väljas, kuni need sisse lülitad.
 • Ekraaniaeg: tänane summa, 7 päeva graafik ja nädala kokkuvõte.
 • Rakenduste piirangud: päevane limiit, seejärel hoiatus, millest saad mööda minna. Mõlemad vajavad juurdepääsu kasutusele.
-• Teadlik paus: piiranguga rakenduse puhul küsimus ja viis sekundit ootust.
+• Teadlik paus: vali rakendus ja oota pärast küsimust viis sekundit.
 • Fookusrežiim: taimeriga või nädala ajakava järgi. Lubada saad kuni 5 rakendust, telefonirakendust ei blokeerita kunagi.
 • Vaiksed märguanded: lubamata rakenduste märguanded liiguvad märguandealalt vaiksesse nimekirja. Kõned, äratused, meedia, navigeerimine ja hädaolukorra teated jäävad nähtavale, peidetud märguanded tulevad 8 tunni jooksul tagasi. Heli või värin võib tulla, kui sa pole valinud Make silent. Vajab juurdepääsu märguannetele.
 • Halltoonid: kohe, fookuse ajal, pärast piirangut või rakenduse kaupa. Vajab ühekordset luba arendaja tööriistade kaudu, arvuti abil.
