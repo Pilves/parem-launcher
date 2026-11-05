@@ -9,19 +9,22 @@ the Estonian, and a native speaker the German, before publishing.
 
 ## 0. Open before this can go live
 
-| # | Issue | Why it matters | Owner action |
-|---|---|---|---|
-| 1 | **Privacy policy not live.** `web/privacy.html` now exists as a draft, with `{{CONTACT_EMAIL}}`, `{{PUBLISHER_NAME}}` and `{{PUBLISHER_ADDRESS}}` unfilled. `Constants.URL_PAREM_PRIVACY` is still `""`, so the in-app row is hidden. | Play requires a policy for every app, linked in Console and in the app, at an active public URL (no PDF). The Data safety form cannot be completed without it. | Fill the placeholders, publish, wire the constant (`docs/play/data-flows.md` G10, G11). |
-| 2 | **"Donations only" is not true of the code, and is held.** No donation link, billing or sponsor text exists in the app, README or docs. | Rule: claims must match the code. Play's Payments policy also says apps may not lead users to a payment method other than Play billing, and names the listing as one such route. It carves out "tax exempt donations" and says nothing about voluntary tips. | The listing says "no purchases" and has no donation or coffee link, pending `docs/play/compliance.md`, which does not exist yet. Open-Meteo's free tier is also non-commercial (`data-flows.md` G9). |
-| 3 | **No Estonian UI, German UI about 18% translated.** No `values-et`; `values-de` has 74 of 403 strings; 290 English strings are `translatable="false"`. M4-WP9 is open. | The home market gets an English app. An `et` listing that implied otherwise would be misleading. | de and et text state the English UI plainly. Remove that line when WP9 lands. |
-| 4 | **Wallpaper list is not only Unsplash.** `URL_WALLPAPERS` now points at `web/wallpapers.json`, copied from the upstream author's gist on 2026-11-05: 741 `images.unsplash.com`, 10 `i.redd.it`, 8 `images.pexels.com` and 6 `images2.imgbox.com` URLs. | It serves nothing until Pages deploys from `master`; until then the app uses its fixed Unsplash fallback. | Listing says "third-party hosts", which stays accurate. Vet the licences of the non-Unsplash entries before relying on them. |
-| 5 | **Grayscale WebUSB page is down.** `https://pilves.github.io/parem-launcher/grant/`, linked in the app, returned 404 today. | Play users have only the computer route (no on-phone pairing in the `play` build). The listing's "with a computer" stays true through the copied adb command, but the page should work at launch. | Publish the Pages site. |
-| 6 | **All store graphics are upstream's** (section 5). The feature graphic is 512×250, failing Play's required 1024×500, and shows another app's name. | Cannot ship. | Codex is making the new graphic in `/home/pi/projects/parem-market`. Screenshots: section 6. |
-| 7 | **"No data collected" cannot be claimed.** Play defines collection as transmitting data off the device. Weather sends typed text and the picked place's coordinates to Open-Meteo, and `data-flows.md` proposes declaring approximate location as collected. | The text says what is true: no account, no analytics, and exactly what goes online. It never says nothing leaves the phone. The old screenshot 07 and old description both claimed "no data collection". | Once `compliance.md` fixes the Data safety answers, re-read the "What goes online" section against them. |
-| 8 | **Moving from GitHub builds.** `ARCHITECTURE.md` recommends a separate Play signing key, not yet decided; `docs/fdroid/README.md` plans a separate install. | With separate keys, GitHub users must export, uninstall, install, import. What's new says so. | If you choose the shared key instead, cut that line from What's new. |
-
-Not blockers, flagged for later: `README.md` still advertises per-slot swipe-up
-apps, which v6 removed. Do not reuse that line.
+- The privacy policy draft and compliance notes exist locally but are held from
+  the public branch pending Patrick's approval of the name. Pages is not yet
+  deployed; verify the privacy and grayscale grant URLs after deployment.
+- Play, GitHub and F-Droid signing may differ. The first Play signing choice is
+  still open; moving channels may require export, uninstall and import.
+- German and Estonian listing copy needs native proofreading. The app has no
+  Estonian translation and its German UI remains incomplete; the disclosure
+  translations added for shipped locales are machine drafts needing review.
+- Weather sends a selected place and rounded coordinates to Open-Meteo.
+  High-latitude rounding and the corresponding Data safety classification
+  require review before the Console form is submitted.
+- A green icon is in the app and Play metadata; final graphics and screenshots
+  still require final-build and locale review. The owned wallpaper list and
+  grant page require Pages deployment before their URLs can work.
+- No coffee, donation or purchase link is part of 6.0. The app's no-purchase
+  statement describes the current build, not a promise about future versions.
 
 ## 1. Listing text
 
@@ -43,7 +46,7 @@ Parem: Plain Minimal Launcher
 No-nonsense minimal launcher. Focus, app limits. No ads. No accounts. No catch.
 ```
 
-**Full description** (3927/4000)
+**Full description** (3921/4000)
 
 ```text
 I got fed up with my phone. Every icon wanted a tap and every app wanted my attention. Parem is the minimal Android launcher I wanted instead: a short list of app names, notifications that can wait, and a speed bump before the apps that eat your day. It is for less screen time or a proper digital detox, without swapping your smartphone for a dumbphone.
@@ -114,7 +117,7 @@ Parem: Klarer Minimal-Launcher
 Minimal-Launcher ohne Unsinn. Mit Fokus. Keine Werbung. Kein Konto. Kein Haken.
 ```
 
-**Full description** (3988/4000)
+**Full description** (3986/4000)
 
 ```text
 Ich hatte genug von meinem Smartphone. Jedes Icon wollte angetippt werden, jede App wollte Aufmerksamkeit. Parem ist der minimalistische Android-Launcher, den ich stattdessen wollte: eine kurze Liste von App-Namen, Benachrichtigungen, die warten können, und eine Bremse vor den Zeitfresser-Apps. Für weniger Bildschirmzeit oder echtes Digital Detox, ohne Umstieg auf ein Dumbphone.
@@ -185,7 +188,7 @@ Parem: minimalistlik launcher
 Minimalistlik launcher ilma jamata. Fookus, limiidid. Ilma reklaami ja kontota.
 ```
 
-**Full description** (3966/4000)
+**Full description** (3959/4000)
 
 ```text
 Mul sai oma telefonist villand. Iga ikoon tahtis puudutust, iga rakendus tähelepanu. Parem telefon ei pea olema uus telefon. Piisab samast telefonist, mis segab vähem.
@@ -243,7 +246,7 @@ GNU GPLv3. Parem kasvas välja avatud lähtekoodiga launcherist, mille autor on 
 
 - **Name:** "Parem: Plain Minimal Launcher". "Minimal Launcher" is the head term and must stay. "No-Nonsense Minimal Launcher" with the brand runs to 35 characters, and "Parem: No-Nonsense Launcher" loses "minimal". "Plain" fits, carries the voice and is literally true of a text home screen. "No-nonsense" goes in the short description instead. The on-device label stays "Parem Launcher" (`app_name`). "No Ads" and "Free" stay out of the title because Play's best practices forbid deal words there.
 - **Voice.** First person, short sentences, no wellness-speak, and it admits limits ("speed bumps, not a lock"), which suits the brand better than polish. The fed-up target is the phone, never other launchers, because Play bans comparisons. Feature names such as Mindful pause stay, since the app uses them.
-- **Word tiers.** "Bullshit" appears on no Play surface: Google's guidance rules out profane or vulgar wording. "BS" is also out, because `compliance.md` does not exist yet to clear it. "Crap" and similar were avoided for the same reason.
+- **Word tiers.** "Bullshit" appears on no Play surface: Google's guidance rules out profane or vulgar wording. "BS" is also out, as a precaution. "Crap" and similar were avoided for the same reason.
 - **Tagline: "No ads. No accounts. No catch."** I think this beats the working line "No ads. No accounts. No nonsense." "Nonsense" is an attitude; "catch" is a promise a reader can test, and it holds here (no purchases, no paywall, no account). It also translates well: "Kein Haken", "Konksu pole". "No nonsense" stays approved and lives on as "no-nonsense" in the short description. Swapping one word back is easy if you prefer it.
 - **Using "parem" = "better":** yes, carefully. Never in a title or short description, where "better" could read as a comparison with other apps. en-US ends on "better things to do than stare at a phone", which is about your time. The de line was cut for length. In et the word does real work, so the opening ("Parem telefon ei pea olema uus telefon") plays on it, about the user's own phone.
 - **Opening line replaced.** The old en-US text opened with the same sentence as the upstream app's Play listing, and upstream's graphic carries it too.
@@ -427,7 +430,7 @@ Every claim in the text, against this worktree. "Tests" are JVM tests in `app/sr
 
 **Wanted to claim, did not:**
 
-- **Donations or a coffee link:** no mechanism exists, and held pending `compliance.md`.
+- **Donations or a coffee link:** no mechanism exists, and excluded from 6.0.
 - **"Nothing leaves your phone" or "collects no data":** false, see section 0, item 7.
 - **"No trackers" in the short description:** true, but cut for the tagline; the full text says it.
 - **"No tricks":** covered by "no catch", since it cannot be pointed at any one fact.
