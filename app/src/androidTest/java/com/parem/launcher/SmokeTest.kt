@@ -10,6 +10,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.widget.EditText
+import android.widget.ScrollView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -301,6 +302,16 @@ class SmokeTest {
             device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-widget-and-tips.png")
             assertFalse("first-run tips overlap the widget: tips=${tips.visibleBounds}, widget=${widget.visibleBounds}",
                 Rect.intersects(tips.visibleBounds, widget.visibleBounds))
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                val scroll = listOfNotNull(
+                    activity.findViewById<ScrollView>(R.id.widgetScrollViewAbove),
+                    activity.findViewById<ScrollView>(R.id.widgetScrollViewBelow),
+                ).first { it.isShown }
+                scroll.scrollTo(0, scroll.getChildAt(0).height)
+                assertTrue("tall widget cannot scroll within its reserved viewport", scroll.scrollY > 0)
+            }
             instrumentation.runOnMainSync {
                 val activity = ActivityLifecycleMonitorRegistry.getInstance()
                     .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
