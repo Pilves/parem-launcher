@@ -8,7 +8,4 @@ object WeatherPrivacy {
     /** Two decimals, always with a dot and never in exponent form, whatever the phone's locale. */
     fun roundForRequest(coordinate: Double): String =
         BigDecimal.valueOf(coordinate).setScale(2, RoundingMode.HALF_UP).toPlainString()
-
-    /** The sunrise and sunset theme computes from the same place, on the phone, so weather being off is not enough to drop it. */
-    fun keepsPlace(weatherOn: Boolean, sunriseTheme: Boolean): Boolean = weatherOn || sunriseTheme
 }

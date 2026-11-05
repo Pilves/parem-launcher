@@ -560,8 +560,18 @@ class AppDrawerFragment : BaseFragment() {
         }
     }
 
+    private fun tipRepeatsEnter(): Boolean = when (omniboxMode) {
+        is OmniboxMode.Dial, OmniboxMode.WebSearch -> true
+        OmniboxMode.None -> !hiddenHintShown && flag == Constants.FLAG_LAUNCH_APP && binding.search.query.isNotBlank()
+        else -> false
+    }
+
     private fun initClickListeners() {
         binding.appDrawerTip.setOnClickListener {
+            if (tipRepeatsEnter()) {
+                binding.search.setQuery(binding.search.query, true)
+                return@setOnClickListener
+            }
             when (val mode = omniboxMode) {
                 is OmniboxMode.Calc -> {
                     copyResult(mode.result)
@@ -589,13 +599,6 @@ class AppDrawerFragment : BaseFragment() {
                 }
                 OmniboxMode.None -> if (hiddenHintShown) {
                     openHiddenApps()
-                    return@setOnClickListener
-                } else if (flag == Constants.FLAG_LAUNCH_APP && binding.search.query.isNotBlank()) {
-                    binding.search.setQuery(binding.search.query, true)
-                    return@setOnClickListener
-                }
-                is OmniboxMode.Dial, OmniboxMode.WebSearch -> {
-                    binding.search.setQuery(binding.search.query, true)
                     return@setOnClickListener
                 }
                 else -> {}

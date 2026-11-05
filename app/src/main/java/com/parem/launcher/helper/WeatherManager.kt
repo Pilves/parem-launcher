@@ -58,9 +58,9 @@ object WeatherManager {
     fun clearUnusedData(context: Context) {
         if (isEnabled(context)) return
         val p = context.paremPrefs()
+        // The sunrise and sunset theme computes from the same place, on the phone
         val sunriseTheme = ThemeScheduleManager.getMode(context) == Constants.ThemeScheduleMode.SUNRISE_SUNSET
-        val place = if (WeatherPrivacy.keepsPlace(weatherOn = false, sunriseTheme)) emptyList()
-        else listOf(WEATHER_LAT, WEATHER_LNG, WEATHER_CITY_NAME)
+        val place = if (sunriseTheme) emptyList() else listOf(WEATHER_LAT, WEATHER_LNG, WEATHER_CITY_NAME)
         val stale = (place + listOf(WEATHER_CACHED_TEMP, WEATHER_LAST_FETCHED, WEATHER_LAST_SUCCESS)).filter(p::contains)
         if (stale.isNotEmpty()) p.edit { stale.forEach { remove(it) } }
     }

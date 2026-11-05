@@ -120,7 +120,6 @@ class ScreenTimeLimitDialog(
 
             // Limit selector (clickable text that opens the shared limit picker)
             val limitView = TextView(context).apply {
-                text = BadHabitDialogs.limitLabel(context, packageName)
                 textSize = 14f
                 setTextColor(textColor)
                 setTypeface(null, android.graphics.Typeface.BOLD)
@@ -131,18 +130,16 @@ class ScreenTimeLimitDialog(
                 setBackgroundResource(context.selectableBackgroundRes())
             }
             // The only tappable node in the row speaks the whole row: app, usage today, limit
-            fun describe() {
-                val label = limitView.text.toString()
+            fun refresh() {
+                val label = BadHabitDialogs.limitLabel(context, packageName)
                 val limitText = if (AppLimitManager.hasLimit(context, packageName)) context.getString(R.string.a11y_app_limit_value, label) else label
+                limitView.text = label
                 limitView.contentDescription = context.getString(R.string.a11y_app_limit_row, appName, usageView.text, limitText)
             }
-            describe()
+            refresh()
 
             limitView.setOnClickListener {
-                BadHabitDialogs.showTimeLimitPicker(context, packageName) {
-                    limitView.text = BadHabitDialogs.limitLabel(context, packageName)
-                    describe()
-                }
+                BadHabitDialogs.showTimeLimitPicker(context, packageName) { refresh() }
             }
 
             row.addView(limitView)

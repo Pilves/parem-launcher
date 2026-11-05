@@ -1,8 +1,6 @@
 package com.parem.launcher.helper
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Locale
 
@@ -35,12 +33,5 @@ class WeatherPrivacyTest {
         } finally {
             Locale.setDefault(original)
         }
-    }
-
-    @Test
-    fun keepsPlace_onlyWhileSomethingUsesIt() {
-        assertTrue(WeatherPrivacy.keepsPlace(weatherOn = true, sunriseTheme = false))
-        assertTrue(WeatherPrivacy.keepsPlace(weatherOn = false, sunriseTheme = true))
-        assertFalse(WeatherPrivacy.keepsPlace(weatherOn = false, sunriseTheme = false))
     }
 }

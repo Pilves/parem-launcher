@@ -292,16 +292,20 @@ class HomeScreenSettingsCard(
             ContactSearchManager.setEnabled(context, true)
             populateContactSearch()
         } else {
-            BottomSheetMenu(context)
-                .title(context.getString(R.string.contact_search))
-                .message(context.getString(R.string.contact_search_disclosure))
-                .option(context.getString(R.string.agree)) {
-                    requestContactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
-                }
-                .option(context.getString(R.string.not_now), dimmed = true) {}
-                .show()
-                .dismissOnDestroy(fragment.viewLifecycleOwner)
+            showContactSheet(R.string.contact_search_disclosure, R.string.agree) {
+                requestContactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+            }
         }
+    }
+
+    private fun showContactSheet(message: Int, action: Int, onAction: () -> Unit) {
+        BottomSheetMenu(context)
+            .title(context.getString(R.string.contact_search))
+            .message(context.getString(message))
+            .option(context.getString(action), onClick = onAction)
+            .option(context.getString(R.string.not_now), dimmed = true) {}
+            .show()
+            .dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     /** Called by the fragment when the READ_CONTACTS prompt returns. */
@@ -309,15 +313,9 @@ class HomeScreenSettingsCard(
         // A first denial stays quiet; once Android stops asking, the toggle would look broken
         if (granted) ContactSearchManager.setEnabled(context, true)
         else if (!fragment.shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
-            BottomSheetMenu(context)
-                .title(context.getString(R.string.contact_search))
-                .message(context.getString(R.string.contact_search_denied))
-                .option(context.getString(R.string.open_app_settings)) {
-                    openAppInfo(context, Process.myUserHandle(), BuildConfig.APPLICATION_ID)
-                }
-                .option(context.getString(R.string.not_now), dimmed = true) {}
-                .show()
-                .dismissOnDestroy(fragment.viewLifecycleOwner)
+            showContactSheet(R.string.contact_search_denied, R.string.open_app_settings) {
+                openAppInfo(context, Process.myUserHandle(), BuildConfig.APPLICATION_ID)
+            }
         }
         populateContactSearch()
     }

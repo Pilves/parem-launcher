@@ -74,8 +74,9 @@ class CreateFolderDialog(
 
         // Selection is keyed per row and lives in the adapter's data, so it
         // survives filtering and row recycling; click order is preserved.
-        fun rowId(app: AppModel) = "${app.appPackage}|${app.activityClassName ?: ""}|${app.user}"
-        fun savedRowId(app: FolderApp) = "${app.packageName}|${app.activityClassName}|${app.userString}"
+        fun rowKey(pkg: String, activity: String, user: String) = "$pkg|$activity|$user"
+        fun rowId(app: AppModel) = rowKey(app.appPackage, app.activityClassName.orEmpty(), app.user.toString())
+        fun savedRowId(app: FolderApp) = rowKey(app.packageName, app.activityClassName, app.userString)
         val appsById = apps.associateBy(::rowId)
         // By ID, not via the list: a hidden app is not offered but must survive an edit
         val initialApps = initial?.apps.orEmpty().filter { it.url.isEmpty() }.associateBy(::savedRowId)

@@ -321,20 +321,24 @@ class Prefs(context: Context) {
     fun setWidgetHeight(widgetId: Int, heightDp: Int) {
         val map = parseWidgetHeights().toMutableMap()
         map[widgetId] = heightDp
-        widgetHeights = map.entries.joinToString(",") { "${it.key}:${it.value}" }
+        storeWidgetHeights(map)
     }
 
     /** Drops heights of widgets that no longer exist, including ones removed by older versions. */
     fun pruneWidgetHeights(keep: Set<Int>) {
         val map = parseWidgetHeights()
         val kept = map.filterKeys { it in keep }
-        if (kept.size != map.size) widgetHeights = kept.entries.joinToString(",") { "${it.key}:${it.value}" }
+        if (kept.size != map.size) storeWidgetHeights(kept)
+    }
+
+    private fun storeWidgetHeights(map: Map<Int, Int>) {
+        widgetHeights = map.entries.joinToString(",") { "${it.key}:${it.value}" }
     }
 
     fun removeWidgetHeight(widgetId: Int) {
         val map = parseWidgetHeights().toMutableMap()
         map.remove(widgetId)
-        widgetHeights = map.entries.joinToString(",") { "${it.key}:${it.value}" }
+        storeWidgetHeights(map)
     }
 
     private fun parseWidgetHeights(): Map<Int, Int> {
