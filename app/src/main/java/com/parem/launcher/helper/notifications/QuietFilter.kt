@@ -19,14 +19,16 @@ object QuietFilter {
         "android",
         "com.android.systemui",
         "com.android.phone",
+        // Settings has a launcher icon, and it carries the system's own update alerts
+        "com.android.settings",
         "com.android.cellbroadcastreceiver",
         "com.google.android.cellbroadcastreceiver",
         "com.android.cellbroadcastreceiver.module",
     )
 
-    // Literal values of Notification.CATEGORY_CALL / ALARM / NAVIGATION / TRANSPORT,
-    // so this object stays free of android.* imports.
-    private val EXEMPT_CATEGORIES = setOf("call", "alarm", "navigation", "transport")
+    // Literal values of Notification.CATEGORY_CALL / ALARM / NAVIGATION / TRANSPORT /
+    // SYSTEM / ERROR, so this object stays free of android.* imports.
+    private val EXEMPT_CATEGORIES = setOf("call", "alarm", "navigation", "transport", "sys", "err")
 
     /** [NEVER_TOUCH] plus our own package and the current default dialer and SMS app. */
     fun alwaysAllowed(ownPackage: String, defaultDialer: String?, defaultSms: String?): Set<String> =

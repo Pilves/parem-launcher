@@ -54,6 +54,7 @@ class QuietFilterTest {
             "android",
             "com.android.systemui",
             "com.android.phone",
+            "com.android.settings",
             "com.android.cellbroadcastreceiver",
             "com.google.android.cellbroadcastreceiver",
             "com.android.cellbroadcastreceiver.module",
@@ -69,7 +70,7 @@ class QuietFilterTest {
 
     @Test
     fun exemptCategoriesAreNotHidden() {
-        for (category in listOf("call", "alarm", "navigation", "transport")) {
+        for (category in listOf("call", "alarm", "navigation", "transport", "sys", "err")) {
             assertFalse(category, silence(category = category))
         }
     }

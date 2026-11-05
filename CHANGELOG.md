@@ -10,6 +10,7 @@
 - Two builds: the Google Play version grants grayscale from a computer only; GitHub, F-Droid and IzzyOnDroid builds keep on-phone pairing.
 - The Google Play version no longer shows the sideload-only "Allow restricted settings" hint.
 - Contact search explains what it reads before Android asks for the contacts permission.
+- Quiet notifications never hides Android Settings, system or error notifications. Its disclosure button and the per-app grayscale prompt now ask you to agree.
 - Privacy wording in usage access, crash reports, the lock service, device admin and quiet notifications now says exactly what is read, kept and sent.
 
 ## v6.0.0-beta.2 — 2026-10-16

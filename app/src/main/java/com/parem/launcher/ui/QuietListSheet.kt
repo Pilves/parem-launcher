@@ -120,13 +120,14 @@ object QuietListSheet {
     /** Shown every time the filter is turned on, before the system access screen. */
     private fun showDisclosure(context: Context, onChanged: () -> Unit) {
         val body = context.withRestrictedNote(context.getString(R.string.quiet_disclosure_body))
+        val hasAccess = QuietNotificationsManager.hasAccess(context)
         BottomSheetMenu(context)
             .title(context.getString(R.string.quiet_disclosure_title))
             .message(body)
-            .option(context.getString(R.string.quiet_continue)) {
+            // With access already granted nothing opens, so the label must not promise it
+            .option(context.getString(if (hasAccess) R.string.agree else R.string.lock_consent_accept)) {
                 QuietNotificationsManager.setEnabled(context, true)
-                if (!QuietNotificationsManager.hasAccess(context))
-                    QuietNotificationsManager.openAccessSettings(context)
+                if (!hasAccess) QuietNotificationsManager.openAccessSettings(context)
                 onChanged()
             }
             .option(context.getString(R.string.quiet_not_now), dimmed = true) {}

@@ -37,7 +37,7 @@ It does go online for these:
 
 Those services see your IP address, like any connection. Web searches open in your browser (Google after a leading space, DuckDuckGo for !bangs). Parem's crash reports are off by default and sent only by you. Android cloud backup leaves Parem out; Export settings moves your setup.
 
-Double tap to lock is optional. After you agree, it uses Android's accessibility service only to lock the screen; the service sees only taps inside Parem and cannot read your screen. A device-admin alternative needs your PIN after each lock. Contact search is opt-in too.
+Double tap to lock is optional. After you agree, it uses Android's accessibility service only to lock the screen; the service sees only taps inside Parem and cannot read your screen. A device-admin alternative needs your PIN after each lock. Turn it off in Parem's gesture settings before uninstalling. Contact search is opt-in too.
 
 <b>Also included</b>
 Tablets and foldables, TalkBack, hardware keyboards, Android font sizes up to 200%, work profiles, and Private Space on Android 15 and later.

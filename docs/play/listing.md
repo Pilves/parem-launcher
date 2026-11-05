@@ -43,7 +43,7 @@ Parem: Plain Minimal Launcher
 No-nonsense minimal launcher. Focus, app limits. No ads. No accounts. No catch.
 ```
 
-**Full description** (3866/4000)
+**Full description** (3927/4000)
 
 ```text
 I got fed up with my phone. Every icon wanted a tap and every app wanted my attention. Parem is the minimal Android launcher I wanted instead: a short list of app names, notifications that can wait, and a speed bump before the apps that eat your day. It is for less screen time or a proper digital detox, without swapping your smartphone for a dumbphone.
@@ -85,7 +85,7 @@ It does go online for these:
 
 Those services see your IP address, like any connection. Web searches open in your browser (Google after a leading space, DuckDuckGo for !bangs). Parem's crash reports are off by default and sent only by you. Android cloud backup leaves Parem out; Export settings moves your setup.
 
-Double tap to lock is optional. After you agree, it uses Android's accessibility service only to lock the screen; the service sees only taps inside Parem and cannot read your screen. A device-admin alternative needs your PIN after each lock. Contact search is opt-in too.
+Double tap to lock is optional. After you agree, it uses Android's accessibility service only to lock the screen; the service sees only taps inside Parem and cannot read your screen. A device-admin alternative needs your PIN after each lock. Turn it off in Parem's gesture settings before uninstalling. Contact search is opt-in too.
 
 <b>Also included</b>
 Tablets and foldables, TalkBack, hardware keyboards, Android font sizes up to 200%, work profiles, and Private Space on Android 15 and later.
@@ -114,7 +114,7 @@ Parem: Klarer Minimal-Launcher
 Minimal-Launcher ohne Unsinn. Mit Fokus. Keine Werbung. Kein Konto. Kein Haken.
 ```
 
-**Full description** (3918/4000)
+**Full description** (3988/4000)
 
 ```text
 Ich hatte genug von meinem Smartphone. Jedes Icon wollte angetippt werden, jede App wollte Aufmerksamkeit. Parem ist der minimalistische Android-Launcher, den ich stattdessen wollte: eine kurze Liste von App-Namen, Benachrichtigungen, die warten können, und eine Bremse vor den Zeitfresser-Apps. Für weniger Bildschirmzeit oder echtes Digital Detox, ohne Umstieg auf ein Dumbphone.
@@ -156,7 +156,7 @@ Online geht Parem hierfür:
 
 Diese Dienste sehen wie bei jeder Verbindung deine IP-Adresse. Websuchen öffnen sich im Browser (Google nach einem Leerzeichen, DuckDuckGo bei !Bangs). Parems Absturzberichte sind standardmäßig aus und werden nur von dir gesendet. Androids Cloud-Sicherung lässt Parem aus; der Einstellungsexport nimmt dein Setup mit.
 
-Doppeltippen zum Sperren ist optional und nutzt nach deiner Zustimmung die Android-Bedienungshilfe nur dafür. Der Dienst sieht nur Tipps innerhalb von Parem und kann deinen Bildschirm nicht lesen. Die Alternative per Geräteadministrator verlangt nach jeder Sperre deine PIN.
+Doppeltippen zum Sperren ist optional und nutzt nach deiner Zustimmung die Android-Bedienungshilfe nur dafür. Der Dienst sieht nur Tipps innerhalb von Parem und kann deinen Bildschirm nicht lesen. Die Alternative per Geräteadministrator verlangt nach jeder Sperre deine PIN. Schalte sie vor dem Deinstallieren in Parems Gesteneinstellungen aus.
 
 Außerdem: Tablets, Foldables, TalkBack, Tastaturen, Schrift bis 200 %, Arbeitsprofile, vertrauliches Profil ab Android 15.
 
@@ -185,7 +185,7 @@ Parem: minimalistlik launcher
 Minimalistlik launcher ilma jamata. Fookus, limiidid. Ilma reklaami ja kontota.
 ```
 
-**Full description** (3903/4000)
+**Full description** (3966/4000)
 
 ```text
 Mul sai oma telefonist villand. Iga ikoon tahtis puudutust, iga rakendus tähelepanu. Parem telefon ei pea olema uus telefon. Piisab samast telefonist, mis segab vähem.
@@ -231,7 +231,7 @@ Võrku läheb see:
 
 Need teenused näevad sinu IP-aadressi. Veebiotsingud avanevad brauseris (tühiku järel Google, !bang puhul DuckDuckGo). Krahhiraportid on vaikimisi väljas ja neid saadad ainult sina. Androidi pilvevarundus jätab Paremi välja; seadistuse kolimiseks kasuta seadete eksporti.
 
-Topeltpuudutusega lukustamine on valikuline ja kasutab pärast nõusolekut Androidi juurdepääsetavuse teenust ainult ekraani lukustamiseks. Teenus näeb ainult puudutusi launcheri sees ega saa ekraani lugeda. Seadme administraatori kaudu lukustades on pärast iga lukustamist vaja PIN-koodi.
+Topeltpuudutusega lukustamine on valikuline ja kasutab pärast nõusolekut Androidi juurdepääsetavuse teenust ainult ekraani lukustamiseks. Teenus näeb ainult puudutusi launcheri sees ega saa ekraani lugeda. Seadme administraatori kaudu lukustades on pärast iga lukustamist vaja PIN-koodi. Enne desinstallimist lülita see Paremi žestide seadetes välja.
 
 Veel: tahvlid, volditavad seadmed, TalkBack, klaviatuurid, tekst kuni 200%, tööprofiilid, privaatne ruum alates Android 15-st.
 

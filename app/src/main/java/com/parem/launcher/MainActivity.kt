@@ -312,7 +312,7 @@ class MainActivity : AppCompatActivity() {
                     AlertDialog.Builder(this)
                         .setTitle(R.string.grayscale)
                         .setMessage(R.string.grayscale_app_needs_usage)
-                        .setPositiveButton(R.string.okay) { _, _ ->
+                        .setPositiveButton(R.string.agree) { _, _ ->
                             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
                         }
                         .setNegativeButton(R.string.not_now, null)

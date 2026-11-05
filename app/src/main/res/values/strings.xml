@@ -338,7 +338,7 @@
     <string name="grayscale_check_again" translatable="false">Check again</string>
     <string name="grayscale_not_granted" translatable="false">Not allowed yet</string>
     <string name="grayscale_ready" translatable="false">Grayscale is on</string>
-    <string name="grayscale_app_needs_usage" translatable="false">Per-app grayscale needs usage access to notice when you switch apps.</string>
+    <string name="grayscale_app_needs_usage" translatable="false">Per-app grayscale needs usage access to notice when you switch apps. Everything is counted on your phone.</string>
     <string name="grayscale_app_needs_default" translatable="false">Per-app grayscale needs Parem as your default home screen to bring color back.</string>
     <!-- Onboarding (6.0): home screen, then optional Calm setup -->
     <string name="onboarding_home_screen_title" translatable="false">Make Parem your home screen</string>
