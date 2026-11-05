@@ -321,8 +321,8 @@ class AppDrawerAdapter(
                 if ((timeMs > 0 || opens > 0) && appModel.appPackage.isNotEmpty()) {
                     val timeText = if (timeMs > 0) root.context.formattedTimeSpent(timeMs) else ""
                     appUsageTime.text = when {
-                        timeMs > 0 && opens > 0 -> "$timeText · ${opens}×"
-                        opens > 0 -> "${opens}×"
+                        timeMs > 0 && opens > 0 -> root.context.getString(R.string.usage_time_and_opens, timeText, opens)
+                        opens > 0 -> root.context.getString(R.string.usage_opens, opens)
                         else -> timeText
                     }
                     appUsageTime.visibility = View.VISIBLE

@@ -1,5 +1,8 @@
 package com.parem.launcher.helper
 
+import android.icu.text.MeasureFormat
+import android.icu.util.Measure
+import android.icu.util.MeasureUnit
 import android.app.Activity
 import android.util.Log
 import android.app.AppOpsManager
@@ -25,6 +28,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import java.util.Calendar
+import java.util.Locale
 
 fun View.hideKeyboard() {
     this.clearFocus()
@@ -170,27 +174,30 @@ fun Context.appUsagePermissionGranted(): Boolean {
     ) == AppOpsManager.MODE_ALLOWED
 }
 
+// Drawer rows format on every bind; getInstance loads locale data each call
+@Volatile
+private var narrowDuration: Pair<Locale, MeasureFormat>? = null
+
+private fun narrowDurationFormat(locale: Locale): MeasureFormat =
+    narrowDuration?.takeIf { it.first == locale }?.second
+        ?: MeasureFormat.getInstance(locale, MeasureFormat.FormatWidth.NARROW).also { narrowDuration = locale to it }
+
+/** A duration in the phone's language: "1h 5m", "12 Min.", "12 мин". */
 fun Context.formattedTimeSpent(timeSpent: Long): String {
-    val seconds = timeSpent / 1000
-    val minutes = seconds / 60
-    val hours = minutes / 60
-    val remainingMinutes = minutes % 60
+    val totalMinutes = timeSpent / 60_000
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    val format = narrowDurationFormat(resources.configuration.locales[0])
     return when {
-        timeSpent == 0L -> "0m"
-
-        hours > 0 -> getString(
-            R.string.time_spent_hour,
-            hours.toString(),
-            remainingMinutes.toString()
-        )
-
-        minutes > 0 -> {
-            getString(R.string.time_spent_min, minutes.toString())
-        }
-
-        else -> "<1m"
+        timeSpent in 1 until 60_000 -> getString(R.string.time_spent_under, format.format(Measure(1, MeasureUnit.MINUTE)))
+        hours > 0 && minutes > 0 -> format.formatMeasures(Measure(hours, MeasureUnit.HOUR), Measure(minutes, MeasureUnit.MINUTE))
+        hours > 0 -> format.format(Measure(hours, MeasureUnit.HOUR))
+        else -> format.format(Measure(totalMinutes, MeasureUnit.MINUTE))
     }
 }
+
+/** "Settings › <section>", from the section's own title so a renamed section stays right. */
+fun Context.settingsPath(section: Int): String = getString(R.string.setting_hint, getString(section))
 
 fun Long.convertEpochToMidnight(): Long {
     val calendar = Calendar.getInstance()

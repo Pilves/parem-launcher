@@ -1,6 +1,7 @@
 package com.parem.launcher.ui
 
 import android.content.Context
+import androidx.core.text.BidiFormatter
 import android.graphics.Typeface
 import android.view.Gravity
 import android.widget.LinearLayout
@@ -183,7 +184,7 @@ class ScreenTimeGraphDialog(
                 fun changeLine(changes: List<WeeklyReview.AppChange>?, format: Int): String? =
                     changes?.firstNotNullOfOrNull { change ->
                         labelOf(change.pkg)?.let { label ->
-                            context.getString(format, label, context.formattedTimeSpent(abs(change.deltaMsPerDay)))
+                            context.getString(format, BidiFormatter.getInstance().unicodeWrap(label), context.formattedTimeSpent(abs(change.deltaMsPerDay)))
                         }
                     }
 

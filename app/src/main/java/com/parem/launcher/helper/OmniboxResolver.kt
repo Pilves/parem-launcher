@@ -39,12 +39,28 @@ object OmniboxResolver {
     private val NUMERIC_QUERY = Regex("^\\+?[0-9][0-9 +\\-*/.,%^()]*$")
 
     /**
+     * Arabic-Indic and Persian digits and the Arabic decimal separator, as ASCII.
+     * Every matcher below is ASCII, so without this a Persian keyboard's "٥+٥"
+     * is not a sum and "+٣٧٢ ٥٥٥ ١٢٣٤" is not a phone number.
+     */
+    fun normalizeDigits(query: String): String = buildString(query.length) {
+        for (c in query) append(
+            when (c) {
+                in '\u0660'..'\u0669' -> '0' + (c - '\u0660')
+                in '\u06F0'..'\u06F9' -> '0' + (c - '\u06F0')
+                '\u066B' -> '.'
+                else -> c
+            }
+        )
+    }
+
+    /**
      * True when a drawer query reads as maths, a conversion, currency or a
      * phone number, so a single matching app must not auto-launch (M4-WP27):
      * the user is typing a value, not an app name.
      */
     fun blocksAutoLaunch(query: String): Boolean {
-        val trimmed = query.trim()
+        val trimmed = normalizeDigits(query).trim()
         if (trimmed.isEmpty()) return false
         return NUMERIC_QUERY.matches(trimmed)
             || ExpressionEvaluator.looksLikeExpression(trimmed)
@@ -61,12 +77,13 @@ object OmniboxResolver {
         enabled && !screenReaderOn && !blocksAutoLaunch(query)
 
     fun resolve(
-        query: String,
+        rawQuery: String,
         contacts: List<ContactMatcher.Contact>,
         rates: CurrencyConverter.Rates? = null,
         settings: List<SettingsSearch.Row> = emptyList(),
         now: LocalDateTime = LocalDateTime.now(),
     ): OmniboxMode {
+        val query = normalizeDigits(rawQuery)
         val trimmed = query.trim()
 
         if (ExpressionEvaluator.looksLikeExpression(trimmed)) {

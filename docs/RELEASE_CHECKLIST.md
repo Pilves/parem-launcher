@@ -301,6 +301,11 @@ see DESIGN.md 13.2). Run with TalkBack on unless a line says otherwise.
 - [ ] At 200% font, settings rows, sheet rows and the limit rows still fit
       their text with no clipping (rows grow past 48dp)
 
+### UX-8 — Locale-correct copy (M4-WP48)
+
+- [ ] Hebrew: "Left" in Settings puts the home apps on the left of the screen.
+- [ ] The focus-blocked toast fits 2 lines at 200% font on the Tab S8.
+
 ## Sign-off
 
 - [ ] Every box above ticked on: device / Android version ___

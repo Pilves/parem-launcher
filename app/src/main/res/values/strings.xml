@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name" translatable="false">Parem Launcher</string>
-    <string name="github" translatable="false">Github</string>
+    <string name="github" translatable="false">GitHub</string>
     <string name="lock_layout_description" translatable="false">lock layout description to be used a unique id to lock screen</string>
     <string name="day_battery" formatted="false" translatable="false">%s, %d%%</string>
     <string name="tag_1" translatable="false">1</string>
@@ -11,12 +11,10 @@
     <string name="tag_6" translatable="false">6</string>
     <string name="tag_7" translatable="false">7</string>
     <string name="tag_8" translatable="false">8</string>
-    <string name="time_spent_min" translatable="false"><b>%1$sm</b></string>
-    <string name="time_spent_hour" translatable="false">%1$sh %2$sm</string>
+    <string name="time_spent_under" translatable="false">&lt;%1$s</string>
 
     <string name="app">App</string>
     <string name="set_as_default_launcher">Set as default launcher</string>
-    <string name="set_as_default_launcher_u"><u>Set as default launcher</u></string>
     <string name="set_as_default_launcher_first">Set Parem Launcher default first</string>
     <string name="double_tap_to_lock_screen">Double tap to lock</string>
     <string name="admin_permission_message" translatable="false">Parem uses this only to lock the screen when its accessibility service can\'t. After each such lock, your next unlock needs your PIN, pattern or password: fingerprint and face unlock won\'t work for it. Parem uses no other device admin power, and locking reads and sends nothing. To uninstall Parem, first turn this off in Parem\'s Settings › Gestures.</string>
@@ -214,8 +212,8 @@
     <string name="focus_duration" translatable="false">Duration</string>
     <string name="focus_allowed_apps" translatable="false">Allowed apps (max 5)</string>
     <string name="app_blocked_focus" translatable="false">Blocked by Focus Mode</string>
-    <string name="app_blocked_focus_scheduled" translatable="false">Focus scheduled until %s. Pause it in Settings › Digital Wellbeing › Focus mode.</string>
-    <string name="app_blocked_focus_scheduled_no_end" translatable="false">Focus is scheduled. Pause it in Settings › Digital Wellbeing › Focus mode.</string>
+    <string name="app_blocked_focus_scheduled" translatable="false">Focus until %1$s. Pause it in %2$s.</string>
+    <string name="app_blocked_focus_scheduled_no_end" translatable="false">Focus is scheduled. Pause it in %1$s.</string>
     <string name="focus_schedule" translatable="false">Schedule</string>
     <string name="focus_schedule_add" translatable="false">Add window</string>
     <string name="focus_schedule_hint" translatable="false">Tap a window to edit it, long-press to remove it</string>
@@ -296,7 +294,7 @@
     <string name="lock_consent_decline" translatable="false">Not now</string>
     <string name="lock_service_off_title" translatable="false">Lock gesture is off</string>
     <string name="lock_service_off_body" translatable="false">Parem\'s accessibility service is no longer running, so your lock gesture cannot lock the screen. Android can turn it off after an app update, a crash, or when a security setting restricts accessibility services. Turn it back on in Accessibility settings, or pick another gesture action in Parem\'s gesture settings.</string>
-    <string name="lock_service_off_toast" translatable="false">Can\'t lock: accessibility is off. Other options in Settings › Gestures</string>
+    <string name="lock_service_off_toast" translatable="false">Can\'t lock: accessibility is off. See %1$s.</string>
     <string name="lock_admin_option" translatable="false">Lock with device admin instead (needs PIN after every lock)</string>
     <string name="lock_admin_off_row" translatable="false">Lock without accessibility (PIN after every lock)</string>
     <string name="lock_admin_on_row" translatable="false">Lock uses device admin (PIN after each lock): turn off</string>
@@ -446,4 +444,7 @@
     <string name="focus_end_early" translatable="false">End focus early?</string>
     <string name="focus_end_wait" translatable="false">End focus in %1$d…</string>
     <string name="focus_end_now" translatable="false">End focus</string>
+    <string name="make_parem_home" translatable="false">Make Parem your home screen</string>
+    <string name="usage_opens" translatable="false">%1$d×</string>
+    <string name="usage_time_and_opens" translatable="false">%1$s · %2$d×</string>
 </resources>

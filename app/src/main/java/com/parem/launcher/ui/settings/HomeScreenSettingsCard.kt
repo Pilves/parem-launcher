@@ -96,9 +96,9 @@ class HomeScreenSettingsCard(
                 binding.appsNumSelectLayout.visibility = View.VISIBLE
             }
             R.id.alignmentRow -> binding.alignmentSelectLayout.visibility = View.VISIBLE
-            R.id.alignmentLeft -> viewModel.updateHomeAlignment(Gravity.START)
+            R.id.alignmentLeft -> viewModel.updateHomeAlignment(leftGravity)
             R.id.alignmentCenter -> viewModel.updateHomeAlignment(Gravity.CENTER)
-            R.id.alignmentRight -> viewModel.updateHomeAlignment(Gravity.END)
+            R.id.alignmentRight -> viewModel.updateHomeAlignment(rightGravity)
             R.id.alignmentBottom -> updateHomeBottomAlignment()
             R.id.dateTimeRow -> binding.dateTimeSelectLayout.visibility = View.VISIBLE
             R.id.dateTimeOn -> toggleDateTime(Constants.DateTime.ON)
@@ -192,11 +192,16 @@ class HomeScreenSettingsCard(
         viewModel.updateHomeAlignment(prefs.homeAlignment)
     }
 
+    // START is the right edge under RTL; the labels name the side the user sees
+    private val isRtl get() = context.resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
+    private val leftGravity get() = if (isRtl) Gravity.END else Gravity.START
+    private val rightGravity get() = if (isRtl) Gravity.START else Gravity.END
+
     private fun populateAlignment() {
         when (prefs.homeAlignment) {
-            Gravity.START -> binding.alignment.text = context.getString(R.string.left)
+            leftGravity -> binding.alignment.text = context.getString(R.string.left)
             Gravity.CENTER -> binding.alignment.text = context.getString(R.string.center)
-            Gravity.END -> binding.alignment.text = context.getString(R.string.right)
+            rightGravity -> binding.alignment.text = context.getString(R.string.right)
         }
         binding.alignmentBottom.text = if (prefs.homeBottomAlignment)
             context.getString(R.string.bottom_on)

@@ -16,6 +16,38 @@ class OmniboxResolverTest {
     private fun resolve(query: String, contacts: List<Contact> = this.contacts) =
         OmniboxResolver.resolve(query, contacts)
 
+    // --- digits from Arabic and Persian keyboards ---
+
+    @Test
+    fun arabicIndicDigitsCalculate() {
+        assertEquals(OmniboxMode.Calc("10"), resolve("٥+٥"))
+    }
+
+    @Test
+    fun persianDigitsCalculate() {
+        assertEquals(OmniboxMode.Calc("10"), resolve("۵+۵"))
+    }
+
+    @Test
+    fun arabicDecimalSeparatorCalculates() {
+        assertEquals(OmniboxMode.Calc("3"), resolve("١٫٥*٢"))
+    }
+
+    @Test
+    fun arabicIndicDigitsConvert() {
+        assertEquals(OmniboxMode.Conversion("6.213712 mi"), resolve("١٠ km in mi"))
+    }
+
+    @Test
+    fun arabicIndicDigitsDial() {
+        assertEquals(OmniboxMode.Dial("+372 555 1234"), resolve("+٣٧٢ ٥٥٥ ١٢٣٤"))
+    }
+
+    @Test
+    fun arabicIndicNumberBlocksAutoLaunch() {
+        assertTrue(OmniboxResolver.blocksAutoLaunch("٥"))
+    }
+
     // --- each mode on its own ---
 
     @Test

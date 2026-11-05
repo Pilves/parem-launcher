@@ -10,6 +10,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
+import androidx.core.text.BidiFormatter
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
@@ -24,6 +25,7 @@ import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.Haptics
 import com.parem.launcher.helper.HomeAccessibilityActions
+import com.parem.launcher.helper.settingsPath
 import com.parem.launcher.helper.expandNotificationDrawer
 import com.parem.launcher.helper.LockServiceCheck
 import com.parem.launcher.helper.isAccessServiceBound
@@ -163,7 +165,7 @@ class HomeGesturesController(
                 HomeAccessibilityActions.Kind.NOTIFICATIONS -> context.getString(R.string.notifications)
                 HomeAccessibilityActions.Kind.ADD_WIDGET -> context.getString(R.string.add_widget)
                 HomeAccessibilityActions.Kind.SWIPE_LEFT_APP,
-                HomeAccessibilityActions.Kind.SWIPE_RIGHT_APP -> context.getString(R.string.a11y_open_app, action.appName)
+                HomeAccessibilityActions.Kind.SWIPE_RIGHT_APP -> context.getString(R.string.a11y_open_app, BidiFormatter.getInstance().unicodeWrap(action.appName))
             }
             val id = ViewCompat.addAccessibilityAction(view, label) { _, _ ->
                 if (!fragment.isAdded) return@addAccessibilityAction false
@@ -430,7 +432,7 @@ class HomeGesturesController(
                 return
             }
             LockServiceCheck.Outcome.OFF_EXPLAINED -> {
-                context.showToast(context.getString(R.string.lock_service_off_toast))
+                context.showToast(context.getString(R.string.lock_service_off_toast, context.settingsPath(R.string.gestures)))
                 return
             }
         }

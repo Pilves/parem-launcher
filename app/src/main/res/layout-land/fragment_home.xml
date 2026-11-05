@@ -310,6 +310,6 @@
         android:layout_marginBottom="24dp"
         android:ellipsize="end"
         android:maxLines="1"
-        android:text="@string/set_as_default_launcher_u"
+        android:text="@string/make_parem_home"
         android:visibility="gone" />
 </FrameLayout>

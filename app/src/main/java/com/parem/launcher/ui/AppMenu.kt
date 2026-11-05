@@ -23,7 +23,6 @@ import com.parem.launcher.helper.AppMenuPolicy.Action
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.dpToPx
-import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isSystemApp
@@ -53,11 +52,10 @@ object AppMenu {
         val personal = app.user == Process.myUserHandle()
         val hiddenKey = AppListRebuilder.hiddenKey(app.appPackage, app.user.toString())
         val isHidden = hidden || hiddenKey in prefs.hiddenApps || app.appPackage in prefs.hiddenApps
-        val limit = AppLimitManager.getLimit(context, app.appPackage)
         val pause = AppLimitManager.hasPause(context, app.appPackage)
         val menu = BottomSheetMenu(context).title(BidiFormatter.getInstance().unicodeWrap(app.appLabel))
         val actions = AppMenuPolicy.actions(personal, app.isPrivate, hidden, homeSlot != null,
-            limit != null || pause, personal && !context.isSystemApp(app.appPackage))
+            AppLimitManager.isGated(context, app.appPackage), personal && !context.isSystemApp(app.appPackage))
         for (action in actions) when (action) {
             Action.INFO -> menu.option(context.getString(R.string.a11y_app_info)) {
                 if (fragment.isAlive) openAppInfo(context, app.user, app.appPackage)
@@ -69,9 +67,8 @@ object AppMenu {
                     onChanged()
                 }
             }
-            Action.LIMIT -> menu.option(context.getString(R.string.app_menu_time_limit), summary =
-                limit?.let { context.formattedTimeSpent(it * 60_000L) }
-                    ?: context.getString(if (pause) R.string.pause_only else R.string.none)) {
+            Action.LIMIT -> menu.option(context.getString(R.string.app_menu_time_limit),
+                summary = BadHabitDialogs.limitLabel(context, app.appPackage)) {
                 if (fragment.isAlive) {
                     if (context.appUsagePermissionGranted()) {
                         BadHabitDialogs.showTimeLimitPicker(context, app.appPackage, onChanged)

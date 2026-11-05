@@ -1,5 +1,6 @@
 package com.parem.launcher
 
+import android.content.res.Configuration
 import android.util.Log
 import android.view.View
 import android.widget.EditText
@@ -19,6 +20,7 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
+import com.parem.launcher.helper.formattedTimeSpent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -26,6 +28,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.ByteArrayOutputStream
+import java.util.Locale
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
@@ -183,6 +186,16 @@ class SmokeTest {
         } finally {
             device.setOrientationNatural()
         }
+    }
+
+    @Test
+    fun durationsFollowThePhoneLanguage() {
+        fun inLocale(tag: String) = context.createConfigurationContext(
+            Configuration(context.resources.configuration).apply { setLocale(Locale.forLanguageTag(tag)) }
+        ).formattedTimeSpent(12 * 60_000L)
+        assertEquals("12m", inLocale("en"))
+        assertEquals("12 Min.", inLocale("de"))
+        assertEquals("12 мин", inLocale("ru"))
     }
 
     @Test

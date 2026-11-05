@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.provider.Settings
 import android.os.SystemClock
 import android.widget.TextView
+import androidx.core.text.BidiFormatter
 import androidx.core.view.ViewCompat
 import com.parem.launcher.R
 import com.parem.launcher.helper.AppLimitManager
@@ -75,7 +76,7 @@ object BadHabitDialogs {
             if (!isActive()) return@launch
             val usageMinutes = usageMs / 60_000
             val overLimit = MindfulPause.isOverLimit(limitMinutes, usageMinutes)
-            val label = appLabel(context, appName, packageName)
+            val label = BidiFormatter.getInstance().unicodeWrap(appLabel(context, appName, packageName))
             val warning = limitMinutes?.takeIf { overLimit }
                 ?.let { limitWarningText(context, label, usageMinutes, it) }
             // Opening past the limit is the "after a limit" grayscale trigger
@@ -212,6 +213,16 @@ object BadHabitDialogs {
         }
     }
 
+    /** The name of what the app has, for a row or a summary. */
+    fun limitLabel(context: Context, packageName: String): String {
+        val limit = AppLimitManager.getLimit(context, packageName)
+        return when {
+            limit != null -> context.formattedTimeSpent(limit * 60_000L)
+            AppLimitManager.hasPause(context, packageName) -> context.getString(R.string.pause_only)
+            else -> context.getString(R.string.app_menu_no_limit)
+        }
+    }
+
     /**
      * The usage-access sheet, named as the permission it is. Without the grant it
      * says what the limit needs; with it, what revoking in Android switches off.
@@ -255,6 +266,7 @@ object BadHabitDialogs {
             AppLimitManager.removeLimit(context, packageName)
             onSet()
         }
+        addMindfulPauseToggle(menu, context, packageName)
         return menu.show()
     }
 }

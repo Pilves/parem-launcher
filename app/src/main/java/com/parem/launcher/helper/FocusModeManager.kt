@@ -184,9 +184,13 @@ object FocusModeManager {
         val message = when (val label = getActiveLabel(context)) {
             is ActiveLabel.ScheduledUntil -> context.getString(
                 R.string.app_blocked_focus_scheduled,
-                formatScheduledEnd(context, label.epochMs)
+                formatScheduledEnd(context, label.epochMs),
+                context.settingsPath(R.string.wellbeing),
             )
-            ActiveLabel.ScheduledNoEnd -> context.getString(R.string.app_blocked_focus_scheduled_no_end)
+            ActiveLabel.ScheduledNoEnd -> context.getString(
+                R.string.app_blocked_focus_scheduled_no_end,
+                context.settingsPath(R.string.wellbeing),
+            )
             else -> null
         }
         if (message != null) context.showToast(message, android.widget.Toast.LENGTH_LONG)
@@ -234,11 +238,7 @@ object FocusModeManager {
         val remainingMs = endTime - System.currentTimeMillis()
         if (remainingMs <= 0) return null
 
-        val totalMinutes = (remainingMs / 60_000).toInt()
-        val hours = totalMinutes / 60
-        val minutes = totalMinutes % 60
-
-        return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+        return context.formattedTimeSpent(remainingMs)
     }
 
     /**

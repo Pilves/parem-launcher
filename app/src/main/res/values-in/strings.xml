@@ -2,7 +2,6 @@
 <resources>
     <string name="app">Aplikasi</string>
     <string name="set_as_default_launcher">Tetapkan sebagai peluncur default</string>
-    <string name="set_as_default_launcher_u"><u>Tetapkan sebagai peluncur default</u></string>
     <string name="set_as_default_launcher_first">Tetapkan sebagai peluncur default</string>
     <string name="double_tap_to_lock_screen">Ketuk dua kali untuk mengunci</string>
     <string name="off">Mati</string>

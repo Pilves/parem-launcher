@@ -2,7 +2,6 @@
 <resources>
     <string name="app">Aplikacija</string>
     <string name="set_as_default_launcher">Postavi kao zadani pokretač</string>
-    <string name="set_as_default_launcher_u"><u>Postavi kao zadani pokretač</u></string>
     <string name="set_as_default_launcher_first">Postavi kao zadani pokretač</string>
     <string name="double_tap_to_lock_screen">Dvostruki dodir za zaključavanje</string>
     <string name="off">Isklj.</string>

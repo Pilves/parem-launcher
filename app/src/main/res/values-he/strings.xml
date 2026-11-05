@@ -1,7 +1,6 @@
 <resources>
     <string name="app">יישום</string>
     <string name="set_as_default_launcher">הגדרה בתור משגר ברירת המחדל</string>
-    <string name="set_as_default_launcher_u">הגדר תחילה את Parem Launcher כברירת מחדל</string>
     <string name="set_as_default_launcher_first"><u>הגדר תחילה את Parem Launcher כברירת מחדל</u></string>
     <string name="double_tap_to_lock_screen">נעילת המסך בהקשה כפולה</string>
     <string name="off">כבוי</string>
