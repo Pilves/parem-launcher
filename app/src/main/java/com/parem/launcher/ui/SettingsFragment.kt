@@ -140,7 +140,9 @@ class SettingsFragment : BaseFragment() {
         binding.appsNumSelectLayout.visibility = View.GONE
         binding.dateTimeSelectLayout.visibility = View.GONE
         binding.swipeDownSelectLayout.visibility = View.GONE
-        binding.flSwipeDown.visibility = View.GONE
+        // The row is its own picker's parent: hiding it for a click on the row would hide the picker too
+        if (clickedId != R.id.flSwipeDown && clickedId != R.id.notifications && clickedId != R.id.search)
+            binding.flSwipeDown.visibility = View.GONE
         binding.textSizesLayout.visibility = View.GONE
         if (clickedId != R.id.alignmentBottom)
             binding.alignmentSelectLayout.visibility = View.GONE

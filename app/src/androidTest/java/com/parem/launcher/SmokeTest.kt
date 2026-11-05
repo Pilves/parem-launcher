@@ -1,9 +1,12 @@
 package com.parem.launcher
 
 import android.util.Log
+import android.view.View
 import android.widget.EditText
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
+import androidx.navigation.findNavController
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import com.parem.launcher.ui.FocusModeDialog
@@ -17,6 +20,7 @@ import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -178,6 +182,31 @@ class SmokeTest {
             }
         } finally {
             device.setOrientationNatural()
+        }
+    }
+
+    @Test
+    fun swipeDownRowStaysWhileItsPickerIsOpen() {
+        device.waitForIdle(TIMEOUT)
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            activity.findNavController(R.id.nav_host_fragment).navigate(R.id.action_mainFragment_to_settingsFragment)
+        }
+        device.waitForIdle(TIMEOUT)
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            val row = activity.findViewById<View>(R.id.flSwipeDown)
+            val picker = activity.findViewById<View>(R.id.swipeDownSelectLayout)
+            activity.findViewById<View>(R.id.tvGestures).performClick()
+            assertTrue("row not revealed", row.isVisible)
+            row.performClick()
+            assertTrue("row vanished on tap", row.isVisible)
+            assertTrue("picker not shown", picker.isVisible)
+            activity.findViewById<View>(R.id.notifications).performClick()
+            assertTrue("row vanished after picking", row.isVisible)
+            assertFalse("picker stayed open", picker.isVisible)
         }
     }
 

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Fixed: tapping the "Swipe down for" value in Settings shows its picker instead of hiding the whole row.
+
 ## v6.0.0-beta.2 — 2026-10-16
 
 - App-picker search keeps the first matching rows above the keyboard, including in Focus mode.
