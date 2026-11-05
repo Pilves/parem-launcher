@@ -451,5 +451,6 @@
     <string name="settings_export_failed_plain" translatable="false">Couldn\'t save the settings file</string>
     <string name="settings_import_failed_plain" translatable="false">Couldn\'t read that file as Parem settings</string>
     <string name="widget_add_failed" translatable="false">Couldn\'t add this widget</string>
-    <string name="weather_search_failed" translatable="false">Can\'t reach the weather service. Check your connection.</string>
+    <string name="weather_search_failed" translatable="false">Can\'t reach the weather service right now.</string>
+    <string name="focus_schedule_pick_day" translatable="false">Pick at least one day</string>
 </resources>

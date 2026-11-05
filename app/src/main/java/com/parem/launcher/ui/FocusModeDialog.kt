@@ -17,6 +17,7 @@ import com.parem.launcher.helper.FocusSchedule
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.helper.showToast
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.helper.onOff
 import java.text.DateFormatSymbols
@@ -319,13 +320,18 @@ class FocusModeDialog(
             setPadding(16.dpToPx(), 0, 24.dpToPx(), 0)
             boxes.forEach { addView(it) }
         }
-        BottomSheetMenu(ctx)
+        lateinit var daysSheet: BottomSheetDialog
+        daysSheet = BottomSheetMenu(ctx)
             .title(ctx.getString(R.string.focus_schedule_days))
             .customView(dayList)
-            .option(ctx.getString(android.R.string.ok)) {
+            .option(ctx.getString(android.R.string.ok), dismissOnClick = false) {
                 if (!dialog.isShowing) return@option
                 val days = boxes.foldIndexed(0) { i, acc, box -> if (box.isChecked) acc or (1 shl i) else acc }
-                if (days == 0) return@option
+                if (days == 0) {
+                    ctx.showToast(ctx.getString(R.string.focus_schedule_pick_day))
+                    return@option
+                }
+                daysSheet.dismiss()
                 val start = initial?.startMin ?: 9 * 60
                 TimePickerDialog(ctx, { _, h, m ->
                     if (!dialog.isShowing) return@TimePickerDialog

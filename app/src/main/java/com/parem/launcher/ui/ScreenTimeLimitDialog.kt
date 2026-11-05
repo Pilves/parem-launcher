@@ -73,7 +73,8 @@ class ScreenTimeLimitDialog(
             .sortedByDescending { it.value }
             .take(15)
             .map { it.key }
-            .plus(AppLimitManager.configuredApps(context))
+            // A limit outlives its app, and a bare package name helps nobody
+            .plus(AppLimitManager.configuredApps(context).filter { context.appLabelOrNull(it) != null })
             .distinct()
             .toMutableList()
 

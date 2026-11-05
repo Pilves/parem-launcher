@@ -322,12 +322,15 @@ class AppDrawerFragment : BaseFragment() {
         val query = b.search.query.toString()
         hiddenHintShown = flag == Constants.FLAG_LAUNCH_APP &&
             HiddenAppHint.show(query, adapter.itemCount, isPrivateSpaceLocked(), hiddenLabels)
-        val bang = query.startsWith("!") && query.length > 1
+        // Picker drawers only pick an app, so a tip there must not promise a search
+        val searches = flag == Constants.FLAG_LAUNCH_APP
+        val bang = searches && query.startsWith("!") && query.length > 1
         if (bang || (adapter.itemCount == 0 && query.isNotBlank())) {
             b.appDrawerTip.text = when {
                 hiddenHintShown -> getString(R.string.hidden_apps_hint)
                 bang -> getString(R.string.duck_search_hint, query)
-                else -> getString(R.string.web_search_hint, query.trim())
+                searches -> getString(R.string.web_search_hint, query.trim())
+                else -> getString(R.string.no_apps_found)
             }
             b.appDrawerTip.visibility = View.VISIBLE
         } else {
@@ -587,7 +590,7 @@ class AppDrawerFragment : BaseFragment() {
                 OmniboxMode.None -> if (hiddenHintShown) {
                     openHiddenApps()
                     return@setOnClickListener
-                } else if (binding.search.query.isNotBlank()) {
+                } else if (flag == Constants.FLAG_LAUNCH_APP && binding.search.query.isNotBlank()) {
                     binding.search.setQuery(binding.search.query, true)
                     return@setOnClickListener
                 }
