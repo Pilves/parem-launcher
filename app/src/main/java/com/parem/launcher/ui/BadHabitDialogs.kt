@@ -9,6 +9,7 @@ import android.os.SystemClock
 import android.widget.TextView
 import androidx.core.text.BidiFormatter
 import androidx.core.view.ViewCompat
+import androidx.core.view.doOnPreDraw
 import com.parem.launcher.R
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
@@ -164,6 +165,7 @@ object BadHabitDialogs {
         // tap during the countdown must do nothing
         val openRow = TextView(context).apply {
             textSize = 16f
+            text = waiting(MindfulPause.DEFAULT_DELAY_SECONDS)
             setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
             minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
@@ -177,29 +179,35 @@ object BadHabitDialogs {
             .onDismiss { if (!proceeded) onCancel() }
             .show()
 
-        val start = SystemClock.elapsedRealtime()
-        val tick = object : Runnable {
-            override fun run() {
-                if (!dialog.isShowing) return
-                val elapsed = SystemClock.elapsedRealtime() - start
-                val left = MindfulPause.secondsRemaining(elapsed)
-                if (left > 0) {
-                    openRow.text = waiting(left)
-                    openRow.postDelayed(this, MindfulPause.msUntilNextTick(elapsed))
-                    return
+        // The timer starts after the first draw is submitted, so a busy main
+        // thread cannot consume the pause before its first visible frame.
+        openRow.doOnPreDraw {
+            openRow.post {
+                val start = SystemClock.elapsedRealtime()
+                val tick = object : Runnable {
+                    override fun run() {
+                        if (!dialog.isShowing) return
+                        val elapsed = SystemClock.elapsedRealtime() - start
+                        val left = MindfulPause.secondsRemaining(elapsed)
+                        if (left > 0) {
+                            openRow.text = waiting(left)
+                            openRow.postDelayed(this, MindfulPause.msUntilNextTick(elapsed))
+                            return
+                        }
+                        // Live only for this one change: the countdown ticks above stay silent
+                        ViewCompat.setAccessibilityLiveRegion(openRow, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE)
+                        openRow.text = ready
+                        openRow.setBackgroundResource(context.selectableBackgroundRes())
+                        openRow.setOnClickListener {
+                            proceeded = true
+                            dialog.dismiss()
+                            onProceed()
+                        }
+                    }
                 }
-                // Live only for this one change: the countdown ticks above stay silent
-                ViewCompat.setAccessibilityLiveRegion(openRow, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE)
-                openRow.text = ready
-                openRow.setBackgroundResource(context.selectableBackgroundRes())
-                openRow.setOnClickListener {
-                    proceeded = true
-                    dialog.dismiss()
-                    onProceed()
-                }
+                tick.run()
             }
         }
-        tick.run()
     }
 
     /** Toggle row for sheets that edit an app's limit; shown only while the app has one. */
