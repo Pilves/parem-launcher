@@ -8,13 +8,13 @@ There has been no human code review, independent security audit or complete phys
 
 **Minimal but hyperfunctional.** A text-based Android launcher that strips your home screen to what matters, then packs real utility behind a single search bar.
 
-No icons, no clutter — just the apps you need, the habits you want to build, and the tools to stay in control of your screen time.
+A short list of apps, optional icons, and tools for choosing how you use your screen time.
 
 ## The Omnibox
 
 The app drawer search bar is a single point of truth:
 
-- **Type** — apps filter instantly; a single match auto-launches
+- **Type** — apps filter instantly; a single match can auto-launch (you can turn this off)
 - **Fuzzy match** — `gm` finds Google Maps (initials); `s ki` finds Shaurmas Kitchen (word prefixes, GE-style)
 - **`2+2`** — arithmetic shows a live result inline (`+ - * / % ^`, parentheses); tap or hit enter to copy it
 - **`0612 3456`** — type a number, enter opens the dialer with it
@@ -40,7 +40,7 @@ The app drawer search bar is a single point of truth:
 - **Focus Mode** — Timed sessions (25m, 1h, 2h) that block all but 5 whitelisted apps
 - **Screen Time Graph** — 7-day usage bar chart, tap the home screen time display to view
 - **Screen Time Limits** — Soft per-app time limits with warnings when exceeded
-- **Bad Habit Apps** — Mark distracting apps with a daily time limit; a confirmation dialog asks "Open anyway?" once the limit is reached
+- **Mindful Pause** — Choose any app for a five-second pause before opening it through Parem; a time limit is optional
 - **Configurable Double-Tap** — Lock screen, open app, notifications, search, camera, flashlight, or nothing
 
 ### App Drawer
