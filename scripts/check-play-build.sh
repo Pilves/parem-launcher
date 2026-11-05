@@ -6,6 +6,7 @@
 #   scripts/check-play-build.sh app-play-debug.apk [aapt2]
 set -euo pipefail
 
+repo=$(cd "$(dirname "$0")/.." && pwd)
 apk=$1
 aapt2=${2:-$(find "${ANDROID_HOME:-$HOME/Android/Sdk}/build-tools" -name aapt2 | sort | tail -1)}
 work=$(mktemp -d)
@@ -22,7 +23,8 @@ if grep -alE 'com/parem/launcher/helper/(GrayscalePairing|adb/)' "$work"/classes
     echo "FAIL: pairing classes in $apk"
     status=1
 fi
-if grep -al 'POST_NOTIFICATIONS' "$work"/classes*.dex || grep -q POST_NOTIFICATIONS <<<"$permissions"; then
+# Not the dex: androidx.core names this permission itself, whether or not the app holds it.
+if grep -rl POST_NOTIFICATIONS "$repo/app/src/main" "$repo/app/src/play" || grep -q POST_NOTIFICATIONS <<<"$permissions"; then
     echo "FAIL: POST_NOTIFICATIONS in $apk"
     status=1
 fi
