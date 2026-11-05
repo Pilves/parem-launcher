@@ -6,6 +6,15 @@ Rules: `AGENTS.md`. Code map and traps: `ARCHITECTURE.md`.
 
 **Last updated:** 2026-11-05 — latest handoff date
 
+## 6.0.0 launch preparation
+
+The draft release branch and PR #7 are in progress. The Play and full debug
+flavours build on CI, but the final physical-phone pass, signing choice,
+consent translation review and the tablet API 36 missing-window cause remain
+open. The privacy page and compliance document are held uncommitted pending
+the owner's approval. See `docs/RELEASE_CHECKLIST.md`, `docs/play/signing.md`
+and the PR's current checks before treating this as a release candidate.
+
 ## Phase
 
 v5.5.1 is the latest published release (2026-07-03). `master` at `f4b55cf`
