@@ -83,8 +83,10 @@ test('screen guard requires the requested resource inside the measured package',
 });
 
 test('invalid screen or insufficient frames cannot become a valid measurement', () => {
-  const valid = { drawerScroll: { frames: 30 }, omniboxTyping: { frames: 31 } };
+  const valid = { coldStartMs: 500, returnHomeMs: 100, drawerScroll: { frames: 30 }, omniboxTyping: { frames: 31 } };
   assert.deepEqual(measurementProblems(valid), []);
+  assert.deepEqual(measurementProblems({ ...valid, coldStartMs: null, returnHomeMs: NaN }),
+    ['coldStartMs: missing or invalid timing', 'returnHomeMs: missing or invalid timing']);
   assert.deepEqual(measurementProblems({ ...valid, drawerScroll: { error: 'expected drawer' } }),
     ['drawerScroll: expected drawer']);
   assert.deepEqual(measurementProblems({ ...valid, omniboxTyping: { frames: 1 } }),

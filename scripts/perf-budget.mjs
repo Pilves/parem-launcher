@@ -150,11 +150,14 @@ export function drawerScrollGesture(xml, pkg, topLabel, down, screenHeight) {
 }
 
 export function measurementProblems(result) {
-  return ['drawerScroll', 'omniboxTyping'].flatMap((phase) => {
+  const timings = ['coldStartMs', 'returnHomeMs']
+    .filter((metric) => !Number.isFinite(result?.[metric]) || result[metric] < 0)
+    .map((metric) => `${metric}: missing or invalid timing`);
+  return timings.concat(['drawerScroll', 'omniboxTyping'].flatMap((phase) => {
     const value = result[phase];
     if (value?.error) return [`${phase}: ${value.error}`];
     return value?.frames >= MIN_FRAMES ? [] : [`${phase}: only ${value?.frames ?? 0} frames (need ${MIN_FRAMES})`];
-  });
+  }));
 }
 
 function hierarchy() {
