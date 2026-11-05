@@ -4,7 +4,7 @@ Current state only. History is `git log`, `CHANGELOG.md` and
 `docs/archive/TODO-pre-roadmap.md`. Work queue: `docs/ROADMAP.md`.
 Rules: `AGENTS.md`. Code map and traps: `ARCHITECTURE.md`.
 
-**Last updated:** 2026-11-05 — latest handoff date
+**Last updated:** 2026-11-06 — latest handoff date
 
 ## 6.0.0 launch preparation
 
@@ -168,6 +168,11 @@ per package; the rest of each of those fragments is still in
   Not verified: on a device, that "5" with a single matching app (M365) leaves the drawer open; only the JVM tests cover the predicate.
   Easy to get wrong: a query with any letter is an app query again ("1p" for 1Password still auto-launches), so a half-typed conversion like "5 k" is not blocked until it matches `UnitConverter.looksLikeConversion`; Enter still launches the top row regardless.
   Verified: ADB on Nothing A069 / Android 16: entering 5 stays in the drawer; no matching app was installed for that digit, so the single-match numeric guard remains covered by JVM tests rather than this device case.
+- **M4-WP28 (PR #7):** Landscape home limits first-use tips, gives the default-home banner precedence, aligns screen time with the app column, and reserves widget space for the active bottom prompt.
+  Contract: a tall widget remains scrollable; the original widget-column bottom padding returns when neither prompt is visible.
+  Verified: CI tablet and foldable tests bind a 600dp fixture, check tips and banner separately against its visible bounds, exercise scrolling and capture before/after drawer navigation in both flavours; three smoke runs on the home fix passed.
+  Not verified: real home-role transitions, physical devices, RTL, large fonts and all widget sizes. Emulator taskbar icons in captures are not publishable assets.
+  Easy to get wrong: first-use tips are session-scoped; WP49 owns any future per-gesture persistent dismissal. Layout callbacks must not touch a destroyed fragment view.
 - **M4-WP29 (PR #0):** The home screen's date and battery % refresh while it stays visible: `HomeClockController` registers one receiver for ACTION_DATE_CHANGED, ACTION_TIME_TICK, ACTION_TIMEZONE_CHANGED and ACTION_BATTERY_CHANGED only between the fragment's onResume and onPause.
   Contract: the controller watches `fragment.viewLifecycleOwner` itself via a DefaultLifecycleObserver, so HomeFragment needs no register/unregister call; the receiver guards on `isAdded && view != null` and calls `populateDateTime()`.
   Not verified: no device run, so the actual midnight rollover, timezone change and battery-tick refresh were only checked by compile/assemble; BATTERY_CHANGED is sticky and also fires once on every resume (harmless, same render path as before).
