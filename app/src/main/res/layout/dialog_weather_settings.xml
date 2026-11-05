@@ -17,6 +17,22 @@
         android:layout_marginBottom="4dp" />
 
     <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/weather_disclosure"
+        android:textSize="14sp"
+        android:textColor="?attr/textSecondaryColor"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/weather_credit"
+        android:textSize="14sp"
+        android:textColor="?attr/textSecondaryColor"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
         android:id="@+id/currentCityLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

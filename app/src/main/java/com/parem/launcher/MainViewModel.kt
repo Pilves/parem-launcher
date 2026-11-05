@@ -378,8 +378,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         prefs.dailyWallpaper = false
     }
 
+    /** Turning weather off cleared the cache, so a newly picked place must not wait out the throttle. */
+    fun resetWeatherThrottle() {
+        lastWeatherFetch = 0L
+    }
+
     fun getWeather() {
-        if (!WeatherManager.isEnabled(appContext)) return
+        if (!WeatherManager.isEnabled(appContext)) {
+            WeatherManager.clearUnusedData(appContext)
+            return
+        }
         val now = System.currentTimeMillis()
         if (now - lastWeatherFetch < 30 * 60 * 1000L) return  // 30 min throttle
         lastWeatherFetch = now

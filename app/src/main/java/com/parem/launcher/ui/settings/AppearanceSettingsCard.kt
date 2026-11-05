@@ -92,9 +92,12 @@ class AppearanceSettingsCard(
             R.id.weatherRow -> {
                 if (WeatherManager.isEnabled(context)) {
                     WeatherManager.setEnabled(context, false)
+                    WeatherManager.clearUnusedData(context)
                 } else {
-                    WeatherSettingsDialog(context, fragment.viewLifecycleOwner, onCityChosen = onWellbeingChanged)
-                        .dismissOnDestroy(fragment.viewLifecycleOwner).show()
+                    WeatherSettingsDialog(context, fragment.viewLifecycleOwner, onCityChosen = {
+                        viewModel.resetWeatherThrottle()
+                        onWellbeingChanged()
+                    }).dismissOnDestroy(fragment.viewLifecycleOwner).show()
                 }
                 onWellbeingChanged()
             }

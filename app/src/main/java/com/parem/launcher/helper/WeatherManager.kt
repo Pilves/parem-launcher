@@ -3,6 +3,7 @@ package com.parem.launcher.helper
 import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
+import com.parem.launcher.data.Constants
 import com.parem.launcher.data.paremPrefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -46,6 +47,22 @@ object WeatherManager {
 
     fun setEnabled(context: Context, enabled: Boolean) {
         context.paremPrefs().edit { putBoolean(WEATHER_ENABLED, enabled) }
+    }
+
+    /**
+     * Drops the cached reading, and the place unless the sunrise and sunset theme
+     * uses it, whenever weather is off. Called on turn-off and on every home
+     * resume, because an update, an import or a device transfer can also leave
+     * a place stored with weather off.
+     */
+    fun clearUnusedData(context: Context) {
+        if (isEnabled(context)) return
+        val p = context.paremPrefs()
+        val sunriseTheme = ThemeScheduleManager.getMode(context) == Constants.ThemeScheduleMode.SUNRISE_SUNSET
+        val place = if (WeatherPrivacy.keepsPlace(weatherOn = false, sunriseTheme)) emptyList()
+        else listOf(WEATHER_LAT, WEATHER_LNG, WEATHER_CITY_NAME)
+        val stale = (place + listOf(WEATHER_CACHED_TEMP, WEATHER_LAST_FETCHED, WEATHER_LAST_SUCCESS)).filter(p::contains)
+        if (stale.isNotEmpty()) p.edit { stale.forEach { remove(it) } }
     }
 
     fun setLocation(context: Context, lat: String, lng: String) {
@@ -152,7 +169,9 @@ object WeatherManager {
 
         var connection: HttpURLConnection? = null
         try {
-            val url = URL("https://api.open-meteo.com/v1/forecast?latitude=$latD&longitude=$lngD&current_weather=true")
+            val latParam = WeatherPrivacy.roundForRequest(latD)
+            val lngParam = WeatherPrivacy.roundForRequest(lngD)
+            val url = URL("https://api.open-meteo.com/v1/forecast?latitude=$latParam&longitude=$lngParam&current_weather=true")
             connection = url.openConnection() as HttpURLConnection
             connection.connectTimeout = 10_000
             connection.readTimeout = 15_000
