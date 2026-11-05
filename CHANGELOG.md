@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## v6.0.0 — 2026-11-05
 
 - Align landscape screen time with the home app column.
 
