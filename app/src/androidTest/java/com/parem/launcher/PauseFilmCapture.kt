@@ -4,6 +4,7 @@ import android.app.WallpaperManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.SystemClock
+import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -44,6 +45,7 @@ class PauseFilmCapture {
         assertTrue("home missing", device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 15000))
         device.waitForIdle()
         SystemClock.sleep(1800)
+        val gateStart = SystemClock.elapsedRealtime()
         instrumentation.runOnMainSync {
             val activity = ActivityLifecycleMonitorRegistry.getInstance()
                 .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
@@ -51,6 +53,12 @@ class PauseFilmCapture {
                 "Feed", "com.parem.fixture.feed", {})
         }
         assertTrue("pause sheet missing", device.wait(Until.hasObject(By.text(context.getString(R.string.mindful_pause_question, "Feed"))), 10000))
-        SystemClock.sleep(7000)
+        val fiveVisible = device.wait(Until.hasObject(By.text(context.getString(R.string.mindful_pause_wait, "Feed", 5))), 3000)
+        val firstVisibleAt = SystemClock.elapsedRealtime()
+        val readyVisible = device.wait(Until.hasObject(By.text(context.getString(R.string.mindful_pause_open, "Feed"))), 8000)
+        val readyAt = SystemClock.elapsedRealtime()
+        Log.i("PauseFilmTiming", "gate=$gateStart five=$firstVisibleAt fiveVisible=$fiveVisible ready=$readyAt readyVisible=$readyVisible gateToReady=${readyAt - gateStart} visibleToReady=${readyAt - firstVisibleAt}")
+        assertTrue("ready state missing", readyVisible)
+        SystemClock.sleep(2000)
     }
 }
