@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Add draft translations of permission disclosures for the shipped locales; native review is required.
+
 - Translate the German capture screens and consent disclosures.
 
 - Use the green Parem icon across launcher and store assets.

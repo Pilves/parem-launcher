@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Machine-translated draft; native review required before publication. -->
+    <string name="lock_consent_body">Toque duas vezes para bloquear usa o serviço de acessibilidade do Android. O Android informa o serviço do Parem quando você toca dentro do Parem. O serviço ignora todos os toques, exceto aquele em sua própria área de bloqueio invisível, e quando esse toque ocorre, ele pede ao Android para bloquear a tela. Ele não recebe eventos de outros aplicativos e não consegue ler sua tela. Nada que ele vê é armazenado ou enviado para qualquer lugar. Você pode desligá-lo a qualquer momento nas configurações de acessibilidade.</string>
+    <string name="lock_consent_accept">Concorde e abra as configurações</string>
+    <string name="lock_consent_decline">Agora não</string>
+    <string name="quiet_disclosure_title">Ocultar notificações de outros aplicativos?</string>
+    <string name="quiet_disclosure_body">As notificações de aplicativos que você não permitiu passam do painel de notificações para uma lista silenciosa. Abra a lista na tela inicial usando o gesto escolhido em Configurações › Gestos.\n\nChamadas, alarmes, mídia, navegação, alertas de emergência e alertas do sistema nunca ficam ocultos.\n\nVocê ainda poderá ouvir um som curto ou sentir uma vibração quando uma notificação chegar. Use Tornar silencioso para interromper isso em um aplicativo.\n\nPara classificar as notificações neste telefone, Parem lê qual aplicativo enviou cada notificação e a qual categoria a notificação pertence. Parem mostra cada título na lista silenciosa. Para notificações ocultas, Parem armazena apenas um identificador. Parem nunca armazena texto de notificação nem envia dados.\n\nPara desfazer isso, desligue-o aqui ou remova Parem em Configurações do Android › Acesso a notificações. As notificações ocultas retornam em até 8 horas.</string>
+    <string name="contact_search_disclosure">A pesquisa de contatos lê nomes e números de telefone dos seus contatos, somente neste telefone, para corresponder ao que você digita. Parem nunca os salva ou envia.</string>
+</resources>

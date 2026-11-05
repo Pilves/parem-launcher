@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Machine-translated draft; native review required before publication. -->
+    <string name="lock_consent_body">双击锁定使用 Android 的辅助服务。当您点击 Parem 内部时，Android 会通知 Parem 的服务。该服务会忽略除了在其自己的不可见锁定区域上的每次点击之外的每一次点击，当该点击到来时，它会要求 Android 锁定屏幕。它不会从其他应用程序获取任何事件，也无法读取您的屏幕。它看到的任何内容都不会存储或发送到任何地方。您可以随时在辅助功能设置中将其关闭。</string>
+    <string name="lock_consent_accept">同意并打开设置</string>
+    <string name="lock_consent_decline">现在不要</string>
+    <string name="quiet_disclosure_title">隐藏其他应用程序的通知？</string>
+    <string name="quiet_disclosure_body">来自您不允许的应用程序的通知从通知面板移至安静列表。使用在设置 › 手势中选择的手势打开主屏幕上的列表。\n\n呼叫、警报、媒体、导航、紧急警报和系统警报永远不会被隐藏。\n\n当通知到达时，您可能仍会听到短促的声音或感觉到振动。使用“静音”来停止应用程序的此操作。\n\n为了对手机上的通知进行排序，Parem 会读取发送每个通知的应用程序以及通知所属的类别。 Parem 显示安静列表中的每个标题。对于隐藏通知，Parem 仅存储标识符。 Parem 从不存储通知文本或发送任何数据。\n\n要撤消此操作，请在此处将其关闭，或在 Android 设置 › 通知访问下删除 Parem。隐藏的通知会在 8 小时内返回。</string>
+    <string name="contact_search_disclosure">联系人搜索仅在此手机上读取联系人的姓名和电话号码，以匹配您键入的内容。 Parem 从不保存或发送它们。</string>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Machine-translated draft; native review required before publication. -->
+    <string name="lock_consent_body">Kliknij dwukrotnie, aby zablokować, korzystając z usługi ułatwień dostępu Androida. Android informuje usługę Parem, gdy dotkniesz wnętrza Parem. Usługa ignoruje każde dotknięcie z wyjątkiem tego w swoim niewidocznym obszarze blokady, a gdy nastąpi to dotknięcie, prosi system Android o zablokowanie ekranu. Nie pobiera żadnych zdarzeń z innych aplikacji i nie może odczytać zawartości ekranu. Nic, co widzi, nie jest nigdzie przechowywane ani wysyłane. Możesz ją w dowolnej chwili wyłączyć w ustawieniach dostępności.</string>
+    <string name="lock_consent_accept">Zgadzam się i otwórz ustawienia</string>
+    <string name="lock_consent_decline">Nie teraz</string>
+    <string name="quiet_disclosure_title">Ukryć powiadomienia z innych aplikacji?</string>
+    <string name="quiet_disclosure_body">Powiadomienia z aplikacji, na które nie zezwoliłeś, zostaną przeniesione z panelu powiadomień na cichą listę. Otwórz listę na ekranie głównym za pomocą gestu wybranego w Ustawieniach &gt; Gesty.\n\nPołączenia, alarmy, multimedia, nawigacja, alerty alarmowe i alerty systemowe nigdy nie są ukryte.\n\nPo nadejściu powiadomienia możesz nadal słyszeć krótki dźwięk lub czuć wibracje. Użyj opcji Wycisz, aby zatrzymać tę opcję dla aplikacji.\n\nAby sortować powiadomienia na tym telefonie, Parem odczytuje, która aplikacja wysłała każde powiadomienie i do jakiej kategorii należy powiadomienie. Parem pokazuje każdy tytuł na cichej liście. W przypadku ukrytych powiadomień Parem przechowuje jedynie identyfikator. Parem nigdy nie przechowuje tekstu powiadomienia ani nie wysyła żadnych danych.\n\nAby to cofnąć, wyłącz tę opcję tutaj lub usuń Parem w Ustawieniach Androida › Dostęp do powiadomień. Ukryte powiadomienia wracają w ciągu 8 godzin.</string>
+    <string name="contact_search_disclosure">Wyszukiwanie kontaktów odczytuje nazwiska i numery telefonów z Twoich kontaktów tylko na tym telefonie, aby dopasować je do wpisanego tekstu. Parem nigdy ich nie zapisuje ani nie wysyła.</string>
+</resources>
