@@ -274,7 +274,7 @@ class HomeScreenSettingsCard(
     }
 
     // Contact search is the only place READ_CONTACTS is ever requested: turning
-    // the toggle on prompts for the permission; every other path (launch,
+    // the toggle on shows the disclosure, then the prompt; every other path (launch,
     // onboarding, the drawer itself) leaves it untouched.
     private fun toggleContactSearch() {
         if (ContactSearchManager.isEnabled(context)) {
@@ -284,7 +284,15 @@ class HomeScreenSettingsCard(
             ContactSearchManager.setEnabled(context, true)
             populateContactSearch()
         } else {
-            requestContactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+            BottomSheetMenu(context)
+                .title(context.getString(R.string.contact_search))
+                .message(context.getString(R.string.contact_search_disclosure))
+                .option(context.getString(R.string.agree)) {
+                    requestContactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+                }
+                .option(context.getString(R.string.not_now), dimmed = true) {}
+                .show()
+                .dismissOnDestroy(fragment.viewLifecycleOwner)
         }
     }
 
