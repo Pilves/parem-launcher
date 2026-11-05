@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
     <cloud-backup>
+        <!--Keep this include: with excludes alone, Android backs up every other domain-->
         <include domain="sharedpref" path="." />
+        <!--Main prefs hold usage counts, open counts and weather coordinates; none go to cloud backup.
+            Export/import is how settings move, and device-transfer below still carries this file-->
+        <exclude domain="sharedpref" path="com.parem.launcher.xml" />
         <!--Keys of notifications the quiet filter hid; device-only, see QuietNotificationsManager-->
         <exclude domain="sharedpref" path="com.parem.launcher.quiet_keys.xml" />
         <!--Omnibox history (opt-in); device-only, see Prefs.omniboxHistory-->

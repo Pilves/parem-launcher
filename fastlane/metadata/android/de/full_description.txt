@@ -35,7 +35,7 @@ Online geht Parem hierfür:
 • Tägliches Hintergrundbild, standardmäßig aus: Liste von GitHub, dann Bilder von Drittanbietern.
 • Wechselkurse, bei einer Umrechnung: höchstens täglich ein fester Download der EZB-Kurse, ohne deine Eingabe.
 
-Diese Dienste sehen wie bei jeder Verbindung deine IP-Adresse. Websuchen öffnen sich im Browser (Google nach einem Leerzeichen, DuckDuckGo bei !Bangs). Parems Absturzberichte sind standardmäßig aus und werden nur von dir gesendet. Die Android-Gerätesicherung kopiert, falls genutzt, Einstellungen, Wetterort und heutige Bildschirmzeit in dein Google-Konto.
+Diese Dienste sehen wie bei jeder Verbindung deine IP-Adresse. Websuchen öffnen sich im Browser (Google nach einem Leerzeichen, DuckDuckGo bei !Bangs). Parems Absturzberichte sind standardmäßig aus und werden nur von dir gesendet. Androids Cloud-Sicherung lässt Parem aus; der Einstellungsexport nimmt dein Setup mit.
 
 Doppeltippen zum Sperren ist optional und nutzt nach deiner Zustimmung die Android-Bedienungshilfe nur dafür. Der Dienst sieht nur Tipps innerhalb von Parem und kann deinen Bildschirm nicht lesen. Die Alternative per Geräteadministrator verlangt nach jeder Sperre deine PIN.
 

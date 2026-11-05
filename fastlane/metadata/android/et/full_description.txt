@@ -39,7 +39,7 @@ Võrku läheb see:
 • Igapäevane taustapilt, vaikimisi väljas: nimekiri GitHubist ja pildid kolmandatelt osapooltelt.
 • Valuuta, kui kirjutad teisenduse: kuni kord päevas Euroopa Keskpanga kursifail, ilma sinu päringuta.
 
-Need teenused näevad sinu IP-aadressi. Veebiotsingud avanevad brauseris (tühiku järel Google, !bang puhul DuckDuckGo). Krahhiraportid on vaikimisi väljas ja neid saadad ainult sina. Androidi seadme varundus kopeerib kasutamise korral seaded, ilmalinna ja tänase ekraaniaja sinu Google'i kontole.
+Need teenused näevad sinu IP-aadressi. Veebiotsingud avanevad brauseris (tühiku järel Google, !bang puhul DuckDuckGo). Krahhiraportid on vaikimisi väljas ja neid saadad ainult sina. Androidi pilvevarundus jätab Paremi välja; seadistuse kolimiseks kasuta seadete eksporti.
 
 Topeltpuudutusega lukustamine on valikuline ja kasutab pärast nõusolekut Androidi juurdepääsetavuse teenust ainult ekraani lukustamiseks. Teenus näeb ainult puudutusi launcheri sees ega saa ekraani lugeda. Seadme administraatori kaudu lukustades on pärast iga lukustamist vaja PIN-koodi.
 

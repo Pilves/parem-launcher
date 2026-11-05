@@ -35,7 +35,7 @@ It does go online for these:
 • Daily wallpaper, off by default: a list from GitHub, then images from third-party hosts.
 • Currency, when you type a conversion: a fixed download of European Central Bank rates, at most daily. Your query isn't in it.
 
-Those services see your IP address, like any connection. Web searches open in your browser (Google after a leading space, DuckDuckGo for !bangs). Parem's crash reports are off by default and sent only by you. If you use Android's device backup, it copies Parem's settings, your weather city and today's screen time to your Google account.
+Those services see your IP address, like any connection. Web searches open in your browser (Google after a leading space, DuckDuckGo for !bangs). Parem's crash reports are off by default and sent only by you. Android cloud backup leaves Parem out; Export settings moves your setup.
 
 Double tap to lock is optional. After you agree, it uses Android's accessibility service only to lock the screen; the service sees only taps inside Parem and cannot read your screen. A device-admin alternative needs your PIN after each lock. Contact search is opt-in too.
 

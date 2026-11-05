@@ -43,7 +43,7 @@ Parem: Plain Minimal Launcher
 No-nonsense minimal launcher. Focus, app limits. No ads. No accounts. No catch.
 ```
 
-**Full description** (3962/4000)
+**Full description** (3905/4000)
 
 ```text
 I got fed up with my phone. Every icon wanted a tap and every app wanted my attention. Parem is the minimal Android launcher I wanted instead: a short list of app names, notifications that can wait, and a speed bump before the apps that eat your day. It is for less screen time or a proper digital detox, without swapping your smartphone for a dumbphone.
@@ -83,7 +83,7 @@ It does go online for these:
 • Daily wallpaper, off by default: a list from GitHub, then images from third-party hosts.
 • Currency, when you type a conversion: a fixed download of European Central Bank rates, at most daily. Your query isn't in it.
 
-Those services see your IP address, like any connection. Web searches open in your browser (Google after a leading space, DuckDuckGo for !bangs). Parem's crash reports are off by default and sent only by you. If you use Android's device backup, it copies Parem's settings, your weather city and today's screen time to your Google account.
+Those services see your IP address, like any connection. Web searches open in your browser (Google after a leading space, DuckDuckGo for !bangs). Parem's crash reports are off by default and sent only by you. Android cloud backup leaves Parem out; Export settings moves your setup.
 
 Double tap to lock is optional. After you agree, it uses Android's accessibility service only to lock the screen; the service sees only taps inside Parem and cannot read your screen. A device-admin alternative needs your PIN after each lock. Contact search is opt-in too.
 
@@ -114,7 +114,7 @@ Parem: Klarer Minimal-Launcher
 Minimal-Launcher ohne Unsinn. Mit Fokus. Keine Werbung. Kein Konto. Kein Haken.
 ```
 
-**Full description** (3995/4000)
+**Full description** (3956/4000)
 
 ```text
 Ich hatte genug von meinem Smartphone. Jedes Icon wollte angetippt werden, jede App wollte Aufmerksamkeit. Parem ist der minimalistische Android-Launcher, den ich stattdessen wollte: eine kurze Liste von App-Namen, Benachrichtigungen, die warten können, und eine Bremse vor den Zeitfresser-Apps. Für weniger Bildschirmzeit oder echtes Digital Detox, ohne Umstieg auf ein Dumbphone.
@@ -154,7 +154,7 @@ Online geht Parem hierfür:
 • Tägliches Hintergrundbild, standardmäßig aus: Liste von GitHub, dann Bilder von Drittanbietern.
 • Wechselkurse, bei einer Umrechnung: höchstens täglich ein fester Download der EZB-Kurse, ohne deine Eingabe.
 
-Diese Dienste sehen wie bei jeder Verbindung deine IP-Adresse. Websuchen öffnen sich im Browser (Google nach einem Leerzeichen, DuckDuckGo bei !Bangs). Parems Absturzberichte sind standardmäßig aus und werden nur von dir gesendet. Die Android-Gerätesicherung kopiert, falls genutzt, Einstellungen, Wetterort und heutige Bildschirmzeit in dein Google-Konto.
+Diese Dienste sehen wie bei jeder Verbindung deine IP-Adresse. Websuchen öffnen sich im Browser (Google nach einem Leerzeichen, DuckDuckGo bei !Bangs). Parems Absturzberichte sind standardmäßig aus und werden nur von dir gesendet. Androids Cloud-Sicherung lässt Parem aus; der Einstellungsexport nimmt dein Setup mit.
 
 Doppeltippen zum Sperren ist optional und nutzt nach deiner Zustimmung die Android-Bedienungshilfe nur dafür. Der Dienst sieht nur Tipps innerhalb von Parem und kann deinen Bildschirm nicht lesen. Die Alternative per Geräteadministrator verlangt nach jeder Sperre deine PIN.
 
@@ -185,7 +185,7 @@ Parem: minimalistlik launcher
 Minimalistlik launcher ilma jamata. Fookus, limiidid. Ilma reklaami ja kontota.
 ```
 
-**Full description** (3980/4000)
+**Full description** (3956/4000)
 
 ```text
 Mul sai oma telefonist villand. Iga ikoon tahtis puudutust, iga rakendus tähelepanu. Parem telefon ei pea olema uus telefon. Piisab samast telefonist, mis segab vähem.
@@ -229,7 +229,7 @@ Võrku läheb see:
 • Igapäevane taustapilt, vaikimisi väljas: nimekiri GitHubist ja pildid kolmandatelt osapooltelt.
 • Valuuta, kui kirjutad teisenduse: kuni kord päevas Euroopa Keskpanga kursifail, ilma sinu päringuta.
 
-Need teenused näevad sinu IP-aadressi. Veebiotsingud avanevad brauseris (tühiku järel Google, !bang puhul DuckDuckGo). Krahhiraportid on vaikimisi väljas ja neid saadad ainult sina. Androidi seadme varundus kopeerib kasutamise korral seaded, ilmalinna ja tänase ekraaniaja sinu Google'i kontole.
+Need teenused näevad sinu IP-aadressi. Veebiotsingud avanevad brauseris (tühiku järel Google, !bang puhul DuckDuckGo). Krahhiraportid on vaikimisi väljas ja neid saadad ainult sina. Androidi pilvevarundus jätab Paremi välja; seadistuse kolimiseks kasuta seadete eksporti.
 
 Topeltpuudutusega lukustamine on valikuline ja kasutab pärast nõusolekut Androidi juurdepääsetavuse teenust ainult ekraani lukustamiseks. Teenus näeb ainult puudutusi launcheri sees ega saa ekraani lugeda. Seadme administraatori kaudu lukustades on pärast iga lukustamist vaja PIN-koodi.
 
@@ -406,7 +406,7 @@ Every claim in the text, against this worktree. "Tests" are JVM tests in `app/sr
 | Services see your IP address | `data-flows.md` section 1a | Verified |
 | Contacts, notifications, app search handled on the phone | `data-flows.md` section 2. Web search goes to the browser, stated next to it | Verified |
 | Parem's crash reports opt-in, sent by user | `CRASH_REPORTS_ENABLED` false. Says "Parem's" because Android vitals can still report crashes on Play installs (`data-flows.md` S3) | Verified |
-| Device backup copies settings, weather city and today's screen time | `backup_rules.xml`, `data-flows.md` S1 (the whole main prefs file, including `CACHED_USAGE_STATS` and weather coordinates) | Verified |
+| Android cloud backup leaves Parem out | `res/xml/backup_rules.xml`, `res/xml/data_extraction_rules.xml`: all three prefs files excluded from cloud; device transfer on Android 12+ still carries the main file | Verified in code, not on a device |
 | Up to 8 apps, default 4; icons off by default | `Prefs.kt`: slots 1..8, `homeAppsNum` 4, `SHOW_ICONS` false | Verified |
 | Folders, website shortcuts, resizable widgets | `FolderManager`, `WebShortcut`, `HomeWidgetController` | Verified in code |
 | Gesture letters | `GestureLetterManager`, ten letters, off until enabled | Verified |
@@ -428,7 +428,7 @@ Every claim in the text, against this worktree. "Tests" are JVM tests in `app/sr
 **Wanted to claim, did not:**
 
 - **Donations or a coffee link:** no mechanism exists, and held pending `compliance.md`.
-- **"Nothing leaves your phone" or "collects no data":** false, see section 0, item 7. Note that in-app strings still say "Nothing is collected or sent anywhere", which `data-flows.md` section 5 flags as false with Android backup on.
+- **"Nothing leaves your phone" or "collects no data":** false, see section 0, item 7.
 - **"No trackers" in the short description:** true, but cut for the tagline; the full text says it.
 - **"No tricks":** covered by "no catch", since it cannot be pointed at any one fact.
 - **Battery under 1% a day:** the soak was deferred, with no pass on record.

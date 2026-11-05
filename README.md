@@ -53,7 +53,7 @@ The app drawer search bar is a single point of truth:
 - **Icon Packs** — Load icons from third-party ADW-compatible icon packs
 - **Weather Display** — Current temperature on the home screen date line via Open-Meteo (free, no API key)
 - **Theme Schedule** — Automatic dark/light switching by time or sunrise/sunset
-- **Settings Backup & Restore** — Export/import all settings as JSON; Android auto-backup enabled
+- **Settings Backup & Restore** — Export/import all settings as JSON; Android cloud backup leaves Parem out
 
 ## Building
 
