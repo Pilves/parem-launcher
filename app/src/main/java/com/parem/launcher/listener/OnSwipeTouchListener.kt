@@ -38,6 +38,8 @@ internal open class OnSwipeTouchListener(c: Context?, private val target: View? 
             MotionEvent.ACTION_MOVE -> {
                 if (target != null && view.isPressed && swipe.movedPastSlop(motionEvent.x, motionEvent.y))
                     view.isPressed = false
+                if (BuildConfig.DEBUG && swipe.movedPastSlop(motionEvent.x, motionEvent.y))
+                    trace("moved past slop ${motionEvent.eventTime - motionEvent.downTime}ms after down")
             }
             MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_CANCEL -> {
                 trace("cancelled by action ${motionEvent.actionMasked}")

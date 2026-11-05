@@ -1,8 +1,12 @@
 package com.parem.launcher
 
 import android.content.res.Configuration
+import android.os.SystemClock
 import android.util.Log
+import android.view.InputDevice
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.widget.EditText
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -204,6 +208,34 @@ class SmokeTest {
         assertEquals("12 мин", inLocale("ru"))
     }
 
+    /**
+     * A main-thread stall delivers the down event after GestureDetector's
+     * long-press deadline, which it counts from the hardware down time. The
+     * swipe's moves are batched to the next frame, so the overdue timer runs
+     * first unless the app judges the hold by what it has actually seen.
+     */
+    @Test
+    fun swipeDeliveredAfterAStallStillOpensDrawer() {
+        device.waitForIdle(TIMEOUT)
+        val x = device.displayWidth / 2f
+        val startY = device.displayHeight * 3 / 4f
+        val endY = device.displayHeight / 4f
+        val downTime = SystemClock.uptimeMillis() - ViewConfiguration.getLongPressTimeout() - 200
+        fun inject(action: Int, y: Float, time: Long) {
+            val event = MotionEvent.obtain(downTime, time, action, x, y, 0)
+            event.source = InputDevice.SOURCE_TOUCHSCREEN
+            assertTrue("injection failed", instrumentation.uiAutomation.injectInputEvent(event, true))
+            event.recycle()
+        }
+        inject(MotionEvent.ACTION_DOWN, startY, downTime)
+        for (step in 1..20) {
+            inject(MotionEvent.ACTION_MOVE, startY + (endY - startY) * step / 20, SystemClock.uptimeMillis())
+            SystemClock.sleep(5)
+        }
+        inject(MotionEvent.ACTION_UP, endY, SystemClock.uptimeMillis())
+        assertDrawerOpened()
+    }
+
     @Test
     fun swipeDownRowStaysWhileItsPickerIsOpen() {
         device.waitForIdle(TIMEOUT)
@@ -235,6 +267,10 @@ class SmokeTest {
         val w = device.displayWidth
         val h = device.displayHeight
         device.swipe(w / 2, h * 3 / 4, w / 2, h / 4, 20)
+        assertDrawerOpened()
+    }
+
+    private fun assertDrawerOpened() {
         if (!device.wait(Until.hasObject(By.res(searchId)), TIMEOUT)) {
             val diagnostics = screenDiagnostics()
             Log.e(TAG, diagnostics)
@@ -248,6 +284,13 @@ class SmokeTest {
         val name = "${System.currentTimeMillis()}-${testName.methodName}"
         shell("mkdir -p $DIAG_DIR")
         shell("screencap -p $DIAG_DIR/$name.png")
+        // executeShellCommand has no shell, so sh -c needs one word: ${'$'}{IFS} stands in for the spaces
+        fun save(command: String, file: String) =
+            shell("sh -c ${command.replace(" ", "\${IFS}")}>$DIAG_DIR/$name-$file.txt")
+        save("dumpsys window", "window")
+        save("dumpsys activity activities", "activities")
+        save("dumpsys SurfaceFlinger", "surfaceflinger")
+        save("logcat -d -v threadtime", "logcat")
         val hierarchy = ByteArrayOutputStream().also { device.dumpWindowHierarchy(it) }.toString("UTF-8")
         val resumed = shell("dumpsys activity activities").lines()
             .filter { "ResumedActivity" in it || "mFocusedApp" in it || "topResumedActivity" in it }
