@@ -13,6 +13,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
+import androidx.lifecycle.ViewModelProvider
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import com.parem.launcher.ui.FocusModeDialog
@@ -203,6 +204,48 @@ class SmokeTest {
                 device.waitForIdle()
                 assertEquals(0, device.displayRotation)
             }
+        } finally {
+            device.setOrientationNatural()
+        }
+    }
+
+    @Test
+    fun landscapeFirstRunAndScreenTime() {
+        if (context.resources.configuration.smallestScreenWidthDp < 600) return
+        try {
+            device.setOrientationLandscape()
+            device.waitForIdle()
+            device.executeShellCommand("appops set $pkg GET_USAGE_STATS allow")
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                activity.recreate()
+            }
+            assertTrue("home missing", device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+            device.waitForIdle()
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                ViewModelProvider(activity)[MainViewModel::class.java].apply {
+                    firstOpen.value = true
+                    isParemDefault.value = false
+                }
+            }
+            val banner = By.res(context.resources.getResourceName(R.id.setDefaultLauncher))
+            val tips = By.res(context.resources.getResourceName(R.id.firstRunTips))
+            assertTrue("default banner missing", device.wait(Until.hasObject(banner), TIMEOUT))
+            assertFalse("first-run tips overlap the default banner", device.hasObject(tips))
+            device.executeShellCommand("mkdir -p $DIAG_DIR")
+            device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-landscape-banner.png")
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                ViewModelProvider(activity)[MainViewModel::class.java].isParemDefault.value = true
+            }
+            assertTrue("first-run tips missing after default selection", device.wait(Until.hasObject(tips), TIMEOUT))
+            assertFalse("default banner remains", device.hasObject(banner))
+            assertTrue("screen-time value missing", device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.tvScreenTime))), TIMEOUT))
+            device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-landscape-first-run.png")
         } finally {
             device.setOrientationNatural()
         }
