@@ -2,6 +2,7 @@ package com.parem.launcher
 
 import android.content.ComponentName
 import android.content.res.Configuration
+import android.graphics.Rect
 import android.os.SystemClock
 import android.util.Log
 import android.view.InputDevice
@@ -271,6 +272,7 @@ class SmokeTest {
                 Prefs(context).apply {
                     setWidgetIdList(listOf(id))
                     setWidgetProvider(id, provider.flattenToString())
+                    setWidgetHeight(id, 600)
                 }
                 activity.recreate()
             }
@@ -283,6 +285,21 @@ class SmokeTest {
             assertTrue("fixture widget missing after drawer", device.wait(Until.hasObject(By.text("WP28 fixture widget")), TIMEOUT))
             device.waitForIdle()
             device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-widget-landscape-after.png")
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                ViewModelProvider(activity)[MainViewModel::class.java].apply {
+                    firstOpen.value = true
+                    isParemDefault.value = true
+                }
+            }
+            val tips = device.wait(Until.findObject(By.res(context.resources.getResourceName(R.id.firstRunTips))), TIMEOUT)
+            assertNotNull("first-run tips missing with widget", tips)
+            val widget = device.wait(Until.findObject(By.text("WP28 fixture widget")), TIMEOUT)
+            assertNotNull("widget missing with first-run tips", widget)
+            device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-widget-and-tips.png")
+            assertFalse("first-run tips overlap the widget: tips=${tips.visibleBounds}, widget=${widget.visibleBounds}",
+                Rect.intersects(tips.visibleBounds, widget.visibleBounds))
         } finally {
             device.setOrientationNatural()
         }
