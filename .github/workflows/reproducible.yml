@@ -5,6 +5,8 @@
 name: Reproducible build
 
 on:
+  push:
+    branches: [release/v6.0.0]
   workflow_dispatch:
     inputs:
       tag:
