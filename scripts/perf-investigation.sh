@@ -7,7 +7,8 @@ for variant in candidate reference without-strictmode; do
   fi
   adb install "app/build/perf-investigation/$variant.apk"
   adb logcat -c
-  PERF_VARIANT="$variant" node --input-type=module <<'JS'
+  status=0
+  PERF_VARIANT="$variant" node --input-type=module <<'JS' || status=$?
 import {measure, measurementProblems} from './scripts/perf-budget.mjs';
 import {mkdirSync, writeFileSync} from 'node:fs';
 const dir = `app/build/perf-investigation/${process.env.PERF_VARIANT}`;
@@ -19,4 +20,5 @@ console.log(process.env.PERF_VARIANT, JSON.stringify(result), problems);
 if (problems.length) process.exitCode = 1;
 JS
   adb logcat -d -t 5000 > "app/build/perf-investigation/$variant/logcat.txt"
+  if (( status != 0 )); then exit "$status"; fi
 done
