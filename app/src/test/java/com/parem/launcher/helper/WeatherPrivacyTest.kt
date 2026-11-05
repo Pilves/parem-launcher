@@ -7,14 +7,20 @@ import java.util.Locale
 class WeatherPrivacyTest {
 
     @Test
-    fun roundForRequest_keepsTwoDecimals() {
-        assertEquals("59.44", WeatherPrivacy.roundForRequest(59.43696))
+    fun roundForRequest_snapsToTheNearestStep() {
+        assertEquals("59.45", WeatherPrivacy.roundForRequest(59.43696))
         assertEquals("24.75", WeatherPrivacy.roundForRequest(24.75353))
+        assertEquals("58.40", WeatherPrivacy.roundForRequest(58.38062))
+    }
+
+    @Test
+    fun roundForRequest_movesTwoPlacesInOneCellToTheSameValue() {
+        assertEquals(WeatherPrivacy.roundForRequest(59.431), WeatherPrivacy.roundForRequest(59.469))
     }
 
     @Test
     fun roundForRequest_handlesNegativesAndWholeNumbers() {
-        assertEquals("-33.87", WeatherPrivacy.roundForRequest(-33.86785))
+        assertEquals("-33.85", WeatherPrivacy.roundForRequest(-33.86785))
         assertEquals("10.00", WeatherPrivacy.roundForRequest(10.0))
     }
 
@@ -29,7 +35,7 @@ class WeatherPrivacyTest {
         val original = Locale.getDefault()
         try {
             Locale.setDefault(Locale.GERMANY)
-            assertEquals("59.44", WeatherPrivacy.roundForRequest(59.43696))
+            assertEquals("59.45", WeatherPrivacy.roundForRequest(59.43696))
         } finally {
             Locale.setDefault(original)
         }
