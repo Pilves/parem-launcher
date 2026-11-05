@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
-    <!--Used only for downloading wallpapers-->
+    <!--Weather (Open-Meteo), currency rates (ECB), and the daily wallpaper list and images-->
     <uses-permission android:name="android.permission.INTERNET" />
     <!--Opens the clock app; sets alarms and timers typed in the omnibox (normal-level, no runtime prompt)-->
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
