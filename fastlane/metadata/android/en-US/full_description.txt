@@ -23,7 +23,7 @@ All off until you turn them on, and each says what it needs first.
 • Mindful pause: for an app with a limit, a question and a five-second wait before it opens.
 • Focus mode: timed sessions or weekly schedules. Up to 5 allowed apps; your phone app is never blocked.
 • Quiet notifications: apps you haven't allowed move out of the shade into a quiet list. Calls, alarms, media, navigation and emergency alerts stay visible; hidden items return within 8 hours. A short sound or vibration may still play unless you choose Make silent. Needs notification access.
-• Grayscale: now, during focus, after a limit, or per app. Needs a one-time developer-tools permission (about 2 minutes), over Wi-Fi on Android 11+ or with a computer.
+• Grayscale: now, during focus, after a limit, or per app. Needs a one-time developer-tools permission, granted from a computer.
 
 Straight talk: limits, pause and focus only cover apps opened through Parem. They are speed bumps, not a lock. You can always get past them.
 

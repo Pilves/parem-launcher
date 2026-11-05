@@ -15,7 +15,7 @@ the Estonian, and a native speaker the German, before publishing.
 | 2 | **"Donations only" is not true of the code, and is held.** No donation link, billing or sponsor text exists in the app, README or docs. | Rule: claims must match the code. Play's Payments policy also says apps may not lead users to a payment method other than Play billing, and names the listing as one such route. It carves out "tax exempt donations" and says nothing about voluntary tips. | The listing says "no purchases" and has no donation or coffee link, pending `docs/play/compliance.md`, which does not exist yet. Open-Meteo's free tier is also non-commercial (`data-flows.md` G9). |
 | 3 | **No Estonian UI, German UI about 18% translated.** No `values-et`; `values-de` has 74 of 403 strings; 290 English strings are `translatable="false"`. M4-WP9 is open. | The home market gets an English app. An `et` listing that implied otherwise would be misleading. | de and et text state the English UI plainly. Remove that line when WP9 lands. |
 | 4 | **Wallpaper list is not only Unsplash.** `URL_WALLPAPERS` now points at `web/wallpapers.json`, copied from the upstream author's gist on 2026-11-05: 741 `images.unsplash.com`, 10 `i.redd.it`, 8 `images.pexels.com` and 6 `images2.imgbox.com` URLs. | It serves nothing until Pages deploys from `master`; until then the app uses its fixed Unsplash fallback. | Listing says "third-party hosts", which stays accurate. Vet the licences of the non-Unsplash entries before relying on them. |
-| 5 | **Grayscale WebUSB page is down.** `https://pilves.github.io/parem-launcher/grant/`, linked in the app, returned 404 today. | Android 10 users have only the computer route. The listing's "with a computer" stays true through the copied adb command, but the page should work at launch. | Publish the Pages site. |
+| 5 | **Grayscale WebUSB page is down.** `https://pilves.github.io/parem-launcher/grant/`, linked in the app, returned 404 today. | Play users have only the computer route (no on-phone pairing in the `play` build). The listing's "with a computer" stays true through the copied adb command, but the page should work at launch. | Publish the Pages site. |
 | 6 | **All store graphics are upstream's** (section 5). The feature graphic is 512×250, failing Play's required 1024×500, and shows another app's name. | Cannot ship. | Codex is making the new graphic in `/home/pi/projects/parem-market`. Screenshots: section 6. |
 | 7 | **"No data collected" cannot be claimed.** Play defines collection as transmitting data off the device. Weather sends typed text and the picked place's coordinates to Open-Meteo, and `data-flows.md` proposes declaring approximate location as collected. | The text says what is true: no account, no analytics, and exactly what goes online. It never says nothing leaves the phone. The old screenshot 07 and old description both claimed "no data collection". | Once `compliance.md` fixes the Data safety answers, re-read the "What goes online" section against them. |
 | 8 | **Moving from GitHub builds.** `ARCHITECTURE.md` recommends a separate Play signing key, not yet decided; `docs/fdroid/README.md` plans a separate install. | With separate keys, GitHub users must export, uninstall, install, import. What's new says so. | If you choose the shared key instead, cut that line from What's new. |
@@ -43,7 +43,7 @@ Parem: Plain Minimal Launcher
 No-nonsense minimal launcher. Focus, app limits. No ads. No accounts. No catch.
 ```
 
-**Full description** (3905/4000)
+**Full description** (3866/4000)
 
 ```text
 I got fed up with my phone. Every icon wanted a tap and every app wanted my attention. Parem is the minimal Android launcher I wanted instead: a short list of app names, notifications that can wait, and a speed bump before the apps that eat your day. It is for less screen time or a proper digital detox, without swapping your smartphone for a dumbphone.
@@ -71,7 +71,7 @@ All off until you turn them on, and each says what it needs first.
 • Mindful pause: for an app with a limit, a question and a five-second wait before it opens.
 • Focus mode: timed sessions or weekly schedules. Up to 5 allowed apps; your phone app is never blocked.
 • Quiet notifications: apps you haven't allowed move out of the shade into a quiet list. Calls, alarms, media, navigation and emergency alerts stay visible; hidden items return within 8 hours. A short sound or vibration may still play unless you choose Make silent. Needs notification access.
-• Grayscale: now, during focus, after a limit, or per app. Needs a one-time developer-tools permission (about 2 minutes), over Wi-Fi on Android 11+ or with a computer.
+• Grayscale: now, during focus, after a limit, or per app. Needs a one-time developer-tools permission, granted from a computer.
 
 Straight talk: limits, pause and focus only cover apps opened through Parem. They are speed bumps, not a lock. You can always get past them.
 
@@ -114,7 +114,7 @@ Parem: Klarer Minimal-Launcher
 Minimal-Launcher ohne Unsinn. Mit Fokus. Keine Werbung. Kein Konto. Kein Haken.
 ```
 
-**Full description** (3956/4000)
+**Full description** (3918/4000)
 
 ```text
 Ich hatte genug von meinem Smartphone. Jedes Icon wollte angetippt werden, jede App wollte Aufmerksamkeit. Parem ist der minimalistische Android-Launcher, den ich stattdessen wollte: eine kurze Liste von App-Namen, Benachrichtigungen, die warten können, und eine Bremse vor den Zeitfresser-Apps. Für weniger Bildschirmzeit oder echtes Digital Detox, ohne Umstieg auf ein Dumbphone.
@@ -142,7 +142,7 @@ Alle sind aus, bis du sie einschaltest, und sagen vorher, was sie brauchen.
 • Achtsame Pause: bei einer App mit Limit eine Frage und fünf Sekunden Wartezeit.
 • Fokusmodus: mit Timer oder Wochenplan. Bis zu 5 erlaubte Apps; die Telefon-App wird nie blockiert.
 • Stille Benachrichtigungen: Nicht erlaubte Apps wandern aus der Benachrichtigungsleiste in eine stille Liste. Anrufe, Wecker, Medien, Navigation und Notfallwarnungen bleiben sichtbar, Ausgeblendetes kehrt binnen 8 Stunden zurück. Ton oder Vibration sind möglich, solange du nicht „Make silent“ wählst. Braucht Benachrichtigungszugriff.
-• Graustufen: sofort, im Fokus, nach einem Limit oder pro App. Braucht einmalig eine Entwicklerberechtigung (etwa 2 Minuten), per WLAN (Android 11+) oder mit Computer.
+• Graustufen: sofort, im Fokus, nach einem Limit oder pro App. Braucht einmalig eine Entwicklerberechtigung, erteilt am Computer.
 
 Klartext: Limits, Pause und Fokus gelten nur für Apps, die über Parem geöffnet werden. Sie bremsen, sperren aber nicht.
 
@@ -185,7 +185,7 @@ Parem: minimalistlik launcher
 Minimalistlik launcher ilma jamata. Fookus, limiidid. Ilma reklaami ja kontota.
 ```
 
-**Full description** (3956/4000)
+**Full description** (3903/4000)
 
 ```text
 Mul sai oma telefonist villand. Iga ikoon tahtis puudutust, iga rakendus tähelepanu. Parem telefon ei pea olema uus telefon. Piisab samast telefonist, mis segab vähem.
@@ -217,7 +217,7 @@ Kõik on väljas, kuni need sisse lülitad.
 • Teadlik paus: piiranguga rakenduse puhul küsimus ja viis sekundit ootust.
 • Fookusrežiim: taimeriga või nädala ajakava järgi. Lubada saad kuni 5 rakendust, telefonirakendust ei blokeerita kunagi.
 • Vaiksed märguanded: lubamata rakenduste märguanded liiguvad märguandealalt vaiksesse nimekirja. Kõned, äratused, meedia, navigeerimine ja hädaolukorra teated jäävad nähtavale, peidetud märguanded tulevad 8 tunni jooksul tagasi. Heli või värin võib tulla, kui sa pole valinud Make silent. Vajab juurdepääsu märguannetele.
-• Halltoonid: kohe, fookuse ajal, pärast piirangut või rakenduse kaupa. Vajab ühekordset luba arendaja tööriistade kaudu (umbes 2 minutit), telefonis üle Wi-Fi (Android 11+) või arvutiga.
+• Halltoonid: kohe, fookuse ajal, pärast piirangut või rakenduse kaupa. Vajab ühekordset luba arendaja tööriistade kaudu, arvuti abil.
 
 Otse öeldes: piirangud, paus ja fookus kehtivad ainult rakendustele, mis avatakse Parem Launcheri kaudu. Need aeglustavad, aga ei lukusta.
 
@@ -418,7 +418,7 @@ Every claim in the text, against this worktree. "Tests" are JVM tests in `app/sr
 | Focus: 5 apps, phone never blocked | `MAX_WHITELIST_SIZE`, `FocusModeManager`, Focus schedule tests | Verified |
 | Quiet exemptions and 8 h return | `QuietFilter.kt`, `SNOOZE_MS` | Verified |
 | Quiet caveat: sound may play | `quiet_card_hint`, said in the app too | Stated |
-| Grayscale setup and limits | `grayscale_*` strings; Android 11+ for on-phone pairing | Verified in code |
+| Grayscale setup and limits | `grayscale_*` strings; Play grants from a computer only (the `play` flavour has no pairing) | Verified in code |
 | Guards only apply through Parem | `onboarding_guide_calm_body` says exactly this | Stated |
 | Accessibility used only to lock | `accessibility_service_config.xml`: own package, click events, no window content. Consent sheet exists | Verified |
 | Device-admin lock needs PIN | `lock_consent`, M4-WP18 | Verified in code |

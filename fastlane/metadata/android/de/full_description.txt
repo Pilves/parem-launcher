@@ -23,7 +23,7 @@ Alle sind aus, bis du sie einschaltest, und sagen vorher, was sie brauchen.
 • Achtsame Pause: bei einer App mit Limit eine Frage und fünf Sekunden Wartezeit.
 • Fokusmodus: mit Timer oder Wochenplan. Bis zu 5 erlaubte Apps; die Telefon-App wird nie blockiert.
 • Stille Benachrichtigungen: Nicht erlaubte Apps wandern aus der Benachrichtigungsleiste in eine stille Liste. Anrufe, Wecker, Medien, Navigation und Notfallwarnungen bleiben sichtbar, Ausgeblendetes kehrt binnen 8 Stunden zurück. Ton oder Vibration sind möglich, solange du nicht „Make silent“ wählst. Braucht Benachrichtigungszugriff.
-• Graustufen: sofort, im Fokus, nach einem Limit oder pro App. Braucht einmalig eine Entwicklerberechtigung (etwa 2 Minuten), per WLAN (Android 11+) oder mit Computer.
+• Graustufen: sofort, im Fokus, nach einem Limit oder pro App. Braucht einmalig eine Entwicklerberechtigung, erteilt am Computer.
 
 Klartext: Limits, Pause und Fokus gelten nur für Apps, die über Parem geöffnet werden. Sie bremsen, sperren aber nicht.
 

@@ -27,7 +27,7 @@ Kõik on väljas, kuni need sisse lülitad.
 • Teadlik paus: piiranguga rakenduse puhul küsimus ja viis sekundit ootust.
 • Fookusrežiim: taimeriga või nädala ajakava järgi. Lubada saad kuni 5 rakendust, telefonirakendust ei blokeerita kunagi.
 • Vaiksed märguanded: lubamata rakenduste märguanded liiguvad märguandealalt vaiksesse nimekirja. Kõned, äratused, meedia, navigeerimine ja hädaolukorra teated jäävad nähtavale, peidetud märguanded tulevad 8 tunni jooksul tagasi. Heli või värin võib tulla, kui sa pole valinud Make silent. Vajab juurdepääsu märguannetele.
-• Halltoonid: kohe, fookuse ajal, pärast piirangut või rakenduse kaupa. Vajab ühekordset luba arendaja tööriistade kaudu (umbes 2 minutit), telefonis üle Wi-Fi (Android 11+) või arvutiga.
+• Halltoonid: kohe, fookuse ajal, pärast piirangut või rakenduse kaupa. Vajab ühekordset luba arendaja tööriistade kaudu, arvuti abil.
 
 Otse öeldes: piirangud, paus ja fookus kehtivad ainult rakendustele, mis avatakse Parem Launcheri kaudu. Need aeglustavad, aga ei lukusta.
 
