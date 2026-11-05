@@ -60,7 +60,7 @@
     <string name="dark">黑暗</string>
     <string name="light">光</string>
     <string name="app_usage_message">要在主屏幕上显示/隐藏您的屏幕时间，请允许或拒绝应用程序使用权限。
-        \n\n注意：不收集应用程序使用数据。所有数据都在您的设备上处理。</string><string name="accessibility_service_description">请在手机设置中搜索数字健康并启用它。</string>
+        \n\n注意：不收集应用程序使用数据。所有数据都在您的设备上处理。</string>
     <string name="close">关闭</string>
     <string name="not_now">暂时不要</string>
     <string name="date">日期</string>

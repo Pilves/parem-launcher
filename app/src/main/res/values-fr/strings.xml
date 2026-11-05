@@ -41,7 +41,7 @@
     <string name="dark">Sombre</string>
     <string name="light">Clair</string>
     <string name="app_usage_message">Pour afficher/masquer le temps d\'écran sur l\'écran d\'accueil, autorisez ou refusez l\'autorisation d\'utilisation de l\'application.
-        \n\nRemarque : Aucune donnée d\'utilisation de l\'application n\'est collectée. Tout est traité sur votre appareil.</string><string name="accessibility_service_description">L\'autorisation d\'accessibilité est requise pour activer le double appui pour verrouiller. Toutes les données acquises par Parem Launcher via ce service ne quitteront pas votre appareil.</string>
+        \n\nRemarque : Aucune donnée d\'utilisation de l\'application n\'est collectée. Tout est traité sur votre appareil.</string>
     <string name="close">Fermer</string>
     <string name="not_now">Plus tard</string>
     <string name="date">Date</string>
