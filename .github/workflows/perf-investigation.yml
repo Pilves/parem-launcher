@@ -22,12 +22,12 @@ jobs:
           git worktree add ../perf-reference 996ef0c
           (cd ../perf-reference && ./gradlew assembleDebug)
           cp ../perf-reference/app/build/outputs/apk/debug/app-debug.apk app/build/perf-investigation/reference.apk
-          ./gradlew assembleDebug
-          cp app/build/outputs/apk/debug/app-debug.apk app/build/perf-investigation/candidate.apk
+          ./gradlew assembleFullDebug
+          cp app/build/outputs/apk/full/debug/app-full-debug.apk app/build/perf-investigation/candidate.apk
           # Diagnostic only: isolate debug logging overhead; never publish this APK.
           sed -i 's/if (BuildConfig.DEBUG) installStrictMode()/if (false) installStrictMode()/' app/src/main/java/com/parem/launcher/ParemApp.kt
-          ./gradlew assembleDebug
-          cp app/build/outputs/apk/debug/app-debug.apk app/build/perf-investigation/without-strictmode.apk
+          ./gradlew assembleFullDebug
+          cp app/build/outputs/apk/full/debug/app-full-debug.apk app/build/perf-investigation/without-strictmode.apk
           git restore app/src/main/java/com/parem/launcher/ParemApp.kt
       - name: Enable KVM
         run: |

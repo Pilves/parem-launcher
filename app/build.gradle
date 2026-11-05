@@ -53,6 +53,14 @@ android {
             applicationIdSuffix ".debug"
         }
     }
+    // play is the Google Play bundle. full is the APK for GitHub, F-Droid and
+    // IzzyOnDroid, and adds in-app adb pairing, which stays out of Play
+    // (docs/design/DECISIONS.md). Same applicationId and signing.
+    flavorDimensions "channel"
+    productFlavors {
+        full { dimension "channel" }
+        play { dimension "channel" }
+    }
     testOptions {
         execution 'ANDROIDX_TEST_ORCHESTRATOR'
         animationsDisabled true
@@ -62,7 +70,8 @@ android {
         buildConfig = true
     }
     // The dependency-info block is a Google-encrypted blob in the APK signing
-    // block that F-Droid and IzzyOnDroid reject. The Play bundle keeps it.
+    // block that F-Droid and IzzyOnDroid reject, so the full APK must not carry
+    // it. The play bundle keeps it: this setting covers APKs only.
     dependenciesInfo {
         includeInApk = false
     }

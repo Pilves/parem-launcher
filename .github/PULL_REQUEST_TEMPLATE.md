@@ -14,9 +14,9 @@ hot file (`app/build.gradle`, `CHANGELOG.md`, `strings.xml`, `Prefs.kt`,
 Paste the final lines. Exit 0 or it is not ready.
 
 ```
-./gradlew compileDebugKotlin  →
-./gradlew testDebugUnitTest   →
-./gradlew assembleDebug       →
+./gradlew compileFullDebugKotlin compilePlayDebugKotlin  →
+./gradlew testFullDebugUnitTest testPlayDebugUnitTest    →
+./gradlew assembleFullDebug assemblePlayDebug            →
 node --test scripts/build-handoff.test.mjs  →
 ```
 

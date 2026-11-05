@@ -1,6 +1,5 @@
 package com.parem.launcher.ui
 
-import android.Manifest
 import android.app.admin.DevicePolicyManager
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
@@ -25,9 +24,8 @@ import com.parem.launcher.databinding.FragmentOnboardingBinding
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.GrayscaleController
-import com.parem.launcher.helper.GrayscalePairing
+import com.parem.launcher.helper.ChannelFeatures
 import com.parem.launcher.helper.WellbeingRowState
-import com.parem.launcher.helper.showToast
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.isParemDefault
@@ -52,10 +50,7 @@ class OnboardingFragment : BaseFragment() {
 
     private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         val ctx = context
-        if (isAdded && _binding != null && ctx != null) {
-            if (granted && GrayscalePairing.isSupported()) GrayscalePairing.start(ctx)
-            else ctx.showToast(R.string.grayscale_pair_needs_notif)
-        }
+        if (isAdded && _binding != null && ctx != null) ChannelFeatures.onNotificationPermission(ctx, granted)
     }
 
     private var showingCalm = false
@@ -189,9 +184,7 @@ class OnboardingFragment : BaseFragment() {
 
     private fun startGrayscalePairing() {
         val ctx = context ?: return
-        if (!GrayscalePairing.isSupported()) return
-        if (GrayscalePairing.canNotify(ctx)) GrayscalePairing.start(ctx)
-        else notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        ChannelFeatures.startPairing(ctx) { notificationPermission.launch(it) }
     }
 
     private fun setGuideExpanded(expanded: Boolean) {

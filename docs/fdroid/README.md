@@ -46,7 +46,7 @@ Pi expect it to take a while and run it while nothing else is building.
 The entry comparison is a quick check, not F-Droid's own. F-Droid copies our
 signature onto its build with `apksigcopier` and runs `apksigner verify`,
 which also needs the ZIP layout to match. The release workflow builds with
-`assembleRelease` and lets AGP sign, so the layout is the plain AGP output on
+`assembleFullRelease` and lets AGP sign, so the layout is the plain AGP output on
 both sides. If a tag ever fails F-Droid's check while this script passes, the
 JDK is the first suspect: CI builds with Temurin 17. Pin the same major
 version in the recipe (`sudo:` installing `openjdk-17-jdk-headless`), and if

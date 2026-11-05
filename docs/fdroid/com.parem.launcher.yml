@@ -30,7 +30,7 @@ Builds:
     commit: v6.0.0
     subdir: app
     gradle:
-      - yes
+      - full
     # The WebUSB grant page (GitHub Pages only) vendors a prebuilt Tango bundle;
     # it is not part of the APK.
     scandelete:

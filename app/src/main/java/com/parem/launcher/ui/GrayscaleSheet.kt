@@ -1,6 +1,5 @@
 package com.parem.launcher.ui
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -15,8 +14,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
+import com.parem.launcher.helper.ChannelFeatures
 import com.parem.launcher.helper.GrayscaleController
-import com.parem.launcher.helper.GrayscalePairing
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
 import com.parem.launcher.helper.dpToPx
@@ -58,9 +57,9 @@ object GrayscaleSheet {
     /** Settings has its own permission launcher; from an app menu, a refused prompt just means "tap again". */
     private fun startPairing(fragment: Fragment) {
         val context = fragment.context ?: return
-        if (!GrayscalePairing.isSupported()) return
-        if (GrayscalePairing.canNotify(context)) GrayscalePairing.start(context)
-        else ActivityCompat.requestPermissions(fragment.requireActivity(), arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0)
+        ChannelFeatures.startPairing(context) { permission ->
+            ActivityCompat.requestPermissions(fragment.requireActivity(), arrayOf(permission), 0)
+        }
     }
 
     /**
@@ -79,9 +78,9 @@ object GrayscaleSheet {
         val menu = BottomSheetMenu(context)
             .title(context.getString(R.string.grayscale_grant_title))
             .message(context.getString(R.string.grayscale_grant_body))
-        if (GrayscalePairing.isSupported()) {
-            menu.message(context.getString(R.string.grayscale_grant_wifi))
-            content.addView(actionRow(context, context.getString(R.string.grayscale_pair_start), bold = true) { onPair() })
+        ChannelFeatures.pairingPrompt(context)?.let { (steps, action) ->
+            menu.message(steps)
+            content.addView(actionRow(context, action, bold = true) { onPair() })
         }
         content.addView(TextView(context).apply {
             text = context.getString(R.string.grayscale_grant_computer)

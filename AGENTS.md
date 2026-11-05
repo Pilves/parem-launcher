@@ -22,15 +22,16 @@ widgets or the lock path.
 ## Checks
 
 ```
-./gradlew compileDebugKotlin     # quick check
-./gradlew testDebugUnitTest      # JVM suite (app/src/test — pure logic only)
-./gradlew assembleDebug          # before calling anything done
+./gradlew compileFullDebugKotlin compilePlayDebugKotlin  # quick check
+./gradlew testFullDebugUnitTest testPlayDebugUnitTest    # JVM suite (app/src/test — pure logic only)
+./gradlew assembleFullDebug assemblePlayDebug            # before calling anything done
 node --test scripts/build-handoff.test.mjs  # harness scripts
 ```
 
 A pipeline like `./gradlew … | tail` reports tail's exit code — check
 gradle's. One gradle build at a time: sessions share the checkout and the Pi.
-Building on ARM64 needs the qemu-wrapped aapt2 (`ARCHITECTURE.md`).
+Building on ARM64 needs the qemu-wrapped aapt2 (`ARCHITECTURE.md`). Both
+flavours must build: `play` and `full` differ (`ARCHITECTURE.md`, Build & release).
 
 ## Code rules
 

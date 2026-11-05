@@ -1,6 +1,5 @@
 package com.parem.launcher.ui.settings
 
-import android.Manifest
 import android.os.Build
 import android.view.View
 import androidx.activity.result.ActivityResultLauncher
@@ -15,14 +14,13 @@ import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.GrayscaleController
-import com.parem.launcher.helper.GrayscalePairing
+import com.parem.launcher.helper.ChannelFeatures
 import com.parem.launcher.helper.WellbeingRowState
 import com.parem.launcher.helper.WellbeingRowState.Row
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.onOff
 import com.parem.launcher.ui.BadHabitDialogs
 import com.parem.launcher.helper.getAppsList
-import com.parem.launcher.helper.showToast
 import com.parem.launcher.helper.notifications.QuietNotificationsManager
 import com.parem.launcher.helper.notifications.QuietNotificationsManager.State
 import com.parem.launcher.ui.FocusModeDialog
@@ -108,15 +106,12 @@ class WellbeingSettingsCard(
     }
 
     private fun startPairing() {
-        if (!GrayscalePairing.isSupported()) return
-        if (GrayscalePairing.canNotify(context)) GrayscalePairing.start(context)
-        else requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        ChannelFeatures.startPairing(context) { requestNotificationPermission.launch(it) }
     }
 
     /** SettingsFragment's permission callback. */
     fun onNotificationPermissionResult(granted: Boolean) {
-        if (granted && GrayscalePairing.isSupported()) GrayscalePairing.start(context)
-        else context.showToast(R.string.grayscale_pair_needs_notif)
+        ChannelFeatures.onNotificationPermission(context, granted)
     }
 
     private fun populateGrayscale() {

@@ -74,16 +74,16 @@ view id (from the layout XML) across `ui/settings/`.
 ## The edit-verify loop
 
 ```
-./gradlew compileDebugKotlin    # fast: does it compile
-./gradlew testDebugUnitTest     # JVM tests (pure logic only)
-./gradlew assembleDebug         # full debug APK before calling anything done
+./gradlew compileFullDebugKotlin compilePlayDebugKotlin  # fast: does it compile
+./gradlew testFullDebugUnitTest testPlayDebugUnitTest    # JVM tests (pure logic only)
+./gradlew assembleFullDebug assemblePlayDebug            # debug APKs before calling anything done
 ```
 
 Two rules that will bite you if skipped:
 - `./gradlew … | tail` reports **tail's** exit code. Check gradle's own exit
   code, or run without the pipe.
 - "It compiles" is not verification for UI changes — install the APK
-  (`app/build/outputs/apk/debug/app-debug.apk`) and touch the actual screen.
+  (`app/build/outputs/apk/full/debug/app-full-debug.apk`) and touch the actual screen.
   CI also builds a debug APK artifact on every master push.
 
 Building on the Pi has its own setup (qemu-wrapped aapt2) — documented in

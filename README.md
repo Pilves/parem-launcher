@@ -59,10 +59,10 @@ The app drawer search bar is a single point of truth:
 
 ```
 # Requires Android SDK (min SDK 29, target 35), JDK 17+
-./gradlew assembleDebug
+./gradlew assembleFullDebug
 ```
 
-The debug APK lands at `app/build/outputs/apk/debug/app-debug.apk`.
+The debug APK lands at `app/build/outputs/apk/full/debug/app-full-debug.apk`.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the code map, release process, and notes on building on ARM64 hosts (e.g. a Raspberry Pi).
 

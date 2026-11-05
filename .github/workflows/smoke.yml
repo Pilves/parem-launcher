@@ -75,7 +75,8 @@ jobs:
           # suite warms Android. Historical timings use a different scroll driver.
           # Each script line runs independently, hence the one-line conditional.
           script: |
-            ./gradlew connectedDebugAndroidTest
+            ./gradlew connectedPlayDebugAndroidTest
+            ./gradlew connectedFullDebugAndroidTest
             if [ "${{ matrix.perf }}" = "true" ]; then bash scripts/perf-compare.sh; fi
 
       - name: Upload test reports

@@ -3,7 +3,7 @@
 #
 #   scripts/check-reproducible.sh [ref] [signed.apk]
 #
-# Builds the unsigned release APK of <ref> (default HEAD) twice, from two fresh
+# Builds the unsigned full release APK of <ref> (default HEAD) twice, from two fresh
 # clones at different paths, and fails if they differ. With a signed APK (e.g.
 # the GitHub release asset for that tag) it also compares that APK's entries
 # against the build, ignoring signature files: that is what F-Droid checks
@@ -17,7 +17,14 @@ signed=${2:-}
 [ -n "$signed" ] && signed=$(realpath "$signed")
 sha=$(git -C "$repo" rev-parse --verify "$ref^{commit}")
 work=$(mktemp -d)
-apk_path=app/build/outputs/apk/release/app-release-unsigned.apk
+# Tags from before the flavour split have one release variant.
+if git -C "$repo" grep -q productFlavors "$sha" -- app/build.gradle; then
+    task=assembleFullRelease
+    apk_path=app/build/outputs/apk/full/release/app-full-release-unsigned.apk
+else
+    task=assembleRelease
+    apk_path=app/build/outputs/apk/release/app-release-unsigned.apk
+fi
 
 # Never sign: release builds pick up KEYSTORE_* from the environment.
 unset KEYSTORE_FILE KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD
@@ -27,7 +34,7 @@ build() {
     git clone --quiet --no-local "$repo" "$dir"
     git -C "$dir" checkout --quiet --detach "$sha"
     [ -f "$repo/local.properties" ] && cp "$repo/local.properties" "$dir/"
-    (cd "$dir" && ./gradlew --no-daemon --quiet assembleRelease)
+    (cd "$dir" && ./gradlew --no-daemon --quiet "$task")
 }
 
 # Per-entry sha256 list of an APK, minus the v1 signature files.

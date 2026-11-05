@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--Only asked for when grayscale pairing starts: the pairing code is typed into a notification-->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application>
+
+        <!--Receives the Wireless debugging pairing code typed into the grayscale notification-->
+        <receiver
+            android:name=".helper.GrayscalePairing$Receiver"
+            android:exported="false" />
+
+    </application>
+
+</manifest>

@@ -16,5 +16,5 @@ const problems = measurementProblems(result);
 if (problems.length) throw new Error(problems.join('\n'));
 JS
 adb uninstall com.parem.launcher.debug
-adb install app/build/outputs/apk/debug/app-debug.apk
+adb install app/build/outputs/apk/full/debug/app-full-debug.apk
 node scripts/perf-budget.mjs --baseline app/build/perf/reference/result.json --out app/build/perf/result.json
