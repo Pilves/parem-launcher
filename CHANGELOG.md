@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Align landscape screen time with the home app column.
+
 - Start the mindful-pause countdown after the sheet begins drawing, so time spent preparing the sheet does not shorten the visible pause.
 
 - Show landscape first-run tips only during first use, without overlapping the default-home prompt.
