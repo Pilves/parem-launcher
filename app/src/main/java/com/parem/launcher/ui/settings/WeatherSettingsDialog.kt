@@ -126,10 +126,10 @@ class WeatherSettingsDialog(
                 // touching a dismissed dialog's views.
                 if (!isShowing) return@launch
                 cities.clear()
-                cities.addAll(results)
+                cities.addAll(results.orEmpty())
                 adapter.notifyDataSetChanged()
-                if (results.isEmpty()) {
-                    statusText.text = context.getString(R.string.no_results)
+                if (results.isNullOrEmpty()) {
+                    statusText.text = context.getString(if (results == null) R.string.weather_search_failed else R.string.no_results)
                     statusText.visibility = View.VISIBLE
                 } else {
                     statusText.visibility = View.GONE

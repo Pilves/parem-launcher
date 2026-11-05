@@ -110,7 +110,7 @@ class WellbeingSettingsCard(
 
     /** SettingsFragment's permission callback. */
     fun onNotificationPermissionResult(granted: Boolean) {
-        ChannelFeatures.onNotificationPermission(context, granted)
+        ChannelFeatures.onNotificationPermission(fragment.requireActivity(), granted)
     }
 
     private fun populateGrayscale() {

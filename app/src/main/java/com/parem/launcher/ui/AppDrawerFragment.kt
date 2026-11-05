@@ -322,8 +322,13 @@ class AppDrawerFragment : BaseFragment() {
         val query = b.search.query.toString()
         hiddenHintShown = flag == Constants.FLAG_LAUNCH_APP &&
             HiddenAppHint.show(query, adapter.itemCount, isPrivateSpaceLocked(), hiddenLabels)
-        if (adapter.itemCount == 0 && query.isNotBlank()) {
-            b.appDrawerTip.text = getString(if (hiddenHintShown) R.string.hidden_apps_hint else R.string.no_apps_found)
+        val bang = query.startsWith("!") && query.length > 1
+        if (bang || (adapter.itemCount == 0 && query.isNotBlank())) {
+            b.appDrawerTip.text = when {
+                hiddenHintShown -> getString(R.string.hidden_apps_hint)
+                bang -> getString(R.string.duck_search_hint, query)
+                else -> getString(R.string.web_search_hint, query.trim())
+            }
             b.appDrawerTip.visibility = View.VISIBLE
         } else {
             b.appDrawerTip.visibility = View.GONE
@@ -581,6 +586,13 @@ class AppDrawerFragment : BaseFragment() {
                 }
                 OmniboxMode.None -> if (hiddenHintShown) {
                     openHiddenApps()
+                    return@setOnClickListener
+                } else if (binding.search.query.isNotBlank()) {
+                    binding.search.setQuery(binding.search.query, true)
+                    return@setOnClickListener
+                }
+                is OmniboxMode.Dial, OmniboxMode.WebSearch -> {
+                    binding.search.setQuery(binding.search.query, true)
                     return@setOnClickListener
                 }
                 else -> {}

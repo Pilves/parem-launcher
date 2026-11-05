@@ -1,8 +1,12 @@
 package com.parem.launcher.helper
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Build
+import android.provider.Settings
+import androidx.core.app.ActivityCompat
 import com.parem.launcher.R
 
 /**
@@ -25,9 +29,17 @@ object ChannelFeatures {
         else askPermission(Manifest.permission.POST_NOTIFICATIONS)
     }
 
-    fun onNotificationPermission(context: Context, granted: Boolean) {
-        if (granted && GrayscalePairing.isSupported()) GrayscalePairing.start(context)
-        else context.showToast(R.string.grayscale_pair_needs_notif)
+    fun onNotificationPermission(activity: Activity, granted: Boolean) {
+        if (granted && GrayscalePairing.isSupported()) {
+            GrayscalePairing.start(activity)
+            return
+        }
+        activity.showToast(R.string.grayscale_pair_needs_notif)
+        // Android has stopped asking, so another tap would do nothing
+        if (!ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.POST_NOTIFICATIONS))
+            activity.startActivity(
+                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, activity.packageName)
+            )
     }
 
     /** Sideloaded installs get a greyed-out switch on Android 13+; Play installs never do. */

@@ -1,6 +1,9 @@
 package com.parem.launcher.ui.settings
 
 import android.Manifest
+import android.os.Process
+import com.parem.launcher.BuildConfig
+import com.parem.launcher.helper.openAppInfo
 import android.view.Gravity
 import android.view.View
 import android.widget.Toast
@@ -303,8 +306,19 @@ class HomeScreenSettingsCard(
 
     /** Called by the fragment when the READ_CONTACTS prompt returns. */
     fun onContactsPermissionResult(granted: Boolean) {
-        // Denial leaves the feature off with no further nagging.
+        // A first denial stays quiet; once Android stops asking, the toggle would look broken
         if (granted) ContactSearchManager.setEnabled(context, true)
+        else if (!fragment.shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
+            BottomSheetMenu(context)
+                .title(context.getString(R.string.contact_search))
+                .message(context.getString(R.string.contact_search_denied))
+                .option(context.getString(R.string.open_app_settings)) {
+                    openAppInfo(context, Process.myUserHandle(), BuildConfig.APPLICATION_ID)
+                }
+                .option(context.getString(R.string.not_now), dimmed = true) {}
+                .show()
+                .dismissOnDestroy(fragment.viewLifecycleOwner)
+        }
         populateContactSearch()
     }
 

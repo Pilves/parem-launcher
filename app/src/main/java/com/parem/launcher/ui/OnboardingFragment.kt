@@ -50,8 +50,8 @@ class OnboardingFragment : BaseFragment() {
     private lateinit var viewModel: MainViewModel
 
     private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        val ctx = context
-        if (isAdded && _binding != null && ctx != null) ChannelFeatures.onNotificationPermission(ctx, granted)
+        val host = activity
+        if (isAdded && _binding != null && host != null) ChannelFeatures.onNotificationPermission(host, granted)
     }
 
     private var showingCalm = false

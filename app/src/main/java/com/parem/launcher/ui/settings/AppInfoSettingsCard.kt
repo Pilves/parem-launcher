@@ -156,7 +156,7 @@ class AppInfoSettingsCard(
                 }
                 ctx.showToast(ctx.getString(R.string.settings_exported))
             } catch (e: Exception) {
-                ctx.showToast(ctx.getString(R.string.settings_export_failed, e.message))
+                ctx.showToast(ctx.getString(R.string.settings_export_failed_plain))
             }
         }
     }
@@ -199,7 +199,7 @@ class AppInfoSettingsCard(
                     activity.recreate()
                 }
             } catch (e: Exception) {
-                ctx.showToast(ctx.getString(R.string.settings_import_failed, e.message))
+                ctx.showToast(ctx.getString(R.string.settings_import_failed_plain))
             }
         }
     }

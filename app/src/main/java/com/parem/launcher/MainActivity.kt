@@ -38,6 +38,7 @@ import com.parem.launcher.helper.isEinkDisplay
 import com.parem.launcher.helper.resetLauncherViaFakeActivity
 import com.parem.launcher.helper.setPlainWallpaper
 import com.parem.launcher.helper.showLauncherSelector
+import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.HomeFragment
 import com.parem.launcher.ui.showCrashReport
 import kotlinx.coroutines.Job
@@ -298,35 +299,29 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 Constants.Dialog.DIGITAL_WELLBEING -> {
-                    AlertDialog.Builder(this)
-                        .setTitle(R.string.screen_time)
-                        .setMessage(R.string.app_usage_message)
-                        .setPositiveButton(R.string.okay) { _, _ ->
-                            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-                        }
-                        .setNegativeButton(R.string.not_now, null)
+                    BottomSheetMenu(this)
+                        .title(getString(R.string.screen_time))
+                        .message(getString(R.string.app_usage_message))
+                        .option(getString(R.string.okay)) { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
+                        .option(getString(R.string.not_now), dimmed = true) {}
                         .show()
                 }
 
                 Constants.Dialog.GRAYSCALE_USAGE_ACCESS -> {
-                    AlertDialog.Builder(this)
-                        .setTitle(R.string.grayscale)
-                        .setMessage(R.string.grayscale_app_needs_usage)
-                        .setPositiveButton(R.string.agree) { _, _ ->
-                            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-                        }
-                        .setNegativeButton(R.string.not_now, null)
+                    BottomSheetMenu(this)
+                        .title(getString(R.string.grayscale))
+                        .message(getString(R.string.grayscale_app_needs_usage))
+                        .option(getString(R.string.agree)) { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
+                        .option(getString(R.string.not_now), dimmed = true) {}
                         .show()
                 }
 
                 Constants.Dialog.GRAYSCALE_DEFAULT_HOME -> {
-                    AlertDialog.Builder(this)
-                        .setTitle(R.string.grayscale)
-                        .setMessage(R.string.grayscale_app_needs_default)
-                        .setPositiveButton(R.string.set_as_default_launcher) { _, _ ->
-                            viewModel.resetLauncherLiveData.call()
-                        }
-                        .setNegativeButton(R.string.not_now, null)
+                    BottomSheetMenu(this)
+                        .title(getString(R.string.grayscale))
+                        .message(getString(R.string.grayscale_app_needs_default))
+                        .option(getString(R.string.set_as_default_launcher)) { viewModel.resetLauncherLiveData.call() }
+                        .option(getString(R.string.not_now), dimmed = true) {}
                         .show()
                 }
             }

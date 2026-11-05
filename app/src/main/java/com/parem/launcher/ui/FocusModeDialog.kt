@@ -6,11 +6,11 @@ import android.content.res.ColorStateList
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import com.parem.launcher.R
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.FocusSchedule
@@ -296,24 +296,36 @@ class FocusModeDialog(
     }
 
     /**
-     * Days → start → end, each step a platform dialog. [onDone] runs only if
+     * Days sheet → start → end picker. [onDone] runs only if
      * all three are confirmed while this sheet is still showing.
      */
     private fun editWindow(ctx: Context, initial: FocusSchedule.Window?, onDone: (FocusSchedule.Window) -> Unit) {
         val labels = (0..6).map { weekdayShortName(it) }.toTypedArray()
         val checked = BooleanArray(7) { initial == null || initial.days and (1 shl it) != 0 }
         val is24h = android.text.format.DateFormat.is24HourFormat(ctx)
-        val daysDialog = AlertDialog.Builder(ctx)
-            .setTitle(R.string.focus_schedule_days)
-            // The dialog writes each tap into [checked] before calling back
-            .setMultiChoiceItems(labels, checked) { dialog, _, _ ->
-                (dialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = checked.any { it }
+        val textColor = ctx.getColorFromAttr(R.attr.textColor)
+        val boxes = (0..6).map { day ->
+            CheckBox(ctx).apply {
+                text = labels[day]
+                textSize = 16f
+                setTextColor(textColor)
+                buttonTintList = ColorStateList.valueOf(textColor)
+                isChecked = checked[day]
+                minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                if (!dialog.isShowing) return@setPositiveButton
-                val days = checked.foldIndexed(0) { i, acc, on -> if (on) acc or (1 shl i) else acc }
-                if (days == 0) return@setPositiveButton
+        }
+        val dayList = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(16.dpToPx(), 0, 24.dpToPx(), 0)
+            boxes.forEach { addView(it) }
+        }
+        BottomSheetMenu(ctx)
+            .title(ctx.getString(R.string.focus_schedule_days))
+            .customView(dayList)
+            .option(ctx.getString(android.R.string.ok)) {
+                if (!dialog.isShowing) return@option
+                val days = boxes.foldIndexed(0) { i, acc, box -> if (box.isChecked) acc or (1 shl i) else acc }
+                if (days == 0) return@option
                 val start = initial?.startMin ?: 9 * 60
                 TimePickerDialog(ctx, { _, h, m ->
                     if (!dialog.isShowing) return@TimePickerDialog
@@ -324,8 +336,8 @@ class FocusModeDialog(
                     }, end / 60, end % 60, is24h).apply { setTitle(R.string.focus_schedule_end) }.show()
                 }, start / 60, start % 60, is24h).apply { setTitle(R.string.focus_schedule_start) }.show()
             }
-            .create()
-        daysDialog.show()
+            .option(ctx.getString(android.R.string.cancel), dimmed = true) {}
+            .show()
     }
 
     /** 0 = Monday … 6 = Sunday, in the platform's short weekday names. */

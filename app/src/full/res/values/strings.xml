@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--On-phone grayscale pairing: absent from the play build-->
-    <string name="grayscale_grant_wifi" translatable="false">On this phone, over Wi-Fi:\n1. Turn on Developer options: Settings > About phone > tap Build number 7 times.\n2. In Developer options, turn on Wireless debugging and tap Pair device with pairing code.\n3. Pull down Parem\'s notification and type the 6-digit code into it.</string>
+    <string name="grayscale_grant_wifi" translatable="false">On this phone, over Wi-Fi:\n1. Turn on Developer options: Android Settings › About phone > tap Build number 7 times.\n2. In Developer options, turn on Wireless debugging and tap Pair device with pairing code.\n3. Pull down Parem\'s notification and type the 6-digit code into it.</string>
     <string name="grayscale_pair_start" translatable="false">Start pairing</string>
     <string name="grayscale_pair_needs_notif" translatable="false">Allow notifications so you can type the pairing code</string>
     <string name="grayscale_pair_notif_title" translatable="false">Grayscale: pairing code</string>

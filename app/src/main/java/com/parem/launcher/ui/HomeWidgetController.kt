@@ -806,7 +806,7 @@ class HomeWidgetController(
             }
         } catch (e: Exception) {
             CrashReporter.reportNonFatal("HomeWidgetController: bindWidget failed", e)
-            context.showToast(context.getString(R.string.couldnt_bind_widget, e.message))
+            context.showToast(context.getString(R.string.widget_add_failed))
         }
     }
 
@@ -849,7 +849,7 @@ class HomeWidgetController(
             }
         } catch (e: Exception) {
             CrashReporter.reportNonFatal("HomeWidgetController: onWidgetBound failed", e)
-            context.showToast(context.getString(R.string.widget_setup_failed, e.message))
+            context.showToast(context.getString(R.string.widget_add_failed))
         }
     }
 
@@ -875,7 +875,7 @@ class HomeWidgetController(
             rebuildWidgetContainer()
         } catch (e: Exception) {
             CrashReporter.reportNonFatal("HomeWidgetController: finishWidgetSetup failed", e)
-            context.showToast(context.getString(R.string.couldnt_add_widget, e.message))
+            context.showToast(context.getString(R.string.widget_add_failed))
         }
     }
 }

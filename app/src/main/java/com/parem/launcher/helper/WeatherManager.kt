@@ -106,7 +106,8 @@ object WeatherManager {
         return WeatherStaleness.classify(age)
     }
 
-    suspend fun searchCities(query: String): List<CityResult> = withContext(Dispatchers.IO) {
+    /** Null means the search itself failed, as opposed to finding nothing. */
+    suspend fun searchCities(query: String): List<CityResult>? = withContext(Dispatchers.IO) {
         if (query.isBlank() || query.length < 2) return@withContext emptyList()
 
         var connection: HttpURLConnection? = null
@@ -120,7 +121,7 @@ object WeatherManager {
             connection.connect()
 
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                return@withContext emptyList()
+                return@withContext null
             }
 
             val response = connection.inputStream.bufferedReader().use { it.readText() }
@@ -145,7 +146,7 @@ object WeatherManager {
             cities
         } catch (e: Exception) {
             Log.e("WeatherManager", "Failed to search cities", e)
-            emptyList()
+            null
         } finally {
             connection?.disconnect()
         }

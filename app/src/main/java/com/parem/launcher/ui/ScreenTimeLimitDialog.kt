@@ -151,6 +151,12 @@ class ScreenTimeLimitDialog(
 
         for (packageName in listed) addRow(packageName)
 
+        if (listed.isEmpty()) rootLayout.addView(TextView(context).apply {
+            text = context.getString(R.string.app_limits_empty)
+            textSize = 14f
+            setTextColor(secondaryTextColor)
+            setPadding(0, 8.dpToPx(), 0, 8.dpToPx())
+        })
         rootLayout.addView(listLayout)
         rootLayout.addView(TextView(context).apply {
             text = context.getString(R.string.add_another_app)

@@ -16,7 +16,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.GestureLetterManager
-import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.helper.appLabelOrNull
 import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.notifications.QuietNotificationsManager
 import com.parem.launcher.helper.showToast
@@ -40,7 +40,7 @@ class GesturesSettingsCard(
     private val prefs: Prefs,
     private val viewModel: MainViewModel,
     private val onWellbeingChanged: () -> Unit,
-) : View.OnClickListener, View.OnLongClickListener {
+) : View.OnClickListener {
 
     private val context get() = binding.root.context
 
@@ -70,9 +70,6 @@ class GesturesSettingsCard(
         binding.gestureLettersRow?.setOnClickListener(this)
         binding.tvGestures?.setOnClickListener(this)
         binding.lockMethod.setOnClickListener(this)
-
-        binding.swipeLeftRow.setOnLongClickListener(this)
-        binding.swipeRightRow.setOnLongClickListener(this)
     }
 
     private fun initObservers() {
@@ -109,27 +106,6 @@ class GesturesSettingsCard(
                 }
             }
         }
-    }
-
-    override fun onLongClick(view: View): Boolean {
-        when (view.id) {
-            R.id.swipeLeftRow -> toggleSwipe(isLeft = true)
-            R.id.swipeRightRow -> toggleSwipe(isLeft = false)
-        }
-        return true
-    }
-
-    private fun toggleSwipe(isLeft: Boolean) {
-        val enabled = if (isLeft) !prefs.swipeLeftEnabled else !prefs.swipeRightEnabled
-        if (isLeft) prefs.swipeLeftEnabled = enabled else prefs.swipeRightEnabled = enabled
-        (if (isLeft) binding.swipeLeftApp else binding.swipeRightApp)
-            .setTextColor(context.getColorFromAttr(if (enabled) R.attr.primaryColor else R.attr.textSecondaryColor))
-        context.showToast(context.getString(when {
-            isLeft && enabled -> R.string.swipe_left_app_enabled
-            isLeft -> R.string.swipe_left_app_disabled
-            enabled -> R.string.swipe_right_app_enabled
-            else -> R.string.swipe_right_app_disabled
-        }))
     }
 
     private fun toggleKeyboardText() {
@@ -172,14 +148,13 @@ class GesturesSettingsCard(
     }
 
     private fun populateSwipeApps() {
-        binding.swipeLeftApp.text = gestureActionLabel(prefs.getEffectiveSwipeLeftAction(), prefs.appNameSwipeLeft)
-        binding.swipeRightApp.text = gestureActionLabel(prefs.getEffectiveSwipeRightAction(), prefs.appNameSwipeRight)
+        // A swipe turned off by an older version does nothing, so it reads None until a new pick
+        binding.swipeLeftApp.text = if (prefs.swipeLeftEnabled) gestureActionLabel(prefs.getEffectiveSwipeLeftAction(), prefs.appNameSwipeLeft)
+            else context.getString(R.string.none)
+        binding.swipeRightApp.text = if (prefs.swipeRightEnabled) gestureActionLabel(prefs.getEffectiveSwipeRightAction(), prefs.appNameSwipeRight)
+            else context.getString(R.string.none)
         binding.swipeLeftRow.bindValueRow(binding.swipeLeftApp.text)
         binding.swipeRightRow.bindValueRow(binding.swipeRightApp.text)
-        if (!prefs.swipeLeftEnabled)
-            binding.swipeLeftApp.setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
-        if (!prefs.swipeRightEnabled)
-            binding.swipeRightApp.setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
     }
 
     private fun actionLabelRes(action: Int): Int? = when (action) {
@@ -199,22 +174,18 @@ class GesturesSettingsCard(
         else actionLabelRes(action)?.let(context::getString) ?: appName
 
     private fun showSwipeActionPicker(isLeft: Boolean) {
-        if (isLeft && !prefs.swipeLeftEnabled) {
-            context.showToast(context.getString(R.string.long_press_to_enable))
-            return
-        }
-        if (!isLeft && !prefs.swipeRightEnabled) {
-            context.showToast(context.getString(R.string.long_press_to_enable))
-            return
-        }
-
         val menu = BottomSheetMenu(context)
             .title(context.getString(R.string.select_action))
         for ((label, actionValue) in gestureActionChoices()) {
             menu.option(label) {
                 val previous = if (isLeft) prefs.swipeLeftAction else prefs.swipeRightAction
-                if (isLeft) prefs.swipeLeftAction = actionValue
-                else prefs.swipeRightAction = actionValue
+                if (isLeft) {
+                    prefs.swipeLeftAction = actionValue
+                    prefs.swipeLeftEnabled = true
+                } else {
+                    prefs.swipeRightAction = actionValue
+                    prefs.swipeRightEnabled = true
+                }
                 if (actionValue == Constants.GestureAction.OPEN_APP) {
                     showAppListForSwipe(if (isLeft) Constants.FLAG_SET_SWIPE_LEFT_APP else Constants.FLAG_SET_SWIPE_RIGHT_APP)
                 } else {
@@ -253,6 +224,8 @@ class GesturesSettingsCard(
 
     private fun getDoubleTapLabel(): String {
         val action = DoubleTapActionManager.getAction(context)
+        if (action == Constants.GestureAction.OPEN_APP)
+            context.appLabelOrNull(DoubleTapActionManager.getAppPackage(context))?.let { return it }
         // The double-tap picker never offers the quiet list, so it falls to the default like any unknown value
         val res = if (action == Constants.GestureAction.QUIET_LIST) null else actionLabelRes(action)
         return context.getString(res ?: R.string.lock_screen)
