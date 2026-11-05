@@ -13,7 +13,7 @@
 - Daily wallpaper reads its list from Parem's own site instead of the upstream author's gist, and a blank list entry falls back to the built-in picture.
 - Weather sends coordinates rounded to the nearest 0.05 degrees, says so in its sheet and credits Open-Meteo. Turning weather off removes the saved temperature and, unless the sunrise and sunset theme uses it, the place.
 - Settings links to the privacy policy and the project page.
-- Two builds: the Google Play version grants grayscale from a computer only; GitHub, F-Droid and IzzyOnDroid builds keep on-phone pairing.
+- Two builds: the Google Play version grants grayscale from a computer only; GitHub and F-Droid builds keep on-phone pairing.
 - The Google Play version no longer shows the sideload-only "Allow restricted settings" hint.
 - Contact search explains what it reads before Android asks for the contacts permission.
 - Quiet notifications never hides Android Settings, system or error notifications. Its disclosure button and the per-app grayscale prompt now ask you to agree.

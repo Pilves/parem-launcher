@@ -167,7 +167,7 @@ Status after the 2026-11-05 fixes. Still open: G2's wallpaper half, G4's single 
 | G3 | Contacts toggle jumps straight to the system prompt. Play says runtime requests must be immediately preceded by an in-app disclosure, where one is required. On-device use may not need it; compliance to decide | **Done:** a sheet before the prompt | Small |
 | G4 | The wallpaper list is controlled by a third party, so hosts can change with no release and the policy can never be exhaustive | **Done:** the publisher hosts the list in `web/wallpapers.json`. Limiting it to one image host is still open | Medium |
 | G5 | Weather coordinates survive turning weather off, with no in-app removal | **Done:** cleared on turn-off and at home resume, unless the sunrise theme needs them | Small |
-| G6 | Coordinates were unrounded | **Done, at 0.05°:** 2 decimals was still under 3 km² (0.63 km² at 59°N) | Trivial |
+| G6 | Coordinates were unrounded | **Rounded to 0.05°:** 2 decimals was still under 3 km² (0.63 km² at 59°N). At very high latitudes even a 0.05° cell can be smaller than 3 km²; geocoder results are not latitude-restricted, so the approximate-location classification needs review before the Console declaration | Trivial |
 | G7 | Listing says "no data collection" | **Done** | Trivial |
 | G8 | Backups run without end-to-end encryption on phones with no screen lock | **Moot:** nothing Parem stores reaches cloud backup | Trivial |
 | G9 | Open-Meteo's free API is for non-commercial use: "private or non-profit" apps without subscriptions or ads | Confirm donations fit | Decision |
