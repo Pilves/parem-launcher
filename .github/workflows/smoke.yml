@@ -132,10 +132,7 @@ jobs:
             adb shell wm size 1080x1920
             adb shell wm density 420
             adb shell cmd uimode night no
-            ./gradlew connectedPlayDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.PauseFilmCapture -Pandroid.testInstrumentationRunnerArguments.filmCapture=true
-            mkdir -p capture
-            adb pull /sdcard/parem-pause.mp4 capture/pause-play-unreviewed.mp4
-            git rev-parse HEAD > capture/source-sha.txt
+            bash scripts/capture-pause-film.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:

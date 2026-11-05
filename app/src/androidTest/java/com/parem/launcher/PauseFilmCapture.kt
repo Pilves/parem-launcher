@@ -43,7 +43,6 @@ class PauseFilmCapture {
         device.pressHome()
         assertTrue("home missing", device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 15000))
         device.waitForIdle()
-        device.executeShellCommand("sh -c 'screenrecord --time-limit 14 /sdcard/parem-pause.mp4 >/dev/null 2>&1 &'")
         SystemClock.sleep(1800)
         instrumentation.runOnMainSync {
             val activity = ActivityLifecycleMonitorRegistry.getInstance()
@@ -53,8 +52,5 @@ class PauseFilmCapture {
         }
         assertTrue("pause sheet missing", device.wait(Until.hasObject(By.text(context.getString(R.string.mindful_pause_question, "Feed"))), 10000))
         SystemClock.sleep(7000)
-        device.executeShellCommand("sh -c 'kill -2 $(pidof screenrecord)'")
-        SystemClock.sleep(2000)
-        assertTrue("recording missing", device.executeShellCommand("ls -l /sdcard/parem-pause.mp4").contains("parem-pause.mp4"))
     }
 }
