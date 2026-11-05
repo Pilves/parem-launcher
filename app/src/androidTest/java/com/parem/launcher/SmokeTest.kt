@@ -301,6 +301,19 @@ class SmokeTest {
             device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-widget-and-tips.png")
             assertFalse("first-run tips overlap the widget: tips=${tips.visibleBounds}, widget=${widget.visibleBounds}",
                 Rect.intersects(tips.visibleBounds, widget.visibleBounds))
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                ViewModelProvider(activity)[MainViewModel::class.java].isParemDefault.value = false
+            }
+            val banner = device.wait(Until.findObject(By.res(context.resources.getResourceName(R.id.setDefaultLauncher))), TIMEOUT)
+            assertNotNull("default-home banner missing with widget", banner)
+            device.waitForIdle()
+            val widgetWithBanner = device.wait(Until.findObject(By.text("WP28 fixture widget")), TIMEOUT)
+            assertNotNull("widget missing with default-home banner", widgetWithBanner)
+            device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-widget-and-banner.png")
+            assertFalse("default-home banner overlaps the widget: banner=${banner.visibleBounds}, widget=${widgetWithBanner.visibleBounds}",
+                Rect.intersects(banner.visibleBounds, widgetWithBanner.visibleBounds))
         } finally {
             device.setOrientationNatural()
         }
