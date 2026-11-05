@@ -22,6 +22,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
+import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
@@ -168,7 +169,10 @@ class SmokeTest {
                             insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
                     }
                 }
-                val result = device.findObject(By.text("Example 1"))?.visibleBounds
+                // Filtering can replace a row between lookup and reading its bounds.
+                val result = try {
+                    device.findObject(By.text("Example 1"))?.visibleBounds
+                } catch (_: StaleObjectException) { null }
                 bounds = "keyboardTop=$keyboardTop result=$result"
                 visible = keyboardTop > 0 && result != null && result.height() > 0 &&
                     result.bottom <= keyboardTop
