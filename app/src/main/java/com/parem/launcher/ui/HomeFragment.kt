@@ -9,6 +9,7 @@ import androidx.core.view.AccessibilityDelegateCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
+import androidx.core.view.doOnLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -36,6 +37,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
+    private var landscapeWidgetBottomPadding = 0
 
     internal var widgetController: HomeWidgetController? = null
         private set
@@ -58,6 +60,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             ViewModelProvider(this)[MainViewModel::class.java]
         } ?: throw Exception("Invalid Activity")
         binding.mainLayout.padForSystemBars()
+        landscapeWidgetBottomPadding = (binding.widgetScrollViewAbove?.parent as? ViewGroup)?.paddingBottom ?: 0
 
         slotsController = HomeSlotsController(this, binding, prefs, viewModel)
         gesturesController = HomeGesturesController(this, binding, prefs, viewModel)
@@ -143,6 +146,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             R.id.setDefaultLauncher -> {
                 prefs.hideSetDefaultLauncher = true
                 binding.setDefaultLauncher.visibility = View.GONE
+                updateFirstRunTips()
                 if (viewModel.isParemDefault.value != true) {
                     requireContext().showToast(R.string.set_as_default_launcher)
                     findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
@@ -152,16 +156,35 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         return true
     }
 
+    private fun updateFirstRunTips() {
+        val current = _binding ?: return
+        val tips = current.firstRunTips ?: return // Only the landscape layout has tips.
+        tips.isVisible = viewModel.firstOpen.value == true && !current.setDefaultLauncher.isVisible
+        val column = current.widgetScrollViewAbove?.parent as? ViewGroup ?: return
+        val prompt = when {
+            current.setDefaultLauncher.isVisible -> current.setDefaultLauncher
+            tips.isVisible -> tips
+            else -> null
+        }
+        if (prompt == null) {
+            column.setPadding(column.paddingLeft, column.paddingTop, column.paddingRight, landscapeWidgetBottomPadding)
+            return
+        }
+        prompt.doOnLayout {
+            if (_binding !== current || !prompt.isVisible) return@doOnLayout
+            val margin = (prompt.layoutParams as? ViewGroup.MarginLayoutParams)?.bottomMargin ?: 0
+            val gap = (8 * resources.displayMetrics.density).toInt()
+            val reserved = maxOf(landscapeWidgetBottomPadding, prompt.height + margin + gap)
+            column.setPadding(column.paddingLeft, column.paddingTop, column.paddingRight, reserved)
+        }
+    }
+
     private fun initObservers() {
         viewModel.refreshHome.observe(viewLifecycleOwner) {
             slotsController?.populateHomeScreen(it)
             if (widgetController?.needsRestore() == true) {
                 viewLifecycleOwner.lifecycleScope.launch { widgetController?.restoreWidgets() }
             }
-        }
-        fun updateFirstRunTips() {
-            binding.firstRunTips?.isVisible = viewModel.firstOpen.value == true &&
-                !binding.setDefaultLauncher.isVisible
         }
         viewModel.firstOpen.observe(viewLifecycleOwner) { updateFirstRunTips() }
         viewModel.isParemDefault.observe(viewLifecycleOwner) {

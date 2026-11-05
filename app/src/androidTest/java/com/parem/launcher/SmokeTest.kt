@@ -295,6 +295,7 @@ class SmokeTest {
             }
             val tips = device.wait(Until.findObject(By.res(context.resources.getResourceName(R.id.firstRunTips))), TIMEOUT)
             assertNotNull("first-run tips missing with widget", tips)
+            device.waitForIdle()
             val widget = device.wait(Until.findObject(By.text("WP28 fixture widget")), TIMEOUT)
             assertNotNull("widget missing with first-run tips", widget)
             device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-widget-and-tips.png")

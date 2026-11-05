@@ -2,6 +2,8 @@
 
 ## v6.0.0 — 2026-11-05
 
+- Keep first-use and default-home prompts clear of landscape widgets.
+
 - Align landscape screen time with the home app column.
 
 - Start the mindful-pause countdown after the sheet begins drawing, so time spent preparing the sheet does not shorten the visible pause.
