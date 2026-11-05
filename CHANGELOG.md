@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Show landscape first-run tips only during first use, without overlapping the default-home prompt.
+
 - Add draft translations of permission disclosures for the shipped locales; native review is required.
 
 - Translate the German capture screens and consent disclosures.

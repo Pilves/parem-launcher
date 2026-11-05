@@ -159,6 +159,11 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                 viewLifecycleOwner.lifecycleScope.launch { widgetController?.restoreWidgets() }
             }
         }
+        fun updateFirstRunTips() {
+            binding.firstRunTips?.isVisible = viewModel.firstOpen.value == true &&
+                !binding.setDefaultLauncher.isVisible
+        }
+        viewModel.firstOpen.observe(viewLifecycleOwner) { updateFirstRunTips() }
         viewModel.isParemDefault.observe(viewLifecycleOwner) {
             if (it != true) {
                 if (prefs.dailyWallpaper) {
@@ -169,6 +174,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                 slotsController?.setHomeAlignment()
             }
             binding.setDefaultLauncher.isVisible = it.not() && prefs.hideSetDefaultLauncher.not()
+            updateFirstRunTips()
         }
         viewModel.homeAppAlignment.observe(viewLifecycleOwner) {
             slotsController?.setHomeAlignment(it)
