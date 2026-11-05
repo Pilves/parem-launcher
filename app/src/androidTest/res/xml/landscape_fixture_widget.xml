@@ -1,0 +1,3 @@
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="120dp" android:minHeight="100dp" android:initialLayout="@layout/landscape_fixture_widget"
+    android:resizeMode="horizontal|vertical" android:widgetCategory="home_screen" />

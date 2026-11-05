@@ -1,5 +1,6 @@
 package com.parem.launcher
 
+import android.content.ComponentName
 import android.content.res.Configuration
 import android.os.SystemClock
 import android.util.Log
@@ -201,6 +202,38 @@ class SmokeTest {
                 device.waitForIdle()
                 assertEquals(0, device.displayRotation)
             }
+        } finally {
+            device.setOrientationNatural()
+        }
+    }
+
+    @Test
+    fun landscapeWidgetSurvivesDrawerRoundTrip() {
+        if (context.resources.configuration.smallestScreenWidthDp < 600) return
+        try {
+            device.setOrientationLandscape()
+            device.waitForIdle()
+            device.executeShellCommand("appwidget grantbind --package $pkg --user 0")
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                val provider = ComponentName(instrumentation.context.packageName, LandscapeFixtureWidget::class.java.name)
+                val id = activity.appWidgetHost.allocateAppWidgetId()
+                assertTrue("fixture widget bind refused", activity.appWidgetManager.bindAppWidgetIdIfAllowed(id, provider))
+                Prefs(context).apply {
+                    setWidgetIdList(listOf(id))
+                    setWidgetProvider(id, provider.flattenToString())
+                }
+                activity.recreate()
+            }
+            assertTrue("fixture widget missing", device.wait(Until.hasObject(By.text("WP28 fixture widget")), TIMEOUT))
+            device.executeShellCommand("mkdir -p $DIAG_DIR")
+            device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-widget-landscape-before.png")
+            openDrawer()
+            device.pressBack()
+            assertTrue("fixture widget missing after drawer", device.wait(Until.hasObject(By.text("WP28 fixture widget")), TIMEOUT))
+            device.waitForIdle()
+            device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-widget-landscape-after.png")
         } finally {
             device.setOrientationNatural()
         }
