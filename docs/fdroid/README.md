@@ -24,8 +24,8 @@ build (a bundle, re-signed by Play) stays a separate install either way.
 
 ## Anti-features
 
-`NonFreeNet`: daily wallpapers come from Unsplash (picked from a list on a
-GitHub Gist inherited from Olauncher) and currency rates from the ECB, neither a free-software service. Both run only after the user opts in
+`NonFreeNet`: daily wallpapers come from Unsplash, Pexels, Reddit and imgbox
+(picked from `web/wallpapers.json` on the project's GitHub Pages site) and currency rates from the ECB, none a free-software service. Both run only after the user opts in
 (daily wallpapers toggle, typing a currency conversion). Weather uses
 Open-Meteo, which is AGPL open source, so it does not count. Nothing else
 goes online: web search and the GitHub link open in the browser.
@@ -79,7 +79,7 @@ that still differs, compare with `diffoscope` on the kept build directories.
 > - Reproducible: our signed release APK is listed under `Binaries` and
 >   `AllowedAPKSigningKeys`; the build was verified identical with
 >   `scripts/check-reproducible.sh` on the tag.
-> - Anti-features: `NonFreeNet` (opt-in Unsplash wallpapers and ECB currency
+> - Anti-features: `NonFreeNet` (opt-in wallpapers from Unsplash and other hosts, ECB currency
 >   rates). No trackers, no proprietary dependencies.
 > - Permissions worth explaining: the accessibility service is used only for
 >   double tap to lock the screen, off by default; `WRITE_SECURE_SETTINGS` (grayscale) is

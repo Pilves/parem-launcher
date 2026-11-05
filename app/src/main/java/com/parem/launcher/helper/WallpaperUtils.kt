@@ -157,7 +157,8 @@ suspend fun getTodaysWallpaper(wallType: String, firstOpenTime: Long): String {
             val json = JSONObject(result)
             val wallpapers = json.getString(key)
             val wallpapersJson = JSONObject(wallpapers)
-            wallpaperUrl = wallpapersJson.getString(wallType)
+            // The list has a blank entry (1_30 dark); an empty URL would fail silently and keep yesterday's
+            wallpaperUrl = wallpapersJson.getString(wallType).ifBlank { getBackupWallpaper(wallType) }
             wallpaperUrl
 
         } catch (e: Exception) {

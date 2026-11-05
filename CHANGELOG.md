@@ -4,6 +4,7 @@
 
 - Fixed: tapping the "Swipe down for" value in Settings shows its picker instead of hiding the whole row.
 - Android cloud backup no longer copies Parem's settings, usage counts or weather place. Use Export settings to move them; phone-to-phone transfer on Android 12 and later still carries them.
+- Daily wallpaper reads its list from Parem's own site instead of the upstream author's gist, and a blank list entry falls back to the built-in picture.
 - Privacy wording in usage access, crash reports, the lock service, device admin and quiet notifications now says exactly what is read, kept and sent.
 
 ## v6.0.0-beta.2 — 2026-10-16
