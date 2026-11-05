@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Translate the German capture screens and consent disclosures.
+
 - Use the green Parem icon across launcher and store assets.
 
 - Fixed: tapping the "Swipe down for" value in Settings shows its picker instead of hiding the whole row.

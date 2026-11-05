@@ -152,7 +152,7 @@
     <string name="max_widgets_reached">Maximum widgets reached</string>
     <string name="sort_apps_by_usage">Sort apps by usage</string>
     <string name="search_widgets">Search widgets…</string>
-    <string name="search_apps" translatable="false">Search apps…</string>
+    <string name="search_apps">Search apps…</string>
     <string name="swipe_left_action">Swipe left action</string>
     <string name="swipe_right_action">Swipe right action</string>
     <string name="open_app">Open app</string>
@@ -194,24 +194,24 @@
     <string name="sunrise_sunset" translatable="false">Sunrise/Sunset</string>
 
     <!-- Focus Mode -->
-    <string name="focus_mode" translatable="false">Focus mode</string>
+    <string name="focus_mode">Focus mode</string>
     <string name="focus_mode_on" translatable="false">Focus mode is ON</string>
     <string name="focus_remaining" translatable="false">Remaining: %s</string>
-    <string name="enable_focus" translatable="false">Enable</string>
+    <string name="enable_focus">Enable</string>
     <string name="disable_focus" translatable="false">Disable</string>
-    <string name="focus_25_min" translatable="false">25 minutes</string>
-    <string name="focus_1_hour" translatable="false">1 hour</string>
-    <string name="focus_2_hours" translatable="false">2 hours</string>
-    <string name="focus_until_disable" translatable="false">Until I disable</string>
+    <string name="focus_25_min">25 minutes</string>
+    <string name="focus_1_hour">1 hour</string>
+    <string name="focus_2_hours">2 hours</string>
+    <string name="focus_until_disable">Until I disable</string>
     <string name="focus_until_disabled_status" translatable="false">Until manually disabled</string>
-    <string name="focus_duration" translatable="false">Duration</string>
-    <string name="focus_allowed_apps" translatable="false">Allowed apps (max 5)</string>
+    <string name="focus_duration">Duration</string>
+    <string name="focus_allowed_apps">Allowed apps (max 5)</string>
     <string name="app_blocked_focus" translatable="false">Blocked by Focus Mode</string>
     <string name="app_blocked_focus_scheduled" translatable="false">Focus until %1$s. Pause it in %2$s.</string>
     <string name="app_blocked_focus_scheduled_no_end" translatable="false">Focus is scheduled. Pause it in %1$s.</string>
-    <string name="focus_schedule" translatable="false">Schedule</string>
-    <string name="focus_schedule_add" translatable="false">Add window</string>
-    <string name="focus_schedule_hint" translatable="false">Tap a window to edit it, long-press to remove it</string>
+    <string name="focus_schedule">Schedule</string>
+    <string name="focus_schedule_add">Add window</string>
+    <string name="focus_schedule_hint">Tap a window to edit it, long-press to remove it</string>
     <string name="focus_schedule_days" translatable="false">Days</string>
     <string name="focus_schedule_start" translatable="false">Start</string>
     <string name="focus_schedule_end" translatable="false">End</string>
@@ -221,7 +221,7 @@
     <string name="focus_schedule_empty_whitelist" translatable="false">No apps allowed: only calls work during scheduled focus.</string>
 
     <!-- Quick Note -->
-    <string name="save" translatable="false">Save</string>
+    <string name="save">Save</string>
 
     <!-- Weather -->
     <string name="weather" translatable="false">Weather</string>
@@ -235,12 +235,12 @@
     <string name="app_limits" translatable="false">App limits</string>
     <string name="app_limit_warning" translatable="false">You\u2019ve used %1$s for %2$s today (limit: %3$s)</string>
     <string name="open_anyway" translatable="false">Open anyway</string>
-    <string name="go_back" translatable="false">Go back</string>
+    <string name="go_back">Go back</string>
     <string name="select_time_limit" translatable="false">Select daily time limit</string>
     <string name="mindful_pause_turn_on" translatable="false">Turn on mindful pause</string>
     <string name="mindful_pause_turn_off" translatable="false">Turn off mindful pause</string>
-    <string name="mindful_pause_question" translatable="false">Why are you opening %1$s?</string>
-    <string name="mindful_pause_wait" translatable="false">Open %1$s in %2$d…</string>
+    <string name="mindful_pause_question">Why are you opening %1$s?</string>
+    <string name="mindful_pause_wait">Open %1$s in %2$d…</string>
     <string name="mindful_pause_open" translatable="false">Open %1$s</string>
 
     <!-- Gesture Letters -->
@@ -260,16 +260,16 @@
 
 
 
-    <string name="screen_time_week_title" translatable="false">Screen time \u2014 last 7 days</string>
-    <string name="top_apps_week" translatable="false">Top apps this week</string>
+    <string name="screen_time_week_title">Screen time \u2014 last 7 days</string>
+    <string name="top_apps_week">Top apps this week</string>
     <string name="top_apps_day" translatable="false">Top apps \u2014 %1$s</string>
-    <string name="daily_average" translatable="false">%1$s/day average</string>
-    <string name="weekly_review_title" translatable="false">This week vs last week</string>
+    <string name="daily_average">%1$s/day average</string>
+    <string name="weekly_review_title">This week vs last week</string>
     <string name="weekly_review_up" translatable="false">Up %1$d%% from %2$s/day last week</string>
     <string name="weekly_review_down" translatable="false">Down %1$d%% from %2$s/day last week</string>
     <string name="weekly_review_same" translatable="false">Same as last week (%1$s/day)</string>
     <string name="weekly_review_partial" translatable="false">Last week has %1$d of 7 days on record</string>
-    <string name="weekly_review_no_history" translatable="false">Not enough usage history yet to compare with last week</string>
+    <string name="weekly_review_no_history">Not enough usage history yet to compare with last week</string>
     <string name="weekly_review_riser" translatable="false">Most up: %1$s, +%2$s/day</string>
     <string name="weekly_review_faller" translatable="false">Most down: %1$s, \u2212%2$s/day</string>
     <string name="apps_dont_fit" translatable="false">Only %1$d apps fit — resize or remove widgets first</string>
@@ -284,9 +284,9 @@
     <string name="invalid_url" translatable="false">Enter a web address (http or https)</string>
     <string name="folder_full" translatable="false">A folder holds up to 4 items</string>
     <string name="select_an_app" translatable="false">Please select an app</string>
-    <string name="lock_consent_body" translatable="false">Double tap to lock uses Android\'s accessibility service. Android tells Parem\'s service when you tap inside Parem. The service ignores every tap except the one on its own invisible lock area, and when that tap comes it asks Android to lock the screen. It gets no events from other apps and cannot read your screen. Nothing it sees is stored or sent anywhere. You can turn it off any time in Accessibility settings.</string>
-    <string name="lock_consent_accept" translatable="false">Agree and open settings</string>
-    <string name="lock_consent_decline" translatable="false">Not now</string>
+    <string name="lock_consent_body">Double tap to lock uses Android\'s accessibility service. Android tells Parem\'s service when you tap inside Parem. The service ignores every tap except the one on its own invisible lock area, and when that tap comes it asks Android to lock the screen. It gets no events from other apps and cannot read your screen. Nothing it sees is stored or sent anywhere. You can turn it off any time in Accessibility settings.</string>
+    <string name="lock_consent_accept">Agree and open settings</string>
+    <string name="lock_consent_decline">Not now</string>
     <string name="lock_service_off_title" translatable="false">Lock gesture is off</string>
     <string name="lock_service_off_body" translatable="false">Parem\'s accessibility service is no longer running, so your lock gesture cannot lock the screen. Android can turn it off after an app update, a crash, or when a security setting restricts accessibility services. Turn it back on in Accessibility settings, or pick another gesture action in Parem\'s gesture settings.</string>
     <string name="lock_service_off_toast" translatable="false">Can\'t lock: accessibility is off. See %1$s.</string>
@@ -299,14 +299,14 @@
     <string name="quiet_make_silent" translatable="false">Make silent</string>
     <string name="quiet_card_hint" translatable="false">A short sound or vibration may still play when a notification arrives. Use \'Make silent\' to stop it for an app. Open the quiet list with a swipe: Settings › Gestures.</string>
     <string name="quiet_card_needs_access" translatable="false">Needs notification access. Tap \'Needs access\' to open settings.</string>
-    <string name="quiet_list" translatable="false">Quiet list</string>
+    <string name="quiet_list">Quiet list</string>
     <string name="quiet_list_empty" translatable="false">Nothing waiting</string>
-    <string name="quiet_list_dismiss_all" translatable="false">Dismiss all</string>
+    <string name="quiet_list_dismiss_all">Dismiss all</string>
     <string name="quiet_pick_title" translatable="false">Apps allowed to alert</string>
     <string name="quiet_continue" translatable="false">Continue</string>
     <string name="quiet_not_now" translatable="false">Not now</string>
-    <string name="quiet_disclosure_title" translatable="false">Hide notifications from other apps?</string>
-    <string name="quiet_disclosure_body" translatable="false">Notifications from apps you did not allow are moved out of the shade into a quiet list. Open it from home with the gesture you choose in Settings › Gestures.\n\nCalls, alarms, media, navigation, emergency and system alerts are never hidden.\n\nA short sound or vibration may still play when a notification arrives. Use \'Make silent\' to stop it for an app.\n\nParem reads each notification\'s app and type on this phone to sort it, and shows its title in the quiet list. It keeps only an ID for the ones it hides. It never stores the text and never sends anything.\n\nTo undo: turn this off here, or remove Parem under Android Settings › Notification access. Hidden notifications come back within 8 h.</string>
+    <string name="quiet_disclosure_title">Hide notifications from other apps?</string>
+    <string name="quiet_disclosure_body">Notifications from apps you did not allow are moved out of the shade into a quiet list. Open it from home with the gesture you choose in Settings › Gestures.\n\nCalls, alarms, media, navigation, emergency and system alerts are never hidden.\n\nA short sound or vibration may still play when a notification arrives. Use \'Make silent\' to stop it for an app.\n\nParem reads each notification\'s app and type on this phone to sort it, and shows its title in the quiet list. It keeps only an ID for the ones it hides. It never stores the text and never sends anything.\n\nTo undo: turn this off here, or remove Parem under Android Settings › Notification access. Hidden notifications come back within 8 h.</string>
     <string name="quiet_needs_access_body" translatable="false">Parem no longer has notification access. Hidden notifications will come back to the shade within 8 h.</string>
     <string name="quiet_starting" translatable="false">Notification filter is starting. Try again in a moment.</string>
     <string name="quiet_open_settings" translatable="false">Open settings</string>
@@ -315,7 +315,7 @@
     <string name="quiet_dismiss" translatable="false">Dismiss</string>
     <string name="quiet_keep" translatable="false">Keep</string>
     <string name="quiet_keep_info" translatable="false">Hidden notifications will come back to the shade within 8 h.</string>
-    <string name="grayscale" translatable="false">Grayscale</string>
+    <string name="grayscale">Grayscale</string>
     <string name="grayscale_set_up" translatable="false">Set up</string>
     <string name="grayscale_now" translatable="false">Now</string>
     <string name="grayscale_during_focus" translatable="false">During focus</string>
@@ -338,16 +338,16 @@
     <string name="onboarding_home_screen_body" translatable="false">Parem only works as your home screen.</string>
     <string name="onboarding_home_screen_reassure" translatable="false">Your apps stay installed. You can switch back anytime.</string>
     <string name="onboarding_set_home" translatable="false">Set as home screen</string>
-    <string name="onboarding_calm_title" translatable="false">Calm phone (optional)</string>
-    <string name="onboarding_calm_body" translatable="false">Turn on what helps. Each one explains itself first, and you can skip all of them.</string>
-    <string name="onboarding_row_slow_down" translatable="false">Slow down an app</string>
-    <string name="onboarding_row_slow_down_caption" translatable="false">A short pause before a chosen app opens</string>
-    <string name="onboarding_row_quiet" translatable="false">Quiet notifications</string>
-    <string name="onboarding_row_quiet_caption" translatable="false">Notifications from other apps wait in a quiet list</string>
-    <string name="onboarding_row_grayscale_caption" translatable="false">One-time setup with a computer</string>
-    <string name="onboarding_set_up" translatable="false">Set up</string>
-    <string name="onboarding_footer" translatable="false">Change any of these later in Settings</string>
-    <string name="onboarding_done" translatable="false">Done</string>
+    <string name="onboarding_calm_title">Calm phone (optional)</string>
+    <string name="onboarding_calm_body">Turn on what helps. Each one explains itself first, and you can skip all of them.</string>
+    <string name="onboarding_row_slow_down">Slow down an app</string>
+    <string name="onboarding_row_slow_down_caption">A short pause before a chosen app opens</string>
+    <string name="onboarding_row_quiet">Quiet notifications</string>
+    <string name="onboarding_row_quiet_caption">Notifications from other apps wait in a quiet list</string>
+    <string name="onboarding_row_grayscale_caption">One-time setup with a computer</string>
+    <string name="onboarding_set_up">Set up</string>
+    <string name="onboarding_footer">Change any of these later in Settings</string>
+    <string name="onboarding_done">Done</string>
     <!-- Screen-reader routes out of home (UX-2) -->
     <string name="a11y_all_apps" translatable="false">All apps</string>
     <string name="a11y_open_app" translatable="false">Open %1$s</string>
@@ -403,12 +403,12 @@
     <string name="app_menu_layout_locked" translatable="false">Home layout is locked</string>
 
     <!-- Optional onboarding feature explanations (M4-WP57). -->
-    <string name="onboarding_feature_guide" translatable="false">Explore every feature (optional)</string>
+    <string name="onboarding_feature_guide">Explore every feature (optional)</string>
     <string name="onboarding_guide_expanded" translatable="false">Expanded. Tap to hide feature topics</string>
     <string name="onboarding_guide_collapsed" translatable="false">Collapsed. Tap to show feature topics</string>
     <string name="onboarding_guide_read" translatable="false">Read</string>
-    <string name="onboarding_screen_time_caption" translatable="false">See time spent on your phone and apps, with a weekly review</string>
-    <string name="onboarding_lock_caption" translatable="false">Double-tap empty home space to lock your phone</string>
+    <string name="onboarding_screen_time_caption">See time spent on your phone and apps, with a weekly review</string>
+    <string name="onboarding_lock_caption">Double-tap empty home space to lock your phone</string>
     <string name="onboarding_lock_enabled_body" translatable="false">Double-tap empty space on your home screen to lock your phone. Change the action in Settings › Gestures. To remove accessibility access, use Android Settings › Accessibility. If device admin is your lock method, turn it off in Parem’s gesture settings.</string>
     <string name="onboarding_pause_steps" translatable="false">Mindful pause asks why you are opening an app, then waits five seconds before you can open it. Tap an app’s limit and choose Pause only, or set a time limit and turn the pause on from the same list.\n\nThe list shows apps used today, and Add another app reaches the rest. You can also long-press an app on home and choose its time-limit action. Limits show a warning you can override; they do not permanently block an app.</string>
     <string name="onboarding_pause_no_usage" translatable="false">No usage is available yet. Finish setup, add an app to home, then long-press it and choose Time limit. Or open Settings › Digital Wellbeing › App limits after using an app.</string>
@@ -432,7 +432,7 @@
     <string name="weather_disclosure" translatable="false">Your search and the chosen place\'s rounded coordinates are sent to Open-Meteo.</string>
     <string name="weather_credit" translatable="false">Weather data by Open-Meteo.com. Location data by GeoNames via Open-Meteo.</string>
     <string name="agree" translatable="false">Agree</string>
-    <string name="contact_search_disclosure" translatable="false">Contact search reads names and phone numbers from your contacts, only on this phone, to match what you type. Parem never saves or sends them.</string>
+    <string name="contact_search_disclosure">Contact search reads names and phone numbers from your contacts, only on this phone, to match what you type. Parem never saves or sends them.</string>
     <string name="pause_only" translatable="false">Pause only</string>
     <string name="add_another_app" translatable="false">Add another app…</string>
     <string name="focus_end_early" translatable="false">End focus early?</string>

@@ -74,4 +74,47 @@
     <string name="swipe_right_app_disabled">App nach rechts wischen deaktiviert</string><string name="screen_time">Bildschirmzeit</string>
     <string name="about_parem">Über Parem Launcher</string>
     <string name="home_screen">Startbildschirm</string><string name="notification_bar">Benachrichtigungsleiste</string>
+    <string name="onboarding_calm_title">Ruhiges Smartphone (optional)</string>
+    <string name="onboarding_calm_body">Aktivieren Sie, was Ihnen hilft. Jede Funktion erklärt sich zuerst; Sie können alle überspringen.</string>
+    <string name="onboarding_screen_time_caption">Sehen Sie Ihre Bildschirmzeit und App-Nutzung mit einem Wochenrückblick</string>
+    <string name="onboarding_row_slow_down">Eine App abbremsen</string>
+    <string name="onboarding_row_slow_down_caption">Eine kurze Pause vor dem Öffnen einer gewählten App</string>
+    <string name="onboarding_row_quiet">Stille Benachrichtigungen</string>
+    <string name="onboarding_row_quiet_caption">Benachrichtigungen anderer Apps warten in einer stillen Liste</string>
+    <string name="onboarding_lock_caption">Tippen Sie zweimal auf eine freie Stelle, um das Smartphone zu sperren</string>
+    <string name="grayscale">Graustufen</string>
+    <string name="onboarding_row_grayscale_caption">Einmalige Einrichtung mit einem Computer</string>
+    <string name="onboarding_set_up">Einrichten</string>
+    <string name="onboarding_footer">Sie können dies später in den Einstellungen ändern</string>
+    <string name="onboarding_feature_guide">Alle Funktionen entdecken (optional)</string>
+    <string name="onboarding_done">Fertig</string>
+    <string name="mindful_pause_question">Warum öffnen Sie %1$s?</string>
+    <string name="go_back">Zurück</string>
+    <string name="mindful_pause_wait">%1$s in %2$d öffnen…</string>
+    <string name="quiet_list">Stille Liste</string>
+    <string name="quiet_list_dismiss_all">Alle schließen</string>
+    <string name="focus_until_disable">Bis zum Ausschalten</string>
+    <string name="focus_allowed_apps">Erlaubte Apps (max. 5)</string>
+    <string name="search_apps">Apps suchen…</string>
+    <string name="focus_schedule">Zeitplan</string>
+    <string name="focus_schedule_hint">Tippen zum Bearbeiten, lange drücken zum Entfernen</string>
+    <string name="focus_schedule_add">Zeitfenster hinzufügen</string>
+    <string name="save">Speichern</string>
+    <string name="enable_focus">Aktivieren</string>
+    <string name="focus_mode">Fokusmodus</string>
+    <string name="focus_duration">Dauer</string>
+    <string name="focus_25_min">25 Minuten</string>
+    <string name="focus_1_hour">1 Stunde</string>
+    <string name="focus_2_hours">2 Stunden</string>
+    <string name="screen_time_week_title">Bildschirmzeit — letzte 7 Tage</string>
+    <string name="daily_average">%1$s/Tag im Durchschnitt</string>
+    <string name="weekly_review_title">Diese Woche im Vergleich zur letzten</string>
+    <string name="weekly_review_no_history">Noch nicht genug Daten für einen Wochenvergleich</string>
+    <string name="top_apps_week">Meistgenutzte Apps dieser Woche</string>
+    <string name="lock_consent_body">Das Sperren per Doppeltipp nutzt den Android-Bedienungshilfedienst. Android meldet dem Parem-Dienst Berührungen innerhalb von Parem. Der Dienst ignoriert alle Berührungen außer der auf seinem unsichtbaren Sperrbereich und bittet Android dann, den Bildschirm zu sperren. Er erhält keine Ereignisse anderer Apps und kann Ihren Bildschirm nicht lesen. Er speichert und sendet nichts davon. Sie können ihn jederzeit in den Bedienungshilfeeinstellungen ausschalten.</string>
+    <string name="lock_consent_accept">Zustimmen und Einstellungen öffnen</string>
+    <string name="lock_consent_decline">Jetzt nicht</string>
+    <string name="quiet_disclosure_title">Benachrichtigungen anderer Apps ausblenden?</string>
+    <string name="quiet_disclosure_body">Benachrichtigungen nicht erlaubter Apps werden aus der Leiste in eine stille Liste verschoben. Öffnen Sie diese auf dem Startbildschirm mit der unter Einstellungen › Gesten gewählten Geste.\n\nAnrufe, Wecker, Medien, Navigation, Notfall- und Systemmeldungen werden nie ausgeblendet.\n\nBeim Eingang kann kurz ein Ton oder eine Vibration auftreten. Wählen Sie für eine App „Stumm schalten“, um das zu verhindern.\n\nParem liest auf diesem Smartphone die App und Art jeder Benachrichtigung zum Sortieren und zeigt ihren Titel in der stillen Liste. Für ausgeblendete Benachrichtigungen wird nur eine ID gespeichert. Der Text wird nie gespeichert und nichts wird gesendet.\n\nZum Rückgängigmachen: Hier ausschalten oder Parem unter Android-Einstellungen › Benachrichtigungszugriff entfernen. Ausgeblendete Benachrichtigungen kehren innerhalb von 8 Stunden zurück.</string>
+    <string name="contact_search_disclosure">Die Kontaktsuche liest Namen und Telefonnummern aus Ihren Kontakten nur auf diesem Smartphone, um Ihre Eingabe abzugleichen. Parem speichert und sendet sie nie.</string>
 </resources>
