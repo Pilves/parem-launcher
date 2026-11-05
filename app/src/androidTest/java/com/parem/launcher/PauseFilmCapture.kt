@@ -19,12 +19,14 @@ import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.ui.BadHabitDialogs
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.Assume.assumeTrue
 import org.junit.runner.RunWith
 
 /** Capture on a disposable CI emulator only, never on a person's phone. */
 @RunWith(AndroidJUnit4::class)
 class PauseFilmCapture {
     @Test fun recordPause() {
+        assumeTrue("explicit capture workflow only", InstrumentationRegistry.getArguments().getString("filmCapture") == "true")
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val device = UiDevice.getInstance(instrumentation)
