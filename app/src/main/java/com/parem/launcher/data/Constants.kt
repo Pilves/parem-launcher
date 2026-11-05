@@ -94,8 +94,8 @@ object Constants {
     const val MIN_ANIM_REFRESH_RATE = 10f
 
     // Rows in settings whose URL is empty are hidden (see SettingsFragment)
-    const val URL_ABOUT_PAREM = ""
-    const val URL_PAREM_PRIVACY = ""
+    const val URL_ABOUT_PAREM = "https://github.com/Pilves/parem-launcher"
+    const val URL_PAREM_PRIVACY = "https://pilves.github.io/parem-launcher/privacy.html"
     const val URL_PAREM_GITHUB = "https://github.com/Pilves/parem-launcher"
     const val URL_WALLPAPERS = "https://pilves.github.io/parem-launcher/wallpapers.json"
     const val URL_DEFAULT_DARK_WALLPAPER = "https://images.unsplash.com/photo-1512551980832-13df02babc9e"
