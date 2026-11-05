@@ -19,7 +19,7 @@
     <string name="set_as_default_launcher_u"><u>Set as default launcher</u></string>
     <string name="set_as_default_launcher_first">Set Parem Launcher default first</string>
     <string name="double_tap_to_lock_screen">Double tap to lock</string>
-    <string name="admin_permission_message" translatable="false">Parem uses this only to lock the screen when its accessibility service can\'t. After each such lock, your next unlock needs your PIN, pattern or password: fingerprint and face unlock won\'t work for it. Parem uses no other device admin power and collects no data. To uninstall Parem, first turn this off in Parem\'s Settings › Gestures.</string>
+    <string name="admin_permission_message" translatable="false">Parem uses this only to lock the screen when its accessibility service can\'t. After each such lock, your next unlock needs your PIN, pattern or password: fingerprint and face unlock won\'t work for it. Parem uses no other device admin power, and locking reads and sends nothing. To uninstall Parem, first turn this off in Parem\'s Settings › Gestures.</string>
     <string name="off">Off</string>
     <string name="on">On</string>
     <string name="change_default_launcher">Change default launcher</string>
@@ -76,7 +76,7 @@
     <string name="search_history_query" translatable="false">“%1$s”</string>
     <string name="crash_reports" translatable="false">Crash reports</string>
     <string name="crash_report_title" translatable="false">Parem crashed last time</string>
-    <string name="crash_report_body" translatable="false">Parem saved a report of the crash on this phone. Nothing has been sent. Send opens an app you choose with the full report, so you can read it before it goes anywhere. It holds the error, Parem\'s version, the Android version and the phone model. No apps, contacts or settings.</string>
+    <string name="crash_report_body" translatable="false">Parem saved a report of the crash on this phone. Parem has sent nothing. Send opens an app you choose with the full report, so you can read it before it goes anywhere. It holds the error, which can name an app or a web address, plus Parem\'s version, the Android version, the phone\'s maker and model, and the time. It includes no app list, contacts or settings.</string>
     <string name="crash_report_send" translatable="false">Send report</string>
     <string name="crash_report_copy" translatable="false">Copy report</string>
     <string name="crash_report_discard" translatable="false">Discard</string>
@@ -95,8 +95,8 @@
     <string name="keyboard_message">Hi, keyboard is the fastest way to find and launch apps in Parem Launcher. Can we request you to keep this On for a few more days and then decide?
         \n\nThe choice is always yours.</string>
     <string name="app_usage_message">Parem counts screen time through Android\'s usage access: the total on the home screen, app limits, sort by usage and the weekly graph all depend on it.
-        \n\nNothing is collected or sent anywhere. Everything is counted on your device.</string>
-    <string name="accessibility_service_description">Lets the double tap or swipe gesture lock your screen. The service only sees taps inside Parem, ignores all of them except its own invisible lock area, and cannot read your screen. Nothing is stored or sent anywhere.</string>
+        \n\nCounted on this phone. Parem sends these numbers nowhere and keeps them out of Android cloud backup. A phone-to-phone transfer you start can copy them to your new phone.</string>
+    <string name="accessibility_service_description">Lets the double tap or swipe gesture lock your screen. The service only sees taps inside Parem, ignores all of them except its own invisible lock area, and cannot read your screen. Nothing it sees is stored or sent anywhere.</string>
     <string name="close">Close</string>
     <string name="not_now">Not now</string>
     <string name="date">Date</string>
@@ -291,7 +291,7 @@
     <string name="invalid_url" translatable="false">Enter a web address (http or https)</string>
     <string name="folder_full" translatable="false">A folder holds up to 4 items</string>
     <string name="select_an_app" translatable="false">Please select an app</string>
-    <string name="lock_consent_body" translatable="false">Double tap to lock uses Android\'s accessibility service. Android tells Parem\'s service when you tap inside Parem. The service ignores every tap except the one on its own invisible lock area, and when that tap comes it asks Android to lock the screen. It gets no events from other apps and cannot read your screen. Nothing is stored or sent anywhere. You can turn it off any time in Accessibility settings.</string>
+    <string name="lock_consent_body" translatable="false">Double tap to lock uses Android\'s accessibility service. Android tells Parem\'s service when you tap inside Parem. The service ignores every tap except the one on its own invisible lock area, and when that tap comes it asks Android to lock the screen. It gets no events from other apps and cannot read your screen. Nothing it sees is stored or sent anywhere. You can turn it off any time in Accessibility settings.</string>
     <string name="lock_consent_accept" translatable="false">Agree and open settings</string>
     <string name="lock_consent_decline" translatable="false">Not now</string>
     <string name="lock_consent_restricted" translatable="false">If the switch is greyed out: App info > menu > Allow restricted settings.</string>
@@ -314,7 +314,7 @@
     <string name="quiet_continue" translatable="false">Continue</string>
     <string name="quiet_not_now" translatable="false">Not now</string>
     <string name="quiet_disclosure_title" translatable="false">Hide notifications from other apps?</string>
-    <string name="quiet_disclosure_body" translatable="false">Notifications from apps you did not allow are moved out of the shade into a quiet list. Open it from home with the gesture you choose in Settings > Gestures.\n\nCalls, alarms, media, navigation and emergency alerts are never hidden.\n\nA short sound or vibration may still play when a notification arrives. Use \'Make silent\' to stop it for an app.\n\nParem reads notifications only on this phone. Nothing is stored or sent anywhere.\n\nTo undo: turn this off here, or remove Parem under Settings > Notification access. Hidden notifications come back within 8 h.</string>
+    <string name="quiet_disclosure_body" translatable="false">Notifications from apps you did not allow are moved out of the shade into a quiet list. Open it from home with the gesture you choose in Settings > Gestures.\n\nCalls, alarms, media, navigation and emergency alerts are never hidden.\n\nA short sound or vibration may still play when a notification arrives. Use \'Make silent\' to stop it for an app.\n\nParem reads each notification\'s app and type on this phone to sort it, and shows its title in the quiet list. It keeps only an ID for the ones it hides. It never stores the text and never sends anything.\n\nTo undo: turn this off here, or remove Parem under Settings > Notification access. Hidden notifications come back within 8 h.</string>
     <string name="quiet_needs_access_body" translatable="false">Parem no longer has notification access. Hidden notifications will come back to the shade within 8 h.</string>
     <string name="quiet_starting" translatable="false">Notification filter is starting. Try again in a moment.</string>
     <string name="quiet_open_settings" translatable="false">Open settings</string>
@@ -387,7 +387,7 @@
     <string name="text_size_large" translatable="false">Large</string>
     <string name="text_size_larger" translatable="false">Larger</string>
     <string name="usage_access" translatable="false">Usage access</string>
-    <string name="usage_access_limits_body" translatable="false">App limits need usage access: Parem counts how long each app is open. Without it a limit can never fire.\n\nNothing is collected or sent anywhere. Everything is counted on your device.</string>
+    <string name="usage_access_limits_body" translatable="false">App limits need usage access: Parem counts how long each app is open. Without it a limit can never fire.\n\nCounted on this phone. Parem sends these numbers nowhere and keeps them out of Android cloud backup. A phone-to-phone transfer you start can copy them to your new phone.</string>
     <string name="usage_access_granted_body" translatable="false">Parem counts screen time with it: the total on the home screen, app limits, sort by usage and the weekly graph. Turning it off in Android turns all of those off.</string>
     <string name="usage_access_open_settings" translatable="false">Open usage access settings</string>
     <string name="focus_scheduled" translatable="false">Scheduled</string>
@@ -451,5 +451,5 @@
     <string name="onboarding_guide_appearance" translatable="false">Appearance and accessibility</string>
     <string name="onboarding_guide_appearance_body" translatable="false">Settings › Appearance has light, dark and system themes, theme schedules, relative text size, bold font, daily wallpaper, status-bar visibility and weather. Choose scheduled light and dark times, or sunrise and sunset. Choose a city for weather. Text also follows Android’s font size.\n\nSettings › Home screen controls app icons and icon packs, clock and date visibility, alignment and widget placement. Install a compatible icon pack first, then choose it through the icon setting.\n\nParem reduces motion when Android animations are off. Supported e-ink devices get instant changes and a light first-run theme; you can still choose another theme. These are automatic adaptations, not extra setup steps. Screen-reader and keyboard alternatives are available for core home actions.</string>
     <string name="onboarding_guide_data" translatable="false">Backup, privacy and switching back</string>
-    <string name="onboarding_guide_data_body" translatable="false">Settings has Export settings and Import settings for moving your preferences. Import replaces saved preferences; export first if you want to keep a copy. Widgets and other device-specific grants are not transferred: add widgets and grant access again on the new phone. Search history is not exported.\n\nCrash reports are off by default. If enabled, a report stays on this phone until you choose to share it after a crash. You can read it before sending or discard it. Reports include error details and device information.\n\nApp usage, contact matching and notification filtering happen on this phone. Features that need online data, such as weather, currency rates and daily wallpaper, make network requests; web searches and links go to the browser or another app you choose.\n\nYour apps stay installed when you switch launchers. Use Parem’s default-launcher setting or Android Settings › Apps › Default apps › Home app to choose your previous home screen. Setting names vary by phone. All optional setup can be changed later in Settings.</string>
+    <string name="onboarding_guide_data_body" translatable="false">Settings has Export settings and Import settings for moving your preferences. Android cloud backup leaves Parem out, so export before you move to a new phone. Import replaces saved preferences; export first if you want to keep a copy. Widgets and other device-specific grants are not transferred: add widgets and grant access again on the new phone. Search history is not exported.\n\nCrash reports are off by default. If enabled, a report stays on this phone until you choose to share it after a crash. You can read it before sending or discard it. Reports include error details and device information.\n\nApp usage, contact matching and notification filtering happen on this phone. Features that need online data, such as weather, currency rates and daily wallpaper, make network requests; web searches and links go to the browser or another app you choose.\n\nYour apps stay installed when you switch launchers. Use Parem’s default-launcher setting or Android Settings › Apps › Default apps › Home app to choose your previous home screen. Setting names vary by phone. All optional setup can be changed later in Settings.</string>
 </resources>
