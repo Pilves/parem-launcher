@@ -14,7 +14,9 @@ const dir = `app/build/perf-investigation/${process.env.PERF_VARIANT}`;
 mkdirSync(dir, {recursive: true});
 const result = measure('com.parem.launcher.debug', dir);
 writeFileSync(`${dir}/result.json`, JSON.stringify(result, null, 2));
-console.log(process.env.PERF_VARIANT, JSON.stringify(result), measurementProblems(result));
+const problems = measurementProblems(result);
+console.log(process.env.PERF_VARIANT, JSON.stringify(result), problems);
+if (problems.length) process.exitCode = 1;
 JS
   adb logcat -d -t 5000 > "app/build/perf-investigation/$variant/logcat.txt"
 done
