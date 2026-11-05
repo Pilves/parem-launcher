@@ -15,6 +15,7 @@
     <string name="grayscale_pair_err_connect" translatable="false">Paired, but Wireless debugging is not reachable. Check it is still on and try again.</string>
     <string name="grayscale_pair_err_refused" translatable="false">The phone refused the permission. Some phones need an extra switch in Developer options (for example USB debugging (Security settings)). Turn it on and try again.</string>
     <string name="grayscale_pair_err_generic" translatable="false">Pairing failed. Try again with a new code.</string>
+    <string name="lock_consent_restricted" translatable="false">If the switch is greyed out: App info > menu > Allow restricted settings.</string>
     <!--main carries the wording for builds whose only grant route is a computer-->
     <string name="grayscale_grant_computer" translatable="false">Or with a computer: turn on USB debugging, plug the phone in, and open this page in Chrome or Edge:</string>
     <string name="onboarding_row_grayscale_caption" translatable="false">One-time setup, about 2 min</string>

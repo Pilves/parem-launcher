@@ -32,9 +32,9 @@ if grep -q GrayscalePairing <<<"$manifest"; then
     echo "FAIL: pairing receiver in the manifest of $apk"
     status=1
 fi
-if grep -q 'Wireless debugging' <<<"$strings"; then
-    echo "FAIL: pairing text in $apk"
+if grep -qE 'Wireless debugging|Allow restricted settings' <<<"$strings"; then
+    echo "FAIL: pairing or sideload text in $apk"
     status=1
 fi
-[ "$status" -eq 0 ] && echo "OK: no pairing code, permission, receiver or text in $apk"
+[ "$status" -eq 0 ] && echo "OK: no pairing code, permission or receiver, and no sideload text, in $apk"
 exit "$status"

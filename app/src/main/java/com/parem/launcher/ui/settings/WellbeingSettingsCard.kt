@@ -1,6 +1,5 @@
 package com.parem.launcher.ui.settings
 
-import android.os.Build
 import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.os.bundleOf
@@ -154,10 +153,8 @@ class WellbeingSettingsCard(
             when (state) {
                 State.OFF -> visibility = View.GONE
                 State.NEEDS_ACCESS -> {
-                    var hint = context.getString(R.string.quiet_card_needs_access)
-                    if (Build.VERSION.SDK_INT >= 33)
-                        hint += " " + context.getString(R.string.lock_consent_restricted)
-                    text = hint
+                    val needsAccess = context.getString(R.string.quiet_card_needs_access)
+                    text = ChannelFeatures.restrictedSettingsNote(context)?.let { "$needsAccess $it" } ?: needsAccess
                     visibility = View.VISIBLE
                 }
                 State.ON -> {

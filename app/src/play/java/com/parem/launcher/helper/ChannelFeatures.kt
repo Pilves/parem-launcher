@@ -2,7 +2,7 @@ package com.parem.launcher.helper
 
 import android.content.Context
 
-/** The Play build has no in-app pairing: see the `full` source set and docs/design/DECISIONS.md. */
+/** The Play build has no in-app pairing or sideload help: see the `full` source set and docs/design/DECISIONS.md. */
 object ChannelFeatures {
 
     fun pairingPrompt(context: Context): Pair<String, String>? = null
@@ -10,4 +10,6 @@ object ChannelFeatures {
     fun startPairing(context: Context, askPermission: (String) -> Unit) = Unit
 
     fun onNotificationPermission(context: Context, granted: Boolean) = Unit
+
+    fun restrictedSettingsNote(context: Context): String? = null
 }

@@ -8,6 +8,7 @@
 - Weather sends coordinates rounded to two decimals, says so in its sheet and credits Open-Meteo. Turning weather off removes the saved temperature and, unless the sunrise and sunset theme uses it, the place.
 - Settings links to the privacy policy and the project page.
 - Two builds: the Google Play version grants grayscale from a computer only; GitHub, F-Droid and IzzyOnDroid builds keep on-phone pairing.
+- The Google Play version no longer shows the sideload-only "Allow restricted settings" hint.
 - Privacy wording in usage access, crash reports, the lock service, device admin and quiet notifications now says exactly what is read, kept and sent.
 
 ## v6.0.0-beta.2 — 2026-10-16

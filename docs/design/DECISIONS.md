@@ -56,3 +56,6 @@ Recorded 2026-10-03 after the design/manager review round. These override the
   malware-policy finding on a new personal account (`docs/play/compliance.md` L1).
   The `play` flavour grants through the WebUSB page or the adb command. `full`
   keeps pairing for GitHub, F-Droid and IzzyOnDroid. M4-WP65 weighs bringing it back.
+- **Restricted-settings line (2026-11-05).** Reverses the M2-WP5 decision above for
+  the Play channel: `play` drops the line, because Play installs don't need it and
+  it tells a reviewer how to lift a platform control. `full` still shows it.

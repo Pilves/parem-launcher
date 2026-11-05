@@ -4,9 +4,9 @@ import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import com.parem.launcher.MainActivity
 import com.parem.launcher.R
+import com.parem.launcher.helper.ChannelFeatures
 import com.parem.launcher.listener.DeviceAdmin
 
 /**
@@ -20,9 +20,8 @@ import com.parem.launcher.listener.DeviceAdmin
  * [onUseAdmin], when given, adds the device-admin fallback (M4-WP18); picking it
  * runs neither of the other two.
  */
-/** Sideloaded installs (GitHub releases) get a greyed-out switch on 13+; the line is shown to every install source. */
 fun Context.withRestrictedNote(body: String): String =
-    if (Build.VERSION.SDK_INT >= 33) body + "\n\n" + getString(R.string.lock_consent_restricted) else body
+    ChannelFeatures.restrictedSettingsNote(this)?.let { body + "\n\n" + it } ?: body
 
 fun showLockConsent(context: Context, onAccept: () -> Unit, onDecline: () -> Unit, onUseAdmin: (() -> Unit)? = null) {
     var decided = false
