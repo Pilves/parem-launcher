@@ -2,9 +2,51 @@ package com.parem.launcher.helper
 
 import com.parem.launcher.helper.SwipeThresholds.Direction
 import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SwipeDispatchTest {
+
+    @Test
+    fun aTouchThatMovedIsNotHeld() {
+        val swipe = SwipeDispatch(touchSlop = 8f, minFlingVelocity = 50f, density = 1f)
+        swipe.down(100f, 500f)
+        assertTrue(swipe.heldStill())
+        swipe.move(100f, 504f)
+        assertTrue("inside the slop is still a hold", swipe.heldStill())
+        swipe.move(100f, 400f)
+        assertFalse(swipe.heldStill())
+        swipe.move(100f, 500f)
+        assertFalse("coming back does not undo a move", swipe.heldStill())
+    }
+
+    @Test
+    fun aReleasedTouchIsNotHeld() {
+        val swipe = SwipeDispatch(touchSlop = 8f, minFlingVelocity = 50f, density = 1f)
+        swipe.down(100f, 500f)
+        swipe.release(100f, 500f)
+        assertFalse(swipe.heldStill())
+    }
+
+    @Test
+    fun aNewTouchStartsHeldAgain() {
+        val swipe = SwipeDispatch(touchSlop = 8f, minFlingVelocity = 50f, density = 1f)
+        swipe.down(100f, 500f)
+        swipe.move(100f, 100f)
+        swipe.down(100f, 500f)
+        assertTrue(swipe.heldStill())
+    }
+
+    @Test
+    fun remainingHoldCountsFromWhenTheAppSawTheTouch() {
+        val swipe = SwipeDispatch(touchSlop = 8f, minFlingVelocity = 50f, density = 1f)
+        assertEquals("a touch delivered late starts from zero", 400L, swipe.remainingHold(0L, 400L))
+        assertEquals(150L, swipe.remainingHold(250L, 400L))
+        assertEquals(0L, swipe.remainingHold(400L, 400L))
+        assertEquals(0L, swipe.remainingHold(900L, 400L))
+    }
     private val swipe = SwipeDispatch(8f, 50f, 1f)
 
     @Test fun slowReleasesDispatchEachDirectionOnceFromTheDownPosition() {

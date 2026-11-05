@@ -7,7 +7,11 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.ViewConfiguration
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
+import android.view.Choreographer
 import com.parem.launcher.BuildConfig
 import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.helper.SwipeThresholds
@@ -22,6 +26,21 @@ internal open class OnSwipeTouchListener(c: Context?, private val target: View? 
     private var gestureDetector: GestureDetector?
     private val config = SwipeConfig.from(c)
     private val swipe = SwipeDispatch(config.touchSlop, config.minFlingVelocity, config.density)
+    private val handler by lazy { Handler(Looper.getMainLooper()) }
+    private var touchSeenAt = 0L
+    private var longPressPending = false
+
+    // A frame callback runs after that frame's input, so a swipe's batched moves arrive first
+    private val confirmLongPress = Choreographer.FrameCallback {
+        val held = longPressPending && swipe.heldStill()
+        longPressPending = false
+        trace("long press ${if (held) "confirmed" else "dropped"}")
+        if (held) {
+            swipe.cancel()
+            onLongClick()
+        }
+    }
+    private val awaitNextFrame = Runnable { Choreographer.getInstance().postFrameCallback(confirmLongPress) }
 
     // Debug builds only: SmokeTest prints these when the drawer fails to open
     private fun trace(message: String) {
@@ -31,15 +50,16 @@ internal open class OnSwipeTouchListener(c: Context?, private val target: View? 
     override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
         when (motionEvent.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                trace("down y=${motionEvent.y} on ${view.javaClass.simpleName} lag=${System.currentTimeMillis() - wallClockOf(motionEvent)}ms")
+                touchSeenAt = SystemClock.uptimeMillis()
+                trace("down y=${motionEvent.y} on ${view.javaClass.simpleName} ${touchSeenAt - motionEvent.downTime}ms late")
+                dropPendingLongPress()
                 swipe.down(motionEvent.x, motionEvent.y)
                 if (target != null) view.isPressed = true
             }
             MotionEvent.ACTION_MOVE -> {
+                swipe.move(motionEvent.x, motionEvent.y)
                 if (target != null && view.isPressed && swipe.movedPastSlop(motionEvent.x, motionEvent.y))
                     view.isPressed = false
-                if (BuildConfig.DEBUG && swipe.movedPastSlop(motionEvent.x, motionEvent.y))
-                    trace("moved past slop ${motionEvent.eventTime - motionEvent.downTime}ms after down")
             }
             MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_CANCEL -> {
                 trace("cancelled by action ${motionEvent.actionMasked}")
@@ -51,18 +71,27 @@ internal open class OnSwipeTouchListener(c: Context?, private val target: View? 
         val detector = gestureDetector ?: return false
         val handled = detector.onTouchEvent(motionEvent)
         if (motionEvent.actionMasked == MotionEvent.ACTION_UP) {
+            // GestureDetector never reports a tap once its long press fired, even an unconfirmed one
+            val tapped = longPressPending && swipe.heldStill()
             val direction = swipe.release(motionEvent.x, motionEvent.y)
             trace("up y=${motionEvent.y} after ${motionEvent.eventTime - motionEvent.downTime}ms -> $direction")
+            dropPendingLongPress()
             dispatchSwipe(direction)
+            if (tapped) onClick()
             return handled || direction != null
         }
         return handled
     }
 
-    private fun wallClockOf(event: MotionEvent) =
-        System.currentTimeMillis() - (android.os.SystemClock.uptimeMillis() - event.eventTime)
+    private fun dropPendingLongPress() {
+        if (!longPressPending) return
+        longPressPending = false
+        handler.removeCallbacks(awaitNextFrame)
+        Choreographer.getInstance().removeFrameCallback(confirmLongPress)
+    }
 
     fun cleanup() {
+        dropPendingLongPress()
         gestureDetector = null
     }
 
@@ -83,10 +112,16 @@ internal open class OnSwipeTouchListener(c: Context?, private val target: View? 
             return super.onDoubleTap(e)
         }
 
+        /**
+         * GestureDetector counts from the hardware down time, so a main-thread
+         * stall makes this fire as soon as the touch is delivered, ahead of the
+         * moves of what may be a swipe. A hold is judged by what the app has seen.
+         */
         override fun onLongPress(e: MotionEvent) {
-            trace("long press after ${android.os.SystemClock.uptimeMillis() - e.downTime}ms")
-            swipe.cancel()
-            onLongClick()
+            val seenFor = SystemClock.uptimeMillis() - touchSeenAt
+            trace("long press timer after ${seenFor}ms seen")
+            longPressPending = true
+            handler.postDelayed(awaitNextFrame, swipe.remainingHold(seenFor, ViewConfiguration.getLongPressTimeout().toLong()))
         }
 
         override fun onFling(

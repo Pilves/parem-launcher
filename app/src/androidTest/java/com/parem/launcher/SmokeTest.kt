@@ -284,7 +284,7 @@ class SmokeTest {
         val name = "${System.currentTimeMillis()}-${testName.methodName}"
         shell("mkdir -p $DIAG_DIR")
         shell("screencap -p $DIAG_DIR/$name.png")
-        // executeShellCommand has no shell, so sh -c needs one word: ${'$'}{IFS} stands in for the spaces
+        // executeShellCommand has no shell, so sh -c needs one word: IFS stands in for the spaces
         fun save(command: String, file: String) =
             shell("sh -c ${command.replace(" ", "\${IFS}")}>$DIAG_DIR/$name-$file.txt")
         save("dumpsys window", "window")
