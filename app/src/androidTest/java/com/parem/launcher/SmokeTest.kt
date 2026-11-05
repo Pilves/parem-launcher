@@ -187,7 +187,15 @@ class SmokeTest {
                     "home layout not shown in landscape",
                     device.wait(Until.hasObject(By.res(homeId)), TIMEOUT)
                 )
+                // Save real emulator frames on each tablet for WP28 review.
+                // The fixture here has no widget; this is not a complete WP28 pass.
+                device.executeShellCommand("mkdir -p $DIAG_DIR")
+                device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-landscape-before.png")
                 openDrawer()
+                device.pressBack()
+                assertTrue("home missing after drawer", device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+                device.waitForIdle()
+                device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-landscape-after.png")
             } else {
                 // The portrait lock wins below sw600
                 device.waitForIdle()
