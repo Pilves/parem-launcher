@@ -4,7 +4,7 @@ Current state only. History is `git log`, `CHANGELOG.md` and
 `docs/archive/TODO-pre-roadmap.md`. Work queue: `docs/ROADMAP.md`.
 Rules: `AGENTS.md`. Code map and traps: `ARCHITECTURE.md`.
 
-**Last updated:** 2026-10-16 — latest handoff date
+**Last updated:** 2026-11-05 — latest handoff date
 
 ## Phase
 
@@ -41,25 +41,11 @@ per package; the rest of each of those fragments is still in
 - **M0-WP1 (PR #5):** The platvorm agent harness runs here: `docs/ROADMAP.md` is the work queue, `scripts/claim-wp.sh` locks a package via a `claim/<id>` ref on origin, and `HANDOFF.md` is generated from `docs/handoff/`.
 - **M1-WP1 (PR #0):** `docs/RELEASE_CHECKLIST.md` is the standing device-pass checklist: eleven core sections every release (home gestures, double-tap lock trap #1, slots/menus/folders, clock/date/screen time, widgets, capacity-capped picker, settings walk, export/import, contact search, tablet landscape, sheet scrolling), plus Performance, a 24 h battery soak, "This release touched" and a per-package "6.0 UX device pass"; ARCHITECTURE.md's release steps link to it.
 - **M2-WP1 (PR #0):** `app/build.gradle` compiles and targets API 36 (`compileSdk 36`, `targetSdkVersion 36`); nothing else changed for the bump.
-  Contract: `docs/design/M2-WP1.md` option A — the opt-outs stay, so edge-to-edge and predictive back are not done here; the roadmap moved them to M4-WP43 (blocks 6.0).
-  Not verified: every on-device item in the design's test plan (home, lock, usage stats, widgets at 36); the build was not run in the docs lane.
-  Easy to get wrong: `styles.xml` still sets `windowTranslucentStatus`/`Navigation`, which Android 16 ignores at targetSdk 36 — "targets 36" does not mean "handles 36" until M4-WP43 lands.
 - **M2-WP2 (PR #0):** The upstream Olauncher review to `66712f7` is logged in the roadmap's recurring section with a verdict per commit, and two fixes are ported: `BaseFragment.onCreateAnimator` substitutes a zero-length Animator when any system animation scale is 0 (#713, drawer stuck open) and `isEinkDisplay()` compares the display's highest supported refresh rate, not the current one (#724, LTPO false positives).
-  Contract: `Context.isSystemAnimationsDisabled()` in `helper/Extensions.kt` is true when any of the three scales is 0; Home, Drawer, Settings and Onboarding fragments extend `BaseFragment`; the e-ink refresh threshold stays 10 Hz.
-  Not verified: on a device with animations off that the drawer now closes; `952d9e9` (pending text size) was judged not needed because Parem applies text size on tap.
-  Easy to get wrong: features were not ported here but mapped to rows (`33ea31e` → M3-WP6, `4c210da` → M3-WP5, `a9da9d4` → M3-WP7, `14b89e9` → M4-WP7); the next review starts from `66712f7`.
+- **M2-WP3 (PR #0):** Settings shows "About Parem Launcher" (the GitHub project) and "Privacy" (`https://pilves.github.io/parem-launcher/privacy.html`), and both rows are searchable through `SettingsSearchIndex`.
 - **M2-WP4 (PR #0):** `setPlainWallpaperByTheme` is deleted from `helper/WallpaperUtils.kt`; it had no callers and the deletion orphaned nothing.
-  Contract: none — nothing else was touched.
-  Not verified: the build in the docs lane (grep shows zero references).
-  Easy to get wrong: evidence is thin by design, a 13-line deletion; there is nothing here to inherit.
 - **M2-WP5 (PR #0):** Every route into Accessibility settings for the lock gesture (double-tap and swipe pickers in Settings, home double-tap and lock swipes) first shows `ui/LockConsentSheet.kt`, a BottomSheetMenu disclosure with "Agree and open settings" / "Not now"; `canRetrieveWindowContent` is gone from `res/xml/accessibility_service_config.xml`.
-  Contract: no consent pref — the sheet shows every time before routing; declining reverts the gesture to the prior action, or NONE when it was already Lock screen; `MyAccessibilityService` matches `event.className == "android.widget.FrameLayout"` and `event.contentDescription == lock_layout_description` because `event.source` is null without the flag; `lock_consent_*` strings are `translatable="false"`; the restricted-settings line shows on API 33+ for every install source (DECISIONS.md).
-  Not verified: double-tap lock on a real device without `canRetrieveWindowContent` (trap #1); the wording of the system enable dialog; whether Play accepts an English-only disclosure in localized builds.
-  Easy to get wrong: the invisible `lock` view, its no-op handler and `lock_layout_description` are now what the service matches on — rename or restyle any of them and the lock silently stops; `accessibility_service_description` doubles as the Play declaration text.
 - **M2-WP6 (PR #0):** `QUERY_ALL_PACKAGES` is gone from the manifest; a `<queries>` block declares the four intents Parem resolves: MAIN/LAUNCHER (app list, labels, icons, usage-stat names), MAIN/HOME (default-launcher check), `org.adw.launcher.THEMES` (icon packs) and `APPWIDGET_UPDATE` (widget providers).
-  Contract: any new `PackageManager`/`LauncherApps` lookup not covered by those intents needs its own `<queries>` entry, or it returns nothing on Android 11+.
-  Not verified: hidden apps, usage-stat names, icon packs and the omnibox on a device — the verdict rests on reading the code paths, not a device pass.
-  Easy to get wrong: the failure mode is empty results, not an exception, so a missing query looks like "the app has no X" rather than a permission problem.
 - **M3-WP1 (PR #0):** `.github/workflows/smoke.yml` runs instrumented tests on a CI emulator (`pull_request` to master and `workflow_dispatch`): `SmokeTest` (launcher is home, swipe-up opens the drawer, omnibox launches an app, rotates on large screens only — the last added by M4-WP13) and `PrefsRoundTripTest` (export/import keeps values and types), using UiAutomator, the test orchestrator and `clearPackageData`.
 - **M3-WP2 (PR #0):** `helper/OmniboxResolver.resolve(query, contacts, rates, settings, now)` returns a sealed `OmniboxMode` and owns the drawer's mode precedence; `AppDrawerFragment.updateOmniboxState` only renders the result.
 - **M3-WP3 (PR #0):** `app/src/test/.../data/PrefsRegistrationTest.kt` scans every `.getLong(`/`.getFloat(` read in `app/src/main` and fails when the key is neither in `LONG_PREF_KEYS`/`FLOAT_PREF_KEYS` nor in `exportExcludeKeys`.
