@@ -33,3 +33,29 @@ jobs:
           name: app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
+
+      # Manual runs only: release.yml publishes, so this is the way to prove the
+      # Play bundle before a tag. Same two gradle runs as release.yml, signed with
+      # this run's debug key, which Play refuses, so the bundle cannot go up by mistake.
+      - name: Build release APK and Play bundle
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          KEYSTORE_PASSWORD: android
+          KEY_ALIAS: androiddebugkey
+          KEY_PASSWORD: android
+        run: |
+          export KEYSTORE_FILE="$HOME/.android/debug.keystore"
+          ./gradlew assembleRelease
+          ./gradlew bundleRelease
+
+      - name: Upload release APK, Play bundle and R8 mapping
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-check
+          path: |
+            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/bundle/release/app-release.aab
+            app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: error
+          retention-days: 14

@@ -37,10 +37,34 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease
 
+      # A step of its own so the APK above stays what F-Droid rebuilds and compares.
+      # The key that signs the first bundle uploaded becomes Play's upload key: read
+      # "Play App Signing" in ARCHITECTURE.md before that upload.
+      - name: Build signed Play bundle
+        env:
+          KEYSTORE_FILE: ${{ github.workspace }}/release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew bundleRelease
+
       - name: Rename APK
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
           cp app/build/outputs/apk/release/*.apk ParemLauncher-${VERSION}.apk
+
+      # Run artifact, not a release asset: only the Play upload wants these, and
+      # the public release stays the one APK users and IzzyOnDroid download.
+      # Before the release step, so a missing bundle stops the publish.
+      - name: Keep Play bundle and R8 mapping
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-${{ github.ref_name }}
+          path: |
+            app/build/outputs/bundle/release/app-release.aab
+            app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
