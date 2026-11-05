@@ -14,7 +14,7 @@ A short list of apps, optional icons, and tools for choosing how you use your sc
 
 The app drawer search bar is a single point of truth:
 
-- **Type** — apps filter instantly; a single match can auto-launch (you can turn this off)
+- **Type** — apps filter as you type; a single match can auto-launch (you can turn this off)
 - **Fuzzy match** — `gm` finds Google Maps (initials); `s ki` finds Shaurmas Kitchen (word prefixes, GE-style)
 - **`2+2`** — arithmetic shows a live result inline (`+ - * / % ^`, parentheses); tap or hit enter to copy it
 - **`0612 3456`** — type a number, enter opens the dialer with it
@@ -58,7 +58,7 @@ The app drawer search bar is a single point of truth:
 - **Icon Packs** — Load icons from third-party ADW-compatible icon packs
 - **Weather Display** — Current temperature on the home screen date line via Open-Meteo (free, no API key)
 - **Theme Schedule** — Automatic dark/light switching by time or sunrise/sunset
-- **Settings Backup & Restore** — Export/import all settings as JSON; Android cloud backup leaves Parem out
+- **Settings Backup & Restore** — Export/import supported settings as JSON; Android cloud backup leaves Parem out
 
 ## Building
 
