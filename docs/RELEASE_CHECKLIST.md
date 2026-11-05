@@ -318,3 +318,56 @@ see DESIGN.md 13.2). Run with TalkBack on unless a line says otherwise.
 - [ ] Tablet pass on: device / Android version ___
 - [ ] CHANGELOG `[Unreleased]` renamed, fastlane changelog added, version
       bumped — then tag `v*` and push
+
+## 6.0.0 final phone pass — both flavours
+
+Record the commit, APK SHA-256, flavour, version, device model and Android version,
+then record pass/fail, observed result and a screenshot or notes for every item.
+Run the steps once with `play` and once with `full`, on a physical phone. Debug
+APKs are for this early pass only; repeat on the actual signed release builds
+before release. Flavours have the same application ID: export settings and use a
+spare test device before uninstalling or replacing an incompatible signature.
+Do not clear the daily phone's data or change its wallpaper for this test.
+
+- [ ] Fresh install, make Parem the default home app, complete or skip onboarding,
+      and return home. Swipe up repeatedly at different speeds, including after
+      immediately returning from another app; verify the drawer opens and no
+      long-press menu appears. Long-press home deliberately and verify its menu.
+- [ ] Add apps and a folder; edit its name and contents, launch its members,
+      remove a slot and use Undo. Repeat with a hidden app in the folder.
+- [ ] Grant usage access, notification access, contact access and the optional
+      lock accessibility service from their in-app routes. Read each disclosure;
+      decline first, retry and agree, then revoke in Android Settings and verify
+      the corresponding feature reports the missing access and can be restored.
+- [ ] Deny contacts until Android stops offering the permission prompt; verify
+      the app explains how to restore it in Android app settings, then grant it
+      there and verify contact search works. Reset permission state on the test
+      device afterwards.
+- [ ] Test grayscale's computer grant using the app's instructions. Verify the
+      Play build offers the computer route and no in-app wireless pairing; verify
+      Full offers its pairing route and that cancelling it leaves colour intact.
+      Test the grant, enabling grayscale and restoring colour on each flavour.
+- [ ] Open home, app, folder, limit, focus, widget and lock/consent sheets;
+      reach the last action, dismiss by Back and outside tap, and verify their
+      intended action. Repeat at Android font size 200% with keyboard open.
+- [ ] Select a right-to-left system language, restart Parem and verify home
+      alignment, drawer, folder and sheets are readable and Left/Right choices
+      match their visible direction; repeat key sheets at 200% font.
+- [ ] On a spare device and test account, configure distinctive home slots,
+      folder, weather place and settings. Allow Android cloud backup to complete,
+      restore to a clean installation on another test device, and verify Parem's
+      preferences and weather place did not return from cloud backup. Record the
+      Android version and backup/restore route; a fresh install alone does not
+      prove exclusion. Never inspect another person's backup.
+- [ ] Separately use Android 12+ device-to-device transfer between test devices
+      with distinctive settings and a folder. Verify the preferences transfer,
+      identify anything missing, and verify weather and optional access state;
+      permissions must be re-granted when Android requires it. Cloud and device
+      transfer are different paths and must not substitute for one another.
+- [ ] Verify settings export/import on test data; restart and check the restored
+      values. Check weather requests only after opt-in and turning it off clears
+      saved temperature as described in the weather sheet.
+
+Record failures and device-specific behaviour without marking this gate complete
+until both release flavours have passed. Cloud backup and transfer need suitable
+spare devices and accounts; if unavailable, leave those boxes open.
