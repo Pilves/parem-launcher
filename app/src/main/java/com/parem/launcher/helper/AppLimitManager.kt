@@ -47,15 +47,37 @@ object AppLimitManager {
             limits.remove(packageName)
             save(context, limits)
             cachedLimits = null
-            // The pause hangs off the limit: dropping the limit drops the pause
+            // "No limit" means leave this app alone: a pause-only app is one choice away
             savePause(context, getPauseInternal(context) - packageName)
         }
     }
 
-    /** Mindful pause is opt-in per app and only applies while the app has a limit. */
+    /** The mindful pause with no time limit: every launch pauses, nothing counts minutes. */
+    fun setPauseOnly(context: Context, packageName: String) {
+        synchronized(lock) {
+            val limits = getAllLimitsInternal(context).toMutableMap()
+            limits.remove(packageName)
+            save(context, limits)
+            cachedLimits = null
+            savePause(context, getPauseInternal(context) + packageName)
+        }
+    }
+
+    /** Mindful pause is opt-in per app, with a limit or on its own. */
     fun hasPause(context: Context, packageName: String): Boolean {
         synchronized(lock) {
-            return packageName in getPauseInternal(context) && getAllLimitsInternal(context).containsKey(packageName)
+            return packageName in getPauseInternal(context)
+        }
+    }
+
+    /** True when a launch of this app goes through the gate. */
+    fun isGated(context: Context, packageName: String): Boolean =
+        hasLimit(context, packageName) || hasPause(context, packageName)
+
+    /** Apps with a limit or a pause, for sheets that must show them even at zero usage today. */
+    fun configuredApps(context: Context): Set<String> {
+        synchronized(lock) {
+            return getAllLimitsInternal(context).keys + getPauseInternal(context)
         }
     }
 

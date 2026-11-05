@@ -32,17 +32,11 @@ import kotlinx.coroutines.withContext
  */
 object BadHabitDialogs {
 
-    fun showLimitWarning(
-        context: Context,
-        appName: String,
-        usageMinutes: Long,
-        limitMinutes: Int,
-        onOpenAnyway: () -> Unit,
-    ) {
+    private fun showLimitWarning(context: Context, warning: String, onOpenAnyway: () -> Unit) {
         BottomSheetMenu(context)
-            .message(limitWarningText(context, appName, usageMinutes, limitMinutes))
-            .option(context.getString(R.string.open_anyway)) { onOpenAnyway() }
-            .option(context.getString(R.string.go_back), dimmed = true) {}
+            .message(warning)
+            .option(context.getString(R.string.go_back)) {}
+            .option(context.getString(R.string.open_anyway), dimmed = true) { onOpenAnyway() }
             .show()
     }
 
@@ -67,20 +61,23 @@ object BadHabitDialogs {
         open: () -> Unit,
         onCancel: () -> Unit = {},
     ) {
-        val limitMinutes = AppLimitManager.getLimit(context, packageName)
-        if (limitMinutes == null || !FocusModeManager.isAppAllowed(context, packageName)) {
+        if (!AppLimitManager.isGated(context, packageName) || !FocusModeManager.isAppAllowed(context, packageName)) {
             open()
             return
         }
+        val limitMinutes = AppLimitManager.getLimit(context, packageName)
         val pause = AppLimitManager.hasPause(context, packageName)
         scope.launch {
-            val usageMs = withContext(Dispatchers.IO) {
+            // A pause-only app has no limit to measure against
+            val usageMs = if (limitMinutes == null) 0L else withContext(Dispatchers.IO) {
                 UsageStatsHelper.getUsageForApp(context, packageName)
             }
             if (!isActive()) return@launch
             val usageMinutes = usageMs / 60_000
-            val overLimit = usageMinutes >= limitMinutes
+            val overLimit = MindfulPause.isOverLimit(limitMinutes, usageMinutes)
             val label = appLabel(context, appName, packageName)
+            val warning = limitMinutes?.takeIf { overLimit }
+                ?.let { limitWarningText(context, label, usageMinutes, it) }
             // Opening past the limit is the "after a limit" grayscale trigger
             val openOverLimit = {
                 if (overLimit) GrayscaleController.onLimitOverride(context)
@@ -89,11 +86,15 @@ object BadHabitDialogs {
             when (MindfulPause.decide(pause, overLimit)) {
                 MindfulPause.Gate.LAUNCH -> open()
                 MindfulPause.Gate.LIMIT_WARNING ->
-                    showLimitWarning(context, label, usageMinutes, limitMinutes, openOverLimit)
-                MindfulPause.Gate.PAUSE -> showMindfulPause(
-                    context, label,
-                    if (overLimit) limitWarningText(context, label, usageMinutes, limitMinutes) else null,
-                    openOverLimit, onCancel
+                    showLimitWarning(context, warning.orEmpty(), openOverLimit)
+                MindfulPause.Gate.PAUSE -> showPause(
+                    context,
+                    question = context.getString(R.string.mindful_pause_question, label),
+                    note = warning,
+                    waiting = { left -> context.getString(R.string.mindful_pause_wait, label, left) },
+                    ready = context.getString(R.string.mindful_pause_open, label),
+                    onProceed = openOverLimit,
+                    onCancel = onCancel,
                 )
             }
         }
@@ -143,11 +144,18 @@ object BadHabitDialogs {
         return context.appLabelOrNull(packageName) ?: packageName
     }
 
-    private fun showMindfulPause(
+    /**
+     * The speed bump behind every "are you sure" in Parem: a countdown, then a
+     * dimmed way through, with the calm choice first. A pause, never a block.
+     * [onCancel] runs on "Go back", back and swipe-down.
+     */
+    fun showPause(
         context: Context,
-        appName: String,
-        limitNote: String?,
-        onOpen: () -> Unit,
+        question: String,
+        note: String?,
+        waiting: (secondsLeft: Int) -> String,
+        ready: String,
+        onProceed: () -> Unit,
         onCancel: () -> Unit,
     ) {
         var proceeded = false
@@ -159,12 +167,11 @@ object BadHabitDialogs {
             setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
             minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
         }
-        val menu = BottomSheetMenu(context)
-            .message(context.getString(R.string.mindful_pause_question, appName))
-        if (limitNote != null) menu.message(limitNote)
+        val menu = BottomSheetMenu(context).message(question)
+        if (note != null) menu.message(note)
         val dialog = menu
+            .option(context.getString(R.string.go_back)) {}
             .customView(openRow)
-            .option(context.getString(R.string.go_back), dimmed = true) {}
             // Back, swipe-down and "Go back" all land here; the open row sets proceeded first
             .onDismiss { if (!proceeded) onCancel() }
             .show()
@@ -176,19 +183,18 @@ object BadHabitDialogs {
                 val elapsed = SystemClock.elapsedRealtime() - start
                 val left = MindfulPause.secondsRemaining(elapsed)
                 if (left > 0) {
-                    openRow.text = context.getString(R.string.mindful_pause_wait, appName, left)
+                    openRow.text = waiting(left)
                     openRow.postDelayed(this, MindfulPause.msUntilNextTick(elapsed))
                     return
                 }
                 // Live only for this one change: the countdown ticks above stay silent
                 ViewCompat.setAccessibilityLiveRegion(openRow, ViewCompat.ACCESSIBILITY_LIVE_REGION_POLITE)
-                openRow.text = context.getString(R.string.mindful_pause_open, appName)
-                openRow.setTextColor(context.getColorFromAttr(R.attr.textColor))
+                openRow.text = ready
                 openRow.setBackgroundResource(context.selectableBackgroundRes())
                 openRow.setOnClickListener {
                     proceeded = true
                     dialog.dismiss()
-                    onOpen()
+                    onProceed()
                 }
             }
         }
@@ -240,7 +246,12 @@ object BadHabitDialogs {
                 onSet()
             }
         }
-        menu.gap().option(context.getString(R.string.app_menu_no_limit), checked = current == null) {
+        val pauseOnly = current == null && AppLimitManager.hasPause(context, packageName)
+        menu.gap().option(context.getString(R.string.pause_only), checked = pauseOnly) {
+            AppLimitManager.setPauseOnly(context, packageName)
+            onSet()
+        }
+        menu.option(context.getString(R.string.app_menu_no_limit), checked = current == null && !pauseOnly) {
             AppLimitManager.removeLimit(context, packageName)
             onSet()
         }

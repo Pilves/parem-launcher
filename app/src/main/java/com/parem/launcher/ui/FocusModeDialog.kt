@@ -102,11 +102,21 @@ class FocusModeDialog(
         container.addView(timeText)
 
         menu.option(ctx.getString(R.string.disable_focus), dismissOnClick = false) {
-            FocusModeManager.disable(ctx)
-            FocusModeManager.pauseSchedule(ctx)
-            GrayscaleController.cancelFocusEnd(ctx)
-            GrayscaleController.reconcile(ctx)
-            dialog.dismiss()
+            BadHabitDialogs.showPause(
+                ctx,
+                question = ctx.getString(R.string.focus_end_early),
+                note = timeText.text.toString(),
+                waiting = { left -> ctx.getString(R.string.focus_end_wait, left) },
+                ready = ctx.getString(R.string.focus_end_now),
+                onProceed = {
+                    FocusModeManager.disable(ctx)
+                    FocusModeManager.pauseSchedule(ctx)
+                    GrayscaleController.cancelFocusEnd(ctx)
+                    GrayscaleController.reconcile(ctx)
+                    dialog.dismiss()
+                },
+                onCancel = {},
+            )
         }
     }
 

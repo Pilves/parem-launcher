@@ -54,9 +54,10 @@ object AppMenu {
         val hiddenKey = AppListRebuilder.hiddenKey(app.appPackage, app.user.toString())
         val isHidden = hidden || hiddenKey in prefs.hiddenApps || app.appPackage in prefs.hiddenApps
         val limit = AppLimitManager.getLimit(context, app.appPackage)
+        val pause = AppLimitManager.hasPause(context, app.appPackage)
         val menu = BottomSheetMenu(context).title(BidiFormatter.getInstance().unicodeWrap(app.appLabel))
         val actions = AppMenuPolicy.actions(personal, app.isPrivate, hidden, homeSlot != null,
-            limit != null, personal && !context.isSystemApp(app.appPackage))
+            limit != null || pause, personal && !context.isSystemApp(app.appPackage))
         for (action in actions) when (action) {
             Action.INFO -> menu.option(context.getString(R.string.a11y_app_info)) {
                 if (fragment.isAlive) openAppInfo(context, app.user, app.appPackage)
@@ -69,7 +70,8 @@ object AppMenu {
                 }
             }
             Action.LIMIT -> menu.option(context.getString(R.string.app_menu_time_limit), summary =
-                limit?.let { context.formattedTimeSpent(it * 60_000L) } ?: context.getString(R.string.none)) {
+                limit?.let { context.formattedTimeSpent(it * 60_000L) }
+                    ?: context.getString(if (pause) R.string.pause_only else R.string.none)) {
                 if (fragment.isAlive) {
                     if (context.appUsagePermissionGranted()) {
                         BadHabitDialogs.showTimeLimitPicker(context, app.appPackage, onChanged)
@@ -77,10 +79,9 @@ object AppMenu {
                     } else BadHabitDialogs.showUsageAccessSheet(context).dismissOnDestroy(fragment.viewLifecycleOwner)
                 }
             }
-            Action.PAUSE -> menu.option(context.getString(R.string.app_menu_mindful_pause),
-                checked = AppLimitManager.hasPause(context, app.appPackage)) {
+            Action.PAUSE -> menu.option(context.getString(R.string.app_menu_mindful_pause), checked = pause) {
                 if (fragment.isAlive) {
-                    AppLimitManager.setPause(context, app.appPackage, !AppLimitManager.hasPause(context, app.appPackage))
+                    AppLimitManager.setPause(context, app.appPackage, !pause)
                     onChanged()
                 }
             }

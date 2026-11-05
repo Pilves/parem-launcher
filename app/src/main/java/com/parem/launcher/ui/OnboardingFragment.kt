@@ -15,6 +15,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -159,7 +160,7 @@ class OnboardingFragment : BaseFragment() {
             else showExplanation(R.string.screen_time, R.string.onboarding_guide_calm_body)
         }
         addRow(R.string.onboarding_row_slow_down, R.string.onboarding_row_slow_down_caption,
-            { ctx -> if (AppLimitManager.getAllLimits(ctx).keys.any { AppLimitManager.hasPause(ctx, it) }) on else setUp }
+            { ctx -> if (AppLimitManager.configuredApps(ctx).any { AppLimitManager.hasPause(ctx, it) }) on else setUp }
         ) { openAppLimits() }
         addRow(R.string.onboarding_row_quiet, R.string.onboarding_row_quiet_caption, { ctx ->
             when (QuietNotificationsManager.state(ctx)) {
@@ -260,7 +261,7 @@ class OnboardingFragment : BaseFragment() {
         if (usageMap.isNotEmpty()) {
             menu.option(getString(R.string.onboarding_open_limits)) {
                 if (isAdded && _binding != null) {
-                    ScreenTimeLimitDialog(ctx, usageMap).show().apply {
+                    ScreenTimeLimitDialog(ctx, usageMap, viewLifecycleOwner.lifecycleScope).show().apply {
                         setOnDismissListener { refreshRows() }
                     }.dismissOnDestroy(viewLifecycleOwner)
                 }

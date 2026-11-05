@@ -11,6 +11,7 @@ import org.junit.Before
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertFalse
+import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.FocusSchedule
 import com.parem.launcher.helper.ThemeScheduleManager
@@ -38,6 +39,20 @@ class PrefsRoundTripTest {
         val editor = sp.edit().clear()
         for ((key, value) in saved) if (value != null) editor.put(key, value)
         check(editor.commit())
+    }
+
+    @Test
+    fun pauseOnlyAppSurvivesExportAndImport() {
+        val prefs = Prefs(context)
+        AppLimitManager.setLimit(context, "example.pause", 30)
+        AppLimitManager.setPauseOnly(context, "example.pause")
+        val exported = prefs.exportToJson()
+        AppLimitManager.removeLimit(context, "example.pause")
+        prefs.importFromJson(exported)
+        AppLimitManager.clearCache()
+        assertTrue(AppLimitManager.hasPause(context, "example.pause"))
+        assertFalse(AppLimitManager.hasLimit(context, "example.pause"))
+        assertTrue(AppLimitManager.isGated(context, "example.pause"))
     }
 
     @Test

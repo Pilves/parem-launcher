@@ -9,7 +9,7 @@ object AppMenuPolicy {
         privateApp: Boolean,
         hidden: Boolean,
         home: Boolean,
-        hasLimit: Boolean,
+        gated: Boolean,
         uninstallable: Boolean,
     ): List<Action> = buildList {
         add(Action.INFO)
@@ -18,7 +18,7 @@ object AppMenuPolicy {
             if (personal || home) add(Action.RENAME)
             if (personal) {
                 add(Action.LIMIT)
-                if (hasLimit) add(Action.PAUSE)
+                if (gated) add(Action.PAUSE)
                 add(Action.GRAYSCALE)
             }
         }

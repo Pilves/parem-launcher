@@ -1,9 +1,9 @@
 package com.parem.launcher.helper
 
 /**
- * Android-free logic for the mindful pause: a short, cancellable wait before a
- * limited ("bad habit") app opens. Storage lives in [AppLimitManager]; the sheet
- * in ui/BadHabitDialogs.
+ * Android-free logic for the mindful pause: a short, cancellable wait before an
+ * app opens, with or without a time limit. Storage lives in [AppLimitManager];
+ * the sheet in ui/BadHabitDialogs.
  */
 object MindfulPause {
 
@@ -21,6 +21,10 @@ object MindfulPause {
         overLimit -> Gate.LIMIT_WARNING
         else -> Gate.LAUNCH
     }
+
+    /** The over-limit test, and the reason a pause-only app has no limit to compare against. */
+    fun isOverLimit(limitMinutes: Int?, usageMinutes: Long): Boolean =
+        limitMinutes != null && usageMinutes >= limitMinutes
 
     /** Whole seconds left on the countdown, rounded up so "1" shows until the wait is over. */
     fun secondsRemaining(elapsedMs: Long, delaySeconds: Int = DEFAULT_DELAY_SECONDS): Int {

@@ -203,6 +203,7 @@ class WellbeingSettingsCard(
         // The async usage scan may not have landed on a fresh settings open;
         // fall back to the last persisted map rather than opening an empty sheet
         val usageMap = viewModel.perAppScreenTime.value ?: prefs.getCachedUsageStats()
-        ScreenTimeLimitDialog(context, usageMap).show().dismissOnDestroy(fragment.viewLifecycleOwner)
+        ScreenTimeLimitDialog(context, usageMap, fragment.viewLifecycleOwner.lifecycleScope).show()
+            .dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 }

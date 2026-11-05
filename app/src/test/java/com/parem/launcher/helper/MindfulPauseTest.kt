@@ -7,6 +7,18 @@ import org.junit.Test
 class MindfulPauseTest {
 
     @Test
+    fun pauseOnlyAppPausesAndIsNeverOverLimit() {
+        assertEquals(false, MindfulPause.isOverLimit(limitMinutes = null, usageMinutes = 10_000))
+        assertEquals(Gate.PAUSE, MindfulPause.decide(pauseEnabled = true, overLimit = false))
+    }
+
+    @Test
+    fun isOverLimit_atOrPastTheLimitOnly() {
+        assertEquals(false, MindfulPause.isOverLimit(30, 29))
+        assertEquals(true, MindfulPause.isOverLimit(30, 30))
+    }
+
+    @Test
     fun decide_noPauseUnderLimitLaunches() {
         assertEquals(Gate.LAUNCH, MindfulPause.decide(pauseEnabled = false, overLimit = false))
     }

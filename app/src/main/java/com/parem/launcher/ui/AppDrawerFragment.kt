@@ -700,12 +700,12 @@ class AppDrawerFragment : BaseFragment() {
     }
 
     /**
-     * Returns true if the app has a limit and the launch gate (mindful pause /
+     * Returns true if the app has a limit or pause and the launch gate (mindful pause /
      * limit warning) is handling it, false if we should proceed with normal launch.
      */
     private fun checkBadHabitAndLaunch(appModel: AppModel): Boolean {
         val ctx = context ?: return false
-        if (!AppLimitManager.hasLimit(ctx, appModel.appPackage)) return false
+        if (!AppLimitManager.isGated(ctx, appModel.appPackage)) return false
         BadHabitDialogs.gateLaunch(
             ctx, viewLifecycleOwner.lifecycleScope, { isAdded },
             appModel.appLabel, appModel.appPackage,
