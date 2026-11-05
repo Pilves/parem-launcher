@@ -1,10 +1,14 @@
 # F-Droid
 
-Parem is submitted to F-Droid's main repo as a **reproducible build**: F-Droid
-builds the tag from source, checks the result matches the APK on our GitHub
-release, and then publishes *our* signed APK. Users can switch between the
-GitHub, IzzyOnDroid and F-Droid builds without reinstalling, and the 6.0 Play
-build (a bundle, re-signed by Play) stays a separate install either way.
+Parem can be submitted to F-Droid's main repo as a **reproducible build**:
+F-Droid would build the tag from source, check that it matches the GitHub
+release APK, and publish that signed APK if the submission is accepted. No
+submission is claimed here. If F-Droid accepts that same signing certificate,
+updates can move between GitHub and F-Droid. The Play build may have a
+different signing certificate; because the application ID is the same, moving
+between channels with different keys requires exporting settings, uninstalling,
+installing the other build and importing settings. IzzyOnDroid is excluded by
+its policy on LLM-generated code.
 
 ## What the repo already satisfies
 
