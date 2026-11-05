@@ -51,3 +51,8 @@ Recorded 2026-10-03 after the design/manager review round. These override the
   are the specs for M4-WP34/WP32/WP35; UX-9 is M4-WP43 (blocks 6.0); the rest are
   M4-WP44..55 with tiers. Decision 5 (DESIGN §14): no 250 ms commit beat — UX-4
   ships only the setting plus the TalkBack/touch-exploration gate.
+- **Play build without adb pairing (2026-11-05).** Overrides the M4-WP5 decision
+  above that in-app pairing is primary, for the Play channel only, to avoid a
+  malware-policy finding on a new personal account (`docs/play/compliance.md` L1).
+  The `play` flavour grants through the WebUSB page or the adb command. `full`
+  keeps pairing for GitHub, F-Droid and IzzyOnDroid. M4-WP65 weighs bringing it back.
