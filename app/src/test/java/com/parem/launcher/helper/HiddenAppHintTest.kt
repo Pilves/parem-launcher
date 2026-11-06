@@ -17,6 +17,23 @@ class HiddenAppHintTest {
     }
 
     @Test
+    fun oldAndFailedLoadsCannotAuthorizeAWebSearch() {
+        val load = HiddenLabelLoad()
+        val older = load.begin(setOf("old"))
+        val newer = load.begin(setOf("old", "new"))
+        load.complete(older, setOf("old", "new"), listOf("Old"))
+        assertFalse(HiddenAppHint.canSearchWeb("New", load.labels))
+        load.complete(newer, setOf("old", "new"), null) // Failed or partial query.
+        assertFalse(HiddenAppHint.canSearchWeb("New", load.labels))
+        load.complete(newer, setOf("old", "new"), listOf("Old", "New"))
+        assertFalse(HiddenAppHint.canSearchWeb("New", load.labels))
+        assertTrue(HiddenAppHint.canSearchWeb("Weather", load.labels))
+        val changed = load.begin(setOf("old", "new"))
+        load.complete(changed, setOf("old", "new", "other"), listOf("Old", "New"))
+        assertFalse(HiddenAppHint.canSearchWeb("Other", load.labels))
+    }
+
+    @Test
     fun hiddenMatchWithNoVisibleRows_shows() {
         assertTrue(HiddenAppHint.show("spot", 0, privateSpaceLocked = false, hiddenLabels = hidden))
         assertTrue(HiddenAppHint.show("Tinder", 0, privateSpaceLocked = false, hiddenLabels = hidden))

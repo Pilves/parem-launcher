@@ -38,7 +38,22 @@ suspend fun getAppsList(
     // Off by default so a caller that does not opt in (folder picker) can
     // never receive a Private Space app.
     includePrivate: Boolean = false,
-): MutableList<AppModel> {
+): MutableList<AppModel> = loadAppsList(
+    context, prefs, includeRegularApps, includeHiddenApps, includePrivate, requireComplete = false
+) ?: mutableListOf()
+
+/** Hidden labels are used to protect web searches, so a partial query must not authorize one. */
+suspend fun getHiddenAppsForSearch(context: Context, prefs: Prefs): List<AppModel>? =
+    loadAppsList(context, prefs, false, true, false, requireComplete = true)
+
+private suspend fun loadAppsList(
+    context: Context,
+    prefs: Prefs,
+    includeRegularApps: Boolean,
+    includeHiddenApps: Boolean,
+    includePrivate: Boolean,
+    requireComplete: Boolean,
+): MutableList<AppModel>? {
     return withContext(Dispatchers.IO) {
         try {
             if (!prefs.hiddenAppsUpdated) upgradeHiddenApps(prefs)
@@ -53,8 +68,11 @@ suspend fun getAppsList(
                 val (fresh, complete) = queryRawApps(context)
                 // Never cache a failed/partial query — the next call must retry live.
                 if (complete) rawAppSnapshot = RawAppSnapshot(stamp, fresh)
+                if (requireComplete && !complete) return@withContext null
                 fresh
             }
+
+            if (requireComplete && stamp != PackageChangeTracker.stamp()) return@withContext null
 
             // Lock state is read per call, never cached: the snapshot may hold
             // private apps queried while the space was unlocked.
@@ -79,7 +97,7 @@ suspend fun getAppsList(
             }
         } catch (e: Exception) {
             CrashReporter.reportNonFatal("AppListSource.build", e)
-            mutableListOf()
+            null
         }
     }
 }
@@ -91,13 +109,18 @@ suspend fun getAppsList(
  */
 private fun queryRawApps(context: Context): Pair<List<AppListRebuilder.RawApp<UserHandle>>, Boolean> {
     val rawApps = mutableListOf<AppListRebuilder.RawApp<UserHandle>>()
+    var complete = true
     return try {
         val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
         val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
         for (profile in userManager.userProfiles) {
             // Fails closed: a profile whose type can't be read is skipped
             // rather than risk listing private apps as regular ones.
-            val isPrivate = isPrivateProfile(launcherApps, profile) ?: continue
+            val isPrivate = isPrivateProfile(launcherApps, profile)
+            if (isPrivate == null) {
+                complete = false
+                continue
+            }
             if (isPrivate && userManager.isQuietModeEnabled(profile)) continue
             for (app in launcherApps.getActivityList(null, profile)) {
                 val label = app.label.toString()
@@ -119,7 +142,7 @@ private fun queryRawApps(context: Context): Pair<List<AppListRebuilder.RawApp<Us
                 )
             }
         }
-        Pair(rawApps, true)
+        Pair(rawApps, complete)
     } catch (e: Exception) {
         CrashReporter.reportNonFatal("AppListSource.query", e)
         Pair(rawApps, false)

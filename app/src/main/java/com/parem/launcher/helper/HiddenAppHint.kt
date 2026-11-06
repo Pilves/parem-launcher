@@ -21,3 +21,21 @@ object HiddenAppHint {
         return hiddenLabels.any { SearchMatcher.matches(it, SearchMatcher.key(it), query) }
     }
 }
+
+/** Keeps an older asynchronous hidden-app query from authorizing a web search. */
+class HiddenLabelLoad {
+    private var generation = 0L
+    private var keys: Set<String> = emptySet()
+    var labels: List<String>? = null
+        private set
+
+    fun begin(hiddenKeys: Set<String>): Long {
+        keys = hiddenKeys.toSet()
+        labels = if (keys.isEmpty()) emptyList() else null
+        return ++generation
+    }
+
+    fun complete(token: Long, currentKeys: Set<String>, result: List<String>?) {
+        if (token == generation && currentKeys == keys) labels = result
+    }
+}
