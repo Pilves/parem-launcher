@@ -42,6 +42,7 @@ class Upgrade551Test {
         assertTrue("home did not open", device.wait(Until.hasObject(By.res(context.packageName, "homeAppsLayout")), 20_000))
         assertTrue("fixture widget not visible", device.wait(Until.hasObject(By.text("WP28 fixture widget")), 20_000))
         assertTrue("home slot missing", device.wait(Until.hasObject(By.text("Upgrade settings")), 10_000))
+        assertTrue("second home slot missing", device.wait(Until.hasObject(By.text("Upgrade tools")), 10_000))
         assertTrue("folder missing", device.wait(Until.hasObject(By.text("Upgrade folder")), 10_000))
     }
 
@@ -64,6 +65,10 @@ class Upgrade551Test {
             .putString("APP_PACKAGE_1", "com.android.settings")
             .putString("APP_ACTIVITY_CLASS_NAME_1", "com.android.settings.Settings")
             .putString("APP_USER_1", user)
+            .putString("APP_NAME_3", "Upgrade tools")
+            .putString("APP_PACKAGE_3", "com.android.settings")
+            .putString("APP_ACTIVITY_CLASS_NAME_3", "com.android.settings.Settings")
+            .putString("APP_USER_3", user)
             .putString("FOLDER_DATA", folder.toString())
             .putString("WIDGET_IDS", widgetId.toString())
             .putString("WIDGET_HEIGHTS", "$widgetId:120")
@@ -77,6 +82,8 @@ class Upgrade551Test {
         assertEquals(1, prefs.getInt("APP_THEME", -99))
         assertEquals("Upgrade settings", prefs.getString("APP_NAME_1", null))
         assertEquals("com.android.settings", prefs.getString("APP_PACKAGE_1", null))
+        assertEquals("Upgrade tools", prefs.getString("APP_NAME_3", null))
+        assertEquals("com.android.settings", prefs.getString("APP_PACKAGE_3", null))
         val folder = JSONObject(prefs.getString("FOLDER_DATA", null)!!).getJSONObject("2")
         assertEquals("Upgrade folder", folder.getString("name"))
         assertEquals("com.android.settings", folder.getJSONArray("apps").getJSONObject(0).getString("packageName"))

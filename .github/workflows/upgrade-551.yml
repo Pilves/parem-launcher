@@ -26,7 +26,7 @@ jobs:
           set -euo pipefail
           mkdir -p "$HOME/.android"
           if [ ! -f "$HOME/.android/debug.keystore" ]; then
-            keytool -genkeypair -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -dname 'CN=Android Debug,O=Android,C=US' -keyalg RSA -validity 10000
+            keytool -genkeypair -storetype JKS -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey -keypass android -dname 'CN=Android Debug,O=Android,C=US' -keyalg RSA -validity 10000
           fi
           git worktree add --detach ../parem-551 v5.5.1
           (cd ../parem-551 && ./gradlew assembleDebug)
