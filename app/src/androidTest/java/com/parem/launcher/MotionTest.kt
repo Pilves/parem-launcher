@@ -1,5 +1,6 @@
 package com.parem.launcher
 
+import android.app.Dialog
 import android.view.View
 import android.widget.FrameLayout
 import androidx.test.core.app.ActivityScenario
@@ -67,6 +68,46 @@ class MotionTest {
                 scenario.onActivity { view.isPressed = false; view.isPressed = true }
                 Thread.sleep(250)
                 scenario.onActivity { assertEquals(1f, view.scaleX, .001f) }
+            }
+        } finally {
+            originals.forEach { (name, value) ->
+                if (value == "null") device.executeShellCommand("settings delete global $name")
+                else device.executeShellCommand("settings put global $name $value")
+            }
+        }
+    }
+
+
+    @Test fun openPopupTracksRuntimeAnimatorScale() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val device = UiDevice.getInstance(instrumentation)
+        val names = listOf("window_animation_scale", "transition_animation_scale", "animator_duration_scale")
+        val originals = names.associateWith { device.executeShellCommand("settings get global $it").trim() }
+        try {
+            names.forEach { device.executeShellCommand("settings put global $it 1") }
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                lateinit var dialog: Dialog
+                scenario.onActivity { activity ->
+                    dialog = Dialog(activity)
+                    Motion.showPopup(dialog)
+                    assertEquals(R.style.ParemPopupWindowAnimation, dialog.window!!.attributes.windowAnimations)
+                }
+                device.executeShellCommand("settings put global animator_duration_scale 0")
+                val deadline = System.currentTimeMillis() + 5_000
+                var animation = -1
+                while (System.currentTimeMillis() < deadline && animation != 0) {
+                    scenario.onActivity { animation = dialog.window!!.attributes.windowAnimations }
+                    if (animation != 0) Thread.sleep(50)
+                }
+                assertEquals(0, animation)
+                device.executeShellCommand("settings put global animator_duration_scale 1")
+                val enableDeadline = System.currentTimeMillis() + 5_000
+                while (System.currentTimeMillis() < enableDeadline && animation != R.style.ParemPopupWindowAnimation) {
+                    scenario.onActivity { animation = dialog.window!!.attributes.windowAnimations }
+                    if (animation != R.style.ParemPopupWindowAnimation) Thread.sleep(50)
+                }
+                assertEquals(R.style.ParemPopupWindowAnimation, animation)
+                scenario.onActivity { dialog.dismiss() }
             }
         } finally {
             originals.forEach { (name, value) ->
