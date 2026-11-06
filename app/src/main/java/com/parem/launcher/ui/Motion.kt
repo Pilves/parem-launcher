@@ -33,19 +33,30 @@ internal object Motion {
         val window = dialog.window ?: return
         val resolver = dialog.context.contentResolver
         val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
-            override fun onChange(selfChange: Boolean) { configureWindow(dialog, style) }
+            override fun onChange(selfChange: Boolean) {
+                if (dialog.isShowing) configureWindow(dialog, style)
+            }
         }
-        listOf(Settings.Global.WINDOW_ANIMATION_SCALE, Settings.Global.TRANSITION_ANIMATION_SCALE,
-            Settings.Global.ANIMATOR_DURATION_SCALE).forEach {
-            resolver.registerContentObserver(Settings.Global.getUriFor(it), false, observer)
+        var registered = false
+        fun register() {
+            if (registered) return
+            listOf(Settings.Global.WINDOW_ANIMATION_SCALE, Settings.Global.TRANSITION_ANIMATION_SCALE,
+                Settings.Global.ANIMATOR_DURATION_SCALE).forEach {
+                resolver.registerContentObserver(Settings.Global.getUriFor(it), false, observer)
+            }
+            registered = true
+            configureWindow(dialog, style)
         }
-        window.decorView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(v: View) = Unit
+        val decor = window.decorView
+        decor.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) = register()
             override fun onViewDetachedFromWindow(v: View) {
-                resolver.unregisterContentObserver(observer)
+                if (registered) resolver.unregisterContentObserver(observer)
+                registered = false
                 v.removeOnAttachStateChangeListener(this)
             }
         })
+        if (decor.isAttachedToWindow) register()
     }
 
     fun press(view: View) {
