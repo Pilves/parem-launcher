@@ -4,6 +4,7 @@ import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
+import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiScrollable
 import androidx.test.uiautomator.UiSelector
@@ -11,6 +12,7 @@ import androidx.test.uiautomator.Until
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -46,9 +48,7 @@ class ReleaseSmokeTest {
         assertNotNull("home Settings action missing", settings)
         settings.click()
         setWallpaper(device, pkg, true)
-        val export = device.wait(Until.findObject(By.res(pkg, "exportSettings")), 10_000)
-        assertNotNull("settings did not open", export)
-        export.click()
+        clickSettingsRow(device, pkg, "exportSettings")
         val deadline = SystemClock.elapsedRealtime() + 15_000
         while (SystemClock.elapsedRealtime() < deadline &&
             device.executeShellCommand("ls /sdcard/Download/parem_settings.json").trim() != "/sdcard/Download/parem_settings.json") {
@@ -56,7 +56,7 @@ class ReleaseSmokeTest {
         }
         assertEquals("settings export missing", "/sdcard/Download/parem_settings.json", device.executeShellCommand("ls /sdcard/Download/parem_settings.json").trim())
         setWallpaper(device, pkg, false)
-        device.findObject(By.res(pkg, "importSettings")).click()
+        clickSettingsRow(device, pkg, "importSettings")
         val confirm = device.wait(Until.findObject(By.text("Confirm")), 10_000)
         assertNotNull("import confirmation missing", confirm)
         confirm.click()
@@ -74,6 +74,22 @@ class ReleaseSmokeTest {
         assertTrue(scroll.scrollIntoView(UiSelector().resourceId("$pkg:id/dailyWallpaperRow")))
         assertTrue("import did not restore wallpaper preference", device.wait(
             Until.hasObject(By.res(pkg, "dailyWallpaperRow").checked(true)), 15_000))
+    }
+
+    private fun clickSettingsRow(device: UiDevice, pkg: String, id: String) {
+        val deadline = SystemClock.elapsedRealtime() + 15_000
+        while (SystemClock.elapsedRealtime() < deadline) {
+            try {
+                val row = device.wait(Until.findObject(By.res(pkg, id)), 1_000)
+                if (row != null) {
+                    row.click()
+                    return
+                }
+            } catch (_: StaleObjectException) {
+                // A wallpaper-induced theme update can recreate Settings between lookup and click.
+            }
+        }
+        fail("Settings row $id did not remain available")
     }
 
     private fun setWallpaper(device: UiDevice, pkg: String, enabled: Boolean) {
