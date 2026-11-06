@@ -1,6 +1,7 @@
 package com.parem.launcher
 
 import android.app.Dialog
+import android.graphics.Rect
 import android.view.View
 import android.widget.FrameLayout
 import androidx.test.core.app.ActivityScenario
@@ -8,6 +9,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
 import com.parem.launcher.ui.Motion
+import com.parem.launcher.ui.MotionTextView
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -83,6 +85,47 @@ class MotionTest {
         }
     }
 
+
+    @Test fun textPressKeepsHitBoundsAndTracksRuntimeScale() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val device = UiDevice.getInstance(instrumentation)
+        val names = listOf("window_animation_scale", "transition_animation_scale", "animator_duration_scale")
+        val originals = names.associateWith { device.executeShellCommand("settings get global $it").trim() }
+        try {
+            names.forEach { device.executeShellCommand("settings put global $it 1") }
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                lateinit var control: MotionTextView
+                val bounds = Rect()
+                scenario.onActivity { activity ->
+                    control = MotionTextView(activity).apply { text = "Test"; isClickable = true }
+                    activity.addContentView(control, FrameLayout.LayoutParams(200, 100))
+                }
+                instrumentation.waitForIdleSync()
+                scenario.onActivity { control.getHitRect(bounds); control.isPressed = true }
+                Thread.sleep(300)
+                scenario.onActivity {
+                    val pressedBounds = Rect().also { control.getHitRect(it) }
+                    assertEquals(bounds, pressedBounds)
+                    assertEquals(1f, control.scaleX, 0f)
+                    assertEquals(1f, control.scaleY, 0f)
+                    assertEquals(.97f, control.contentScale, .01f)
+                }
+                device.executeShellCommand("settings put global animator_duration_scale 0")
+                val deadline = System.currentTimeMillis() + 5_000
+                var scale = 0f
+                while (System.currentTimeMillis() < deadline && scale != 1f) {
+                    scenario.onActivity { scale = control.contentScale }
+                    if (scale != 1f) Thread.sleep(50)
+                }
+                assertEquals(1f, scale, 0f)
+            }
+        } finally {
+            originals.forEach { (name, value) ->
+                if (value == "null") device.executeShellCommand("settings delete global $name")
+                else device.executeShellCommand("settings put global $name $value")
+            }
+        }
+    }
 
     @Test fun openPopupTracksRuntimeAnimatorScale() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()

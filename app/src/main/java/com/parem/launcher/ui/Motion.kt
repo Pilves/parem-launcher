@@ -120,3 +120,74 @@ internal object Motion {
             }.start()
     }
 }
+
+/** Draw-only press scale for leaf text controls; view bounds and touch matrix never change. */
+class MotionTextView @JvmOverloads constructor(
+    context: android.content.Context,
+    attrs: android.util.AttributeSet? = null,
+    defStyleAttr: Int = android.R.attr.textViewStyle,
+) : androidx.appcompat.widget.AppCompatTextView(context, attrs, defStyleAttr) {
+    private var ready = false
+    private var targetScale = 1f
+    private var pressAnimator: android.animation.ValueAnimator? = null
+    private var observing = false
+    private val scaleObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) = updateScale()
+    }
+    internal var contentScale = 1f
+        private set
+
+    init { ready = true }
+
+    override fun drawableStateChanged() {
+        super.drawableStateChanged()
+        if (!ready) return
+        if (isPressed && isAttachedToWindow && !observing) {
+            listOf(Settings.Global.WINDOW_ANIMATION_SCALE, Settings.Global.TRANSITION_ANIMATION_SCALE,
+                Settings.Global.ANIMATOR_DURATION_SCALE).forEach {
+                context.contentResolver.registerContentObserver(Settings.Global.getUriFor(it), false, scaleObserver)
+            }
+            observing = true
+        } else if (!isPressed) stopObserving()
+        updateScale()
+    }
+
+    private fun updateScale() {
+        val target = if (isEnabled && isPressed && !context.skipAnimations()) .97f else 1f
+        if (targetScale == target) return
+        targetScale = target
+        pressAnimator?.cancel()
+        if (context.skipAnimations()) {
+            contentScale = 1f
+            invalidate()
+            return
+        }
+        pressAnimator = android.animation.ValueAnimator.ofFloat(contentScale, target).apply {
+            duration = resources.getInteger(R.integer.motion_press).toLong()
+            interpolator = DecelerateInterpolator()
+            addUpdateListener { contentScale = it.animatedValue as Float; invalidate() }
+            start()
+        }
+    }
+
+    override fun onDraw(canvas: android.graphics.Canvas) {
+        val save = canvas.save()
+        canvas.scale(contentScale, contentScale, width / 2f, height / 2f)
+        super.onDraw(canvas)
+        canvas.restoreToCount(save)
+    }
+
+    private fun stopObserving() {
+        if (observing) context.contentResolver.unregisterContentObserver(scaleObserver)
+        observing = false
+    }
+
+    override fun onDetachedFromWindow() {
+        stopObserving()
+        pressAnimator?.cancel()
+        pressAnimator = null
+        contentScale = 1f
+        targetScale = 1f
+        super.onDetachedFromWindow()
+    }
+}

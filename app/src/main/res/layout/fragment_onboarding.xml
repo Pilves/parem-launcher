@@ -47,7 +47,7 @@
                 android:textColor="?attr/primaryColorTrans80"
                 android:textSize="14sp" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/btnSetHome"
                 style="@style/TextSmallBold"
                 android:layout_width="match_parent"
@@ -61,7 +61,7 @@
                 android:text="@string/onboarding_set_home"
                 android:textColor="?attr/primaryColor" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/btnNotNow"
                 style="@style/TextSmall"
                 android:layout_width="match_parent"
@@ -124,7 +124,7 @@
                 android:textColor="?attr/primaryColorTrans80"
                 android:textSize="14sp" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/featureGuideToggle"
                 style="@style/TextSmall"
                 android:layout_width="match_parent"
@@ -144,7 +144,7 @@
                 android:orientation="vertical"
                 android:visibility="gone" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/btnDone"
                 style="@style/TextSmallBold"
                 android:layout_width="match_parent"

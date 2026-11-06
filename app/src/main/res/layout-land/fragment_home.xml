@@ -100,7 +100,7 @@
             android:orientation="vertical"
             android:paddingVertical="@dimen/home_app_padding_vertical">
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp1"
                 style="@style/TextOnWallpaper"
                 android:textAppearance="@style/TextAppearance.Parem.Title"
@@ -114,7 +114,7 @@
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp2"
                 style="@style/TextOnWallpaper"
                 android:textAppearance="@style/TextAppearance.Parem.Title"
@@ -128,7 +128,7 @@
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp3"
                 style="@style/TextOnWallpaper"
                 android:textAppearance="@style/TextAppearance.Parem.Title"
@@ -142,7 +142,7 @@
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp4"
                 style="@style/TextOnWallpaper"
                 android:textAppearance="@style/TextAppearance.Parem.Title"
@@ -156,7 +156,7 @@
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp5"
                 style="@style/TextOnWallpaper"
                 android:textAppearance="@style/TextAppearance.Parem.Title"
@@ -170,7 +170,7 @@
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp6"
                 style="@style/TextOnWallpaper"
                 android:textAppearance="@style/TextAppearance.Parem.Title"
@@ -184,7 +184,7 @@
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp7"
                 style="@style/TextOnWallpaper"
                 android:textAppearance="@style/TextAppearance.Parem.Title"
@@ -198,7 +198,7 @@
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp8"
                 style="@style/TextOnWallpaper"
                 android:textAppearance="@style/TextAppearance.Parem.Title"

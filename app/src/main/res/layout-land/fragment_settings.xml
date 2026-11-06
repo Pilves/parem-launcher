@@ -41,7 +41,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <TextView
+                    <com.parem.launcher.ui.MotionTextView
                         android:id="@+id/paremHiddenApps"
                         style="@style/TextLarge"
                         android:accessibilityHeading="true"
@@ -60,7 +60,7 @@
                         android:src="@drawable/ic_info" />
                 </FrameLayout>
 
-                <TextView
+                <com.parem.launcher.ui.MotionTextView
                     android:id="@+id/setLauncher"
                     android:minHeight="@dimen/touch_target_min"
                     android:gravity="center_vertical"
@@ -72,7 +72,7 @@
                     android:layout_marginBottom="8dp"
                     android:text="@string/set_as_default_launcher" />
 
-                <TextView
+                <com.parem.launcher.ui.MotionTextView
                     android:id="@+id/aboutParem"
                     android:minHeight="@dimen/touch_target_min"
                     style="@style/TextSmall"
@@ -385,7 +385,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/dateTimeOn"
                             android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
@@ -396,7 +396,7 @@
                             android:paddingVertical="6dp"
                             android:text="@string/on" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/dateTimeOff"
                             android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
@@ -408,7 +408,7 @@
                             android:paddingVertical="6dp"
                             android:text="@string/off" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/dateOnly"
                             android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
@@ -479,7 +479,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/alignmentBottom"
                             android:minHeight="@dimen/touch_target_min"
                             android:gravity="center_vertical"
@@ -497,7 +497,7 @@
                             android:layout_marginEnd="24dp"
                             android:background="?attr/textSecondaryColor" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/alignmentLeft"
                             android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
@@ -508,7 +508,7 @@
                             android:paddingVertical="6dp"
                             android:text="@string/left" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/alignmentCenter"
                             android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
@@ -520,7 +520,7 @@
                             android:paddingVertical="6dp"
                             android:text="@string/center" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/alignmentRight"
                             android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
@@ -717,7 +717,7 @@
                     android:animateLayoutChanges="true">
 
                     <!-- Its own node: the label is a link to the wallpaper source, the row is the switch -->
-                    <TextView
+                    <com.parem.launcher.ui.MotionTextView
                         android:id="@+id/dailyWallpaperUrl"
                         android:contentDescription="@string/a11y_wallpaper_source"
                         android:focusable="true"
@@ -902,7 +902,7 @@
                         tools:ignore="UnusedAttribute"
                         tools:visibility="gone">
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/textSize1"
                             android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
@@ -913,7 +913,7 @@
                             android:paddingVertical="8dp"
                             android:text="@string/text_size_smaller" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/textSize2"
                             android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
@@ -924,7 +924,7 @@
                             android:paddingVertical="8dp"
                             android:text="@string/text_size_default" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/textSize3"
                             android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
@@ -935,7 +935,7 @@
                             android:paddingVertical="8dp"
                             android:text="@string/text_size_large" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/textSize4"
                             android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
@@ -997,7 +997,7 @@
                 android:orientation="vertical"
                 android:padding="0dp">
 
-                <TextView
+                <com.parem.launcher.ui.MotionTextView
                     android:id="@+id/tvGestures"
                     style="@style/TextLarge"
                     android:accessibilityHeading="true"
@@ -1141,7 +1141,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/notifications"
                             android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
@@ -1152,7 +1152,7 @@
                             android:paddingVertical="6dp"
                             android:text="@string/notifications" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/search"
                             android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
@@ -1168,7 +1168,7 @@
 
 
                 <!-- Device-admin lock fallback (M4-WP18); shown by GesturesSettingsCard -->
-                <TextView
+                <com.parem.launcher.ui.MotionTextView
                     android:id="@+id/lockMethod"
                     android:minHeight="@dimen/touch_target_min"
                     android:gravity="center_vertical"
@@ -1474,7 +1474,7 @@
                 android:gravity="center_horizontal"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.parem.launcher.ui.MotionTextView
                     android:id="@+id/github"
                     android:minHeight="@dimen/touch_target_min"
                     android:gravity="center_vertical"
@@ -1485,7 +1485,7 @@
                     android:padding="10dp"
                     android:text="@string/github" />
 
-                <TextView
+                <com.parem.launcher.ui.MotionTextView
                     android:id="@+id/privacy"
                     android:minHeight="@dimen/touch_target_min"
                     android:gravity="center_vertical"
