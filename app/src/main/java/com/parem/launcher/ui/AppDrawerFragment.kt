@@ -235,6 +235,8 @@ class AppDrawerFragment : BaseFragment() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 val ctx = context ?: return true
                 val q = query ?: ""
+                // Filtering and list diffs finish asynchronously; old rows must never handle Enter.
+                if (omniboxMode == OmniboxMode.None && !adapter.isQueryReady(q)) return true
                 if (flag == Constants.FLAG_LAUNCH_APP && omniboxMode == OmniboxMode.None &&
                     (q.startsWith("!") || adapter.itemCount == 0) && currentHiddenLabels() == null) {
                     // A failed, incomplete or stale lookup stays closed; Enter retries it.
@@ -284,9 +286,7 @@ class AppDrawerFragment : BaseFragment() {
                 // No debounce: matching against precomputed keys is sub-millisecond
                 // and Filter supersedes stale requests itself — instant beats smooth
                 try {
-                    adapter.filter.filter(newText) {
-                        if (_binding?.search?.query?.toString() == newText) refreshEmptyResultTip()
-                    }
+                    adapter.filter.filter(newText)
                 } catch (e: Exception) {
                     CrashReporter.reportNonFatal("AppDrawerFragment: Error filtering app list", e)
                 }
@@ -488,13 +488,16 @@ class AppDrawerFragment : BaseFragment() {
                 }
             }
         )
+        adapter.onFilterCommitted = { query ->
+            if (_binding?.search?.query?.toString() == query) refreshEmptyResultTip()
+        }
         adapter.showIcons = prefs.showIcons
         adapter.iconPackPackage = prefs.iconPackPackage
         adapter.openCounts = AppOpenCounter.getCounts(requireContext())
         // Read when the filter publishes, so fast typing only makes it stricter
-        adapter.autoLaunchGuard = {
+        adapter.autoLaunchGuard = { query ->
             val text = searchTextView?.text?.toString().orEmpty()
-            !isSearchComposing() && !QuickActionParser.isActionPrefix(text) &&
+            text == query && !isSearchComposing() && !QuickActionParser.isActionPrefix(text) &&
                 OmniboxResolver.autoLaunchAllowed(text, prefs.autoLaunchSingleMatch, isScreenReaderOn())
         }
         if (flag == Constants.FLAG_LAUNCH_APP) {
@@ -583,7 +586,9 @@ class AppDrawerFragment : BaseFragment() {
                         binding.search.setQuery(typedQuery + binding.search.query, false)
                         typedQuery = ""
                         reapplyQueryOnReload = true
-                    } else if (reapplyQueryOnReload) {
+                    } else if (binding.search.query.isNotBlank()) {
+                        if (!reapplyQueryOnReload)
+                            adapter.suppressAutoLaunchForQuery(binding.search.query.toString())
                         adapter.filter.filter(binding.search.query)
                     }
                 }

@@ -39,3 +39,11 @@ object DrawerRows {
         }
     }
 }
+
+/** A result list is usable only after the adapter commits it for this query. */
+class DrawerFilterState {
+    private var committedQuery: String? = null
+    fun invalidate() { committedQuery = null }
+    fun commit(query: String) { committedQuery = query }
+    fun isReady(query: String): Boolean = committedQuery == query
+}

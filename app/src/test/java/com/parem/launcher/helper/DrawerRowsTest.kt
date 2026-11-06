@@ -1,6 +1,8 @@
 package com.parem.launcher.helper
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DrawerRowsTest {
@@ -15,6 +17,19 @@ class DrawerRowsTest {
 
     private fun decorate(apps: List<Row>, header: Row? = this.header, padding: Row? = this.padding) =
         DrawerRows.decorate(apps, { it.isPrivate }, header, padding) { it.isShortcut }
+
+    @Test
+    fun enterWaitsForTheCommittedQueryAndReload() {
+        val state = DrawerFilterState()
+        state.commit("visible app")
+        assertTrue(state.isReady("visible app"))
+        assertFalse(state.isReady("hidden app"))
+        state.commit("hidden app")
+        assertTrue(state.isReady("hidden app"))
+        assertFalse(state.isReady("visible app"))
+        state.invalidate()
+        assertFalse(state.isReady("hidden app"))
+    }
 
     @Test
     fun decorate_headerBetweenSections_paddingLast() {

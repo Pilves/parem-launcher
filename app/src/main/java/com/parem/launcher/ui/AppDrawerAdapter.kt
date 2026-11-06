@@ -19,6 +19,7 @@ import com.parem.launcher.data.Constants
 import com.parem.launcher.databinding.AdapterAppDrawerBinding
 import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.DrawerRows
+import com.parem.launcher.helper.DrawerFilterState
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.OmniboxResolver
 import com.parem.launcher.helper.dpToPx
@@ -59,7 +60,11 @@ class AppDrawerAdapter(
     var privateSpaceHeader: () -> AppModel? = { null }
 
     /** Extra veto for auto-launch, checked on the main thread right before firing. */
-    var autoLaunchGuard: () -> Boolean = { true }
+    var autoLaunchGuard: (String) -> Boolean = { true }
+    var onFilterCommitted: (String) -> Unit = { }
+    private val filterState = DrawerFilterState()
+    fun isQueryReady(query: String): Boolean = filterState.isReady(query)
+    fun suppressAutoLaunchForQuery(query: String) { autoLaunchedQuery = query }
     private val appFilter = createAppFilter()
     private val myUserHandle = android.os.Process.myUserHandle()
 
@@ -163,6 +168,8 @@ class AppDrawerAdapter(
                     val query = constraint?.toString().orEmpty()
                     if (query != autoLaunchedQuery) autoLaunchedQuery = null
                     submitList(currentFiltered) {
+                        filterState.commit(query)
+                        onFilterCommitted(query)
                         autoLaunch(currentFiltered, query)
                     }
                 }
@@ -180,12 +187,13 @@ class AppDrawerAdapter(
                 && flag == Constants.FLAG_LAUNCH_APP
                 && filteredSnapshot.isNotEmpty()
                 && !OmniboxResolver.blocksAutoLaunch(query)
-                && autoLaunchGuard()
+                && autoLaunchGuard(query)
             ) {
                 autoLaunchedQuery = query
                 Handler(Looper.getMainLooper()).post {
                     try {
-                        firstApp(filteredSnapshot, includeShortcuts = false)?.let(appClickListener)
+                        if (isQueryReady(query) && autoLaunchGuard(query))
+                            firstApp(filteredSnapshot, includeShortcuts = false)?.let(appClickListener)
                     } catch (e: Exception) {
                         CrashReporter.reportNonFatal("AppDrawerAdapter.autoLaunch", e)
                     }
@@ -205,6 +213,7 @@ class AppDrawerAdapter(
         // Must stay first: every picker observes the same appList as the launch drawer
         val list = DrawerRows.gate(appsList, flag == Constants.FLAG_LAUNCH_APP) { it.isPrivate }.toMutableList()
         this.appsList = list
+        filterState.invalidate()
         val newKeys = mutableMapOf<String, SearchMatcher.LabelKey>()
         for (app in list) {
             newKeys[app.appLabel] = SearchMatcher.key(app.appLabel)
@@ -215,7 +224,10 @@ class AppDrawerAdapter(
             filter.filter("")
         } else {
             this.appFilteredList = decorate(list, searchBlank = true)
-            submitList(appFilteredList.toList())
+            submitList(appFilteredList.toList()) {
+                filterState.commit("")
+                onFilterCommitted("")
+            }
         }
     }
 
@@ -249,7 +261,7 @@ class AppDrawerAdapter(
         rows.firstOrNull { it.appPackage.isNotEmpty() && (includeShortcuts || it.shortcutId == null) }
 
     fun launchFirstInList() {
-        firstApp(appFilteredList)?.let(appClickListener)
+        firstApp(currentList)?.let(appClickListener)
     }
 
     class ViewHolder(private val binding: AdapterAppDrawerBinding) : RecyclerView.ViewHolder(binding.root) {
