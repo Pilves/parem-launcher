@@ -79,19 +79,17 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-          # Compare with the pinned reference on this runner after the functional
-          # suite warms Android. Historical timings use a different scroll driver.
-          # Each script line runs independently, hence the one-line conditional.
-          script: |
-            bash scripts/run-instrumented.sh "${{ inputs.drawer_stress_runs }}"
-            if [ "${{ matrix.perf }}" = "true" ] && [ "${{ inputs.drawer_stress_runs || '0' }}" = "0" ]; then bash scripts/perf-compare.sh; fi
+          # The wrapper keeps continuous logcat running through the performance comparison.
+          script: bash scripts/run-instrumented.sh "${{ inputs.drawer_stress_runs }}" "${{ matrix.perf }}"
 
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: smoke-test-reports-${{ matrix.profile }}-${{ matrix.api-level }}
-          path: app/build/reports/androidTests/
+          path: |
+            app/build/reports/androidTests/
+            app/build/smoke-diagnostics/
           if-no-files-found: ignore
           retention-days: 14
 
