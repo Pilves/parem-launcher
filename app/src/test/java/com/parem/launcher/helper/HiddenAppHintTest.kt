@@ -27,7 +27,10 @@ class HiddenAppHintTest {
         assertFalse(HiddenAppHint.canSearchWeb("New", load.labels))
         load.complete(newer, setOf("old", "new"), null) // Failed or partial query.
         assertFalse(HiddenAppHint.canSearchWeb("New", load.labels))
-        load.complete(newer, setOf("old", "new"), listOf("Old", "New"))
+        val retry = load.begin(setOf("old", "new"))
+        load.complete(newer, setOf("old", "new"), listOf("Old"))
+        assertFalse(HiddenAppHint.canSearchWeb("New", load.labels))
+        load.complete(retry, setOf("old", "new"), listOf("Old", "New"))
         assertFalse(HiddenAppHint.canSearchWeb("New", load.labels))
         assertTrue(HiddenAppHint.canSearchWeb("Weather", load.labels))
         val changed = load.begin(setOf("old", "new"))

@@ -93,6 +93,7 @@ class AppDrawerFragment : BaseFragment() {
 
     // Labels protect web searches and drive the empty-result hint; never shown.
     private val hiddenLabels = HiddenLabelLoad()
+    private var hiddenLabelsLoading = false
     private var hiddenHintShown = false
 
     // At most one ECB rates fetch per drawer session, started by the first
@@ -233,6 +234,12 @@ class AppDrawerFragment : BaseFragment() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 val ctx = context ?: return true
                 val q = query ?: ""
+                if (flag == Constants.FLAG_LAUNCH_APP && omniboxMode == OmniboxMode.None &&
+                    (q.startsWith("!") || adapter.itemCount == 0) && hiddenLabels.labels == null) {
+                    // A failed or incomplete lookup stays closed, but Enter can retry after recovery.
+                    if (!hiddenLabelsLoading) loadHiddenLabels()
+                    return true
+                }
                 // Calls stay out of history (a number or contact name is not a
                 // query); a plain search that launches an app records the launch
                 val isQuery = when (omniboxMode) {
@@ -343,6 +350,7 @@ class AppDrawerFragment : BaseFragment() {
     private fun loadHiddenLabels() {
         val hiddenKeys = prefs.hiddenApps
         val generation = hiddenLabels.begin(hiddenKeys)
+        hiddenLabelsLoading = hiddenKeys.isNotEmpty()
         if (hiddenKeys.isEmpty()) return
         val appContext = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
@@ -353,6 +361,7 @@ class AppDrawerFragment : BaseFragment() {
                 return@launch
             }
             hiddenLabels.complete(generation, prefs.hiddenApps, apps?.map { it.appLabel })
+            hiddenLabelsLoading = false
             if (binding.search.query.isNotBlank()) refreshEmptyResultTip()
         }
     }
