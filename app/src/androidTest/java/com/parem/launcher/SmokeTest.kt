@@ -205,24 +205,24 @@ class SmokeTest {
     @Test
     fun immediateEnterLaunchesSingleResultOnlyOnceWithAutoLaunchEnabled() {
         Prefs(context).autoLaunchSingleMatch = true
-        val launcherApps = context.getSystemService(android.content.pm.LauncherApps::class.java)
-        val settings = launcherApps.getActivityList("com.android.settings", android.os.Process.myUserHandle()).first()
-        val alpha = AppModel("Alpha Fixture", null, "com.android.settings", settings.name, false, android.os.Process.myUserHandle())
-        val beta = AppModel("Beta Fixture", null, "fixture.beta", null, false, android.os.Process.myUserHandle())
         val before = AppOpenCounter.getCounts(context)["com.android.settings"] ?: 0
-        instrumentation.runOnMainSync {
-            val activity = ActivityLifecycleMonitorRegistry.getInstance()
-                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
-            val model = ViewModelProvider(activity)[MainViewModel::class.java]
-            activity.findNavController(R.id.nav_host_fragment).navigate(
-                R.id.appListFragment, bundleOf(Constants.Key.FLAG to Constants.FLAG_LAUNCH_APP))
-            model.appList.value = listOf(alpha, beta)
+        openDrawer()
+        var settingsLoaded = false
+        val loadDeadline = SystemClock.elapsedRealtime() + TIMEOUT
+        while (!settingsLoaded && SystemClock.elapsedRealtime() < loadDeadline) {
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                settingsLoaded = ViewModelProvider(activity)[MainViewModel::class.java].appList.value
+                    ?.any { it.appPackage == "com.android.settings" && it.appLabel == "Settings" } == true
+            }
+            if (!settingsLoaded) SystemClock.sleep(100)
         }
-        assertTrue("drawer fixtures missing", device.wait(Until.hasObject(By.text("Alpha Fixture")), TIMEOUT))
+        if (!settingsLoaded) fail("Settings missing from loaded app list\n${screenDiagnostics()}")
         instrumentation.runOnMainSync {
             val activity = ActivityLifecycleMonitorRegistry.getInstance()
                 .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
-            activity.findViewById<SearchView>(R.id.search).setQuery("Alpha Fixture", true)
+            activity.findViewById<SearchView>(R.id.search).setQuery("Settings", true)
         }
         val deadline = SystemClock.elapsedRealtime() + TIMEOUT
         while ((AppOpenCounter.getCounts(context)["com.android.settings"] ?: 0) == before &&
