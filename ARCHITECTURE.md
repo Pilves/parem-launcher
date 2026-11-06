@@ -112,7 +112,7 @@ listener/
 
 ### Play App Signing
 
-Patric's decision, before the first Play upload. Recommendation, not yet acted on: **let Google generate the app signing key and make a new, separate upload key.** The existing keystore stays the release key for GitHub and F-Droid, and is never given to Play.
+Decided 2026-11-06: **Google generates the app signing key, with a new, separate upload key** (`docs/play/signing.md`). The existing keystore stays the release key for GitHub and F-Droid, and is never given to Play.
 
 | Option | Play and GitHub certificate | Cost |
 |---|---|---|
@@ -124,7 +124,7 @@ Patric's decision, before the first Play upload. Recommendation, not yet acted o
 - That key cannot be replaced: GitHub and F-Droid installs accept updates only from it, and the draft F-Droid recipe pins it in `AllowedAPKSigningKeys`. An upload key can be reset in Play Console. Keep the replaceable key apart from the irreplaceable one.
 - Sharing the key buys one thing: an in-place move from GitHub to Play. All published APKs together have 37 downloads (2026-11-05), and `docs/fdroid/README.md` already plans Play as a separate install, so that does not pay for the permanent cost.
 - "Updates must keep the same signing key" (`docs/releases/v6.0.0-beta.2-validation.md`) holds per channel, and the GitHub channel does not change. Moving between Play and a sideload channel means uninstalling, which erases app data, so users export their settings first.
-- **The trap:** with a Google-generated key, whichever key signs the first uploaded bundle becomes the upload key. `release.yml` signs the bundle with `KEYSTORE_*` today, so uploading its output as it stands makes the existing keystore the upload key. Before that upload, create the upload key (RSA 2048 or more, valid 25 years or more), add it as new repo secrets, decode it in `release.yml`, and point the env of its "Build signed Play bundle" step at it.
+- **The trap:** with a Google-generated key, whichever key signs the first uploaded bundle becomes the upload key. `release.yml` signs the bundle with `UPLOAD_KEYSTORE_*` for that reason, so check the bundle's certificate against `docs/play/signing.md` before the first upload.
 - The app signing key can only be changed until a release reaches open testing or production. Closed testing does not lock it.
 - Android developer verification ties a package name to signing keys, so `com.parem.launcher` needs both fingerprints registered: the existing certificate, and Play's from the Play App Signing page. Google may ask for proof of the existing key: an APK signed with it, carrying the console's snippet in `assets/adi-registration.properties`.
 - GitHub secrets are write-only and Play cannot recover this key, so keep an offline backup of the keystore.
