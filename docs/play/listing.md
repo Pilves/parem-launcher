@@ -70,8 +70,8 @@ Swipe up and type. Initials and partial names work, and a single match opens by 
 <b>Calm phone tools</b>
 All off until you turn them on, and each says what it needs first.
 • Screen time: today's total on home, a 7-day graph and a weekly review.
-• App limits: a daily allowance per app, then a warning you can override. Both need usage access.
-• Mindful pause: choose any app for a question and a five-second wait before it opens.
+• App limits: a daily allowance per app, then a warning you can override.
+• Mindful pause: choose any app for a question and a five-second wait before it opens. All three need usage access.
 • Focus mode: timed sessions or weekly schedules. Up to 5 allowed apps; your phone app is never blocked.
 • Quiet notifications: apps you haven't allowed move out of the shade into a quiet list. Calls, alarms, media, navigation and emergency alerts stay visible; hidden items return within 8 hours. A short sound or vibration may still play unless you choose Make silent. Needs notification access.
 • Grayscale: now, during focus, after a limit, or per app. Needs a one-time developer-tools permission, granted from a computer.
@@ -141,8 +141,8 @@ Nach oben wischen und tippen. Anfangsbuchstaben und Namensteile genügen, ein ei
 <b>Für ein ruhiges Smartphone</b>
 Alle sind aus, bis du sie einschaltest, und sagen vorher, was sie brauchen.
 • Bildschirmzeit: Tagessumme, 7-Tage-Grafik und Wochenrückblick.
-• App-Limits: Tageskontingent pro App, danach eine Warnung, die du übergehen kannst. Beide brauchen Zugriff auf Nutzungsdaten.
-• Achtsame Pause: für jede gewählte App eine Frage und fünf Sekunden Wartezeit.
+• App-Limits: Tageskontingent pro App, danach eine Warnung, die du übergehen kannst.
+• Achtsame Pause: für jede gewählte App eine Frage und fünf Sekunden Wartezeit. Alle drei brauchen Zugriff auf Nutzungsdaten.
 • Fokusmodus: mit Timer oder Wochenplan. Bis zu 5 erlaubte Apps; die Telefon-App wird nie blockiert.
 • Stille Benachrichtigungen: Nicht erlaubte Apps wandern aus der Benachrichtigungsleiste in eine stille Liste. Anrufe, Wecker, Medien, Navigation und Notfallwarnungen bleiben sichtbar, Ausgeblendetes kehrt binnen 8 Stunden zurück. Ton oder Vibration sind möglich, solange du nicht „Make silent“ wählst. Braucht Benachrichtigungszugriff.
 • Graustufen: sofort, im Fokus, nach einem Limit oder pro App. Braucht einmalig eine Entwicklerberechtigung, erteilt am Computer.
@@ -216,8 +216,8 @@ Pühi üles ja hakka tippima. Töötavad algustähed ja nimeosad ning ainus vast
 <b>Rahuliku telefoni tööriistad</b>
 Kõik on väljas, kuni need sisse lülitad.
 • Ekraaniaeg: tänane summa, 7 päeva graafik ja nädala kokkuvõte.
-• Rakenduste piirangud: päevane limiit, seejärel hoiatus, millest saad mööda minna. Mõlemad vajavad juurdepääsu kasutusele.
-• Teadlik paus: vali rakendus ja oota pärast küsimust viis sekundit.
+• Rakenduste piirangud: päevane limiit, seejärel hoiatus, millest saad mööda minna.
+• Teadlik paus: vali rakendus ja oota pärast küsimust viis sekundit. Kõik kolm vajavad juurdepääsu kasutusele.
 • Fookusrežiim: taimeriga või nädala ajakava järgi. Lubada saad kuni 5 rakendust, telefonirakendust ei blokeerita kunagi.
 • Vaiksed märguanded: lubamata rakenduste märguanded liiguvad märguandealalt vaiksesse nimekirja. Kõned, äratused, meedia, navigeerimine ja hädaolukorra teated jäävad nähtavale, peidetud märguanded tulevad 8 tunni jooksul tagasi. Heli või värin võib tulla, kui sa pole valinud Make silent. Vajab juurdepääsu märguannetele.
 • Halltoonid: kohe, fookuse ajal, pärast piirangut või rakenduse kaupa. Vajab ühekordset luba arendaja tööriistade kaudu, arvuti abil.

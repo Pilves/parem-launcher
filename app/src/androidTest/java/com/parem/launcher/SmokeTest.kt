@@ -91,6 +91,85 @@ class SmokeTest {
     }
 
     @Test
+    fun emptyHomeShowsOneHintAndKeepsFilledSlots() {
+        val prefs = Prefs(context)
+        device.executeShellCommand("mkdir -p $DIAG_DIR")
+        fun home(block: (MainActivity, com.parem.launcher.ui.home.HomeSlotsController) -> Unit) {
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                val host = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment)!!
+                val fragment = host.childFragmentManager.primaryNavigationFragment as com.parem.launcher.ui.HomeFragment
+                block(activity, fragment.slotsController!!)
+            }
+        }
+        home { _, slots ->
+            prefs.homeAppsNum = 4
+            slots.populateHomeScreen(false)
+            assertEquals(View.VISIBLE, slots.homeAppViews[0].visibility)
+            assertEquals(context.getString(R.string.long_press_to_select_app), slots.homeAppViews[0].hint.toString())
+            assertEquals(context.getString(R.string.long_press_to_select_app), slots.homeAppViews[0].contentDescription.toString())
+            assertTrue(slots.homeAppViews.drop(1).all { it.visibility == View.GONE })
+        }
+        device.waitForIdle()
+        device.executeShellCommand("screencap -p $DIAG_DIR/empty-home-first.png")
+        assertTrue(device.executeShellCommand("ls $DIAG_DIR/empty-home-first.png").contains("empty-home-first.png"))
+        home { _, slots ->
+            prefs.setHomeAppName(1, "Settings")
+            prefs.setHomeAppPackage(1, "com.android.settings")
+            prefs.setHomeAppUser(1, android.os.Process.myUserHandle().toString())
+            slots.populateHomeScreen(false)
+            assertEquals("Settings", slots.homeAppViews[0].text.toString())
+            assertEquals(View.VISIBLE, slots.homeAppViews[1].visibility)
+            assertTrue(slots.homeAppViews.drop(2).all { it.visibility == View.GONE })
+        }
+        device.waitForIdle()
+        device.executeShellCommand("screencap -p $DIAG_DIR/empty-home-one-slot.png")
+        assertTrue(device.executeShellCommand("ls $DIAG_DIR/empty-home-one-slot.png").contains("empty-home-one-slot.png"))
+        home { _, slots ->
+            prefs.setHomeAppName(3, "Example")
+            prefs.setHomeAppUrl(3, "https://example.com")
+            slots.populateHomeScreen(false)
+            assertEquals(View.VISIBLE, slots.homeAppViews[1].visibility)
+            assertEquals(View.VISIBLE, slots.homeAppViews[2].visibility)
+            assertEquals("Example", slots.homeAppViews[2].text.toString())
+            com.parem.launcher.helper.FolderManager(context).createFolder(4, "Folder", emptyList())
+            slots.populateHomeScreen(false)
+            assertEquals(View.VISIBLE, slots.homeAppViews[3].visibility)
+            assertEquals("Folder", slots.homeAppViews[3].text.toString())
+            prefs.homeLayoutLocked = true
+            slots.populateHomeScreen(false)
+            assertEquals(View.GONE, slots.homeAppViews[1].visibility)
+            assertEquals(View.VISIBLE, slots.homeAppViews[2].visibility)
+        }
+    }
+
+    @Test
+    fun removingAndUndoingLastSlotRestoresTheHintAndApp() {
+        val prefs = Prefs(context)
+        prefs.setHomeAppName(1, "Settings")
+        prefs.setHomeAppPackage(1, "com.android.settings")
+        prefs.setHomeAppUser(1, android.os.Process.myUserHandle().toString())
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            val host = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment)!!
+            val fragment = host.childFragmentManager.primaryNavigationFragment as com.parem.launcher.ui.HomeFragment
+            fragment.slotsController!!.apply { populateHomeScreen(false); showHomeSlotMenu(1) }
+        }
+        val remove = device.wait(Until.findObject(By.text(context.getString(R.string.app_menu_remove_home))), TIMEOUT)
+        assertNotNull("Remove from home missing", remove)
+        remove.click()
+        assertTrue("empty hint missing after removal", device.wait(Until.hasObject(
+            By.desc(context.getString(R.string.long_press_to_select_app))), TIMEOUT))
+        val undo = device.wait(Until.findObject(By.text(context.getString(R.string.app_menu_undo))), TIMEOUT)
+        assertNotNull("Undo missing", undo)
+        undo.click()
+        assertTrue("app not restored", device.wait(Until.hasObject(By.text("Settings")), TIMEOUT))
+        assertEquals("com.android.settings", prefs.getHomeAppPackage(1))
+    }
+
+    @Test
     fun wallpaperWorkRunsAndPeriodicJobIsScheduledWithoutForegroundService() {
         val prefs = Prefs(context)
         prefs.dailyWallpaper = false // Exercise the real worker without an HTTP dependency.
