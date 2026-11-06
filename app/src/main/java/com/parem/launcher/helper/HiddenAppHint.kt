@@ -26,18 +26,26 @@ object HiddenAppHint {
 class HiddenLabelLoad {
     private var generation = 0L
     private var keys: Set<String> = emptySet()
+    private var stamp = 0L
     var labels: List<String>? = null
         private set
 
-    fun begin(hiddenKeys: Set<String>): Long {
+    fun begin(hiddenKeys: Set<String>, packageStamp: Long = 0L): Long {
         keys = hiddenKeys.toSet()
+        stamp = packageStamp
         labels = if (keys.isEmpty()) emptyList() else null
         return ++generation
     }
 
     fun isCurrent(token: Long): Boolean = token == generation
 
-    fun complete(token: Long, currentKeys: Set<String>, result: List<String>?) {
-        if (token == generation && currentKeys == keys) labels = result
+    fun isStale(currentKeys: Set<String>, packageStamp: Long): Boolean =
+        currentKeys != keys || packageStamp != stamp
+
+    fun labelsFor(currentKeys: Set<String>, packageStamp: Long): List<String>? =
+        if (isStale(currentKeys, packageStamp)) null else labels
+
+    fun complete(token: Long, currentKeys: Set<String>, result: List<String>?, packageStamp: Long = 0L) {
+        if (isCurrent(token) && !isStale(currentKeys, packageStamp)) labels = result
     }
 }

@@ -39,6 +39,24 @@ class HiddenAppHintTest {
     }
 
     @Test
+    fun packageChangeInvalidatesLabelsUntilANewCompleteLoad() {
+        val load = HiddenLabelLoad()
+        val keys = setOf("hidden.package")
+        val initial = load.begin(keys, 10)
+        load.complete(initial, keys, listOf("Old label"), 10)
+        assertTrue(HiddenAppHint.canSearchWeb("New label", load.labelsFor(keys, 10)))
+        assertFalse(HiddenAppHint.canSearchWeb("New label", load.labelsFor(keys, 11)))
+        val retry = load.begin(keys, 11)
+        load.complete(initial, keys, listOf("Old label"), 11)
+        assertFalse(HiddenAppHint.canSearchWeb("New label", load.labelsFor(keys, 11)))
+        load.complete(retry, keys, listOf("New label"), 12)
+        assertFalse(HiddenAppHint.canSearchWeb("New label", load.labelsFor(keys, 12)))
+        load.complete(retry, keys, listOf("New label"), 11)
+        assertFalse(HiddenAppHint.canSearchWeb("New label", load.labelsFor(keys, 11)))
+        assertTrue(HiddenAppHint.canSearchWeb("Weather", load.labelsFor(keys, 11)))
+    }
+
+    @Test
     fun hiddenMatchWithNoVisibleRows_shows() {
         assertTrue(HiddenAppHint.show("spot", 0, privateSpaceLocked = false, hiddenLabels = hidden))
         assertTrue(HiddenAppHint.show("Tinder", 0, privateSpaceLocked = false, hiddenLabels = hidden))

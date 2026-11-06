@@ -41,6 +41,7 @@ import com.parem.launcher.helper.quickActionPreview
 import com.parem.launcher.helper.getShortcutRaws
 import com.parem.launcher.helper.HiddenAppHint
 import com.parem.launcher.helper.HiddenLabelLoad
+import com.parem.launcher.helper.PackageChangeTracker
 import com.parem.launcher.helper.getHiddenAppsForSearch
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isEinkDisplay
@@ -235,9 +236,9 @@ class AppDrawerFragment : BaseFragment() {
                 val ctx = context ?: return true
                 val q = query ?: ""
                 if (flag == Constants.FLAG_LAUNCH_APP && omniboxMode == OmniboxMode.None &&
-                    (q.startsWith("!") || adapter.itemCount == 0) && hiddenLabels.labels == null) {
-                    // A failed or incomplete lookup stays closed, but Enter can retry after recovery.
-                    if (!hiddenLabelsLoading) loadHiddenLabels()
+                    (q.startsWith("!") || adapter.itemCount == 0) && currentHiddenLabels() == null) {
+                    // A failed, incomplete or stale lookup stays closed; Enter retries it.
+                    if (!hiddenLabelsLoading || hiddenLabels.isStale(prefs.hiddenApps, PackageChangeTracker.stamp())) loadHiddenLabels()
                     return true
                 }
                 // Calls stay out of history (a number or contact name is not a
@@ -262,11 +263,13 @@ class AppDrawerFragment : BaseFragment() {
                     is OmniboxMode.Setting ->
                         if (adapter.itemCount == 0) openSetting(mode.anchor) else adapter.launchFirstInList()
                     OmniboxMode.None -> when {
-                        flag == Constants.FLAG_LAUNCH_APP && !hiddenHintShown && HiddenAppHint.canSearchWeb(q, hiddenLabels.labels) && q.startsWith("!") ->
-                            launchUrl(ctx, Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(q, "UTF-8"))
-                        flag == Constants.FLAG_LAUNCH_APP && !hiddenHintShown && HiddenAppHint.canSearchWeb(q, hiddenLabels.labels) && adapter.itemCount == 0 -> BadHabitDialogs.gateWebOpen(
+                        flag == Constants.FLAG_LAUNCH_APP && !hiddenHintShown && HiddenAppHint.canSearchWeb(q, currentHiddenLabels()) && q.startsWith("!") ->
+                            launchUrl(ctx, Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(q, "UTF-8"), q)
+                        flag == Constants.FLAG_LAUNCH_APP && !hiddenHintShown && HiddenAppHint.canSearchWeb(q, currentHiddenLabels()) && adapter.itemCount == 0 -> BadHabitDialogs.gateWebOpen(
                             ctx, viewLifecycleOwner.lifecycleScope, { isAdded },
-                            Intent(Intent.ACTION_WEB_SEARCH), open = { browser -> ctx.openSearch(q.trim(), browser) },
+                            Intent(Intent.ACTION_WEB_SEARCH), open = { browser ->
+                                if (canOpenImplicitSearch(q)) ctx.openSearch(q.trim(), browser)
+                            },
                         )
                         else -> adapter.launchFirstInList()
                     }
@@ -330,7 +333,7 @@ class AppDrawerFragment : BaseFragment() {
         if (omniboxMode != OmniboxMode.None) return
         val query = b.search.query.toString()
         hiddenHintShown = flag == Constants.FLAG_LAUNCH_APP &&
-            HiddenAppHint.show(query, adapter.itemCount, isPrivateSpaceLocked(), hiddenLabels.labels.orEmpty())
+            HiddenAppHint.show(query, adapter.itemCount, isPrivateSpaceLocked(), currentHiddenLabels().orEmpty())
         // Picker drawers only pick an app, so a tip there must not promise a search
         val searches = flag == Constants.FLAG_LAUNCH_APP
         val bang = searches && query.startsWith("!") && query.length > 1
@@ -347,20 +350,32 @@ class AppDrawerFragment : BaseFragment() {
         }
     }
 
+    private fun currentHiddenLabels(): List<String>? =
+        hiddenLabels.labelsFor(prefs.hiddenApps, PackageChangeTracker.stamp())
+
+    private fun canOpenImplicitSearch(query: String): Boolean {
+        if (!isAdded || _binding == null) return false
+        val labels = currentHiddenLabels()
+        if (labels == null && (!hiddenLabelsLoading ||
+                hiddenLabels.isStale(prefs.hiddenApps, PackageChangeTracker.stamp()))) loadHiddenLabels()
+        return HiddenAppHint.canSearchWeb(query, labels)
+    }
+
     private fun loadHiddenLabels() {
         val hiddenKeys = prefs.hiddenApps
-        val generation = hiddenLabels.begin(hiddenKeys)
+        val packageStamp = PackageChangeTracker.stamp()
+        val generation = hiddenLabels.begin(hiddenKeys, packageStamp)
         hiddenLabelsLoading = hiddenKeys.isNotEmpty()
         if (hiddenKeys.isEmpty()) return
         val appContext = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
             val apps = getHiddenAppsForSearch(appContext, prefs)
             if (!isAdded || _binding == null || !hiddenLabels.isCurrent(generation)) return@launch
-            if (prefs.hiddenApps != hiddenKeys) {
+            if (hiddenLabels.isStale(prefs.hiddenApps, PackageChangeTracker.stamp())) {
                 loadHiddenLabels()
                 return@launch
             }
-            hiddenLabels.complete(generation, prefs.hiddenApps, apps?.map { it.appLabel })
+            hiddenLabels.complete(generation, prefs.hiddenApps, apps?.map { it.appLabel }, PackageChangeTracker.stamp())
             hiddenLabelsLoading = false
             if (binding.search.query.isNotBlank()) refreshEmptyResultTip()
         }
@@ -720,12 +735,12 @@ class AppDrawerFragment : BaseFragment() {
      * Omnibox web opens take the website-slot route: gated on the handling app,
      * then MainViewModel.selectedApp, which also pins a whitelisted browser under focus.
      */
-    private fun launchUrl(ctx: Context, url: String) {
+    private fun launchUrl(ctx: Context, url: String, implicitSearch: String? = null) {
         BadHabitDialogs.gateWebOpen(
             ctx, viewLifecycleOwner.lifecycleScope, { isAdded },
             Intent(Intent.ACTION_VIEW, Uri.parse(url)),
             open = { browser ->
-                if (isAdded) viewModel.selectedApp(
+                if (isAdded && (implicitSearch == null || canOpenImplicitSearch(implicitSearch))) viewModel.selectedApp(
                     AppModel(url, null, browser, null, false, android.os.Process.myUserHandle(), url),
                     Constants.FLAG_LAUNCH_APP
                 )
