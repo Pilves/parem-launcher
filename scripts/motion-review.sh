@@ -15,13 +15,22 @@ for label in before after; do
   recorder=$!
   sleep 1
   status=0
-  adb shell am instrument -w -e class 'com.parem.launcher.SmokeTest#swipeUpOpensDrawer,com.parem.launcher.SmokeTest#omniboxLaunchesApp,com.parem.launcher.SmokeTest#swipeDownRowStaysWhileItsPickerIsOpen' \
-    com.parem.launcher.debug.test/androidx.test.runner.AndroidJUnitRunner >"$out/$label.txt" 2>&1 || status=$?
+  : >"$out/$label.txt"
+  for test in swipeUpOpensDrawer omniboxLaunchesApp swipeDownRowStaysWhileItsPickerIsOpen; do
+    # Isolate each test, as Android Test Orchestrator does in the ordinary suite.
+    adb shell am force-stop com.android.settings
+    adb shell pm clear com.parem.launcher.debug >/dev/null
+    adb shell cmd package set-home-activity com.parem.launcher.debug/com.parem.launcher.MainActivity
+    adb shell am start -n com.parem.launcher.debug/com.parem.launcher.MainActivity >/dev/null
+    adb shell am instrument -w -e class "com.parem.launcher.SmokeTest#$test" \
+      com.parem.launcher.debug.test/androidx.test.runner.AndroidJUnitRunner >"$out/$label-$test.txt" 2>&1 || status=1
+    cat "$out/$label-$test.txt" | tee -a "$out/$label.txt"
+    grep -Eq '^OK \(1 test\)' "$out/$label-$test.txt" || status=1
+  done
   adb shell 'kill -2 $(pidof screenrecord)' || true
   wait "$recorder" || true
   adb pull "/sdcard/motion-$label.mp4" "$out/$label.mp4"
-  cat "$out/$label.txt"
-  [[ "$status" == 0 ]] && grep -Eq '^OK \(3 tests\)' "$out/$label.txt"
+  [[ "$status" == 0 ]]
 done
 # Full core suites with Android's animations explicitly enabled, both flavours.
 ./gradlew connectedPlayDebugAndroidTest connectedFullDebugAndroidTest
