@@ -96,5 +96,8 @@ class Upgrade551Test {
         assertEquals(provider, manager.getAppWidgetInfo(widgetId)?.provider)
         assertEquals("$widgetId:120", prefs.getString("WIDGET_HEIGHTS", null))
         home()
+        assertEquals("theme changed while opening home", 1, prefs.getInt("APP_THEME", -99))
+        assertEquals("widget changed while opening home", provider, manager.getAppWidgetInfo(widgetId)?.provider)
+        assertEquals("slot changed while opening home", "Upgrade tools", prefs.getString("APP_NAME_3", null))
     }
 }
