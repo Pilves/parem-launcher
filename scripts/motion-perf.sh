@@ -7,6 +7,10 @@ for label in before after; do
   if [[ "$label" == before ]]; then root=../motion-before; else root=.; fi
   adb uninstall com.parem.launcher.debug >/dev/null 2>&1 || true
   adb install "$root/app/build/outputs/apk/full/debug/app-full-debug.apk"
+  adb shell cmd package set-home-activity com.parem.launcher.debug/com.parem.launcher.MainActivity
+  adb shell pm disable-user --user 0 com.google.android.apps.nexuslauncher
+  adb shell input keyevent KEYCODE_BACK
+  adb shell cmd package set-home-activity com.parem.launcher.debug/com.parem.launcher.MainActivity
   node --input-type=module - "$out/$label" <<'JS'
 import {measure, measurementProblems} from './scripts/perf-budget.mjs';
 import {writeFileSync} from 'node:fs';
