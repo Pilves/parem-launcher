@@ -8,10 +8,14 @@ new_apk=app/build/outputs/apk/full/debug/app-full-debug.apk
 test_apk=app/build/outputs/apk/androidTest/full/debug/app-full-debug-androidTest.apk
 adb install "$old_apk"
 adb install "$test_apk"
-adb shell cmd appwidget grantbind --package "$package" --user 0
+adb shell appwidget grantbind --package "$package" --user 0
 run_test() {
   local result
-  result=$(adb shell am instrument -w -e class "com.parem.launcher.Upgrade551Test#$1" "$runner" 2>&1)
+  result=$(timeout 180s adb shell am instrument -w -e class "com.parem.launcher.Upgrade551Test#$1" "$runner" 2>&1) || {
+    printf '%s\n' "$result"
+    adb logcat -d -t 300
+    return 1
+  }
   printf '%s\n' "$result"
   grep -q 'OK (1 test)' <<<"$result"
 }
