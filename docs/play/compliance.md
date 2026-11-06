@@ -13,7 +13,7 @@
 
 ## 2. Public wording and source
 
-The approved public first name is Patrick; the policy names Patrick, developer name CHAIDLA, Parem Launcher and `info@chaidla.ee`. Google Play's User Data policy asks the policy to identify the entity named in the store listing or app and provide a privacy contact. Verify the exact current listing and live policy together.
+The approved public first name is Patrick; the policy names Patrick, developer name CHAIDLA, Parem Launcher and `info@chaidla.ee`. Google Play's User Data policy requires the entity named in the store listing to appear in the privacy policy, or the app itself to be named in the policy. It also requires developer information and a privacy point of contact or inquiry mechanism. Verify the exact current listing and live policy together.
 
 No donation or coffee link ships in 6.0. Avoid profanity on Play surfaces, the landing page, the app and pages the app opens. Do not claim that no data leaves the phone. The README and launch material disclose AI authorship and credit the Olauncher fork. Assess each final listing and translated asset against actual code and the current [store listing policy](https://support.google.com/googleplay/android-developer/answer/13393723).
 
@@ -76,4 +76,4 @@ The contact, lock and quiet-notification consent strings have shipped-locale tra
 3. Complete the physical-phone checklist per flavour, including backup and transfer, permission routes, drawer gestures and accessibility. Review final store captures and translations.
 4. Verify live privacy and grant pages only after owner-approved publication; review the actual Console form and declarations. No source review substitutes for the phone pass or a Play review.
 
-Policy references for the owner to recheck: [User Data](https://support.google.com/googleplay/android-developer/answer/18265346), [Data safety](https://support.google.com/googleplay/android-developer/answer/10787469), [accessibility](https://support.google.com/googleplay/android-developer/answer/10964491), and [content ratings](https://support.google.com/googleplay/android-developer/answer/9859655).
+Policy references for the owner to recheck: [User Data](https://support.google.com/googleplay/android-developer/answer/10144311), [Data safety](https://support.google.com/googleplay/android-developer/answer/10787469), [accessibility](https://support.google.com/googleplay/android-developer/answer/10964491), and [content ratings](https://support.google.com/googleplay/android-developer/answer/9859655).
