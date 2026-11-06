@@ -63,8 +63,12 @@ fun Context.copyToClipboard(text: String) {
 
 fun Context.openUrl(url: String) {
     if (url.isEmpty()) return
+    val safeUrl = WebShortcut.normalize(url) ?: run {
+        showToast(getString(R.string.unable_to_open_link))
+        return
+    }
     try {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(safeUrl))
         startActivity(intent)
     } catch (e: Exception) {
         showToast(getString(R.string.unable_to_open_link))

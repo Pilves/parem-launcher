@@ -6,6 +6,7 @@ import android.view.Gravity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import com.parem.launcher.helper.CsvPairs
+import com.parem.launcher.helper.SettingsImport
 import org.json.JSONObject
 
 /** The single SharedPreferences file every feature manager reads and writes. */
@@ -17,21 +18,12 @@ class Prefs(context: Context) {
         const val KEY_APP_THEME = "APP_THEME"
         const val KEY_LAUNCHER_RECREATE_TIMESTAMP = "LAUNCHER_RECREATE_TIMESTAMP"
 
-        // Keys that must always be stored as Long (timestamps etc.)
-        // Uses the actual SharedPreferences key strings, not field names.
+        // Registered types keep small JSON numbers from changing SharedPreferences types.
         private val LONG_PREF_KEYS = setOf(
-            "FIRST_OPEN_TIME",
-            "SCREEN_TIME_LAST_UPDATED",
-            KEY_LAUNCHER_RECREATE_TIMESTAMP,
-            "WEATHER_LAST_FETCHED",
-            "WEATHER_LAST_SUCCESS_MS",
-            "CURRENCY_LAST_SUCCESS_MS",
-            "CURRENCY_LAST_ATTEMPT_MS"
+            "FIRST_OPEN_TIME", "SCREEN_TIME_LAST_UPDATED", KEY_LAUNCHER_RECREATE_TIMESTAMP,
+            "WEATHER_LAST_FETCHED", "WEATHER_LAST_SUCCESS_MS", "CURRENCY_LAST_SUCCESS_MS", "CURRENCY_LAST_ATTEMPT_MS"
         )
-
-        private val FLOAT_PREF_KEYS = setOf(
-            "TEXT_SIZE_SCALE"
-        )
+        private val FLOAT_PREF_KEYS = setOf("TEXT_SIZE_SCALE")
     }
 
     private val FIRST_OPEN = "FIRST_OPEN"
@@ -566,6 +558,17 @@ class Prefs(context: Context) {
             throw IllegalArgumentException("Not a valid Parem Launcher settings file")
         }
 
+        require(json.get("__parem_export_version") == 1) { "Unsupported settings version" }
+        val values = mutableMapOf<String, Any>()
+        for (key in json.keys()) {
+            if (key in exportExcludeKeys || key == "__parem_export_version") continue
+            val value = json.get(key)
+            values[key] = if (value is org.json.JSONArray) {
+                (0 until value.length()).map { value.get(it) }
+            } else value
+        }
+        val validated = SettingsImport.validate(values, LONG_PREF_KEYS, FLOAT_PREF_KEYS)
+
         // Invalidate all in-memory caches before import
         widgetHeightsCache = null
         widgetProvidersCache = null
@@ -589,25 +592,17 @@ class Prefs(context: Context) {
                     is Set<*> -> @Suppress("UNCHECKED_CAST") putStringSet(key, value as Set<String>)
                 }
             }
-            for (key in json.keys()) {
-                if (key in exportExcludeKeys) continue
-                if (key == "__parem_export_version") continue
-                val value = json.get(key)
-                when {
-                    key in LONG_PREF_KEYS -> putLong(key, (value as Number).toLong())
-                    key in FLOAT_PREF_KEYS -> putFloat(key, (value as Number).toFloat())
-                    value is Boolean -> putBoolean(key, value)
-                    value is String -> putString(key, value)
-                    value is Int -> putInt(key, value)
-                    value is Long -> putLong(key, value)
-                    value is Double -> putFloat(key, value.toFloat())
-                    value is org.json.JSONArray -> {
-                        val set = mutableSetOf<String>()
-                        for (i in 0 until value.length()) set.add(value.getString(i))
-                        putStringSet(key, set)
-                    }
+            for ((key, value) in validated) {
+                when (value) {
+                    is Boolean -> putBoolean(key, value)
+                    is String -> putString(key, value)
+                    is Int -> putInt(key, value)
+                    is Long -> putLong(key, value)
+                    is Float -> putFloat(key, value)
+                    is Set<*> -> @Suppress("UNCHECKED_CAST") putStringSet(key, value as Set<String>)
                 }
             }
         }
+        if (!omniboxHistoryEnabled) omniboxHistory = ""
     }
 }

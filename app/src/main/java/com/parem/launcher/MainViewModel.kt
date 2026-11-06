@@ -35,6 +35,7 @@ import com.parem.launcher.helper.SingleLiveEvent
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.WallpaperWorker
 import com.parem.launcher.helper.WeatherManager
+import com.parem.launcher.helper.WebShortcut
 import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.hasBeenMinutes
 import com.parem.launcher.helper.isParemDefault
@@ -212,7 +213,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * focus resolution below is only the backstop for an ungated caller.
      */
     private fun launchUrl(url: String, packageName: String) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val safeUrl = WebShortcut.normalize(url) ?: run {
+            appContext.showToast(appContext.getString(R.string.unable_to_open_link))
+            return
+        }
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(safeUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         if (packageName.isNotEmpty()) {
             if (!FocusModeManager.isAppAllowed(appContext, packageName)) {
                 showFocusBlocked()

@@ -11,6 +11,7 @@ import org.junit.Before
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.FocusSchedule
@@ -30,15 +31,20 @@ class PrefsRoundTripTest {
     private val sp = context.getSharedPreferences(Prefs.PREFS_NAME, Context.MODE_PRIVATE)
 
     private lateinit var saved: Map<String, *>
+    private var savedHistory = ""
 
     @Before
-    fun preservePreferences() { saved = sp.all.toMap() }
+    fun preservePreferences() {
+        saved = sp.all.toMap()
+        savedHistory = Prefs(context).omniboxHistory
+    }
 
     @After
     fun restorePreferences() {
         val editor = sp.edit().clear()
         for ((key, value) in saved) if (value != null) editor.put(key, value)
         check(editor.commit())
+        Prefs(context).omniboxHistory = savedHistory
     }
 
     @Test
@@ -132,6 +138,34 @@ class PrefsRoundTripTest {
             assertEquals("value of $key", expected, actual)
         }
         assertEquals("excluded key keeps its local value", 7000L, all[EXCLUDED_KEY])
+    }
+
+    @Test
+    fun invalidImportLeavesPreferencesAndHistoryUntouched() {
+        val prefs = Prefs(context)
+        prefs.appTheme = 2
+        prefs.omniboxHistoryEnabled = true
+        prefs.omniboxHistory = "saved history"
+        val invalid = JSONObject().put("__parem_export_version", 1)
+            .put("OMNIBOX_HISTORY_ENABLED", false).put("APP_THEME", "x")
+        assertThrows(IllegalArgumentException::class.java) { prefs.importFromJson(invalid) }
+        assertEquals(2, prefs.appTheme)
+        assertTrue(prefs.omniboxHistoryEnabled)
+        assertEquals("saved history", prefs.omniboxHistory)
+    }
+
+    @Test
+    fun importWithHistoryOffOrAbsentErasesHistory() {
+        val prefs = Prefs(context)
+        for (includeOff in listOf(true, false)) {
+            prefs.omniboxHistoryEnabled = true
+            prefs.omniboxHistory = "saved history"
+            val json = JSONObject().put("__parem_export_version", 1)
+            if (includeOff) json.put("OMNIBOX_HISTORY_ENABLED", false)
+            prefs.importFromJson(json)
+            assertFalse(prefs.omniboxHistoryEnabled)
+            assertEquals("", prefs.omniboxHistory)
+        }
     }
 
     // Set implementations differ (LinkedHashSet seed vs HashSet from prefs)

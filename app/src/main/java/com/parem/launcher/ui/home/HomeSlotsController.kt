@@ -25,6 +25,7 @@ import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.FolderManager
 import com.parem.launcher.helper.Haptics
 import com.parem.launcher.helper.HomeCapacity
+import com.parem.launcher.helper.WebShortcut
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getAppsList
@@ -295,11 +296,15 @@ class HomeSlotsController(
     fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String? = null) {
         val ctx = fragment.context ?: return
         if (url != null) {
+            val safeUrl = WebShortcut.normalize(url) ?: run {
+                ctx.showToast(ctx.getString(R.string.unable_to_open_link))
+                return
+            }
             // The gated browser rides along as the package so selectedApp pins the intent to it
             BadHabitDialogs.gateWebOpen(
                 ctx, fragment.viewLifecycleOwner.lifecycleScope, { fragment.isAdded },
-                Intent(Intent.ACTION_VIEW, Uri.parse(url)),
-                open = { browser -> openApp(appName, browser, activityClassName, userString, url) },
+                Intent(Intent.ACTION_VIEW, Uri.parse(safeUrl)),
+                open = { browser -> openApp(appName, browser, activityClassName, userString, safeUrl) },
             )
             return
         }
