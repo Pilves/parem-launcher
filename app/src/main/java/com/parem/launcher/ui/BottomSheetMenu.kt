@@ -250,7 +250,7 @@ class BottomSheetMenu(private val context: Context) {
         dialog.setContentView(content)
         dialog.transparentSheetFrame()
         dialog.disableAnimationsOnEink()
-        if (!context.skipAnimations()) dialog.window?.setWindowAnimations(R.style.ParemSheetWindowAnimation)
+        Motion.configureWindow(dialog, R.style.ParemSheetWindowAnimation)
         dialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
         dialog.behavior.skipCollapsed = true
         dialog.window?.setDimAmount(0.5f)
@@ -259,6 +259,7 @@ class BottomSheetMenu(private val context: Context) {
             android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
         )
         dialog.show()
+        Motion.watchWindow(dialog, R.style.ParemSheetWindowAnimation)
         Motion.stagger(motionRows)
         return dialog
     }

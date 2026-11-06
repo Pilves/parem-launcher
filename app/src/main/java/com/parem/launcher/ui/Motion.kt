@@ -1,7 +1,13 @@
 package com.parem.launcher.ui
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.app.Dialog
+import android.database.ContentObserver
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import android.animation.ObjectAnimator
 import android.animation.StateListAnimator
 import android.view.View
@@ -13,16 +19,49 @@ import com.parem.launcher.helper.skipAnimations
 /** Visual feedback only: never owns a touch listener or delays an action. */
 internal object Motion {
     fun showPopup(dialog: Dialog) {
-        dialog.window?.setWindowAnimations(if (dialog.context.skipAnimations()) 0 else R.style.ParemPopupWindowAnimation)
+        configureWindow(dialog, R.style.ParemPopupWindowAnimation)
         dialog.show()
+        watchWindow(dialog, R.style.ParemPopupWindowAnimation)
+    }
+
+    fun configureWindow(dialog: Dialog, style: Int) {
+        dialog.window?.setWindowAnimations(if (dialog.context.skipAnimations()) 0 else style)
+    }
+
+    /** Window animations do not obey animator scale, so update them while a dialog is open. */
+    fun watchWindow(dialog: Dialog, style: Int) {
+        val window = dialog.window ?: return
+        val resolver = dialog.context.contentResolver
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) { configureWindow(dialog, style) }
+        }
+        listOf(Settings.Global.WINDOW_ANIMATION_SCALE, Settings.Global.TRANSITION_ANIMATION_SCALE,
+            Settings.Global.ANIMATOR_DURATION_SCALE).forEach {
+            resolver.registerContentObserver(Settings.Global.getUriFor(it), false, observer)
+        }
+        window.decorView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) = Unit
+            override fun onViewDetachedFromWindow(v: View) {
+                resolver.unregisterContentObserver(observer)
+                v.removeOnAttachStateChangeListener(this)
+            }
+        })
     }
 
     fun press(view: View) {
-        if (view.context.skipAnimations()) return
         fun scale(to: Float) = AnimatorSet().apply {
             playTogether(ObjectAnimator.ofFloat(view, View.SCALE_X, to), ObjectAnimator.ofFloat(view, View.SCALE_Y, to))
             duration = view.resources.getInteger(R.integer.motion_press).toLong()
             interpolator = DecelerateInterpolator()
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationStart(animation: Animator) {
+                    if (view.context.skipAnimations()) {
+                        animation.cancel()
+                        view.scaleX = 1f
+                        view.scaleY = 1f
+                    }
+                }
+            })
         }
         view.stateListAnimator = StateListAnimator().apply {
             addState(intArrayOf(android.R.attr.state_enabled, android.R.attr.state_pressed), scale(.97f))
