@@ -228,6 +228,12 @@ Tiers: **BLOCKS 6.0** must land before the Play submission; **should land**; **c
 | M4-WP64 | **Done** (PR #0). Prepare v6.0.0-beta.2 and verify release edge cases | Release metadata, release checklist and evidence, integration fixes for WP24/WP60/WP61/WP63 | Full compile/JVM/debug/release build, smoke CI on exact candidate, tablet-only upgrade/UI/recovery checks; owner tags after sign-off |
 | M4-WP65 | **Design first.** Tier: 6.1, not for 6.0. Bring in-app adb pairing back to the `play` build if it can be defended. Re-evaluate L1 in `docs/play/compliance.md` against the precedent of Key Mapper and the policy text current at the time. Fix the TLS trust manager in `WirelessAdb.kt` first: it accepts any non-empty certificate chain, which Play can treat as a vulnerability on its own | Depends on: the Play-channel override in `docs/design/DECISIONS.md`. Files: `app/src/full/java/.../helper/adb/WirelessAdb.kt`, `helper/ChannelFeatures` (both flavours), `app/build.gradle`, `scripts/check-play-build.sh` | Trust manager fixed with a JVM test; written re-evaluation; Patric signs off before any Play upload carries pairing. AGENTS.md checks exit 0 |
 
+**6.1 hardening follow-ups:** Bound remote response bytes and image decode sizes,
+and consider an image-host allowlist for daily wallpaper and weather content.
+For the WebUSB grant page, delete the stored browser adb key and forget the USB
+device after a successful grant; verify that flow on a real phone over USB.
+These are deferred from 6.0 and are not implemented by this note.
+
 **Launch quality bars** (Play vitals bad-behaviour lines are 1.09% crash / 0.47% ANR):
 crash-free ≥ 99.8%, ANR < 0.2%, battery < 1%/day, APK < 10 MB, no RAM growth over 24 h.
 Pricing: free, no ads, no accounts, donations only — the privacy story is the differentiator.
