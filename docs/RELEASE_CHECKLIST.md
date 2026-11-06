@@ -237,6 +237,7 @@ device. Delete it again once the tag is pushed.
 **v6.0.0-beta.2 (versionCode 104)** — record the exact candidate SHA and results in `docs/releases/v6.0.0-beta.2-validation.md`. Physical testing is tablet-only by owner instruction; phone-specific checks remain unverified.
 
 - [ ] Upgrade the same package without clearing data; retain folders, home slots, widgets and app limits; export/import all preference types including wallpaper dimming
+- [ ] On a spare phone with the published, signed v5.5.1 full APK, configure home slots, a folder, a bound widget and a non-default theme; install the signed 6.0.0 full release over it without clearing data. Verify home opens and all four survive. Record the phone and Android version. CI's same-debug-key upgrade does not verify the release signing key.
 - [ ] Existing and newly added widgets render after resize, portrait/landscape rotation and process restart; API31+ options include nonempty size lists
 - [ ] At 200% font, light/dark/system themes and keyboard open, Focus, App limits, folder, website and widget sheets reach their last action; no tiny tablet column
 - [ ] Home gestures retain thresholds and double-tap lock; per-slot swipe-up opens all apps; TalkBack cannot focus the invisible lock view
