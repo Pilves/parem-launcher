@@ -91,6 +91,134 @@ class SmokeTest {
     }
 
     @Test
+    fun emptyHomeShowsOneHintAndKeepsFilledSlots() {
+        val prefs = Prefs(context)
+        device.executeShellCommand("mkdir -p $DIAG_DIR")
+        fun home(block: (MainActivity, com.parem.launcher.ui.home.HomeSlotsController) -> Unit) {
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                val host = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment)!!
+                val fragment = host.childFragmentManager.primaryNavigationFragment as com.parem.launcher.ui.HomeFragment
+                block(activity, fragment.slotsController!!)
+            }
+        }
+        home { _, slots ->
+            prefs.homeAppsNum = 4
+            slots.populateHomeScreen(false)
+            assertEquals(View.VISIBLE, slots.homeAppViews[0].visibility)
+            assertEquals(context.getString(R.string.long_press_to_select_app), slots.homeAppViews[0].hint.toString())
+            assertEquals(context.getString(R.string.long_press_to_select_app), slots.homeAppViews[0].contentDescription.toString())
+            assertTrue(slots.homeAppViews.drop(1).all { it.visibility == View.GONE })
+        }
+        device.waitForIdle()
+        device.executeShellCommand("screencap -p $DIAG_DIR/empty-home-first.png")
+        assertTrue(device.executeShellCommand("ls $DIAG_DIR/empty-home-first.png").contains("empty-home-first.png"))
+        home { _, slots ->
+            prefs.setHomeAppName(1, "Settings")
+            prefs.setHomeAppPackage(1, "com.android.settings")
+            prefs.setHomeAppUser(1, android.os.Process.myUserHandle().toString())
+            slots.populateHomeScreen(false)
+            assertEquals("Settings", slots.homeAppViews[0].text.toString())
+            assertEquals(View.VISIBLE, slots.homeAppViews[1].visibility)
+            assertTrue(slots.homeAppViews.drop(2).all { it.visibility == View.GONE })
+        }
+        device.waitForIdle()
+        device.executeShellCommand("screencap -p $DIAG_DIR/empty-home-one-slot.png")
+        assertTrue(device.executeShellCommand("ls $DIAG_DIR/empty-home-one-slot.png").contains("empty-home-one-slot.png"))
+        home { _, slots ->
+            prefs.setHomeAppName(3, "Example")
+            prefs.setHomeAppUrl(3, "https://example.com")
+            slots.populateHomeScreen(false)
+            assertEquals(View.VISIBLE, slots.homeAppViews[1].visibility)
+            assertEquals(View.VISIBLE, slots.homeAppViews[2].visibility)
+            assertEquals("Example", slots.homeAppViews[2].text.toString())
+            com.parem.launcher.helper.FolderManager(context).createFolder(4, "Folder", emptyList())
+            slots.populateHomeScreen(false)
+            assertEquals(View.VISIBLE, slots.homeAppViews[3].visibility)
+            assertEquals("Folder", slots.homeAppViews[3].text.toString())
+            prefs.homeLayoutLocked = true
+            slots.populateHomeScreen(false)
+            assertEquals(View.GONE, slots.homeAppViews[1].visibility)
+            assertEquals(View.VISIBLE, slots.homeAppViews[2].visibility)
+        }
+    }
+
+    @Test
+    fun removingAndUndoingLastSlotRestoresTheHintAndApp() {
+        val prefs = Prefs(context)
+        prefs.setHomeAppName(1, "Settings")
+        prefs.setHomeAppPackage(1, "com.android.settings")
+        prefs.setHomeAppUser(1, android.os.Process.myUserHandle().toString())
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            val host = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment)!!
+            val fragment = host.childFragmentManager.primaryNavigationFragment as com.parem.launcher.ui.HomeFragment
+            fragment.slotsController!!.apply { populateHomeScreen(false); showHomeSlotMenu(1) }
+        }
+        val remove = device.wait(Until.findObject(By.text(context.getString(R.string.app_menu_remove_home))), TIMEOUT)
+        assertNotNull("Remove from home missing", remove)
+        remove.click()
+        val undoId = context.resources.getResourceName(com.google.android.material.R.id.snackbar_action)
+        val undo = device.wait(Until.findObject(By.res(undoId)), TIMEOUT)
+        if (undo == null) fail("Undo missing\n${screenDiagnostics()}")
+        assertTrue("empty hint missing after removal", device.wait(Until.hasObject(
+            By.desc(context.getString(R.string.long_press_to_select_app))), TIMEOUT))
+        undo.click()
+        assertTrue("app not restored", device.wait(Until.hasObject(By.text("Settings")), TIMEOUT))
+        assertEquals("com.android.settings", prefs.getHomeAppPackage(1))
+    }
+
+    @Test
+    fun drawerSearchHasEqualGuttersAndRoomForRename() {
+        openDrawer()
+        device.waitForIdle()
+        device.executeShellCommand("mkdir -p $DIAG_DIR")
+        device.executeShellCommand("screencap -p $DIAG_DIR/drawer-search.png")
+        assertTrue(device.executeShellCommand("ls $DIAG_DIR/drawer-search.png").contains("drawer-search.png"))
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            val search = activity.findViewById<SearchView>(R.id.search)
+            val params = search.layoutParams as android.view.ViewGroup.MarginLayoutParams
+            if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                val gutter = (20 * context.resources.displayMetrics.density + .5f).toInt()
+                assertEquals(gutter, params.marginStart)
+                assertEquals(gutter, params.marginEnd)
+            } else {
+                assertEquals(0, params.marginStart)
+                assertEquals(0, params.marginEnd)
+            }
+            activity.findNavController(R.id.nav_host_fragment).popBackStack()
+        }
+        assertTrue("home did not return", device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            activity.findNavController(R.id.nav_host_fragment).navigate(R.id.appListFragment,
+                bundleOf(Constants.Key.FLAG to Constants.FLAG_SET_HOME_APP_1,
+                    Constants.Key.RENAME to true, Constants.Key.QUERY to "New name"))
+        }
+        val renameId = context.resources.getResourceName(R.id.appRename)
+        assertTrue("rename action did not appear", device.wait(Until.hasObject(By.res(renameId)), TIMEOUT))
+        val deadline = SystemClock.elapsedRealtime() + TIMEOUT
+        var separated = false
+        while (!separated && SystemClock.elapsedRealtime() < deadline) {
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                val search = activity.findViewById<View>(R.id.search)
+                val rename = activity.findViewById<View>(R.id.appRename)
+                separated = search.width > 0 && rename.width > 0 &&
+                    (search.right <= rename.left || rename.right <= search.left)
+            }
+            if (!separated) SystemClock.sleep(100)
+        }
+        if (!separated) fail("search overlaps rename\n${screenDiagnostics()}")
+    }
+
+    @Test
     fun wallpaperWorkRunsAndPeriodicJobIsScheduledWithoutForegroundService() {
         val prefs = Prefs(context)
         prefs.dailyWallpaper = false // Exercise the real worker without an HTTP dependency.
@@ -371,6 +499,39 @@ class SmokeTest {
     }
 
     @Test
+    fun homePaddingClearsClockInBothOrientations() {
+        fun assertClearance() {
+            device.waitForIdle()
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                val clock = activity.findViewById<View>(R.id.dateTimeLayout)
+                val apps = activity.findViewById<View>(R.id.homeAppsLayout)
+                val widgetColumn = activity.findViewById<View>(R.id.widgetScrollViewAbove).parent as View
+                val clockAt = IntArray(2)
+                clock.getLocationInWindow(clockAt)
+                for (column in listOf(apps, widgetColumn).distinct()) {
+                    val at = IntArray(2)
+                    column.getLocationInWindow(at)
+                    val gap = (8 * context.resources.displayMetrics.density).toInt()
+                    assertEquals("clock clearance must use the column's window origin",
+                        (clockAt[1] + clock.height - at[1] + gap).coerceAtLeast(0), column.paddingTop)
+                }
+            }
+        }
+        assertClearance()
+        if (context.resources.configuration.smallestScreenWidthDp >= 600) {
+            try {
+                device.setOrientationLandscape()
+                assertTrue(device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+                assertClearance()
+            } finally {
+                device.setOrientationNatural()
+            }
+        }
+    }
+
+    @Test
     fun landscapeFirstRunAndScreenTime() {
         if (context.resources.configuration.smallestScreenWidthDp < 600) return
         try {
@@ -428,11 +589,42 @@ class SmokeTest {
                 Prefs(context).apply {
                     setWidgetIdList(listOf(id))
                     setWidgetProvider(id, provider.flattenToString())
-                    setWidgetHeight(id, 600)
+                    setWidgetHeight(id, 500)
+                    homeAppsNum = 4
+                    setHomeAppName(1, "Settings")
+                    setHomeAppPackage(1, "com.android.settings")
+                    setHomeAppUser(1, android.os.Process.myUserHandle().toString())
                 }
                 activity.recreate()
             }
             assertTrue("fixture widget missing", device.wait(Until.hasObject(By.text("WP28 fixture widget")), TIMEOUT))
+            device.waitForIdle()
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                val scroll = listOfNotNull(
+                    activity.findViewById<ScrollView>(R.id.widgetScrollViewAbove),
+                    activity.findViewById<ScrollView>(R.id.widgetScrollViewBelow),
+                ).first { it.isShown }
+                val container = scroll.getChildAt(0) as android.view.ViewGroup
+                val wrapper = container.getChildAt(0) as android.view.ViewGroup
+                val handle = wrapper.getChildAt(wrapper.childCount - 1)
+                val before = wrapper.layoutParams.height
+                val now = android.os.SystemClock.uptimeMillis()
+                fun send(action: Int, y: Float) {
+                    val event = android.view.MotionEvent.obtain(now, now, action, 10f, y, 0)
+                    handle.dispatchTouchEvent(event)
+                    event.recycle()
+                }
+                send(android.view.MotionEvent.ACTION_DOWN, 10f)
+                send(android.view.MotionEvent.ACTION_MOVE, 293f)
+                send(android.view.MotionEvent.ACTION_UP, 293f)
+                assertTrue("widget resize did not increase its height", wrapper.layoutParams.height > before)
+            }
+            device.waitForIdle()
+            assertTrue("filled slot disappeared after widget resize", device.wait(Until.hasObject(By.text("Settings")), TIMEOUT))
+            assertTrue("empty slot hint disappeared after widget resize", device.wait(Until.hasObject(
+                By.desc(context.getString(R.string.long_press_to_select_app))), TIMEOUT))
             device.executeShellCommand("mkdir -p $DIAG_DIR")
             device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-widget-landscape-before.png")
             openDrawer()

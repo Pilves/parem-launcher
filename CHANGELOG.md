@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 - Exclude Android screensaver activity from screen-time totals and app limits.
+- Keep home widgets and app slots clear of the clock without counting the top inset twice.
+
+- Show one translated add-app hint for empty home slots and hide empty slots when the home layout is locked.
+- Align the portrait drawer search bar with the app list.
+
 - Keep drawer Enter responsive while results load and keep hidden-app search tips consistent.
 
 - Wait for the current drawer search results before handling Enter.

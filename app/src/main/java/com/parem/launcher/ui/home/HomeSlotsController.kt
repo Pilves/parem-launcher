@@ -25,6 +25,7 @@ import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.FolderManager
 import com.parem.launcher.helper.Haptics
 import com.parem.launcher.helper.HomeCapacity
+import com.parem.launcher.helper.HomeSlotRows
 import com.parem.launcher.helper.WebShortcut
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.dpToPx
@@ -136,6 +137,7 @@ class HomeSlotsController(
         widgetRoomPx = null
         val homeAppsNum = prefs.homeAppsNum.coerceAtMost(homeAppViews.size)
 
+        val occupied = mutableListOf<Boolean>()
         for (i in 0 until homeAppsNum) {
             val slot = i + 1
             val view = homeAppViews[i]
@@ -159,6 +161,14 @@ class HomeSlotsController(
                 }
                 view.contentDescription = appName.ifEmpty { emptySlotHint() }
             }
+            occupied += folderManager.isFolderSlot(slot) || prefs.getHomeAppUrl(slot).isNotEmpty() ||
+                prefs.getHomeAppName(slot).isNotEmpty() || prefs.getHomeAppPackage(slot).isNotEmpty()
+        }
+        val rows = HomeSlotRows.render(occupied, prefs.homeLayoutLocked)
+        homeAppViews.forEachIndexed { index, view ->
+            val row = rows.getOrNull(index) ?: HomeSlotRows.Row.HIDDEN
+            view.hint = if (row == HomeSlotRows.Row.HINT) emptySlotHint() else null
+            view.visibility = if (row == HomeSlotRows.Row.HIDDEN) View.GONE else View.VISIBLE
         }
 
         // Dynamic fitting: adjust padding to clear date/time, then hide overflow apps
@@ -169,24 +179,29 @@ class HomeSlotsController(
 
                 // Adjust top padding to clear the dateTimeLayout
                 val dtLayout = binding.dateTimeLayout
-                val minTopPadding = if (dtLayout.isVisible) {
-                    (dtLayout.top + dtLayout.height + (8 * context.resources.displayMetrics.density).toInt())
-                } else {
-                    (56 * context.resources.displayMetrics.density).toInt()
+                val clockLocation = IntArray(2)
+                if (dtLayout.isVisible) dtLayout.getLocationInWindow(clockLocation)
+                fun paddingFor(column: View): Int {
+                    if (!dtLayout.isVisible) return (56 * context.resources.displayMetrics.density).toInt()
+                    val columnLocation = IntArray(2)
+                    column.getLocationInWindow(columnLocation)
+                    return HomeCapacity.topPadding(
+                        clockLocation[1] + dtLayout.height, columnLocation[1],
+                        (8 * context.resources.displayMetrics.density).toInt()
+                    )
                 }
+                val minTopPadding = paddingFor(layout)
                 if (layout.paddingTop != minTopPadding) {
                     layout.setPadding(layout.paddingLeft, minTopPadding, layout.paddingRight, layout.paddingBottom)
                 }
 
-                // Landscape: the widget column clears the clock dynamically too,
-                // so widgets start straight below it instead of at a fixed guess.
-                // In portrait the scroll views live inside homeAppsLayout and the
-                // guard skips this.
+                // Landscape widget and app columns may have different window origins.
                 (binding.widgetScrollViewAbove?.parent as? ViewGroup)
                     ?.takeIf { it !== layout }
                     ?.let { column ->
-                        if (column.paddingTop != minTopPadding)
-                            column.setPadding(column.paddingLeft, minTopPadding, column.paddingRight, column.paddingBottom)
+                        val columnPadding = paddingFor(column)
+                        if (column.paddingTop != columnPadding)
+                            column.setPadding(column.paddingLeft, columnPadding, column.paddingRight, column.paddingBottom)
                     }
 
                 // Run fitting after the padding change has been laid out
@@ -214,22 +229,24 @@ class HomeSlotsController(
 
                     // Measure height of a single app view
                     val firstVisible = homeAppViews.firstOrNull { it.isVisible }
-                    val singleAppHeight = firstVisible?.height ?: return@fitApps
+                    val sample = firstVisible ?: homeAppViews.firstOrNull() ?: return@fitApps
+                    if (firstVisible == null) {
+                        val unspecified = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                        sample.measure(unspecified, unspecified)
+                    }
+                    val singleAppHeight = if (firstVisible == null) sample.measuredHeight else sample.height
                     if (singleAppHeight <= 0) return@fitApps
 
                     val maxFitting = HomeCapacity.fitting(usableHeight, singleAppHeight)
                     viewModel.homeAppsCapacity = maxFitting.coerceIn(1, 8)
-                    widgetRoomPx = HomeCapacity.room(usableHeight, singleAppHeight, homeAppsNum)
-                    if (maxFitting < homeAppsNum) {
-                        // Hide excess apps from the bottom
-                        for (j in homeAppViews.indices.reversed()) {
-                            if (j >= maxFitting && homeAppViews[j].isVisible) {
-                                homeAppViews[j].visibility = View.GONE
-                            }
-                        }
+                    widgetRoomPx = HomeCapacity.room(usableHeight, singleAppHeight, rows.count { it != HomeSlotRows.Row.HIDDEN })
+                    val fitted = HomeSlotRows.fit(rows, maxFitting)
+                    rows.forEachIndexed { index, row ->
+                        if (fitted[index] == HomeSlotRows.Row.HIDDEN) homeAppViews[index].visibility = View.GONE
                     }
-                    announceHidden(maxFitting, HomeCapacity.hiddenLabels(
-                        homeAppViews.map { it.text.toString() }, homeAppsNum, maxFitting))
+                    announceHidden(maxFitting, rows.indices.filter {
+                        rows[it] == HomeSlotRows.Row.FILLED && fitted[it] == HomeSlotRows.Row.HIDDEN
+                    }.map { homeAppViews[it].text.toString() }.filter { it.isNotBlank() })
                 }
             }
         }
