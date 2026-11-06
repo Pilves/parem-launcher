@@ -236,7 +236,8 @@ class AppDrawerFragment : BaseFragment() {
                 val ctx = context ?: return true
                 val q = query ?: ""
                 // Filtering and list diffs finish asynchronously; old rows must never handle Enter.
-                if (omniboxMode == OmniboxMode.None && !adapter.isQueryReady(q)) return true
+                if ((omniboxMode == OmniboxMode.None || omniboxMode is OmniboxMode.Setting) &&
+                    !adapter.isQueryReady(q)) return true
                 if (flag == Constants.FLAG_LAUNCH_APP && omniboxMode == OmniboxMode.None &&
                     (q.startsWith("!") || adapter.itemCount == 0) && currentHiddenLabels() == null) {
                     // A failed, incomplete or stale lookup stays closed; Enter retries it.

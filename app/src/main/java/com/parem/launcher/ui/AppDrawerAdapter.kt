@@ -45,8 +45,6 @@ class AppDrawerAdapter(
         }
     }
 
-    @Volatile private var autoLaunch = true
-    @Volatile private var isBangSearch = false
     // Main thread only. The same query can publish twice (a re-filter for
     // late usage stats or shortcuts); only the first may auto-launch.
     private var autoLaunchedQuery: String? = null
@@ -65,6 +63,14 @@ class AppDrawerAdapter(
     private val filterState = DrawerFilterState()
     fun isQueryReady(query: String): Boolean = filterState.isReady(query)
     fun suppressAutoLaunchForQuery(query: String) { autoLaunchedQuery = query }
+    private val appListLock = Any()
+    private data class FilteredApps(val generation: Long, val apps: List<AppModel>)
+    private data class FilterSnapshot(
+        val generation: Long,
+        val apps: List<AppModel>,
+        val keys: Map<String, SearchMatcher.LabelKey>,
+        val shortcuts: Pair<List<ShortcutMatcher.Entry>, Map<String, AppModel>>,
+    )
     private val appFilter = createAppFilter()
     private val myUserHandle = android.os.Process.myUserHandle()
 
@@ -81,8 +87,10 @@ class AppDrawerAdapter(
     /** App shortcuts (M4-WP14); only the launch drawer sets them. */
     @Volatile var shortcutRaws: List<ShortcutMatcher.Raw> = emptyList()
         set(value) {
-            field = value
-            rebuildShortcutEntries()
+            synchronized(appListLock) {
+                field = value
+                rebuildShortcutEntries()
+            }
         }
     @Volatile private var shortcutEntries: List<ShortcutMatcher.Entry> = emptyList()
     @Volatile private var shortcutParents: Map<String, AppModel> = emptyMap()
@@ -120,16 +128,17 @@ class AppDrawerAdapter(
     private fun createAppFilter(): Filter {
         return object : Filter() {
             override fun performFiltering(charSearch: CharSequence?): FilterResults {
-                isBangSearch = charSearch?.startsWith("!") ?: false
-                autoLaunch = charSearch?.startsWith(" ")?.not() ?: true
-
-                val snapshot = appsList.toList()
+                val (generation, snapshot, keys, shortcutSnapshot) = synchronized(appListLock) {
+                    val shortcuts = shortcutEntries to shortcutParents
+                    FilterSnapshot(filterState.generation(), appsList.toList(), labelKeys, shortcuts)
+                }
                 val statsSnapshot = usageStats
 
                 val searchText = charSearch?.toString()?.trim() ?: ""
                 var appFilteredList = (if (searchText.isBlank()) snapshot
                 else snapshot.filter { app ->
-                    appLabelMatches(app.appLabel, searchText)
+                    val key = keys[app.appLabel] ?: SearchMatcher.key(app.appLabel)
+                    SearchMatcher.matches(app.appLabel, key, searchText)
                 }).toMutableList()
 
                 if (sortByUsage) {
@@ -145,8 +154,8 @@ class AppDrawerAdapter(
 
                 // After the usage sort: shortcuts keep matcher order, under every app row
                 if (flag == Constants.FLAG_LAUNCH_APP && searchText.isNotBlank()) {
-                    val parents = shortcutParents
-                    ShortcutMatcher.filter(shortcutEntries, searchText).mapNotNullTo(appFilteredList) { e ->
+                    val (entries, parents) = shortcutSnapshot
+                    ShortcutMatcher.filter(entries, searchText).mapNotNullTo(appFilteredList) { e ->
                         parents[e.raw.appKey]?.copy(
                             key = null, activityClassName = null, isNew = false,
                             shortcutId = e.raw.id, shortcutLabel = e.raw.shortLabel,
@@ -155,35 +164,35 @@ class AppDrawerAdapter(
                 }
 
                 val filterResults = FilterResults()
-                filterResults.values = appFilteredList
+                filterResults.values = FilteredApps(generation, appFilteredList)
                 return filterResults
             }
 
-            @Suppress("UNCHECKED_CAST")
             override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
-                results?.values?.let {
-                    val items = (it as? MutableList<AppModel>) ?: (it as? List<AppModel>)?.toMutableList() ?: return
-                    appFilteredList = decorate(items, constraint.isNullOrBlank())
+                (results?.values as? FilteredApps)?.let { result ->
+                    if (!filterState.isCurrent(result.generation)) return
+                    appFilteredList = decorate(result.apps, constraint.isNullOrBlank())
                     val currentFiltered = appFilteredList.toList()
                     val query = constraint?.toString().orEmpty()
                     if (query != autoLaunchedQuery) autoLaunchedQuery = null
                     submitList(currentFiltered) {
-                        filterState.commit(query)
-                        onFilterCommitted(query)
-                        autoLaunch(currentFiltered, query)
+                        if (filterState.commit(query, result.generation)) {
+                            onFilterCommitted(query)
+                            autoLaunch(currentFiltered, query, result.generation)
+                        }
                     }
                 }
             }
         }
     }
 
-    private fun autoLaunch(filteredSnapshot: List<AppModel>, query: String) {
+    private fun autoLaunch(filteredSnapshot: List<AppModel>, query: String, generation: Long) {
         try {
             // App rows only: a shortcut row never starts or stops auto-launch
             if (filteredSnapshot.count { it.shortcutId == null } == 1
                 && query != autoLaunchedQuery
-                && autoLaunch
-                && isBangSearch.not()
+                && !query.startsWith(" ")
+                && !query.startsWith("!")
                 && flag == Constants.FLAG_LAUNCH_APP
                 && filteredSnapshot.isNotEmpty()
                 && !OmniboxResolver.blocksAutoLaunch(query)
@@ -192,7 +201,7 @@ class AppDrawerAdapter(
                 autoLaunchedQuery = query
                 Handler(Looper.getMainLooper()).post {
                     try {
-                        if (isQueryReady(query) && autoLaunchGuard(query))
+                        if (filterState.isCurrent(generation) && isQueryReady(query) && autoLaunchGuard(query))
                             firstApp(filteredSnapshot, includeShortcuts = false)?.let(appClickListener)
                     } catch (e: Exception) {
                         CrashReporter.reportNonFatal("AppDrawerAdapter.autoLaunch", e)
@@ -204,29 +213,26 @@ class AppDrawerAdapter(
         }
     }
 
-    private fun appLabelMatches(appLabel: String, charSearch: String): Boolean {
-        val key = labelKeys[appLabel] ?: SearchMatcher.key(appLabel)
-        return SearchMatcher.matches(appLabel, key, charSearch)
-    }
-
     fun setAppList(appsList: MutableList<AppModel>) {
         // Must stay first: every picker observes the same appList as the launch drawer
         val list = DrawerRows.gate(appsList, flag == Constants.FLAG_LAUNCH_APP) { it.isPrivate }.toMutableList()
-        this.appsList = list
-        filterState.invalidate()
-        val newKeys = mutableMapOf<String, SearchMatcher.LabelKey>()
-        for (app in list) {
-            newKeys[app.appLabel] = SearchMatcher.key(app.appLabel)
+        val generation = synchronized(appListLock) {
+            val token = filterState.invalidate()
+            this.appsList = list
+            val newKeys = mutableMapOf<String, SearchMatcher.LabelKey>()
+            for (app in list) newKeys[app.appLabel] = SearchMatcher.key(app.appLabel)
+            labelKeys = newKeys
+            rebuildShortcutEntries()
+            token
         }
-        labelKeys = newKeys
-        rebuildShortcutEntries()
+        // Cancel any pending ListAdapter diff based on the previous app list.
+        submitList(emptyList())
         if (sortByUsage && (usageStats.isNotEmpty() || openCounts.isNotEmpty())) {
             filter.filter("")
         } else {
             this.appFilteredList = decorate(list, searchBlank = true)
             submitList(appFilteredList.toList()) {
-                filterState.commit("")
-                onFilterCommitted("")
+                if (filterState.commit("", generation)) onFilterCommitted("")
             }
         }
     }

@@ -42,8 +42,15 @@ object DrawerRows {
 
 /** A result list is usable only after the adapter commits it for this query. */
 class DrawerFilterState {
+    private var generation = 0L
     private var committedQuery: String? = null
-    fun invalidate() { committedQuery = null }
-    fun commit(query: String) { committedQuery = query }
-    fun isReady(query: String): Boolean = committedQuery == query
+    @Synchronized fun generation(): Long = generation
+    @Synchronized fun invalidate(): Long { committedQuery = null; return ++generation }
+    @Synchronized fun isCurrent(token: Long): Boolean = generation == token
+    @Synchronized fun commit(query: String, token: Long): Boolean {
+        if (token != generation) return false
+        committedQuery = query
+        return true
+    }
+    @Synchronized fun isReady(query: String): Boolean = committedQuery == query
 }

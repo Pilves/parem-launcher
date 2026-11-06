@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Wait for the current drawer search results before handling Enter.
+
 - Keep picker and hidden-app searches off the web, and limit weather latitude to 84 degrees before rounding.
 - Reject malformed settings imports before replacing preferences, erase search history when imported settings turn it off, and restrict saved links to web addresses.
 

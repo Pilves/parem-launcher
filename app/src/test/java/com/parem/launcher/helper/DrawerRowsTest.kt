@@ -21,14 +21,21 @@ class DrawerRowsTest {
     @Test
     fun enterWaitsForTheCommittedQueryAndReload() {
         val state = DrawerFilterState()
-        state.commit("visible app")
+        val generation = state.generation()
+        state.commit("visible app", generation)
         assertTrue(state.isReady("visible app"))
         assertFalse(state.isReady("hidden app"))
-        state.commit("hidden app")
+        state.commit("hidden app", generation)
         assertTrue(state.isReady("hidden app"))
         assertFalse(state.isReady("visible app"))
-        state.invalidate()
+        val newer = state.invalidate()
         assertFalse(state.isReady("hidden app"))
+        assertFalse(state.commit("hidden app", generation))
+        assertFalse(state.isReady("hidden app"))
+        assertFalse(state.isCurrent(generation))
+        assertTrue(state.commit("hidden app", newer))
+        assertTrue(state.isReady("hidden app"))
+        assertFalse(state.isCurrent(generation))
     }
 
     @Test
