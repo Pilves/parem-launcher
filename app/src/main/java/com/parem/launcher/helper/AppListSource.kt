@@ -109,7 +109,7 @@ private suspend fun loadAppsList(
  */
 private fun queryRawApps(context: Context): Pair<List<AppListRebuilder.RawApp<UserHandle>>, Boolean> {
     val rawApps = mutableListOf<AppListRebuilder.RawApp<UserHandle>>()
-    var complete = true
+    val profiles = AppListProfileQuery()
     return try {
         val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
         val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
@@ -117,11 +117,8 @@ private fun queryRawApps(context: Context): Pair<List<AppListRebuilder.RawApp<Us
             // Fails closed: a profile whose type can't be read is skipped
             // rather than risk listing private apps as regular ones.
             val isPrivate = isPrivateProfile(launcherApps, profile)
-            if (isPrivate == null) {
-                complete = false
-                continue
-            }
-            if (AppListRebuilder.skipQuietProfile(isPrivate, userManager.isQuietModeEnabled(profile))) continue
+            val quiet = isPrivate != null && userManager.isQuietModeEnabled(profile)
+            if (!profiles.shouldQuery(isPrivate, quiet)) continue
             for (app in launcherApps.getActivityList(null, profile)) {
                 val label = app.label.toString()
                 // RuleBasedCollator is not thread-safe, and two callers (e.g. the
@@ -137,12 +134,12 @@ private fun queryRawApps(context: Context): Pair<List<AppListRebuilder.RawApp<Us
                         app.firstInstallTime,
                         profile,
                         profile.toString(),
-                        isPrivate,
+                        isPrivate == true,
                     )
                 )
             }
         }
-        Pair(rawApps, complete)
+        Pair(rawApps, profiles.complete)
     } catch (e: Exception) {
         CrashReporter.reportNonFatal("AppListSource.query", e)
         Pair(rawApps, false)

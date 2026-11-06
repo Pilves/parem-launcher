@@ -10,9 +10,14 @@ class AppListRebuilderTest {
 
     @Test
     fun quietWorkProfileRemainsQueryableWhileQuietPrivateProfileIsSkipped() {
-        assertFalse(AppListRebuilder.skipQuietProfile(isPrivate = false, isQuiet = true))
-        assertTrue(AppListRebuilder.skipQuietProfile(isPrivate = true, isQuiet = true))
-        assertFalse(AppListRebuilder.skipQuietProfile(isPrivate = true, isQuiet = false))
+        val profiles = AppListProfileQuery()
+        assertTrue(profiles.shouldQuery(isPrivate = false, isQuiet = true))
+        assertTrue("paused work must not make the query incomplete", profiles.complete)
+        assertFalse(profiles.shouldQuery(isPrivate = true, isQuiet = true))
+        assertTrue(profiles.complete)
+        assertTrue(profiles.shouldQuery(isPrivate = true, isQuiet = false))
+        assertFalse(profiles.shouldQuery(isPrivate = null, isQuiet = false))
+        assertFalse("an unreadable profile type must fail closed", profiles.complete)
     }
 
     private val collator = Collator.getInstance()

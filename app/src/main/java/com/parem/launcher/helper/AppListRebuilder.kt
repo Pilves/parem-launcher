@@ -15,9 +15,6 @@ import java.text.CollationKey
  */
 object AppListRebuilder {
 
-    /** A quiet private profile is skipped; a quiet work profile may return no apps. */
-    fun skipQuietProfile(isPrivate: Boolean, isQuiet: Boolean): Boolean = isPrivate && isQuiet
-
     /** The hidden-apps set entry for one app in one profile: `package|userString`. */
     fun hiddenKey(packageName: String, userString: String): String = "$packageName|$userString"
 
@@ -86,5 +83,19 @@ object AppListRebuilder {
         // apps form their own section after every regular one.
         result.sortWith(compareBy({ it.app.isPrivate }, { it.app.key }))
         return result
+    }
+}
+
+/** Tracks whether profile enumeration is safe to cache and use for hidden-app search. */
+class AppListProfileQuery {
+    var complete = true
+        private set
+
+    fun shouldQuery(isPrivate: Boolean?, isQuiet: Boolean): Boolean {
+        if (isPrivate == null) {
+            complete = false
+            return false
+        }
+        return !isPrivate || !isQuiet
     }
 }
