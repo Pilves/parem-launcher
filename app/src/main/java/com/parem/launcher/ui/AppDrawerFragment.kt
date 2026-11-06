@@ -368,8 +368,11 @@ class AppDrawerFragment : BaseFragment() {
     private fun canOpenImplicitSearch(query: String): Boolean {
         if (!isAdded || _binding == null) return false
         val labels = currentHiddenLabels()
-        if (labels == null && (!hiddenLabelsLoading ||
-                hiddenLabels.isStale(prefs.hiddenApps, PackageChangeTracker.stamp()))) loadHiddenLabels()
+        if (labels == null) {
+            if (!hiddenLabelsLoading || hiddenLabels.isStale(prefs.hiddenApps, PackageChangeTracker.stamp()))
+                loadHiddenLabels()
+            requireContext().showToast(getString(R.string.checking_hidden_apps))
+        }
         return HiddenAppHint.canSearchWeb(query, labels)
     }
 
