@@ -348,6 +348,8 @@ Do not clear the daily phone's data or change its wallpaper for this test.
       Play build offers the computer route and no in-app wireless pairing; verify
       Full offers its pairing route and that cancelling it leaves colour intact.
       Test the grant, enabling grayscale and restoring colour on each flavour.
+- [ ] Full: turn wireless debugging off and on, then pair in Parem with a fresh
+      code; verify the grant succeeds even if a stale local mDNS entry remains.
 - [ ] Open home, app, folder, limit, focus, widget and lock/consent sheets;
       reach the last action, dismiss by Back and outside tap, and verify their
       intended action. Repeat at Android font size 200% with keyboard open.

@@ -6,9 +6,11 @@ import android.net.nsd.NsdServiceInfo
 import android.net.ssl.SSLSockets
 import android.os.SystemClock
 import androidx.annotation.RequiresApi
+import com.parem.launcher.helper.AdbConnectPorts
 import java.io.DataInputStream
 import java.io.IOException
 import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.net.NetworkInterface
 import java.net.Socket
 import java.security.KeyPair
@@ -53,11 +55,22 @@ object WirelessAdb {
     fun pairAndRun(context: Context, code: String, command: String): String {
         val keyPair = KeyPairGenerator.getInstance("RSA").apply { initialize(2048) }.generateKeyPair()
         val ssl = sslContext(keyPair, AdbWire.selfSignedCertificate(keyPair, KEY_NAME))
-        val pairPort = discoverOwnPort(context, PAIRING_SERVICE) ?: throw AdbException(Failure.PAIRING_NOT_FOUND)
+        val pairPort = discoverOwnPorts(context, PAIRING_SERVICE, firstOnly = true).firstOrNull()
+            ?: throw AdbException(Failure.PAIRING_NOT_FOUND)
         pair(ssl, pairPort, code, keyPair)
-        val connectPort = discoverOwnPort(context, CONNECT_SERVICE) ?: throw AdbException(Failure.CONNECT_NOT_FOUND)
+        val connectPorts = discoverOwnPorts(context, CONNECT_SERVICE, firstOnly = false)
+        if (connectPorts.isEmpty()) throw AdbException(Failure.CONNECT_NOT_FOUND)
         return try {
-            shell(ssl, connectPort, command)
+            AdbConnectPorts.withFirstConnected(connectPorts, connect = { port ->
+                val plain = Socket()
+                try {
+                    plain.connect(InetSocketAddress(LOOPBACK, port), IO_TIMEOUT_MS)
+                    plain
+                } catch (e: Exception) {
+                    try { plain.close() } catch (_: IOException) {}
+                    throw e
+                }
+            }) { socket -> shell(ssl, socket, command) }
         } catch (e: IOException) {
             throw AdbException(Failure.CONNECTION, e)
         }
@@ -100,15 +113,15 @@ object WirelessAdb {
         }
     }
 
-    private fun shell(ssl: SSLContext, port: Int, command: String): String {
-        Socket(LOOPBACK, port).use { plain ->
+    private fun shell(ssl: SSLContext, socket: Socket, command: String): String {
+        socket.use { plain ->
             plain.soTimeout = IO_TIMEOUT_MS
             plain.outputStream.write(AdbWire.message(AdbWire.CNXN, AdbWire.VERSION, AdbWire.MAX_DATA, "host::".toByteArray()))
             val first = AdbWire.readMessage(DataInputStream(plain.inputStream))
             if (first.command != AdbWire.STLS) throw IOException("expected STLS, got ${first.command}")
             plain.outputStream.write(AdbWire.message(AdbWire.STLS, AdbWire.STLS_VERSION, 0))
 
-            (ssl.socketFactory.createSocket(plain, LOOPBACK, port, true) as SSLSocket).use { tls ->
+            (ssl.socketFactory.createSocket(plain, LOOPBACK, plain.port, true) as SSLSocket).use { tls ->
                 tls.soTimeout = IO_TIMEOUT_MS
                 tls.enabledProtocols = arrayOf("TLSv1.3")
                 tls.startHandshake()
@@ -136,9 +149,10 @@ object WirelessAdb {
     // ---- mDNS ----
 
     @Suppress("DEPRECATION") // resolveService/host: the replacements are API 34+
-    private fun discoverOwnPort(context: Context, type: String): Int? {
-        val nsd = context.getSystemService(NsdManager::class.java) ?: return null
+    private fun discoverOwnPorts(context: Context, type: String, firstOnly: Boolean): List<Int> {
+        val nsd = context.getSystemService(NsdManager::class.java) ?: return emptyList()
         val found = LinkedBlockingQueue<NsdServiceInfo>()
+        val ports = linkedSetOf<Int>()
         val listener = object : NsdManager.DiscoveryListener {
             override fun onServiceFound(info: NsdServiceInfo) { found.add(info) }
             override fun onDiscoveryStarted(serviceType: String) {}
@@ -153,8 +167,8 @@ object WirelessAdb {
             val own = ownAddresses()
             while (true) {
                 val left = deadline - SystemClock.elapsedRealtime()
-                if (left <= 0) return null
-                val info = found.poll(left, TimeUnit.MILLISECONDS) ?: return null
+                if (left <= 0) return ports.toList()
+                val info = found.poll(left, TimeUnit.MILLISECONDS) ?: return ports.toList()
                 // One resolve at a time: older NsdManager rejects concurrent ones
                 val latch = CountDownLatch(1)
                 var resolved: NsdServiceInfo? = null
@@ -162,10 +176,15 @@ object WirelessAdb {
                     override fun onServiceResolved(serviceInfo: NsdServiceInfo) { resolved = serviceInfo; latch.countDown() }
                     override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) { latch.countDown() }
                 })
-                latch.await(left, TimeUnit.MILLISECONDS)
+                val resolveTime = deadline - SystemClock.elapsedRealtime()
+                if (resolveTime <= 0) return ports.toList()
+                latch.await(resolveTime, TimeUnit.MILLISECONDS)
                 val r = resolved ?: continue
                 val host = r.host ?: continue
-                if (own.any { it.address.contentEquals(host.address) }) return r.port
+                if (r.port in 1..65535 && own.any { it.address.contentEquals(host.address) }) {
+                    ports.add(r.port)
+                    if (firstOnly) return ports.toList()
+                }
             }
         } finally {
             try { nsd.stopServiceDiscovery(listener) } catch (_: Exception) {}
