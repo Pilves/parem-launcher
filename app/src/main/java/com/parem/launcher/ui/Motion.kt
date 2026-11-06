@@ -66,7 +66,7 @@ internal object Motion {
             (child is ViewGroup && (0 until child.childCount).any { interactive(child.getChildAt(it)) })
         for (index in 0 until view.childCount) {
             val content = view.getChildAt(index)
-            if (interactive(content)) continue
+            if (content is MotionTextView || interactive(content)) continue
             content.isDuplicateParentStateEnabled = true
             fun scale(to: Float) = AnimatorSet().apply {
                 playTogether(ObjectAnimator.ofFloat(content, View.SCALE_X, to), ObjectAnimator.ofFloat(content, View.SCALE_Y, to))
@@ -86,32 +86,7 @@ internal object Motion {
                 addState(intArrayOf(android.R.attr.state_enabled, android.R.attr.state_pressed), scale(.97f))
                 addState(intArrayOf(), scale(1f))
             }
-            val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
-                override fun onChange(selfChange: Boolean) {
-                    if (content.context.skipAnimations()) {
-                        content.stateListAnimator?.jumpToCurrentState()
-                        content.scaleX = 1f
-                        content.scaleY = 1f
-                    }
-                }
-            }
-            var observing = false
-            fun register() {
-                if (observing) return
-                listOf(Settings.Global.WINDOW_ANIMATION_SCALE, Settings.Global.TRANSITION_ANIMATION_SCALE,
-                    Settings.Global.ANIMATOR_DURATION_SCALE).forEach {
-                    content.context.contentResolver.registerContentObserver(Settings.Global.getUriFor(it), false, observer)
-                }
-                observing = true
-            }
-            content.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-                override fun onViewAttachedToWindow(v: View) = register()
-                override fun onViewDetachedFromWindow(v: View) {
-                    if (observing) content.context.contentResolver.unregisterContentObserver(observer)
-                    observing = false
-                }
-            })
-            if (content.isAttachedToWindow) register()
+
         }
     }
 
@@ -156,10 +131,6 @@ class MotionTextView @JvmOverloads constructor(
     private var ready = false
     private var targetScale = 1f
     private var pressAnimator: android.animation.ValueAnimator? = null
-    private var observing = false
-    private val scaleObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
-        override fun onChange(selfChange: Boolean) = updateScale()
-    }
     internal var contentScale = 1f
         private set
 
@@ -168,22 +139,16 @@ class MotionTextView @JvmOverloads constructor(
     override fun drawableStateChanged() {
         super.drawableStateChanged()
         if (!ready) return
-        if (isPressed && isAttachedToWindow && !observing) {
-            listOf(Settings.Global.WINDOW_ANIMATION_SCALE, Settings.Global.TRANSITION_ANIMATION_SCALE,
-                Settings.Global.ANIMATOR_DURATION_SCALE).forEach {
-                context.contentResolver.registerContentObserver(Settings.Global.getUriFor(it), false, scaleObserver)
-            }
-            observing = true
-        } else if (!isPressed) stopObserving()
         updateScale()
     }
 
     private fun updateScale() {
-        val target = if (isEnabled && isPressed && !context.skipAnimations()) .97f else 1f
+        val skip = context.skipAnimations()
+        val target = if (isEnabled && isPressed && !skip) .97f else 1f
         if (targetScale == target) return
         targetScale = target
         pressAnimator?.cancel()
-        if (context.skipAnimations()) {
+        if (skip) {
             contentScale = 1f
             invalidate()
             return
@@ -203,13 +168,7 @@ class MotionTextView @JvmOverloads constructor(
         canvas.restoreToCount(save)
     }
 
-    private fun stopObserving() {
-        if (observing) context.contentResolver.unregisterContentObserver(scaleObserver)
-        observing = false
-    }
-
     override fun onDetachedFromWindow() {
-        stopObserving()
         pressAnimator?.cancel()
         pressAnimator = null
         contentScale = 1f

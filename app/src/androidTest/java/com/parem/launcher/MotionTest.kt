@@ -3,12 +3,14 @@ package com.parem.launcher
 import android.app.Dialog
 import android.graphics.Rect
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
 import com.parem.launcher.ui.Motion
+import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.MotionTextView
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -72,6 +74,7 @@ class MotionTest {
                 Thread.sleep(250)
                 scenario.onActivity { assertEquals(.97f, content.scaleX, .01f); assertEquals(1f, row.scaleX, 0f) }
                 device.executeShellCommand("settings put global animator_duration_scale 0")
+                scenario.onActivity { row.isPressed = false }
                 val deadline = System.currentTimeMillis() + 5_000
                 var scale = 0f
                 while (System.currentTimeMillis() < deadline && scale != 1f) {
@@ -115,6 +118,7 @@ class MotionTest {
                     assertEquals(.97f, control.contentScale, .01f)
                 }
                 device.executeShellCommand("settings put global animator_duration_scale 0")
+                scenario.onActivity { control.isPressed = false }
                 val deadline = System.currentTimeMillis() + 5_000
                 var scale = 0f
                 while (System.currentTimeMillis() < deadline && scale != 1f) {
@@ -128,6 +132,61 @@ class MotionTest {
                 if (value == "null") device.executeShellCommand("settings delete global $name")
                 else device.executeShellCommand("settings put global $name $value")
             }
+        }
+    }
+
+    @Test fun zeroAnimatorScaleKeepsSettingsAndSheetContentAtRest() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val device = UiDevice.getInstance(instrumentation)
+        val original = device.executeShellCommand("settings get global animator_duration_scale").trim()
+        try {
+            device.executeShellCommand("settings put global animator_duration_scale 0")
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                lateinit var settingsRow: View
+                lateinit var settingsContent: View
+                lateinit var sheetRow: View
+                lateinit var sheetContent: View
+                lateinit var dialog: Dialog
+                fun animatedChild(view: View): View? {
+                    if (view.isDuplicateParentStateEnabled && view.stateListAnimator != null && view.parent is ViewGroup) return view
+                    if (view is ViewGroup) for (i in 0 until view.childCount) {
+                        animatedChild(view.getChildAt(i))?.let { return it }
+                    }
+                    return null
+                }
+                scenario.onActivity { activity ->
+                    val settings = activity.layoutInflater.inflate(R.layout.fragment_settings, null) as ViewGroup
+                    activity.addContentView(settings, FrameLayout.LayoutParams(-1, -1))
+                    Motion.pressChildren(settings)
+                    settingsContent = requireNotNull(animatedChild(settings))
+                    settingsRow = settingsContent.parent as View
+                    dialog = BottomSheetMenu(activity).option("Motion test", dismissOnClick = false) {}.show()
+                    sheetContent = requireNotNull(animatedChild(dialog.window!!.decorView))
+                    sheetRow = sheetContent.parent as View
+                    settingsRow.isPressed = true
+                    sheetRow.isPressed = true
+                }
+                Thread.sleep(250)
+                scenario.onActivity {
+                    assertEquals(1f, settingsContent.scaleX, 0f)
+                    assertEquals(1f, settingsContent.scaleY, 0f)
+                    assertEquals(1f, sheetContent.scaleX, 0f)
+                    assertEquals(1f, sheetContent.scaleY, 0f)
+                    settingsRow.isPressed = false
+                    sheetRow.isPressed = false
+                }
+                Thread.sleep(250)
+                scenario.onActivity {
+                    assertEquals(1f, settingsContent.scaleX, 0f)
+                    assertEquals(1f, settingsContent.scaleY, 0f)
+                    assertEquals(1f, sheetContent.scaleX, 0f)
+                    assertEquals(1f, sheetContent.scaleY, 0f)
+                    dialog.dismiss()
+                }
+            }
+        } finally {
+            if (original == "null") device.executeShellCommand("settings delete global animator_duration_scale")
+            else device.executeShellCommand("settings put global animator_duration_scale $original")
         }
     }
 
