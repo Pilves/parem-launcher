@@ -7,6 +7,24 @@ runs=${1:-0}
 pkg=com.parem.launcher.debug
 tests=(swipeUpOpensDrawer omniboxLaunchesApp)
 diag_out=app/build/reports/androidTests/parem-diag
+mkdir -p "$diag_out"
+adb logcat -v threadtime >"$diag_out/continuous-logcat.txt" 2>&1 &
+logcat_pid=$!
+
+capture_failure() {
+  local label=$1
+  adb logcat -d -v threadtime >"$diag_out/$label-logcat.txt" 2>&1 || true
+  adb shell dumpsys dropbox --print data_app_crash data_app_anr data_app_native_crash system_app_crash >"$diag_out/$label-dropbox.txt" 2>&1 || true
+  adb shell ls -la /data/tombstones >"$diag_out/$label-tombstones.txt" 2>&1 || true
+}
+
+finish() {
+  local result=$?
+  if [ "$result" -ne 0 ]; then capture_failure exit; fi
+  kill "$logcat_pid" 2>/dev/null || true
+  wait "$logcat_pid" 2>/dev/null || true
+}
+trap finish EXIT
 
 collect_diagnostics() {
   mkdir -p "$diag_out"
@@ -15,8 +33,16 @@ collect_diagnostics() {
 
 if [ "${runs:-0}" -le 0 ]; then
   status=0
-  ./gradlew connectedPlayDebugAndroidTest || status=1
-  ./gradlew connectedFullDebugAndroidTest || status=1
+  if ! ./gradlew connectedPlayDebugAndroidTest; then
+    status=1
+    capture_failure play
+    cp -r app/build/reports/androidTests/connected "$diag_out/play-failure-report" 2>/dev/null || true
+    cp -r app/build/outputs/androidTest-results/connected "$diag_out/play-failure-results" 2>/dev/null || true
+  fi
+  if ! ./gradlew connectedFullDebugAndroidTest; then
+    status=1
+    capture_failure full
+  fi
   collect_diagnostics
   exit "$status"
 fi
