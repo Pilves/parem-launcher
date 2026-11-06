@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Stop showing search examples in the empty drawer after 20 opens.
+
 - Retry locally discovered wireless debugging connect ports when stale entries refuse the connection.
 - Exclude Android screensaver activity from screen-time totals and app limits.
 - Keep home widgets and app slots clear of the clock without counting the top inset twice.

@@ -26,6 +26,7 @@ import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.AppOpenCounter
 import com.parem.launcher.helper.ContactMatcher
 import com.parem.launcher.helper.ContactSearchManager
+import com.parem.launcher.helper.SearchHints
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
 import com.parem.launcher.helper.CurrencyRates
@@ -174,9 +175,10 @@ class AppDrawerFragment : BaseFragment() {
         else if (flag in Constants.FLAG_SET_HOME_APP_1..Constants.FLAG_SET_CALENDAR_APP)
             binding.search.queryHint = getString(R.string.select_an_app)
         else if (flag == Constants.FLAG_LAUNCH_APP) {
-            // The omnibox's only in-app mention: a different example each open
-            val hints = resources.getStringArray(R.array.omnibox_hints)
-            binding.search.queryHint = hints[hintIndex++ % hints.size]
+            // The omnibox's only in-app mention: a different example each open, until it has sunk in
+            val opens = prefs.searchHintOpens
+            binding.search.queryHint = SearchHints.forOpen(opens, resources.getStringArray(R.array.omnibox_hints))
+            if (opens < SearchHints.MAX_OPENS) prefs.searchHintOpens = opens + 1
         }
         try {
             searchTextView = binding.search.findViewById(R.id.search_src_text)
@@ -837,10 +839,5 @@ class AppDrawerFragment : BaseFragment() {
         searchTextView = null
         super.onDestroyView()
         _binding = null
-    }
-
-    private companion object {
-        // Process lifetime is enough to rotate; not worth a pref
-        var hintIndex = 0
     }
 }
