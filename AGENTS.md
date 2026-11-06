@@ -49,6 +49,7 @@ flavours must build: `play` and `full` differ (`ARCHITECTURE.md`, Build & releas
 ## Release
 
 Bump versionCode/versionName in `app/build.gradle`, add the fastlane changelog,
-rename `[Unreleased]` in CHANGELOG.md, tag `v*`, push; CI signs and publishes.
+rename `[Unreleased]` in CHANGELOG.md, add `docs/releases/<tag>-notes.md` (the
+release fails without it), tag `v*`, push; CI signs and publishes.
 Tagging is an owner task — agents prepare, Patric tags after the device pass
 (`docs/RELEASE_CHECKLIST.md` once M1-WP1 lands). Never commit keystores.
