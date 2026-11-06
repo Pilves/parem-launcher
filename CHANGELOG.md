@@ -2,7 +2,11 @@
 
 ## [Unreleased]
 
+## v6.0.1 — 2026-11-06
+
 - Stop showing search examples in the empty drawer after 20 opens.
+
+## v6.0.0 — 2026-11-06
 
 - Retry locally discovered wireless debugging connect ports when stale entries refuse the connection.
 - Exclude Android screensaver activity from screen-time totals and app limits.
@@ -19,7 +23,6 @@
 - Keep picker and hidden-app searches off the web, and limit weather latitude to 84 degrees before rounding.
 - Reject malformed settings imports before replacing preferences, erase search history when imported settings turn it off, and restrict saved links to web addresses.
 
-## v6.0.0 — 2026-11-05
 
 - Keep first-use and default-home prompts clear of landscape widgets.
 
