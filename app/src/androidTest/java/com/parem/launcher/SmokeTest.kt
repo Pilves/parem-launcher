@@ -499,6 +499,39 @@ class SmokeTest {
     }
 
     @Test
+    fun homePaddingClearsClockInBothOrientations() {
+        fun assertClearance() {
+            device.waitForIdle()
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                val clock = activity.findViewById<View>(R.id.dateTimeLayout)
+                val apps = activity.findViewById<View>(R.id.homeAppsLayout)
+                val widgetColumn = activity.findViewById<View>(R.id.widgetScrollViewAbove).parent as View
+                val clockAt = IntArray(2)
+                clock.getLocationInWindow(clockAt)
+                for (column in listOf(apps, widgetColumn).distinct()) {
+                    val at = IntArray(2)
+                    column.getLocationInWindow(at)
+                    val gap = (8 * context.resources.displayMetrics.density).toInt()
+                    assertEquals("clock clearance must use the column's window origin",
+                        (clockAt[1] + clock.height - at[1] + gap).coerceAtLeast(0), column.paddingTop)
+                }
+            }
+        }
+        assertClearance()
+        if (context.resources.configuration.smallestScreenWidthDp >= 600) {
+            try {
+                device.setOrientationLandscape()
+                assertTrue(device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+                assertClearance()
+            } finally {
+                device.setOrientationNatural()
+            }
+        }
+    }
+
+    @Test
     fun landscapeFirstRunAndScreenTime() {
         if (context.resources.configuration.smallestScreenWidthDp < 600) return
         try {
@@ -556,11 +589,42 @@ class SmokeTest {
                 Prefs(context).apply {
                     setWidgetIdList(listOf(id))
                     setWidgetProvider(id, provider.flattenToString())
-                    setWidgetHeight(id, 600)
+                    setWidgetHeight(id, 500)
+                    homeAppsNum = 4
+                    setHomeAppName(1, "Settings")
+                    setHomeAppPackage(1, "com.android.settings")
+                    setHomeAppUser(1, android.os.Process.myUserHandle().toString())
                 }
                 activity.recreate()
             }
             assertTrue("fixture widget missing", device.wait(Until.hasObject(By.text("WP28 fixture widget")), TIMEOUT))
+            device.waitForIdle()
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                val scroll = listOfNotNull(
+                    activity.findViewById<ScrollView>(R.id.widgetScrollViewAbove),
+                    activity.findViewById<ScrollView>(R.id.widgetScrollViewBelow),
+                ).first { it.isShown }
+                val container = scroll.getChildAt(0) as android.view.ViewGroup
+                val wrapper = container.getChildAt(0) as android.view.ViewGroup
+                val handle = wrapper.getChildAt(wrapper.childCount - 1)
+                val before = wrapper.layoutParams.height
+                val now = android.os.SystemClock.uptimeMillis()
+                fun send(action: Int, y: Float) {
+                    val event = android.view.MotionEvent.obtain(now, now, action, 10f, y, 0)
+                    handle.dispatchTouchEvent(event)
+                    event.recycle()
+                }
+                send(android.view.MotionEvent.ACTION_DOWN, 10f)
+                send(android.view.MotionEvent.ACTION_MOVE, 293f)
+                send(android.view.MotionEvent.ACTION_UP, 293f)
+                assertTrue("widget resize did not increase its height", wrapper.layoutParams.height > before)
+            }
+            device.waitForIdle()
+            assertTrue("filled slot disappeared after widget resize", device.wait(Until.hasObject(By.text("Settings")), TIMEOUT))
+            assertTrue("empty slot hint disappeared after widget resize", device.wait(Until.hasObject(
+                By.desc(context.getString(R.string.long_press_to_select_app))), TIMEOUT))
             device.executeShellCommand("mkdir -p $DIAG_DIR")
             device.executeShellCommand("screencap -p $DIAG_DIR/${BuildConfig.FLAVOR}-widget-landscape-before.png")
             openDrawer()

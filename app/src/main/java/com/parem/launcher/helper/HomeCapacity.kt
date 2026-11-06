@@ -7,6 +7,10 @@ package com.parem.launcher.helper
  */
 object HomeCapacity {
 
+    /** Padding in a target column that clears a clock measured in window coordinates. */
+    fun topPadding(clockBottom: Int, columnTop: Int, gap: Int): Int =
+        (clockBottom - columnTop + gap).coerceAtLeast(0)
+
     /** Rows of [rowHeightPx] that fit in [usableHeightPx]; 0 when nothing is measured yet. */
     fun fitting(usableHeightPx: Int, rowHeightPx: Int): Int =
         if (usableHeightPx <= 0 || rowHeightPx <= 0) 0 else usableHeightPx / rowHeightPx

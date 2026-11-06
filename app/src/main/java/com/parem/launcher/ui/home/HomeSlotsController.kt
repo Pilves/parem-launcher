@@ -179,24 +179,29 @@ class HomeSlotsController(
 
                 // Adjust top padding to clear the dateTimeLayout
                 val dtLayout = binding.dateTimeLayout
-                val minTopPadding = if (dtLayout.isVisible) {
-                    (dtLayout.top + dtLayout.height + (8 * context.resources.displayMetrics.density).toInt())
-                } else {
-                    (56 * context.resources.displayMetrics.density).toInt()
+                val clockLocation = IntArray(2)
+                if (dtLayout.isVisible) dtLayout.getLocationInWindow(clockLocation)
+                fun paddingFor(column: View): Int {
+                    if (!dtLayout.isVisible) return (56 * context.resources.displayMetrics.density).toInt()
+                    val columnLocation = IntArray(2)
+                    column.getLocationInWindow(columnLocation)
+                    return HomeCapacity.topPadding(
+                        clockLocation[1] + dtLayout.height, columnLocation[1],
+                        (8 * context.resources.displayMetrics.density).toInt()
+                    )
                 }
+                val minTopPadding = paddingFor(layout)
                 if (layout.paddingTop != minTopPadding) {
                     layout.setPadding(layout.paddingLeft, minTopPadding, layout.paddingRight, layout.paddingBottom)
                 }
 
-                // Landscape: the widget column clears the clock dynamically too,
-                // so widgets start straight below it instead of at a fixed guess.
-                // In portrait the scroll views live inside homeAppsLayout and the
-                // guard skips this.
+                // Landscape widget and app columns may have different window origins.
                 (binding.widgetScrollViewAbove?.parent as? ViewGroup)
                     ?.takeIf { it !== layout }
                     ?.let { column ->
-                        if (column.paddingTop != minTopPadding)
-                            column.setPadding(column.paddingLeft, minTopPadding, column.paddingRight, column.paddingBottom)
+                        val columnPadding = paddingFor(column)
+                        if (column.paddingTop != columnPadding)
+                            column.setPadding(column.paddingLeft, columnPadding, column.paddingRight, column.paddingBottom)
                     }
 
                 // Run fitting after the padding change has been laid out

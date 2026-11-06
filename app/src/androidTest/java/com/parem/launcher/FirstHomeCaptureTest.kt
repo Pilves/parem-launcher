@@ -41,6 +41,7 @@ class FirstHomeCaptureTest {
             (host.childFragmentManager.primaryNavigationFragment as HomeFragment)
                 .slotsController!!.populateHomeScreen(false)
         }
+        assertTrue("filled slot not shown", device.wait(Until.hasObject(By.text("Settings")), 10_000))
         device.waitForIdle()
         device.executeShellCommand("screencap -p $dir/first-run-one-slot.png")
         assertTrue(device.executeShellCommand("ls $dir/first-run-one-slot.png").contains("first-run-one-slot.png"))

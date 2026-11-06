@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Keep home widgets and app slots clear of the clock without counting the top inset twice.
+
 - Show one translated add-app hint for empty home slots and hide empty slots when the home layout is locked.
 - Align the portrait drawer search bar with the app list.
 

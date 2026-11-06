@@ -6,6 +6,16 @@ import org.junit.Test
 class HomeCapacityTest {
 
     @Test
+    fun clockClearanceUsesTheTargetColumnOrigin() {
+        assertEquals(367, HomeCapacity.topPadding(clockBottom = 505, columnTop = 162, gap = 24))
+        assertEquals(529, HomeCapacity.topPadding(clockBottom = 505, columnTop = 0, gap = 24))
+        assertEquals(0, HomeCapacity.topPadding(clockBottom = 100, columnTop = 200, gap = 8))
+        // The inset reclaimed here allows all five rows under a tall widget.
+        assertEquals(5, HomeCapacity.fitting(2654 - 162 - 367 - 1311 - 48, 150))
+        assertEquals(4, HomeCapacity.fitting(2654 - 162 - 529 - 1311 - 48, 150))
+    }
+
+    @Test
     fun fitting_dividesUsableHeightByRowHeight() {
         assertEquals(4, HomeCapacity.fitting(400, 100))
         assertEquals(3, HomeCapacity.fitting(399, 100))
