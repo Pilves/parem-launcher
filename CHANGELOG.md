@@ -34,7 +34,7 @@
 - Durations follow the phone's language. Left and Right mean what you see under right-to-left languages. Arabic and Persian digits work in search. App names stay readable inside right-to-left text.
 - Folders can be edited, and a folder made from an occupied slot starts with what the slot holds. Same-name widgets show their size in the picker, and debug builds are labelled Parem Debug.
 - Search tips say what Enter will do, and tapping a call or web tip does it. Errors read in plain words, including a failed city search. Contact search points to app settings once Android stops asking. Swipes are turned off by choosing None instead of a hidden long-press, and more prompts are sheets.
-- Fixed: a swipe or tap made while the phone was briefly busy could open the home long-press menu instead of the drawer, or do nothing.
+- Guard against delayed touch delivery turning a swipe into a home long-press; a synthetic delayed-touch test passes, while the cause of the observed drawer failures remains open.
 - Privacy wording in usage access, crash reports, the lock service, device admin and quiet notifications now says exactly what is read, kept and sent.
 
 ## v6.0.0-beta.2 — 2026-10-16
