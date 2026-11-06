@@ -42,7 +42,6 @@ import com.parem.launcher.ui.BadHabitDialogs
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.CreateFolderDialog
 import com.parem.launcher.ui.HomeFragment
-import com.parem.launcher.ui.Motion
 import com.parem.launcher.ui.WebsiteDialog
 import kotlinx.coroutines.launch
 
@@ -100,7 +99,6 @@ class HomeSlotsController(
         else binding.widgetScrollViewBelow
 
     init {
-        homeAppViews.forEach(Motion::press)
         // The root is padded by the system-bar insets (padForSystemBars), which
         // can arrive or change after a fitting pass (status-bar toggle, nav mode);
         // re-fit when the column's height changes so no row ends under a bar.

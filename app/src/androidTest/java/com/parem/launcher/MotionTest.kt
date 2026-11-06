@@ -23,16 +23,19 @@ class MotionTest {
         try {
             device.executeShellCommand("settings put global animator_duration_scale 0")
             instrumentation.runOnMainSync {
-                val view = View(instrumentation.targetContext)
-                Motion.press(view)
-                Motion.stagger(listOf(view))
-                Motion.copied(view)
-                assertNotNull(view.stateListAnimator)
-                view.isPressed = true
-                view.stateListAnimator?.jumpToCurrentState()
-                assertEquals(1f, view.alpha, 0f)
-                assertEquals(1f, view.scaleX, 0f)
-                assertEquals(1f, view.scaleY, 0f)
+                val row = FrameLayout(instrumentation.targetContext)
+                val content = View(instrumentation.targetContext)
+                row.addView(content)
+                Motion.press(row)
+                Motion.stagger(listOf(row))
+                Motion.copied(row)
+                assertNotNull(content.stateListAnimator)
+                row.isPressed = true
+                content.stateListAnimator?.jumpToCurrentState()
+                assertEquals(1f, row.alpha, 0f)
+                assertEquals(1f, row.scaleX, 0f)
+                assertEquals(1f, content.scaleX, 0f)
+                assertEquals(1f, content.scaleY, 0f)
             }
         } finally {
             if (original == "null") device.executeShellCommand("settings delete global animator_duration_scale")
@@ -49,25 +52,28 @@ class MotionTest {
             names.forEach { device.executeShellCommand("settings put global $it 1") }
             device.executeShellCommand("settings put global animator_duration_scale 0")
             ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-                lateinit var view: View
+                lateinit var row: FrameLayout
+                lateinit var content: View
                 scenario.onActivity { activity ->
-                    view = View(activity)
-                    activity.addContentView(view, FrameLayout.LayoutParams(100, 100))
-                    Motion.press(view)
-                    view.isPressed = true
+                    row = FrameLayout(activity).apply { isClickable = true }
+                    content = View(activity)
+                    row.addView(content, FrameLayout.LayoutParams(100, 100))
+                    activity.addContentView(row, FrameLayout.LayoutParams(100, 100))
+                    Motion.press(row)
+                    row.isPressed = true
                 }
                 Thread.sleep(250)
-                scenario.onActivity { assertEquals(1f, view.scaleX, .001f) }
+                scenario.onActivity { assertEquals(1f, content.scaleX, .001f) }
                 device.executeShellCommand("settings put global animator_duration_scale 1")
                 Thread.sleep(300)
-                scenario.onActivity { view.isPressed = false; view.isPressed = true }
+                scenario.onActivity { row.isPressed = false; row.isPressed = true }
                 Thread.sleep(250)
-                scenario.onActivity { assertEquals(.97f, view.scaleX, .01f) }
+                scenario.onActivity { assertEquals(.97f, content.scaleX, .01f); assertEquals(1f, row.scaleX, 0f) }
                 device.executeShellCommand("settings put global animator_duration_scale 0")
                 Thread.sleep(300)
-                scenario.onActivity { view.isPressed = false; view.isPressed = true }
+                scenario.onActivity { row.isPressed = false; row.isPressed = true }
                 Thread.sleep(250)
-                scenario.onActivity { assertEquals(1f, view.scaleX, .001f) }
+                scenario.onActivity { assertEquals(1f, content.scaleX, .001f); assertEquals(1f, row.scaleX, 0f) }
             }
         } finally {
             originals.forEach { (name, value) ->

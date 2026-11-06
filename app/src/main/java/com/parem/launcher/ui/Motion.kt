@@ -59,24 +59,33 @@ internal object Motion {
         if (decor.isAttachedToWindow) register()
     }
 
+    // Scale non-interactive content only: the row's touch matrix and bounds stay fixed.
     fun press(view: View) {
-        fun scale(to: Float) = AnimatorSet().apply {
-            playTogether(ObjectAnimator.ofFloat(view, View.SCALE_X, to), ObjectAnimator.ofFloat(view, View.SCALE_Y, to))
-            duration = view.resources.getInteger(R.integer.motion_press).toLong()
-            interpolator = DecelerateInterpolator()
-            addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationStart(animation: Animator) {
-                    if (view.context.skipAnimations()) {
-                        animation.cancel()
-                        view.scaleX = 1f
-                        view.scaleY = 1f
+        if (view !is ViewGroup) return
+        fun interactive(child: View): Boolean = child.isClickable || child.isLongClickable || child.isFocusable ||
+            (child is ViewGroup && (0 until child.childCount).any { interactive(child.getChildAt(it)) })
+        for (index in 0 until view.childCount) {
+            val content = view.getChildAt(index)
+            if (interactive(content)) continue
+            content.isDuplicateParentStateEnabled = true
+            fun scale(to: Float) = AnimatorSet().apply {
+                playTogether(ObjectAnimator.ofFloat(content, View.SCALE_X, to), ObjectAnimator.ofFloat(content, View.SCALE_Y, to))
+                duration = content.resources.getInteger(R.integer.motion_press).toLong()
+                interpolator = DecelerateInterpolator()
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animation: Animator) {
+                        if (content.context.skipAnimations()) {
+                            animation.cancel()
+                            content.scaleX = 1f
+                            content.scaleY = 1f
+                        }
                     }
-                }
-            })
-        }
-        view.stateListAnimator = StateListAnimator().apply {
-            addState(intArrayOf(android.R.attr.state_enabled, android.R.attr.state_pressed), scale(.97f))
-            addState(intArrayOf(), scale(1f))
+                })
+            }
+            content.stateListAnimator = StateListAnimator().apply {
+                addState(intArrayOf(android.R.attr.state_enabled, android.R.attr.state_pressed), scale(.97f))
+                addState(intArrayOf(), scale(1f))
+            }
         }
     }
 
@@ -103,10 +112,10 @@ internal object Motion {
     fun copied(view: View) {
         if (view.context.skipAnimations()) return
         view.animate().cancel()
-        view.animate().scaleX(.97f).scaleY(.97f)
+        view.animate().alpha(.8f)
             .setDuration(view.resources.getInteger(R.integer.motion_press).toLong())
             .withEndAction {
-                view.animate().scaleX(1f).scaleY(1f)
+                view.animate().alpha(1f)
                     .setDuration(view.resources.getInteger(R.integer.motion_press).toLong()).start()
             }.start()
     }
