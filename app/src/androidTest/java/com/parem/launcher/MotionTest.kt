@@ -29,7 +29,7 @@ class MotionTest {
                 Motion.copied(view)
                 assertNotNull(view.stateListAnimator)
                 view.isPressed = true
-                view.stateListAnimator.jumpToCurrentState()
+                view.stateListAnimator?.jumpToCurrentState()
                 assertEquals(1f, view.alpha, 0f)
                 assertEquals(1f, view.scaleX, 0f)
                 assertEquals(1f, view.scaleY, 0f)
