@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.activityViewModels
@@ -45,7 +44,6 @@ import com.parem.launcher.helper.PackageChangeTracker
 import com.parem.launcher.helper.getHiddenAppsForSearch
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isEinkDisplay
-import com.parem.launcher.helper.skipAnimations
 import com.parem.launcher.helper.openSearch
 import com.parem.launcher.helper.privateProfile
 import com.parem.launcher.helper.padForSystemBars
@@ -577,9 +575,6 @@ class AppDrawerFragment : BaseFragment() {
         // The glow isn't an animator, so no system scale removes it; on e-ink it forces a partial refresh
         if (requireContext().isEinkDisplay())
             binding.recyclerView.overScrollMode = View.OVER_SCROLL_NEVER
-        if (requireContext().skipAnimations().not())
-            binding.recyclerView.layoutAnimation =
-                AnimationUtils.loadLayoutAnimation(requireContext(), R.anim.layout_anim_from_bottom)
     }
 
     private fun initObservers() {
@@ -732,6 +727,7 @@ class AppDrawerFragment : BaseFragment() {
 
     private fun copyResult(result: String) {
         requireContext().copyToClipboard(result)
+        _binding?.appDrawerTip?.let(Motion::copied)
         requireContext().showToast(getString(R.string.copied))
     }
 

@@ -81,6 +81,7 @@ internal fun Context.selectableBackgroundRes(): Int {
 class BottomSheetMenu(private val context: Context) {
 
     private val dialog = BottomSheetDialog(context)
+    private val motionRows = mutableListOf<View>()
     private val horizontalPadding = context.resources.getDimensionPixelSize(R.dimen.sheet_padding_horizontal)
     private val container = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
@@ -199,6 +200,8 @@ class BottomSheetMenu(private val context: Context) {
             visibility = if (checked) View.VISIBLE else View.INVISIBLE
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }, LinearLayout.LayoutParams(24.dpToPx(), 24.dpToPx()).apply { marginStart = 8.dpToPx() })
+        Motion.press(row)
+        motionRows += row
         container.addView(row)
         return this
     }
@@ -247,6 +250,7 @@ class BottomSheetMenu(private val context: Context) {
         dialog.setContentView(content)
         dialog.transparentSheetFrame()
         dialog.disableAnimationsOnEink()
+        Motion.configureWindow(dialog, R.style.ParemSheetWindowAnimation)
         dialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
         dialog.behavior.skipCollapsed = true
         dialog.window?.setDimAmount(0.5f)
@@ -255,6 +259,8 @@ class BottomSheetMenu(private val context: Context) {
             android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
         )
         dialog.show()
+        Motion.watchWindow(dialog, R.style.ParemSheetWindowAnimation)
+        Motion.stagger(motionRows)
         return dialog
     }
 }

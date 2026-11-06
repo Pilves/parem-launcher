@@ -333,14 +333,14 @@ class FocusModeDialog(
                 }
                 daysSheet.dismiss()
                 val start = initial?.startMin ?: 9 * 60
-                TimePickerDialog(ctx, { _, h, m ->
+                Motion.showPopup(TimePickerDialog(ctx, { _, h, m ->
                     if (!dialog.isShowing) return@TimePickerDialog
                     val end = initial?.endMin ?: 17 * 60
-                    TimePickerDialog(ctx, { _, h2, m2 ->
+                    Motion.showPopup(TimePickerDialog(ctx, { _, h2, m2 ->
                         if (!dialog.isShowing) return@TimePickerDialog
                         onDone(FocusSchedule.Window(days, h * 60 + m, h2 * 60 + m2))
-                    }, end / 60, end % 60, is24h).apply { setTitle(R.string.focus_schedule_end) }.show()
-                }, start / 60, start % 60, is24h).apply { setTitle(R.string.focus_schedule_start) }.show()
+                    }, end / 60, end % 60, is24h).apply { setTitle(R.string.focus_schedule_end) })
+                }, start / 60, start % 60, is24h).apply { setTitle(R.string.focus_schedule_start) })
             }
             .option(ctx.getString(android.R.string.cancel), dimmed = true) {}
             .show()

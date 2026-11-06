@@ -116,6 +116,7 @@ class SettingsFragment : BaseFragment() {
         wellbeingCard.bind()
 
         populateWellbeingSection()
+        Motion.pressChildren(binding.scrollLayout)
 
         // Consumed once: returning from a picker this screen opened rebuilds
         // the view, and that must not jump back to the searched row.
@@ -180,7 +181,7 @@ class SettingsFragment : BaseFragment() {
         b.scrollView.scrollTo(0, (rect.top - b.scrollView.height / 3).coerceAtLeast(0))
         if (!requireContext().skipAnimations()) {
             row.alpha = 0.2f
-            row.animate().alpha(1f).setDuration(700).start()
+            row.animate().alpha(1f).setDuration(resources.getInteger(R.integer.motion_medium).toLong()).start()
         }
     }
 
