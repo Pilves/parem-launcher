@@ -1,23 +1,38 @@
 package com.parem.launcher.ui.settings
 
-import android.os.Build
 import android.view.View
+import androidx.activity.result.ActivityResultLauncher
+import androidx.core.os.bundleOf
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import com.parem.launcher.MainViewModel
+import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
+import com.parem.launcher.helper.GrayscaleController
+import com.parem.launcher.helper.ChannelFeatures
+import com.parem.launcher.helper.WellbeingRowState
+import com.parem.launcher.helper.WellbeingRowState.Row
 import com.parem.launcher.helper.appUsagePermissionGranted
+import com.parem.launcher.helper.onOff
+import com.parem.launcher.ui.BadHabitDialogs
 import com.parem.launcher.helper.getAppsList
+import com.parem.launcher.helper.notifications.QuietNotificationsManager
+import com.parem.launcher.helper.notifications.QuietNotificationsManager.State
 import com.parem.launcher.ui.FocusModeDialog
+import com.parem.launcher.ui.GrayscaleSheet
+import com.parem.launcher.ui.QuietListSheet
 import com.parem.launcher.ui.ScreenTimeLimitDialog
 import com.parem.launcher.ui.SettingsFragment
+import com.parem.launcher.ui.dismissOnDestroy
 import kotlinx.coroutines.launch
 
 /**
  * Card 5 ("Digital Wellbeing"): screen-time permission status, per-app time
- * limits, and focus mode.
+ * limits, focus mode, grayscale, and the notification filter ("Hide from shade, keep for later").
  *
  * Extracted from SettingsFragment; mirrors HomeWidgetController's shape.
  */
@@ -27,42 +42,149 @@ class WellbeingSettingsCard(
     private val prefs: Prefs,
     private val viewModel: MainViewModel,
     private val onWellbeingChanged: () -> Unit,
+    private val requestNotificationPermission: ActivityResultLauncher<String>,
 ) : View.OnClickListener {
 
     private val context get() = binding.root.context
 
     fun bind() {
-        populateScreenTimeOnOff()
+        populateUsageAccess()
+        populateQuietNotif()
+        populateGrayscale()
 
         initClickListeners()
+        // The access grant happens in system settings; re-derive the state on return
+        fragment.viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && fragment.isBindingAlive()) {
+                populateUsageAccess()
+                populateQuietNotif()
+                // The grant can land from the pairing notification while Settings is open
+                populateGrayscale()
+            }
+        })
     }
 
     private fun initClickListeners() {
-        binding.screenTimeOnOff.setOnClickListener(this)
-        binding.focusModeToggle?.setOnClickListener(this)
-        binding.screenTimeLimitsToggle?.setOnClickListener(this)
+        binding.screenTimeLayout.setOnClickListener(this)
+        binding.focusModeRow?.setOnClickListener(this)
+        binding.grayscaleRow?.setOnClickListener(this)
+        binding.screenTimeLimitsRow?.setOnClickListener(this)
+        binding.quietNotifRow?.setOnClickListener(this)
+        binding.quietNotifAllowedRow?.setOnClickListener(this)
+        binding.quietNotifSilentRow?.setOnClickListener(this)
     }
 
     override fun onClick(view: View) {
         fragment.resetOpenPickers(view.id)
         when (view.id) {
-            R.id.screenTimeOnOff -> viewModel.showDialog.postValue(Constants.Dialog.DIGITAL_WELLBEING)
-            R.id.focusModeToggle -> showFocusModeFromSettings()
-            R.id.screenTimeLimitsToggle -> showScreenTimeLimitsDialog()
+            R.id.screenTimeLayout -> BadHabitDialogs.showUsageAccessSheet(context)
+            R.id.focusModeRow -> showFocusModeFromSettings()
+            R.id.grayscaleRow -> GrayscaleSheet.open(fragment, onPair = ::startPairing, onChanged = {
+                if (fragment.isBindingAlive()) populateGrayscale()
+            })
+            R.id.screenTimeLimitsRow -> showScreenTimeLimitsDialog()
+            R.id.quietNotifRow -> onQuietNotifToggle()
+            R.id.quietNotifAllowedRow -> QuietListSheet.editAllowed(fragment, prefs, fragment::isBindingAlive)
+            R.id.quietNotifSilentRow -> {
+                viewModel.getAppList(true)
+                fragment.navigateFromSettings(
+                    R.id.action_settingsFragment_to_appListFragment,
+                    bundleOf(Constants.Key.FLAG to Constants.FLAG_PICK_SILENT_APP)
+                )
+            }
         }
     }
 
-    private fun populateScreenTimeOnOff() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (context.appUsagePermissionGranted()) binding.screenTimeOnOff.text = context.getString(R.string.on)
-            else binding.screenTimeOnOff.text = context.getString(R.string.off)
-        } else binding.screenTimeLayout.visibility = View.GONE
+    private fun onQuietNotifToggle() {
+        val onChanged = { if (fragment.isBindingAlive()) populateQuietNotif() }
+        when (QuietNotificationsManager.state(context)) {
+            State.OFF -> QuietListSheet.startTurnOn(fragment, prefs, fragment::isBindingAlive, onChanged)
+            State.NEEDS_ACCESS -> QuietListSheet.showNeedsAccess(context, starting = false, onChanged = onChanged)
+            State.ON -> QuietListSheet.confirmTurnOff(context, onChanged)
+        }
+    }
+
+    private fun startPairing() {
+        ChannelFeatures.startPairing(context) { requestNotificationPermission.launch(it) }
+    }
+
+    /** SettingsFragment's permission callback. */
+    fun onNotificationPermissionResult(granted: Boolean) {
+        ChannelFeatures.onNotificationPermission(fragment.requireActivity(), granted)
+    }
+
+    private fun populateGrayscale() {
+        val row = WellbeingRowState.grayscale(
+            granted = GrayscaleController.isGranted(context),
+            manual = GrayscaleController.isManual(context),
+            onFocus = GrayscaleController.isOnFocus(context),
+            onLimit = GrayscaleController.isOnLimit(context),
+        )
+        binding.grayscaleToggle?.text = context.getString(
+            when (row) {
+                Row.SET_UP -> R.string.grayscale_set_up
+                Row.ON -> R.string.on
+                Row.AUTOMATIC -> R.string.grayscale_automatic
+                else -> R.string.off
+            }
+        )
+        binding.grayscaleToggle?.setTextColor(context.getColorFromAttr(
+            if (row == Row.SET_UP) R.attr.accentColor else R.attr.textColor))
+        binding.grayscaleRow?.bindValueRow(binding.grayscaleToggle?.text)
+    }
+
+    private fun populateQuietNotif() {
+        binding.quietNotifLayout ?: return
+        val state = QuietNotificationsManager.state(context)
+        binding.quietNotifToggle?.text = context.getString(
+            when (state) {
+                State.OFF -> R.string.off
+                State.NEEDS_ACCESS -> R.string.quiet_needs_access
+                State.ON -> R.string.on
+            }
+        )
+        binding.quietNotifToggle?.setTextColor(context.getColorFromAttr(
+            if (state == State.NEEDS_ACCESS) R.attr.accentColor else R.attr.textColor))
+        binding.quietNotifRow?.bindValueRow(binding.quietNotifToggle?.text)
+        binding.quietNotifAllowedRow?.bindValueRow(binding.quietNotifAllowed?.text)
+        binding.quietNotifSilentRow?.bindValueRow(binding.quietNotifSilent?.text)
+        binding.quietNotifRows?.visibility = if (state == State.ON) View.VISIBLE else View.GONE
+        binding.quietNotifHint?.apply {
+            when (state) {
+                State.OFF -> visibility = View.GONE
+                State.NEEDS_ACCESS -> {
+                    val needsAccess = context.getString(R.string.quiet_card_needs_access)
+                    text = ChannelFeatures.restrictedSettingsNote(context)?.let { "$needsAccess $it" } ?: needsAccess
+                    visibility = View.VISIBLE
+                }
+                State.ON -> {
+                    text = context.getString(R.string.quiet_card_hint)
+                    visibility = View.VISIBLE
+                }
+            }
+        }
+    }
+
+    /** The permission row and the limits row that depends on it, re-derived on every resume (the grant lands in system settings). */
+    private fun populateUsageAccess() {
+        val granted = context.appUsagePermissionGranted()
+        binding.screenTimeOnOff.text = context.onOff(granted)
+        binding.screenTimeLayout.bindValueRow(binding.screenTimeOnOff.text)
+        val needsAccess = WellbeingRowState.appLimits(granted) == Row.NEEDS_ACCESS
+        binding.screenTimeLimitsToggle?.apply {
+            text = context.getString(if (needsAccess) R.string.quiet_needs_access else R.string.configure)
+            alpha = 1f
+            setTextColor(context.getColorFromAttr(if (needsAccess) R.attr.accentColor else R.attr.textColor))
+        }
+        binding.screenTimeLimitsRow?.bindValueRow(binding.screenTimeLimitsToggle?.text)
     }
 
     private fun showFocusModeFromSettings() {
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            // Same source as the app drawer and folder picker: all user profiles, non-hidden apps, no cap.
-            val apps = getAppsList(context, prefs, includeRegularApps = true, includeHiddenApps = false)
+            // Every launchable app: hidden ones (still opened from the hidden-apps
+            // drawer, which focus gates) and Private Space apps while the space is
+            // unlocked, so anything focus can block can also be allowed.
+            val apps = getAppsList(context, prefs, includeRegularApps = true, includeHiddenApps = true, includePrivate = true)
 
             if (!fragment.isAdded || !fragment.isBindingAlive()) return@launch
 
@@ -70,20 +192,18 @@ class WellbeingSettingsCard(
             // duplicates — otherwise a work-profile app renders twice and one
             // visible app burns two of the five whitelist slots.
             val allApps = apps.map { it.appPackage to it.appLabel }.distinctBy { it.first }
-            val dialog = FocusModeDialog(context, allApps)
+            val dialog = FocusModeDialog(context, allApps).show()
             dialog.setOnDismissListener { onWellbeingChanged() }
-            dialog.show()
+            dialog.dismissOnDestroy(fragment.viewLifecycleOwner)
         }
     }
 
     private fun showScreenTimeLimitsDialog() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || !context.appUsagePermissionGranted()) {
-            viewModel.showDialog.postValue(Constants.Dialog.DIGITAL_WELLBEING)
-            return
-        }
+        if (!BadHabitDialogs.ensureUsageAccess(context)) return
         // The async usage scan may not have landed on a fresh settings open;
         // fall back to the last persisted map rather than opening an empty sheet
         val usageMap = viewModel.perAppScreenTime.value ?: prefs.getCachedUsageStats()
-        ScreenTimeLimitDialog(context, usageMap).show()
+        ScreenTimeLimitDialog(context, usageMap, fragment.viewLifecycleOwner.lifecycleScope).show()
+            .dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 }

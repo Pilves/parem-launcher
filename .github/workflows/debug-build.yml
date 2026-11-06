@@ -5,6 +5,9 @@ on:
   push:
     branches: [master]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,14 +25,50 @@ jobs:
         run: chmod +x gradlew
 
       - name: Unit tests
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew testFullDebugUnitTest testPlayDebugUnitTest
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
+      - name: Build debug APKs
+        run: ./gradlew assembleFullDebug assemblePlayDebug
+
+      # On the unminified APK, so R8 can't hide code that is still in the source set.
+      - name: Check the Play build has no adb pairing
+        run: scripts/check-play-build.sh app/build/outputs/apk/play/debug/app-play-debug.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            app/build/outputs/apk/full/debug/app-full-debug.apk
+            app/build/outputs/apk/play/debug/app-play-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      # Manual runs only: release.yml publishes, so this is the way to prove the
+      # Play bundle before a tag. Same two gradle runs as release.yml, signed with
+      # this run's debug key, which Play refuses, so the bundle cannot go up by mistake.
+      - name: Build release APK and Play bundle
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          KEYSTORE_PASSWORD: android
+          KEY_ALIAS: androiddebugkey
+          KEY_PASSWORD: android
+        run: |
+          # AGP's location depends on the runner's environment, so look it up.
+          KEYSTORE_FILE="$(find "$HOME" -name debug.keystore -print -quit)"
+          export KEYSTORE_FILE
+          ./gradlew assembleFullRelease
+          ./gradlew bundlePlayRelease
+
+      - name: Upload release APK, Play bundle and R8 mappings
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-check
+          path: |
+            app/build/outputs/apk/full/release/app-full-release.apk
+            app/build/outputs/bundle/playRelease/app-play-release.aab
+            app/build/outputs/mapping/fullRelease/mapping.txt
+            app/build/outputs/mapping/playRelease/mapping.txt
+          if-no-files-found: error
           retention-days: 14

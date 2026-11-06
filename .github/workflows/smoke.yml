@@ -1,0 +1,139 @@
+# Release smoke tests (app/src/androidTest) and the performance regression
+# gate (scripts/perf-budget.mjs, M3-WP10) on an x86_64 emulator.
+# Not on tag push: release.yml is already publishing by then. Run it by hand
+# on the RC commit before tagging.
+name: Smoke tests
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      film_capture:
+        description: Capture the Play pause film instead of running smoke tests
+        type: boolean
+        default: false
+      investigate_performance:
+        description: Compare baseline, candidate and StrictMode overhead on one emulator
+        type: boolean
+        default: false
+      drawer_stress_runs:
+        description: Instead of the suite, run the drawer tests this many times per device, each in a fresh process
+        type: string
+        default: '0'
+
+permissions:
+  contents: read
+
+jobs:
+  investigate:
+    if: inputs.investigate_performance == true && inputs.film_capture != true
+    uses: ./.github/workflows/perf-investigation.yml
+  smoke:
+    if: inputs.investigate_performance != true && inputs.film_capture != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { profile: pixel_6,      api-level: 34, perf: true }
+          - { profile: '7.6in Foldable',   api-level: 34 }
+          - { profile: pixel_tablet, api-level: 34 }
+          - { profile: pixel_tablet, api-level: 36 }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Perf script tests
+        run: node --test scripts/perf-budget.test.mjs
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build pinned performance reference
+        if: matrix.perf
+        run: |
+          git fetch origin 996ef0cf0b1b130d07c1d035bfcc456438c8ebff
+          git worktree add ../perf-reference 996ef0cf0b1b130d07c1d035bfcc456438c8ebff
+          (cd ../perf-reference && ./gradlew assembleDebug)
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Instrumented tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          profile: ${{ matrix.profile }}
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          # The wrapper keeps continuous logcat running through the performance comparison.
+          script: bash scripts/run-instrumented.sh "${{ inputs.drawer_stress_runs }}" "${{ matrix.perf }}"
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-reports-${{ matrix.profile }}-${{ matrix.api-level }}
+          path: |
+            app/build/reports/androidTests/
+            app/build/smoke-diagnostics/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload perf result
+        if: always() && matrix.perf
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-result-${{ matrix.profile }}-${{ matrix.api-level }}
+          path: app/build/perf/
+          if-no-files-found: ignore
+          retention-days: 30
+
+  capture:
+    if: inputs.film_capture == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Capture Play pause on a disposable emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          profile: pixel_6
+          target: google_apis
+          arch: x86_64
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: |
+            adb shell wm size 1080x1920
+            adb shell wm density 420
+            adb shell cmd uimode night no
+            bash scripts/capture-pause-film.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pause-film-play-unreviewed
+          path: capture/
+          if-no-files-found: error

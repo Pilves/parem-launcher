@@ -1,19 +1,21 @@
 package com.parem.launcher.ui
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Recycler
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -24,36 +26,54 @@ import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.AppOpenCounter
 import com.parem.launcher.helper.ContactMatcher
 import com.parem.launcher.helper.ContactSearchManager
-import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
-import com.parem.launcher.helper.ExpressionEvaluator
-import com.parem.launcher.helper.UnitConverter
-import com.parem.launcher.helper.dpToPx
-import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.helper.CurrencyRates
+import com.parem.launcher.helper.OmniboxHistory
+import com.parem.launcher.helper.OmniboxMode
+import com.parem.launcher.helper.OmniboxResolver
+import com.parem.launcher.helper.QuickAction
+import com.parem.launcher.helper.QuickActionParser
+import com.parem.launcher.helper.SettingsSearch
+import com.parem.launcher.helper.fireQuickAction
+import com.parem.launcher.helper.quickActionPreview
+import com.parem.launcher.helper.getShortcutRaws
+import com.parem.launcher.helper.HiddenAppHint
+import com.parem.launcher.helper.HiddenLabelLoad
+import com.parem.launcher.helper.PackageChangeTracker
+import com.parem.launcher.helper.getHiddenAppsForSearch
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isEinkDisplay
-import com.parem.launcher.helper.isSystemApp
-import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.openSearch
-import com.parem.launcher.helper.openUrl
+import com.parem.launcher.helper.privateProfile
+import com.parem.launcher.helper.padForSystemBars
 import com.parem.launcher.helper.showKeyboard
 import com.parem.launcher.helper.showToast
-import com.parem.launcher.helper.uninstall
+import com.parem.launcher.ui.settings.SettingsSearchIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.lifecycle.lifecycleScope
+import androidx.core.os.bundleOf
 
 
-class AppDrawerFragment : Fragment() {
+class AppDrawerFragment : BaseFragment() {
 
     private lateinit var prefs: Prefs
     private lateinit var adapter: AppDrawerAdapter
+    private lateinit var recentAdapter: RecentHistoryAdapter
     private lateinit var linearLayoutManager: LinearLayoutManager
 
     private var flag = Constants.FLAG_LAUNCH_APP
+    private var gestureLetter: Char? = null
     private var canRename = false
+    // Key typed on a hardware keyboard at home; seeds the search once the app
+    // list is in (filtering an empty list would flash "no apps found")
+    private var typedQuery = ""
+    // Opening the drawer also reloads the list, and setAppList shows it whole,
+    // so a seeded query is re-applied when the fresh list lands. Cleared on
+    // hide/rename: their reload could narrow to one match and auto-launch it.
+    private var reapplyQueryOnReload = false
     private var scrollListener: RecyclerView.OnScrollListener? = null
     private var searchTextView: TextView? = null
     private var cachedIsCjkKeyboard: Boolean? = null
@@ -67,11 +87,19 @@ class AppDrawerFragment : Fragment() {
     // permitted (see loadContactsIfEnabled). Empty otherwise → no matching runs.
     private var contacts: List<ContactMatcher.Contact> = emptyList()
 
-    companion object {
-        // Digits with optional leading + and spaces, at least 4 digits total.
-        // Hyphenated numbers lose to the calculator (they parse as subtraction).
-        private val DIAL_REGEX = Regex("^\\+?[0-9][0-9 ]{2,}[0-9]$")
-    }
+    // Built on the first query; only the launch drawer resolves omnibox modes.
+    private var settingsRows: List<SettingsSearch.Row>? = null
+
+    // Labels protect web searches and drive the empty-result hint; never shown.
+    private val hiddenLabels = HiddenLabelLoad()
+    private var hiddenLabelsLoading = false
+    private var hiddenHintShown = false
+    private var pendingSubmit: String? = null
+
+    // At most one ECB rates fetch per drawer session, started by the first
+    // currency query; the in-flight flag picks the CurrencyNoRates tip.
+    private var currencyFetchStarted = false
+    private var currencyFetchInFlight = false
 
     private val viewModel: MainViewModel by activityViewModels()
     private var _binding: FragmentAppDrawerBinding? = null
@@ -92,13 +120,35 @@ class AppDrawerFragment : Fragment() {
         arguments?.let {
             flag = it.getInt(Constants.Key.FLAG, Constants.FLAG_LAUNCH_APP)
             canRename = it.getBoolean(Constants.Key.RENAME, false)
+            gestureLetter = if (it.containsKey(Constants.Key.LETTER)) it.getChar(Constants.Key.LETTER) else null
+            if (savedInstanceState == null)
+                typedQuery = it.getString(Constants.Key.QUERY).orEmpty()
         }
+        binding.root.padForSystemBars(ime = true)
         initViews()
         initSearch()
         initAdapter()
         initObservers()
         initClickListeners()
         loadContactsIfEnabled()
+        loadShortcuts()
+    }
+
+    /** App shortcuts (M4-WP14): empty unless Parem is the default home. */
+    private fun loadShortcuts() {
+        if (flag != Constants.FLAG_LAUNCH_APP) return
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val raws = getShortcutRaws(appContext)
+            val b = _binding ?: return@launch
+            if (!isAdded || raws.isEmpty()) return@launch
+            adapter.shortcutRaws = raws
+            // Shortcuts can't change the app-row count, so a one-app result
+            // has already auto-launched; re-filtering it would fire it again
+            val query = b.search.query
+            if (!query.isNullOrBlank() && adapter.currentList.count { it.shortcutId == null } != 1)
+                adapter.filter.filter(query)
+        }
     }
 
     /**
@@ -123,11 +173,18 @@ class AppDrawerFragment : Fragment() {
             binding.search.queryHint = getString(R.string.hidden_apps)
         else if (flag in Constants.FLAG_SET_HOME_APP_1..Constants.FLAG_SET_CALENDAR_APP)
             binding.search.queryHint = getString(R.string.select_an_app)
+        else if (flag == Constants.FLAG_LAUNCH_APP) {
+            // The omnibox's only in-app mention: a different example each open
+            val hints = resources.getStringArray(R.array.omnibox_hints)
+            binding.search.queryHint = hints[hintIndex++ % hints.size]
+        }
         try {
             searchTextView = binding.search.findViewById(R.id.search_src_text)
             searchTextView?.gravity = prefs.appLabelAlignment
+            // The rotating omnibox hint is an example, not a label; TalkBack needs the field's purpose
+            searchTextView?.contentDescription = getString(R.string.search_apps)
         } catch (e: Exception) {
-            Log.e("AppDrawerFragment", "Failed to set search text alignment", e)
+            CrashReporter.reportNonFatal("AppDrawerFragment: Failed to set search text alignment", e)
         }
     }
 
@@ -146,6 +203,13 @@ class AppDrawerFragment : Fragment() {
         return isCjkKeyboard()
     }
 
+    /** TalkBack-like state: touch exploration, or any spoken-feedback service, is on. */
+    private fun isScreenReaderOn(): Boolean {
+        val am = context?.getSystemService(android.view.accessibility.AccessibilityManager::class.java) ?: return false
+        return am.isTouchExplorationEnabled ||
+            am.getEnabledAccessibilityServiceList(android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_SPOKEN).isNotEmpty()
+    }
+
     private fun isCjkKeyboard(): Boolean {
         cachedIsCjkKeyboard?.let { return it }
         val result = try {
@@ -158,6 +222,7 @@ class AppDrawerFragment : Fragment() {
             }
             language.startsWith("zh") || language.startsWith("ja") || language.startsWith("ko")
         } catch (e: Exception) {
+            CrashReporter.reportNonFatal("AppDrawerFragment", e)
             false
         }
         cachedIsCjkKeyboard = result
@@ -169,23 +234,52 @@ class AppDrawerFragment : Fragment() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 val ctx = context ?: return true
                 val q = query ?: ""
+                // Explicit Enter owns this query, including any auto-launch already posted.
+                adapter.suppressAutoLaunchForQuery(q)
+                // Filtering and list diffs finish asynchronously; old rows must never handle Enter.
+                if ((omniboxMode == OmniboxMode.None || omniboxMode is OmniboxMode.Setting) &&
+                    !adapter.isQueryReady(q)) {
+                    pendingSubmit = q
+                    return true
+                }
+                if (flag == Constants.FLAG_LAUNCH_APP && omniboxMode == OmniboxMode.None &&
+                    (q.startsWith("!") || adapter.itemCount == 0) && currentHiddenLabels() == null) {
+                    // A failed, incomplete or stale lookup stays closed; Enter retries it.
+                    pendingSubmit = q
+                    if (!hiddenLabelsLoading || hiddenLabels.isStale(prefs.hiddenApps, PackageChangeTracker.stamp())) loadHiddenLabels()
+                    if (pendingSubmit != null) ctx.showToast(getString(R.string.checking_hidden_apps))
+                    return true
+                }
+                // Calls stay out of history (a number or contact name is not a
+                // query); a plain search that launches an app records the launch
+                val isQuery = when (omniboxMode) {
+                    is OmniboxMode.Calc, is OmniboxMode.Conversion, is OmniboxMode.Currency,
+                    OmniboxMode.WebSearch -> true
+                    OmniboxMode.None -> q.startsWith("!") || adapter.itemCount == 0
+                    else -> false
+                }
+                if (isQuery) recordHistory(OmniboxHistory.Entry.Query(q))
                 when (val mode = omniboxMode) {
-                    is OmniboxMode.Calc -> {
-                        ctx.copyToClipboard(mode.result)
-                        ctx.showToast(getString(R.string.copied))
-                    }
-                    is OmniboxMode.Conversion -> {
-                        ctx.copyToClipboard(mode.result)
-                        ctx.showToast(getString(R.string.copied))
-                    }
+                    is OmniboxMode.Calc -> copyResult(mode.result)
+                    is OmniboxMode.Conversion -> copyResult(mode.result)
+                    is OmniboxMode.Currency -> copyResult(mode.result)
+                    OmniboxMode.CurrencyNoRates -> {}
                     is OmniboxMode.Dial -> dial(ctx, mode.number)
+                    is OmniboxMode.QuickAction -> runQuickAction(mode.action)
                     is OmniboxMode.Contact -> dial(ctx, mode.number)
                     OmniboxMode.WebSearch ->
-                        ctx.openUrl(Constants.URL_GOOGLE_SEARCH + java.net.URLEncoder.encode(q.trim(), "UTF-8"))
+                        launchUrl(ctx, Constants.URL_GOOGLE_SEARCH + java.net.URLEncoder.encode(q.trim(), "UTF-8"))
+                    is OmniboxMode.Setting ->
+                        if (adapter.itemCount == 0) openSetting(mode.anchor) else adapter.launchFirstInList()
                     OmniboxMode.None -> when {
-                        q.startsWith("!") ->
-                            ctx.openUrl(Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(q, "UTF-8"))
-                        adapter.itemCount == 0 -> ctx.openSearch(q.trim())
+                        flag == Constants.FLAG_LAUNCH_APP && !hiddenHintShown && HiddenAppHint.canSearchWeb(q, currentHiddenLabels()) && q.startsWith("!") ->
+                            launchUrl(ctx, Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(q, "UTF-8"), q)
+                        flag == Constants.FLAG_LAUNCH_APP && !hiddenHintShown && HiddenAppHint.canSearchWeb(q, currentHiddenLabels()) && adapter.itemCount == 0 -> BadHabitDialogs.gateWebOpen(
+                            ctx, viewLifecycleOwner.lifecycleScope, { isAdded },
+                            Intent(Intent.ACTION_WEB_SEARCH), open = { browser ->
+                                if (canOpenImplicitSearch(q)) ctx.openSearch(q.trim(), browser)
+                            },
+                        )
                         else -> adapter.launchFirstInList()
                     }
                 }
@@ -193,24 +287,16 @@ class AppDrawerFragment : Fragment() {
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
+                if (pendingSubmit != newText) pendingSubmit = null
                 _binding?.appRename?.visibility = if (canRename && newText.isNotBlank()) View.VISIBLE else View.GONE
                 updateOmniboxState(newText)
+                refreshRecent()
                 // No debounce: matching against precomputed keys is sub-millisecond
                 // and Filter supersedes stale requests itself — instant beats smooth
                 try {
-                    adapter.filter.filter(newText) {
-                        _binding?.let { b ->
-                            if (omniboxMode != OmniboxMode.None) return@let
-                            if (adapter.itemCount == 0 && newText.isNotBlank()) {
-                                b.appDrawerTip.text = getString(R.string.no_apps_found)
-                                b.appDrawerTip.visibility = View.VISIBLE
-                            } else {
-                                b.appDrawerTip.visibility = View.GONE
-                            }
-                        }
-                    }
+                    adapter.filter.filter(newText)
                 } catch (e: Exception) {
-                    Log.e("AppDrawerFragment", "Error filtering app list", e)
+                    CrashReporter.reportNonFatal("AppDrawerFragment: Error filtering app list", e)
                 }
                 return true
             }
@@ -228,126 +314,237 @@ class AppDrawerFragment : Fragment() {
         // Omnibox modes only make sense when the drawer is a launcher, not when
         // it is open as an app picker (set home app / swipe app / etc.)
         if (flag != Constants.FLAG_LAUNCH_APP) return
-        val trimmed = newText.trim()
+        val rows = settingsRows ?: SettingsSearchIndex.rows(b.root.context).also { settingsRows = it }
+        omniboxMode = OmniboxResolver.resolve(newText, contacts, CurrencyRates.cached(b.root.context), rows)
+        if (omniboxMode is OmniboxMode.Currency || omniboxMode == OmniboxMode.CurrencyNoRates)
+            fetchCurrencyRatesOnce()
+        val tip = when (val mode = omniboxMode) {
+            is OmniboxMode.Calc -> "= ${mode.result}"
+            is OmniboxMode.Conversion -> "= ${mode.result}"
+            is OmniboxMode.Currency -> getString(R.string.currency_hint, mode.result, mode.date)
+            OmniboxMode.CurrencyNoRates -> getString(
+                if (currencyFetchInFlight) R.string.currency_downloading else R.string.currency_unavailable
+            )
+            is OmniboxMode.Dial -> getString(R.string.call_hint, mode.number)
+            OmniboxMode.WebSearch -> getString(R.string.google_search_hint, newText.trim())
+            is OmniboxMode.QuickAction -> quickActionPreview(b.root.context, mode.action)
+            is OmniboxMode.Contact -> getString(R.string.contact_hint, mode.name, mode.number)
+            is OmniboxMode.Setting -> getString(R.string.setting_hint, mode.title)
+            OmniboxMode.None -> null
+        }
+        if (tip != null) b.appDrawerTip.text = tip
+        b.appDrawerTip.visibility = if (tip != null) View.VISIBLE else View.GONE
+    }
 
-        if (ExpressionEvaluator.looksLikeExpression(trimmed)) {
-            ExpressionEvaluator.evaluate(trimmed)?.let { value ->
-                val result = ExpressionEvaluator.format(value)
-                omniboxMode = OmniboxMode.Calc(result)
-                b.appDrawerTip.text = "= $result"
-                b.appDrawerTip.visibility = View.VISIBLE
-                return
+    private fun refreshEmptyResultTip() {
+        val b = _binding ?: return
+        if (omniboxMode != OmniboxMode.None) return
+        val query = b.search.query.toString()
+        val emptyTip = if (flag == Constants.FLAG_LAUNCH_APP)
+            HiddenAppHint.emptyTip(query, isPrivateSpaceLocked(), currentHiddenLabels())
+        else HiddenAppHint.EmptyTip.NO_APPS
+        hiddenHintShown = flag == Constants.FLAG_LAUNCH_APP && adapter.itemCount == 0 &&
+            emptyTip == HiddenAppHint.EmptyTip.HIDDEN_APPS
+        // Picker drawers only pick an app, so a tip there must not promise a search
+        val searches = flag == Constants.FLAG_LAUNCH_APP
+        val bang = searches && query.startsWith("!") && query.length > 1
+        if (bang || (adapter.itemCount == 0 && query.isNotBlank())) {
+            b.appDrawerTip.text = when {
+                hiddenHintShown -> getString(R.string.hidden_apps_hint)
+                searches && !HiddenAppHint.canSearchWeb(query, currentHiddenLabels()) -> getString(R.string.no_apps_found)
+                bang -> getString(R.string.duck_search_hint, query)
+                searches -> getString(R.string.web_search_hint, query.trim())
+                else -> getString(R.string.no_apps_found)
             }
-        }
-        // Letters-only unit tokens keep this disjoint from both the calculator
-        // (digits/operators only) and the dial matcher below (digits/spaces
-        // only), so there's no ordering conflict between the three.
-        if (UnitConverter.looksLikeConversion(trimmed)) {
-            UnitConverter.convert(trimmed)?.let { result ->
-                val formatted = result.format()
-                omniboxMode = OmniboxMode.Conversion(formatted)
-                b.appDrawerTip.text = "= $formatted"
-                b.appDrawerTip.visibility = View.VISIBLE
-                return
-            }
-        }
-        if (DIAL_REGEX.matches(trimmed) && trimmed.count { it.isDigit() } >= 4) {
-            omniboxMode = OmniboxMode.Dial(trimmed)
-            b.appDrawerTip.text = getString(R.string.call_hint, trimmed)
             b.appDrawerTip.visibility = View.VISIBLE
+        } else {
+            b.appDrawerTip.visibility = View.GONE
+        }
+    }
+
+    private fun currentHiddenLabels(): List<String>? =
+        hiddenLabels.labelsFor(prefs.hiddenApps, PackageChangeTracker.stamp())
+
+    private fun canOpenImplicitSearch(query: String): Boolean {
+        if (!isAdded || _binding == null) return false
+        val labels = currentHiddenLabels()
+        if (labels == null) {
+            if (!hiddenLabelsLoading || hiddenLabels.isStale(prefs.hiddenApps, PackageChangeTracker.stamp()))
+                loadHiddenLabels()
+            requireContext().showToast(getString(R.string.checking_hidden_apps))
+        }
+        return HiddenAppHint.canSearchWeb(query, labels)
+    }
+
+    private fun loadHiddenLabels() {
+        val hiddenKeys = prefs.hiddenApps
+        val packageStamp = PackageChangeTracker.stamp()
+        val generation = hiddenLabels.begin(hiddenKeys, packageStamp)
+        hiddenLabelsLoading = hiddenKeys.isNotEmpty()
+        if (hiddenKeys.isEmpty()) {
+            resumePendingSubmit()
             return
         }
-        if (newText.startsWith(" ") && trimmed.isNotEmpty()) {
-            omniboxMode = OmniboxMode.WebSearch
-            b.appDrawerTip.text = getString(R.string.google_search_hint, trimmed)
-            b.appDrawerTip.visibility = View.VISIBLE
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val apps = getHiddenAppsForSearch(appContext, prefs)
+            if (!isAdded || _binding == null || !hiddenLabels.isCurrent(generation)) return@launch
+            if (hiddenLabels.isStale(prefs.hiddenApps, PackageChangeTracker.stamp())) {
+                loadHiddenLabels()
+                return@launch
+            }
+            hiddenLabels.complete(generation, prefs.hiddenApps, apps?.map { it.appLabel }, PackageChangeTracker.stamp())
+            hiddenLabelsLoading = false
+            if (binding.search.query.isNotBlank()) refreshEmptyResultTip()
+            if (pendingSubmit != null && apps == null) {
+                pendingSubmit = null
+                requireContext().showToast(getString(R.string.hidden_apps_check_failed))
+            } else resumePendingSubmit()
+        }
+    }
+
+    private fun resumePendingSubmit() {
+        val b = _binding ?: return
+        val query = pendingSubmit ?: return
+        if (!isAdded || b.search.query.toString() != query || !adapter.isQueryReady(query)) return
+        pendingSubmit = null
+        b.search.setQuery(query, true)
+    }
+
+    /** Locked means a private profile exists and is in quiet mode; no profile is not locked. */
+    private fun isPrivateSpaceLocked(): Boolean {
+        val profile = context?.let { privateProfile(it) } ?: return false
+        return isQuietMode(profile)
+    }
+
+    private fun openHiddenApps() {
+        if (!isAdded) return
+        viewModel.getHiddenApps()
+        findNavController().navigate(R.id.appListFragment, bundleOf(Constants.Key.FLAG to Constants.FLAG_HIDDEN_APPS))
+    }
+
+    /** fetchIfDue is a no-op when the cache is fresh; the re-resolve shows new rates without retyping. */
+    private fun fetchCurrencyRatesOnce() {
+        if (currencyFetchStarted) return
+        currencyFetchStarted = true
+        currencyFetchInFlight = true
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            CurrencyRates.fetchIfDue(appContext)
+            currencyFetchInFlight = false
+            val b = _binding ?: return@launch
+            if (!isAdded) return@launch
+            // Only a still-showing currency tip is refreshed; other tips (e.g.
+            // "no apps found") are owned by the filter callback.
+            if (omniboxMode is OmniboxMode.Currency || omniboxMode == OmniboxMode.CurrencyNoRates)
+                updateOmniboxState(b.search.query.toString())
+        }
+    }
+
+    private fun onAppClick(app: AppModel) {
+        if (!isAdded) return
+        if (app.isPrivateHeader()) {
+            viewModel.setPrivateLocked(!isQuietMode(app.user))
             return
         }
-        // Contacts rank below every other mode and below the app list (which the
-        // filter still populates): the matching contact only fills the tip line.
-        if (contacts.isNotEmpty() && ContactMatcher.looksLikeContactQuery(trimmed)) {
-            ContactMatcher.match(trimmed, contacts).firstOrNull()?.let { top ->
-                omniboxMode = OmniboxMode.Contact(top.name, top.number)
-                b.appDrawerTip.text = getString(R.string.contact_hint, top.name, top.number)
-                b.appDrawerTip.visibility = View.VISIBLE
-                return
-            }
+        if (app.appPackage.isEmpty())
+            return
+        if ((flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
+            && checkBadHabitAndLaunch(app)
+        ) {
+            // Bad habit check is handling launch asynchronously
+        } else {
+            recordLaunch(app)
+            viewModel.selectedApp(app, flag, gestureLetter)
+            if (flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
+                findNavController().popBackStack(R.id.mainFragment, false)
+            else
+                findNavController().popBackStack()
         }
-        b.appDrawerTip.visibility = View.GONE
+    }
+
+    // Only the launch drawer feeds history: pickers aren't launches, and the
+    // hidden-apps drawer and private space would leak what they keep out of sight.
+    private fun recordLaunch(app: AppModel) {
+        if (flag == Constants.FLAG_LAUNCH_APP && !app.isPrivate)
+            recordHistory(OmniboxHistory.Entry.App(historyKey(app)))
+    }
+
+    private fun recordHistory(entry: OmniboxHistory.Entry) {
+        if (flag != Constants.FLAG_LAUNCH_APP || !prefs.omniboxHistoryEnabled) return
+        prefs.omniboxHistory = OmniboxHistory.encode(
+            OmniboxHistory.push(OmniboxHistory.decode(prefs.omniboxHistory), entry)
+        )
+    }
+
+    private fun historyKey(app: AppModel) = app.appPackage + "|" + app.user.toString()
+
+    /**
+     * Recent launches and queries while the search is empty. Launches resolve
+     * against the drawer's current list, so uninstalled, hidden and locked
+     * private apps drop out and renamed apps show their current label.
+     */
+    private fun refreshRecent() {
+        val b = _binding ?: return
+        if (!::recentAdapter.isInitialized) return
+        val show = flag == Constants.FLAG_LAUNCH_APP && prefs.omniboxHistoryEnabled && b.search.query.isNullOrBlank()
+        val entries = if (show) OmniboxHistory.decode(prefs.omniboxHistory) else emptyList()
+        val apps = if (entries.isEmpty()) emptyMap()
+            else adapter.appsList.filter { !it.isPrivate && it.appPackage.isNotEmpty() }.associateBy(::historyKey)
+        recentAdapter.submit(entries.mapNotNull {
+            when (it) {
+                is OmniboxHistory.Entry.App -> apps[it.key]?.let(RecentHistoryAdapter.Row::App)
+                is OmniboxHistory.Entry.Query -> RecentHistoryAdapter.Row.Query(it.text)
+            }
+        })
     }
 
     private fun initAdapter() {
         adapter = AppDrawerAdapter(
             flag,
             prefs.appLabelAlignment,
-            appClickListener = {
-                if (!isAdded || it.appPackage.isEmpty())
-                    return@AppDrawerAdapter
-                if (flag == Constants.FLAG_LAUNCH_APP && checkBadHabitAndLaunch(it)) {
-                    // Bad habit check is handling launch asynchronously
-                } else {
-                    viewModel.selectedApp(it, flag)
-                    if (flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
-                        findNavController().popBackStack(R.id.mainFragment, false)
-                    else
-                        findNavController().popBackStack()
-                }
-            },
-            appInfoListener = {
-                if (!isAdded) return@AppDrawerAdapter
-                val ctx = context ?: return@AppDrawerAdapter
-                openAppInfo(
-                    ctx,
-                    it.user,
-                    it.appPackage
-                )
-                findNavController().popBackStack(R.id.mainFragment, false)
-            },
-            appDeleteListener = {
-                val ctx = context ?: return@AppDrawerAdapter
-                when {
-                    // ACTION_DELETE can't target another profile; app info can
-                    // uninstall from there (upstream fix #446)
-                    it.user != android.os.Process.myUserHandle() ->
-                        openAppInfo(ctx, it.user, it.appPackage)
-                    ctx.isSystemApp(it.appPackage) ->
-                        ctx.showToast(getString(R.string.system_app_cannot_delete))
-                    else -> ctx.uninstall(it.appPackage)
-                }
-            },
-            appHideListener = { appModel, position ->
-                if (!isAdded) return@AppDrawerAdapter
-                adapter.removeApp(position)
-
-                val newSet = mutableSetOf<String>()
-                newSet.addAll(prefs.hiddenApps)
-                if (flag == Constants.FLAG_HIDDEN_APPS) {
-                    newSet.remove(appModel.appPackage) // for backward compatibility
-                    newSet.remove(appModel.appPackage + "|" + appModel.user.toString())
-                } else
-                    newSet.add(appModel.appPackage + "|" + appModel.user.toString())
-
-                prefs.hiddenApps = newSet
-                if (newSet.isEmpty())
-                    findNavController().popBackStack()
-                if (prefs.firstHide) {
+            appClickListener = { onAppClick(it) },
+            appLongPressListener = { app ->
+                if (isAdded && _binding != null) {
                     _binding?.search?.hideKeyboard()
-                    prefs.firstHide = false
-                    viewModel.showDialog.postValue(Constants.Dialog.HIDDEN)
-                    findNavController().navigate(R.id.action_appListFragment_to_settingsFragment2)
+                    AppMenu.show(this, app, prefs, viewModel, hidden = flag == Constants.FLAG_HIDDEN_APPS) {
+                        if (isAdded && _binding != null) {
+                            reapplyQueryOnReload = false
+                            viewModel.getAppList()
+                            if (flag == Constants.FLAG_LAUNCH_APP) loadHiddenLabels()
+                            viewModel.getHiddenApps()
+                        }
+                    }
                 }
-                viewModel.getAppList()
-                viewModel.getHiddenApps()
-            },
-            appRenameListener = { appModel, renameLabel ->
-                prefs.setAppRenameLabel(appModel.appPackage, renameLabel)
-                viewModel.getAppList()
             }
         )
+        adapter.onFilterCommitted = { query ->
+            if (_binding?.search?.query?.toString() == query) {
+                refreshEmptyResultTip()
+                resumePendingSubmit()
+            }
+        }
         adapter.showIcons = prefs.showIcons
         adapter.iconPackPackage = prefs.iconPackPackage
         adapter.openCounts = AppOpenCounter.getCounts(requireContext())
-        adapter.autoLaunchGuard = { !isSearchComposing() }
+        // Read when the filter publishes, so fast typing only makes it stricter
+        adapter.autoLaunchGuard = { query ->
+            val text = searchTextView?.text?.toString().orEmpty()
+            text == query && !isSearchComposing() && !QuickActionParser.isActionPrefix(text) &&
+                OmniboxResolver.autoLaunchAllowed(text, prefs.autoLaunchSingleMatch, isScreenReaderOn())
+        }
+        if (flag == Constants.FLAG_LAUNCH_APP) {
+            // Looked up once per drawer; the lock state is re-read on every rebuild
+            val profile = privateProfile(requireContext())
+            if (profile != null) adapter.privateSpaceHeader = header@{
+                if (!isAdded) return@header null
+                val locked = isQuietMode(profile)
+                AppModel(
+                    getString(if (locked) R.string.private_space_unlock else R.string.private_space_lock),
+                    null, "", null, false, profile, isPrivate = true
+                )
+            }
+        }
 
         linearLayoutManager = object : LinearLayoutManager(requireContext()) {
             override fun scrollVerticallyBy(
@@ -359,19 +556,25 @@ class AppDrawerFragment : Fragment() {
                 val overScroll = dx - scrollRange
                 val rv = _binding?.recyclerView ?: return scrollRange
                 if (overScroll < -10 && rv.scrollState == RecyclerView.SCROLL_STATE_DRAGGING)
-                    checkMessageAndExit()
+                    if (isAdded) findNavController().popBackStack()
                 return scrollRange
             }
         }
 
+        recentAdapter = RecentHistoryAdapter(
+            prefs.appLabelAlignment,
+            onApp = { onAppClick(it) },
+            onQuery = { _binding?.search?.setQuery(it, false) },
+        )
+
         binding.recyclerView.layoutManager = linearLayoutManager
-        binding.recyclerView.adapter = adapter
+        binding.recyclerView.adapter = ConcatAdapter(recentAdapter, adapter)
         scrollListener = getRecyclerViewOnScrollListener()
         binding.recyclerView.addOnScrollListener(scrollListener!!)
         binding.recyclerView.itemAnimator = null
-        if (requireContext().isEinkDisplay().not())
-            binding.recyclerView.layoutAnimation =
-                AnimationUtils.loadLayoutAnimation(requireContext(), R.anim.layout_anim_from_bottom)
+        // The glow isn't an animator, so no system scale removes it; on e-ink it forces a partial refresh
+        if (requireContext().isEinkDisplay())
+            binding.recyclerView.overScrollMode = View.OVER_SCROLL_NEVER
     }
 
     private fun initObservers() {
@@ -381,8 +584,7 @@ class AppDrawerFragment : Fragment() {
                 binding.appDrawerTip.isSelected = true
             }
         }
-        val wantSortByUsage = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
-                && requireContext().appUsagePermissionGranted()
+        val wantSortByUsage = requireContext().appUsagePermissionGranted()
                 && prefs.appDrawerSortByUsage
         adapter.sortByUsage = wantSortByUsage
 
@@ -393,21 +595,37 @@ class AppDrawerFragment : Fragment() {
         }
 
         if (flag == Constants.FLAG_HIDDEN_APPS) {
+            // A recreated ViewModel (process death, "Don't keep activities") has
+            // never loaded this list; only Settings fills it before navigating
+            if (viewModel.hiddenApps.value == null) viewModel.getHiddenApps()
             viewModel.hiddenApps.observe(viewLifecycleOwner) {
                 it?.let {
                     adapter.setAppList(it.toMutableList())
+                    if (binding.search.query.isNotBlank()) adapter.filter.filter(binding.search.query)
                 }
             }
         } else {
+            if (flag == Constants.FLAG_LAUNCH_APP) {
+                loadHiddenLabels()
+            }
             viewModel.appList.observe(viewLifecycleOwner) {
                 it?.let { appModels ->
                     adapter.setAppList(appModels.toMutableList())
+                    refreshRecent()
+                    if (typedQuery.isNotEmpty()) {
+                        // Keys typed after the drawer took focus follow the first one
+                        binding.search.setQuery(typedQuery + binding.search.query, false)
+                        typedQuery = ""
+                        reapplyQueryOnReload = true
+                    } else if (binding.search.query.isNotBlank()) {
+                        if (!reapplyQueryOnReload)
+                            adapter.suppressAutoLaunchForQuery(binding.search.query.toString())
+                        adapter.filter.filter(binding.search.query)
+                    }
                 }
             }
         }
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
-            && requireContext().appUsagePermissionGranted()
-        ) {
+        if (requireContext().appUsagePermissionGranted()) {
             viewModel.perAppScreenTime.observe(viewLifecycleOwner) { stats ->
                 adapter.usageStats = stats
                 prefs.setCachedUsageStats(stats)
@@ -417,21 +635,46 @@ class AppDrawerFragment : Fragment() {
         }
     }
 
+    private fun tipRepeatsEnter(): Boolean = when (omniboxMode) {
+        is OmniboxMode.Dial, OmniboxMode.WebSearch -> true
+        OmniboxMode.None -> !hiddenHintShown && flag == Constants.FLAG_LAUNCH_APP &&
+            binding.search.query.isNotBlank() && HiddenAppHint.canSearchWeb(binding.search.query.toString(), currentHiddenLabels())
+        else -> false
+    }
+
     private fun initClickListeners() {
         binding.appDrawerTip.setOnClickListener {
+            if (tipRepeatsEnter()) {
+                binding.search.setQuery(binding.search.query, true)
+                return@setOnClickListener
+            }
             when (val mode = omniboxMode) {
                 is OmniboxMode.Calc -> {
-                    requireContext().copyToClipboard(mode.result)
-                    requireContext().showToast(getString(R.string.copied))
+                    copyResult(mode.result)
                     return@setOnClickListener
                 }
                 is OmniboxMode.Conversion -> {
-                    requireContext().copyToClipboard(mode.result)
-                    requireContext().showToast(getString(R.string.copied))
+                    copyResult(mode.result)
+                    return@setOnClickListener
+                }
+                is OmniboxMode.Currency -> {
+                    copyResult(mode.result)
                     return@setOnClickListener
                 }
                 is OmniboxMode.Contact -> {
                     dial(requireContext(), mode.number)
+                    return@setOnClickListener
+                }
+                is OmniboxMode.QuickAction -> {
+                    runQuickAction(mode.action)
+                    return@setOnClickListener
+                }
+                is OmniboxMode.Setting -> {
+                    openSetting(mode.anchor)
+                    return@setOnClickListener
+                }
+                OmniboxMode.None -> if (hiddenHintShown) {
+                    openHiddenApps()
                     return@setOnClickListener
                 }
                 else -> {}
@@ -473,7 +716,8 @@ class AppDrawerFragment : Fragment() {
                         if (!recyclerView.canScrollVertically(1))
                             _binding?.search?.hideKeyboard()
                         else if (!recyclerView.canScrollVertically(-1))
-                            if (!onTop && isRemoving.not())
+                            // A d-pad focused row reaching the top keeps its focus
+                            if (!onTop && isRemoving.not() && recyclerView.focusedChild == null)
                                 _binding?.search?.showKeyboard(prefs.autoShowKeyboard)
                     }
                 }
@@ -481,9 +725,34 @@ class AppDrawerFragment : Fragment() {
         }
     }
 
-    private fun checkMessageAndExit() {
+    private fun copyResult(result: String) {
+        requireContext().copyToClipboard(result)
+        _binding?.appDrawerTip?.let(Motion::copied)
+        requireContext().showToast(getString(R.string.copied))
+    }
+
+    // The action pops the drawer, so Back from Settings returns home
+    private fun openSetting(anchor: Int) {
         if (!isAdded) return
-        findNavController().popBackStack()
+        findNavController().navigate(
+            R.id.action_appListFragment_to_settingsFragment2,
+            bundleOf(Constants.Key.SETTING to anchor),
+        )
+    }
+
+    /**
+     * Not an app launch: Focus and the mindful pause don't apply, like Dial.
+     * Alarm and timer skip the clock's UI, so the drawer closes itself; the
+     * calendar editor opens on top and Back from it lands home.
+     */
+    private fun runQuickAction(action: QuickAction) {
+        val ctx = context ?: return
+        if (!fireQuickAction(ctx, action)) {
+            ctx.showToast(getString(R.string.quick_action_no_app))
+            return
+        }
+        if (action !is QuickAction.Event) ctx.showToast(getString(R.string.quick_action_sent))
+        findNavController().popBackStack(R.id.mainFragment, false)
     }
 
     private fun dial(ctx: android.content.Context, number: String) {
@@ -495,49 +764,65 @@ class AppDrawerFragment : Fragment() {
                 )
             )
         } catch (e: Exception) {
+            CrashReporter.reportNonFatal("AppDrawerFragment", e)
             ctx.showToast(getString(R.string.unable_to_open_app))
         }
     }
 
     /**
-     * Returns true if the app is a bad habit and we're handling it (async check),
-     * false if we should proceed with normal launch.
+     * Omnibox web opens take the website-slot route: gated on the handling app,
+     * then MainViewModel.selectedApp, which also pins a whitelisted browser under focus.
+     */
+    private fun launchUrl(ctx: Context, url: String, implicitSearch: String? = null) {
+        BadHabitDialogs.gateWebOpen(
+            ctx, viewLifecycleOwner.lifecycleScope, { isAdded },
+            Intent(Intent.ACTION_VIEW, Uri.parse(url)),
+            open = { browser ->
+                if (isAdded && (implicitSearch == null || canOpenImplicitSearch(implicitSearch))) viewModel.selectedApp(
+                    AppModel(url, null, browser, null, false, android.os.Process.myUserHandle(), url),
+                    Constants.FLAG_LAUNCH_APP
+                )
+            },
+        )
+    }
+
+    private fun isQuietMode(profile: android.os.UserHandle): Boolean = try {
+        (requireContext().getSystemService(android.content.Context.USER_SERVICE) as android.os.UserManager)
+            .isQuietModeEnabled(profile)
+    } catch (e: Exception) {
+        CrashReporter.reportNonFatal("AppDrawerFragment", e)
+        true
+    }
+
+    /**
+     * Returns true if the app has a limit or pause and the launch gate (mindful pause /
+     * limit warning) is handling it, false if we should proceed with normal launch.
      */
     private fun checkBadHabitAndLaunch(appModel: AppModel): Boolean {
         val ctx = context ?: return false
-        if (!AppLimitManager.hasLimit(ctx, appModel.appPackage)) return false
-        val limitMinutes = AppLimitManager.getLimit(ctx, appModel.appPackage) ?: return false
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            val usageMs = withContext(Dispatchers.IO) {
-                UsageStatsHelper.getUsageForApp(ctx, appModel.appPackage)
-            }
-            if (!isAdded) return@launch
-            val usageMinutes = usageMs / 60_000
-            if (usageMinutes >= limitMinutes) {
-                showBadHabitWarningDialog(appModel, usageMinutes, limitMinutes)
-            } else {
-                viewModel.selectedApp(appModel, flag)
-                findNavController().popBackStack(R.id.mainFragment, false)
-            }
-        }
+        if (!AppLimitManager.isGated(ctx, appModel.appPackage)) return false
+        BadHabitDialogs.gateLaunch(
+            ctx, viewLifecycleOwner.lifecycleScope, { isAdded },
+            appModel.appLabel, appModel.appPackage,
+            open = {
+                if (isAdded) {
+                    recordLaunch(appModel)
+                    viewModel.selectedApp(appModel, flag)
+                    findNavController().popBackStack(R.id.mainFragment, false)
+                }
+            },
+            // Backing out of the pause returns home rather than leaving the drawer open
+            onCancel = { if (isAdded) findNavController().popBackStack(R.id.mainFragment, false) },
+        )
         return true
-    }
-
-    private fun showBadHabitWarningDialog(appModel: AppModel, usageMinutes: Long, limitMinutes: Int) {
-        val ctx = context ?: return
-        val appName = appModel.appLabel.ifEmpty { appModel.appPackage }
-        BadHabitDialogs.showLimitWarning(ctx, appName, usageMinutes, limitMinutes) {
-            if (!isAdded) return@showLimitWarning
-            viewModel.selectedApp(appModel, flag)
-            findNavController().popBackStack(R.id.mainFragment, false)
-        }
     }
 
     override fun onStart() {
         super.onStart()
         cachedIsCjkKeyboard = null
         binding.search.showKeyboard(prefs.autoShowKeyboard)
+        // Further typing must land in the field even with keyboard auto-show off
+        if (typedQuery.isNotEmpty()) binding.search.requestFocus()
     }
 
     override fun onStop() {
@@ -548,21 +833,14 @@ class AppDrawerFragment : Fragment() {
     override fun onDestroyView() {
         scrollListener?.let { binding.recyclerView.removeOnScrollListener(it) }
         scrollListener = null
+        pendingSubmit = null
         searchTextView = null
         super.onDestroyView()
         _binding = null
     }
-}
 
-/**
- * The omnibox can be in exactly one mode at a time. [None] is ordinary app
- * search; the others each drive the tip line and the submit action.
- */
-sealed interface OmniboxMode {
-    object None : OmniboxMode
-    data class Calc(val result: String) : OmniboxMode
-    data class Conversion(val result: String) : OmniboxMode
-    data class Dial(val number: String) : OmniboxMode
-    object WebSearch : OmniboxMode
-    data class Contact(val name: String, val number: String) : OmniboxMode
+    private companion object {
+        // Process lifetime is enough to rotate; not worth a pref
+        var hintIndex = 0
+    }
 }

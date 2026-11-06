@@ -1,39 +1,49 @@
 package com.parem.launcher.ui.home
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.icu.text.MeasureFormat
+import android.icu.util.Measure
+import android.icu.util.MeasureUnit
+import android.content.IntentFilter
 import android.os.BatteryManager
-import android.os.Build
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.view.View
-import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
+import com.parem.launcher.helper.ScreenTimeSpeech
 import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.WeatherStaleness
 import com.parem.launcher.helper.appUsagePermissionGranted
+import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.openAlarmApp
 import com.parem.launcher.helper.openCalendar
 import com.parem.launcher.ui.HomeFragment
 import com.parem.launcher.ui.ScreenTimeGraphDialog
+import com.parem.launcher.ui.isAlive
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /**
  * Owns the home screen's clock row: date/time rendering (including weather
  * staleness dimming), the clock/calendar tap targets, and the screen-time row.
  *
  * Extracted from HomeFragment; mirrors HomeWidgetController's shape. Created
- * in HomeFragment.onViewCreated; holds no listeners or async state of its own,
- * so it needs no cleanup.
+ * in HomeFragment.onViewCreated. Its only listener is the date/battery
+ * broadcast receiver, which it registers and unregisters itself by watching
+ * the fragment's view lifecycle (resumed only), so it needs no cleanup call.
  */
 class HomeClockController(
     private val fragment: HomeFragment,
@@ -44,17 +54,32 @@ class HomeClockController(
 
     private val context get() = binding.root.context
 
-    companion object {
-        private var cachedLocale: Locale? = null
-        private var dateFormatter: DateTimeFormatter? = null
-        fun getDateFormatter(): DateTimeFormatter {
-            val current = Locale.getDefault()
-            if (current != cachedLocale || dateFormatter == null) {
-                cachedLocale = current
-                dateFormatter = DateTimeFormatter.ofPattern("EEE, d MMM", current)
-            }
-            return dateFormatter!!
+    // Without this the date and battery % only refresh on resume, so a home
+    // screen left visible across midnight (or a timezone change) goes stale.
+    private val refreshReceiver = object : BroadcastReceiver() {
+        override fun onReceive(ctx: Context?, intent: Intent?) {
+            if (fragment.isAlive) populateDateTime()
         }
+    }
+
+    init {
+        fragment.viewLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                val filter = IntentFilter().apply {
+                    addAction(Intent.ACTION_DATE_CHANGED)
+                    addAction(Intent.ACTION_TIME_TICK)
+                    addAction(Intent.ACTION_TIMEZONE_CHANGED)
+                    // Fires on every level/temperature step (seconds apart while
+                    // charging); only worth a re-render when the % is drawn
+                    if (!prefs.showStatusBar) addAction(Intent.ACTION_BATTERY_CHANGED)
+                }
+                ContextCompat.registerReceiver(context, refreshReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+            }
+
+            override fun onPause(owner: LifecycleOwner) {
+                context.unregisterReceiver(refreshReceiver)
+            }
+        })
     }
 
     fun populateDateTime() {
@@ -62,12 +87,12 @@ class HomeClockController(
         binding.clock.isVisible = Constants.DateTime.isTimeVisible(prefs.dateTimeVisibility)
         binding.date.isVisible = Constants.DateTime.isDateVisible(prefs.dateTimeVisibility)
 
-        val rawWeatherTemp = WeatherManager.getDisplayString(context)
+        val rawWeatherTemp = WeatherManager.getCachedTemp(context)
         val staleness = WeatherManager.getStaleness(context)
         // Older than 24h: hide entirely rather than show a silently stale reading.
         val weatherTemp = if (staleness == WeatherStaleness.Level.EXPIRED) "" else rawWeatherTemp
 
-        var dateText = LocalDate.now().format(getDateFormatter())
+        var dateText = LocalDate.now().format(DateTimeFormatter.ofPattern("EEE, d MMM"))
         if (weatherTemp.isNotEmpty()) dateText = "$weatherTemp  $dateText"
 
         if (!prefs.showStatusBar) {
@@ -98,12 +123,29 @@ class HomeClockController(
         binding.clock.contentDescription = binding.clock.text
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     fun populateScreenTime() {
         if (context.appUsagePermissionGranted().not()) return
 
         viewModel.getTodaysScreenTime()
         binding.tvScreenTime.visibility = View.VISIBLE
+    }
+
+    fun showScreenTime(timeSpentMs: Long) {
+        binding.tvScreenTime.text = context.formattedTimeSpent(timeSpentMs)
+        // "1m" is read as "one metre"; give TalkBack words
+        binding.tvScreenTime.contentDescription = when (val spoken = ScreenTimeSpeech.of(timeSpentMs)) {
+            ScreenTimeSpeech.UnderAMinute -> context.getString(R.string.a11y_screen_time_under_minute)
+            is ScreenTimeSpeech.Duration -> {
+                val measures = listOfNotNull(
+                    spoken.hours?.let { Measure(it, MeasureUnit.HOUR) },
+                    spoken.minutes?.let { Measure(it, MeasureUnit.MINUTE) },
+                )
+                val duration = MeasureFormat
+                    .getInstance(context.resources.configuration.locales[0], MeasureFormat.FormatWidth.WIDE)
+                    .formatMeasures(*measures.toTypedArray())
+                context.getString(R.string.a11y_screen_time_today, duration)
+            }
+        }
     }
 
     fun openClockApp() {
@@ -132,9 +174,9 @@ class HomeClockController(
 
     fun openScreenTimeDigitalWellbeing() {
         try {
-            ScreenTimeGraphDialog(context).show()
+            ScreenTimeGraphDialog(context, fragment.viewLifecycleOwner).show()
         } catch (e: Exception) {
-            Log.e("HomeFragment", "Failed to show screen time graph", e)
+            CrashReporter.reportNonFatal("HomeFragment: Failed to show screen time graph", e)
             // Fallback to Digital Wellbeing
             val intent = Intent()
             try {
@@ -144,7 +186,7 @@ class HomeClockController(
                 )
                 fragment.startActivity(intent)
             } catch (e2: Exception) {
-                Log.e("HomeFragment", "Failed to open Digital Wellbeing", e2)
+                CrashReporter.reportNonFatal("HomeFragment: Failed to open Digital Wellbeing", e2)
             }
         }
     }

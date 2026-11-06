@@ -1,12 +1,13 @@
 package com.parem.launcher.ui.settings
 
 import android.Manifest
-import android.os.Build
+import android.os.Process
+import com.parem.launcher.BuildConfig
+import com.parem.launcher.helper.openAppInfo
 import android.view.Gravity
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
-import androidx.navigation.fragment.findNavController
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -15,13 +16,15 @@ import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.ContactSearchManager
 import com.parem.launcher.helper.IconPackManager
 import com.parem.launcher.helper.appUsagePermissionGranted
+import com.parem.launcher.helper.onOff
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SettingsFragment
+import com.parem.launcher.ui.dismissOnDestroy
 
 /**
  * Card 2 ("Home Screen"): number of home apps, date/time visibility, home
- * layout alignment, show-icons, sort-by-usage, widget placement.
+ * layout alignment, home layout lock, show-icons, sort-by-usage, widget placement.
  *
  * Extracted from SettingsFragment; mirrors HomeWidgetController's shape.
  */
@@ -37,10 +40,14 @@ class HomeScreenSettingsCard(
 
     fun bind() {
         binding.homeAppsNum.text = prefs.homeAppsNum.toString()
+        binding.homeAppsNumRow.bindValueRow(binding.homeAppsNum.text)
         populateSortByUsage()
         populateWidgetPlacement()
         populateShowIcons()
+        populateHomeLayoutLock()
         populateContactSearch()
+        populateSearchHistory()
+        populateAutoLaunch()
         populateAlignment()
         populateDateTime()
 
@@ -49,32 +56,33 @@ class HomeScreenSettingsCard(
     }
 
     private fun initClickListeners() {
-        binding.homeAppsNum.setOnClickListener(this)
-        binding.sortByUsage?.setOnClickListener(this)
-        binding.widgetPlacement?.setOnClickListener(this)
-        binding.showIconsToggle?.setOnClickListener(this)
-        binding.contactSearchToggle?.setOnClickListener(this)
-        binding.alignment.setOnClickListener(this)
+        binding.homeAppsNumRow.setOnClickListener(this)
+        binding.sortByUsageLayout?.setOnClickListener(this)
+        binding.widgetPlacementRow?.setOnClickListener(this)
+        binding.showIconsRow?.setOnClickListener(this)
+        binding.homeLayoutLockRow.setOnClickListener(this)
+        binding.contactSearchLayout?.setOnClickListener(this)
+        binding.searchHistoryRow?.setOnClickListener(this)
+        binding.searchHistoryClear?.setOnClickListener(this)
+        binding.autoLaunchRow.setOnClickListener(this)
+        binding.alignmentRow.setOnClickListener(this)
         binding.alignmentLeft.setOnClickListener(this)
         binding.alignmentCenter.setOnClickListener(this)
         binding.alignmentRight.setOnClickListener(this)
         binding.alignmentBottom.setOnClickListener(this)
-        binding.dateTime.setOnClickListener(this)
+        binding.dateTimeRow.setOnClickListener(this)
         binding.dateTimeOn.setOnClickListener(this)
         binding.dateTimeOff.setOnClickListener(this)
         binding.dateOnly.setOnClickListener(this)
 
-        binding.maxApps0.setOnClickListener(this)
-        binding.maxApps1.setOnClickListener(this)
-        binding.maxApps2.setOnClickListener(this)
-        binding.maxApps3.setOnClickListener(this)
-        binding.maxApps4.setOnClickListener(this)
-        binding.maxApps5.setOnClickListener(this)
-        binding.maxApps6.setOnClickListener(this)
-        binding.maxApps7.setOnClickListener(this)
-        binding.maxApps8.setOnClickListener(this)
+        maxAppsOptions.forEachIndexed { count, option ->
+            option.setOnClickListener {
+                fragment.resetOpenPickers(option.id)
+                updateHomeAppsNum(count)
+            }
+        }
 
-        binding.alignment.setOnLongClickListener(this)
+        binding.alignmentRow.setOnLongClickListener(this)
     }
 
     private fun initObservers() {
@@ -86,42 +94,45 @@ class HomeScreenSettingsCard(
     override fun onClick(view: View) {
         fragment.resetOpenPickers(view.id)
         when (view.id) {
-            R.id.homeAppsNum -> {
+            R.id.homeAppsNumRow -> {
                 populateAppsNumOptions()
                 binding.appsNumSelectLayout.visibility = View.VISIBLE
             }
-            R.id.alignment -> binding.alignmentSelectLayout.visibility = View.VISIBLE
-            R.id.alignmentLeft -> viewModel.updateHomeAlignment(Gravity.START)
+            R.id.alignmentRow -> binding.alignmentSelectLayout.visibility = View.VISIBLE
+            R.id.alignmentLeft -> viewModel.updateHomeAlignment(leftGravity)
             R.id.alignmentCenter -> viewModel.updateHomeAlignment(Gravity.CENTER)
-            R.id.alignmentRight -> viewModel.updateHomeAlignment(Gravity.END)
+            R.id.alignmentRight -> viewModel.updateHomeAlignment(rightGravity)
             R.id.alignmentBottom -> updateHomeBottomAlignment()
-            R.id.dateTime -> binding.dateTimeSelectLayout.visibility = View.VISIBLE
+            R.id.dateTimeRow -> binding.dateTimeSelectLayout.visibility = View.VISIBLE
             R.id.dateTimeOn -> toggleDateTime(Constants.DateTime.ON)
             R.id.dateTimeOff -> toggleDateTime(Constants.DateTime.OFF)
             R.id.dateOnly -> toggleDateTime(Constants.DateTime.DATE_ONLY)
 
-            R.id.maxApps0 -> updateHomeAppsNum(0)
-            R.id.maxApps1 -> updateHomeAppsNum(1)
-            R.id.maxApps2 -> updateHomeAppsNum(2)
-            R.id.maxApps3 -> updateHomeAppsNum(3)
-            R.id.maxApps4 -> updateHomeAppsNum(4)
-            R.id.maxApps5 -> updateHomeAppsNum(5)
-            R.id.maxApps6 -> updateHomeAppsNum(6)
-            R.id.maxApps7 -> updateHomeAppsNum(7)
-            R.id.maxApps8 -> updateHomeAppsNum(8)
-
-            R.id.widgetPlacement -> toggleWidgetPlacement()
-            R.id.showIconsToggle -> toggleShowIcons()
-            R.id.sortByUsage -> toggleSortByUsage()
-            R.id.contactSearchToggle -> toggleContactSearch()
+            R.id.widgetPlacementRow -> toggleWidgetPlacement()
+            R.id.showIconsRow -> toggleShowIcons()
+            R.id.homeLayoutLockRow -> toggleHomeLayoutLock()
+            R.id.sortByUsageLayout -> toggleSortByUsage()
+            R.id.contactSearchLayout -> toggleContactSearch()
+            R.id.autoLaunchRow -> {
+                prefs.autoLaunchSingleMatch = !prefs.autoLaunchSingleMatch
+                populateAutoLaunch()
+            }
+            R.id.searchHistoryRow -> {
+                prefs.omniboxHistoryEnabled = !prefs.omniboxHistoryEnabled
+                populateSearchHistory()
+            }
+            R.id.searchHistoryClear -> {
+                prefs.omniboxHistory = ""
+                context.showToast(context.getString(R.string.search_history_cleared))
+            }
         }
     }
 
     override fun onLongClick(view: View): Boolean {
         when (view.id) {
-            R.id.alignment -> {
+            R.id.alignmentRow -> {
                 prefs.appLabelAlignment = prefs.homeAlignment
-                fragment.findNavController().navigate(R.id.action_settingsFragment_to_appListFragment)
+                fragment.navigateFromSettings(R.id.action_settingsFragment_to_appListFragment)
                 context.showToast(context.getString(R.string.alignment_changed))
             }
         }
@@ -151,15 +162,16 @@ class HomeScreenSettingsCard(
             return
         }
         binding.homeAppsNum.text = num.toString()
+        binding.homeAppsNumRow.bindValueRow(binding.homeAppsNum.text)
         binding.appsNumSelectLayout.visibility = View.GONE
         prefs.homeAppsNum = num
-        viewModel.refreshHome(true)
+        viewModel.refreshHome.postValue(true)
     }
 
     private fun toggleDateTime(selected: Int) {
         prefs.dateTimeVisibility = selected
         populateDateTime()
-        viewModel.toggleDateTime()
+        viewModel.toggleDateTime.postValue(Unit)
     }
 
     private fun populateDateTime() {
@@ -170,6 +182,7 @@ class HomeScreenSettingsCard(
                 else -> R.string.off
             }
         )
+        binding.dateTimeRow.bindValueRow(binding.dateTime.text)
     }
 
     private fun updateHomeBottomAlignment() {
@@ -182,15 +195,21 @@ class HomeScreenSettingsCard(
         viewModel.updateHomeAlignment(prefs.homeAlignment)
     }
 
+    // START is the right edge under RTL; the labels name the side the user sees
+    private val isRtl get() = context.resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL
+    private val leftGravity get() = if (isRtl) Gravity.END else Gravity.START
+    private val rightGravity get() = if (isRtl) Gravity.START else Gravity.END
+
     private fun populateAlignment() {
         when (prefs.homeAlignment) {
-            Gravity.START -> binding.alignment.text = context.getString(R.string.left)
+            leftGravity -> binding.alignment.text = context.getString(R.string.left)
             Gravity.CENTER -> binding.alignment.text = context.getString(R.string.center)
-            Gravity.END -> binding.alignment.text = context.getString(R.string.right)
+            rightGravity -> binding.alignment.text = context.getString(R.string.right)
         }
         binding.alignmentBottom.text = if (prefs.homeBottomAlignment)
             context.getString(R.string.bottom_on)
         else context.getString(R.string.bottom_off)
+        binding.alignmentRow.bindValueRow(binding.alignment.text)
     }
 
     private fun toggleShowIcons() {
@@ -209,7 +228,7 @@ class HomeScreenSettingsCard(
             prefs.iconPackPackage = ""
         }
         populateShowIcons()
-        viewModel.refreshHome(false)
+        viewModel.refreshHome.postValue(false)
     }
 
     private fun showIconPackPicker(packs: List<Pair<String, String>>) {
@@ -219,24 +238,39 @@ class HomeScreenSettingsCard(
         for ((pkg, label) in packs) {
             menu.option(label) { applyIconPack(pkg) }
         }
-        menu.show()
+        menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     private fun applyIconPack(pkg: String) {
         prefs.showIcons = true
         prefs.iconPackPackage = pkg
         populateShowIcons()
-        viewModel.refreshHome(false)
+        viewModel.refreshHome.postValue(false)
     }
 
     private fun populateShowIcons() {
         binding.showIconsToggle?.text = if (prefs.showIcons) context.getString(R.string.on) else context.getString(R.string.off)
+        binding.showIconsRow?.bindSwitchRow(prefs.showIcons)
+    }
+
+    // Long-press reads the pref live; the refresh only updates empty slots' TalkBack hint
+    private fun toggleHomeLayoutLock() {
+        prefs.homeLayoutLocked = !prefs.homeLayoutLocked
+        populateHomeLayoutLock()
+        viewModel.refreshHome.postValue(false)
+    }
+
+    private fun populateHomeLayoutLock() {
+        binding.homeLayoutLockToggle.text =
+            if (prefs.homeLayoutLocked) context.getString(R.string.on) else context.getString(R.string.off)
+        binding.homeLayoutLockRow.bindSwitchRow(prefs.homeLayoutLocked)
     }
 
     private fun populateSortByUsage() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && context.appUsagePermissionGranted()) {
+        if (context.appUsagePermissionGranted()) {
             binding.sortByUsageLayout?.visibility = View.VISIBLE
             binding.sortByUsage?.text = if (prefs.appDrawerSortByUsage) context.getString(R.string.on) else context.getString(R.string.off)
+            binding.sortByUsageLayout?.bindSwitchRow(prefs.appDrawerSortByUsage)
         } else {
             binding.sortByUsageLayout?.visibility = View.GONE
         }
@@ -248,7 +282,7 @@ class HomeScreenSettingsCard(
     }
 
     // Contact search is the only place READ_CONTACTS is ever requested: turning
-    // the toggle on prompts for the permission; every other path (launch,
+    // the toggle on shows the disclosure, then the prompt; every other path (launch,
     // onboarding, the drawer itself) leaves it untouched.
     private fun toggleContactSearch() {
         if (ContactSearchManager.isEnabled(context)) {
@@ -258,14 +292,31 @@ class HomeScreenSettingsCard(
             ContactSearchManager.setEnabled(context, true)
             populateContactSearch()
         } else {
-            requestContactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+            showContactSheet(R.string.contact_search_disclosure, R.string.agree) {
+                requestContactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+            }
         }
+    }
+
+    private fun showContactSheet(message: Int, action: Int, onAction: () -> Unit) {
+        BottomSheetMenu(context)
+            .title(context.getString(R.string.contact_search))
+            .message(context.getString(message))
+            .option(context.getString(action), onClick = onAction)
+            .option(context.getString(R.string.not_now), dimmed = true) {}
+            .show()
+            .dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     /** Called by the fragment when the READ_CONTACTS prompt returns. */
     fun onContactsPermissionResult(granted: Boolean) {
-        // Denial leaves the feature off with no further nagging.
+        // A first denial stays quiet; once Android stops asking, the toggle would look broken
         if (granted) ContactSearchManager.setEnabled(context, true)
+        else if (!fragment.shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
+            showContactSheet(R.string.contact_search_denied, R.string.open_app_settings) {
+                openAppInfo(context, Process.myUserHandle(), BuildConfig.APPLICATION_ID)
+            }
+        }
         populateContactSearch()
     }
 
@@ -278,6 +329,20 @@ class HomeScreenSettingsCard(
         binding.contactSearchToggle?.text =
             if (ContactSearchManager.isEnabled(context)) context.getString(R.string.on)
             else context.getString(R.string.off)
+        binding.contactSearchLayout?.bindSwitchRow(ContactSearchManager.isEnabled(context))
+    }
+
+    private fun populateSearchHistory() {
+        val on = prefs.omniboxHistoryEnabled
+        binding.searchHistoryToggle?.text = context.onOff(on)
+        binding.searchHistoryClear?.visibility = if (on) View.VISIBLE else View.GONE
+        binding.searchHistoryRow?.bindSwitchRow(on)
+    }
+
+    private fun populateAutoLaunch() {
+        val on = prefs.autoLaunchSingleMatch
+        binding.autoLaunchToggle.text = context.onOff(on)
+        binding.autoLaunchRow.bindSwitchRow(on)
     }
 
     private fun toggleWidgetPlacement() {
@@ -286,7 +351,7 @@ class HomeScreenSettingsCard(
         else
             Constants.WidgetPlacement.ABOVE
         populateWidgetPlacement()
-        viewModel.refreshHome(false)
+        viewModel.refreshHome.postValue(false)
     }
 
     private fun populateWidgetPlacement() {
@@ -294,5 +359,6 @@ class HomeScreenSettingsCard(
             context.getString(R.string.above_apps)
         else
             context.getString(R.string.below_apps)
+        binding.widgetPlacementRow?.bindValueRow(binding.widgetPlacement?.text)
     }
 }

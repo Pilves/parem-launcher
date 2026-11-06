@@ -1,0 +1,45 @@
+Ich hatte genug von meinem Smartphone. Jedes Icon wollte angetippt werden, jede App wollte Aufmerksamkeit. Parem ist der minimalistische Android-Launcher, den ich stattdessen wollte: eine kurze Liste von App-Namen, Benachrichtigungen, die warten können, und eine Bremse vor den Zeitfresser-Apps. Für weniger Bildschirmzeit oder echtes Digital Detox, ohne Umstieg auf ein Dumbphone.
+
+Keine Werbung. Kein Konto. Kein Haken. Keine Analyse, keine Käufe. Alles kostenlos.
+
+Parem wird bei der Einrichtung deine Start-App. Deine Apps bleiben installiert, zurückwechseln geht jederzeit. Ab Android 10. Die App-Oberfläche ist derzeit überwiegend Englisch.
+
+<b>Ein Startbildschirm aus Wörtern</b>
+• Bis zu 8 Apps als reiner Text unter Uhr und Datum. Icons und Icon-Packs sind optional.
+• Ordner, Website-Verknüpfungen und Widgets mit anpassbarer Größe
+• Wischgesten und Doppeltippen machen, was du festlegst; optionale Gestenbuchstaben öffnen Apps
+
+<b>Ein Suchfeld, kein Suchen</b>
+Nach oben wischen und tippen. Anfangsbuchstaben und Namensteile genügen, ein einzelner Treffer öffnet sich von selbst (abschaltbar). Außerdem kann das Feld:
+• Rechnen und umrechnen: 2+2, 5 km to mi, 100 eur in usd
+• Wecker, Timer und Termine (englische Befehle): alarm 7:30, timer 10m
+• Telefonnummern, App-Shortcuts und Einstellungen finden
+• Websuche
+
+<b>Für ein ruhiges Smartphone</b>
+Alle sind aus, bis du sie einschaltest, und sagen vorher, was sie brauchen.
+• Bildschirmzeit: Tagessumme, 7-Tage-Grafik und Wochenrückblick.
+• App-Limits: Tageskontingent pro App, danach eine Warnung, die du übergehen kannst.
+• Achtsame Pause: für jede gewählte App eine Frage und fünf Sekunden Wartezeit. Alle drei brauchen Zugriff auf Nutzungsdaten.
+• Fokusmodus: mit Timer oder Wochenplan. Bis zu 5 erlaubte Apps; die Telefon-App wird nie blockiert.
+• Stille Benachrichtigungen: Nicht erlaubte Apps wandern aus der Benachrichtigungsleiste in eine stille Liste. Anrufe, Wecker, Medien, Navigation und Notfallwarnungen bleiben sichtbar, Ausgeblendetes kehrt binnen 8 Stunden zurück. Ton oder Vibration sind möglich, solange du nicht „Make silent“ wählst. Braucht Benachrichtigungszugriff.
+• Graustufen: sofort, im Fokus, nach einem Limit oder pro App. Braucht einmalig eine Entwicklerberechtigung, erteilt am Computer.
+
+Klartext: Limits, Pause und Fokus gelten nur für Apps, die über Parem geöffnet werden. Sie bremsen, sperren aber nicht.
+
+<b>Was online geht und was nicht</b>
+Kein Konto, kein eigener Server, kein Analyse-, Werbe- oder Tracking-Code. Der Quellcode ist öffentlich, du musst mir also nicht glauben. Kontaktsuche (optional), Benachrichtigungen und App-Suche werden auf dem Smartphone verarbeitet, und Parem fragt nie nach deinem Standort.
+
+Online geht Parem hierfür:
+• Wetter, standardmäßig aus: Die gesuchte und gewählte Stadt geht an Open-Meteo.
+• Tägliches Hintergrundbild, standardmäßig aus: Liste von GitHub, dann Bilder von Drittanbietern.
+• Wechselkurse, bei einer Umrechnung: höchstens täglich ein fester Download der EZB-Kurse, ohne deine Eingabe.
+
+Diese Dienste sehen wie bei jeder Verbindung deine IP-Adresse. Websuchen öffnen sich im Browser (Google nach einem Leerzeichen, DuckDuckGo bei !Bangs). Parems Absturzberichte sind standardmäßig aus und werden nur von dir gesendet. Androids Cloud-Sicherung lässt Parem aus; der Einstellungsexport nimmt dein Setup mit.
+
+Doppeltippen zum Sperren ist optional und nutzt nach deiner Zustimmung die Android-Bedienungshilfe nur dafür. Der Dienst sieht nur Tipps innerhalb von Parem und kann deinen Bildschirm nicht lesen. Die Alternative per Geräteadministrator verlangt nach jeder Sperre deine PIN. Schalte sie vor dem Deinstallieren in Parems Gesteneinstellungen aus.
+
+Außerdem: Tablets, Foldables, TalkBack, Tastaturen, Schrift bis 200 %, Arbeitsprofile, vertrauliches Profil ab Android 15.
+
+<b>Kostenlos und Open Source</b>
+GNU GPLv3. Hervorgegangen aus einem Open-Source-Launcher von tanujnotes. Quellcode und Danksagungen: github.com/Pilves/parem-launcher

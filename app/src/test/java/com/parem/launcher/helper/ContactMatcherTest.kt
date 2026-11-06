@@ -103,4 +103,12 @@ class ContactMatcherTest {
     fun match_emptyContactListIsEmpty() {
         assertTrue(ContactMatcher.match("john", emptyList()).isEmpty())
     }
+    @Test
+    fun match_ranksNormalizedWholeNameBeforeLaterWords() {
+        val result = ContactMatcher.match(" JÓ.-SE ", listOf(
+            Contact("Alice José", "1"),
+            Contact("José García", "2"),
+        ))
+        assertEquals(listOf("José García", "Alice José"), result.map { it.name })
+    }
 }

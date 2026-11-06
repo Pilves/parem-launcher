@@ -4,8 +4,16 @@ import android.app.Application
 import android.util.Log
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.BroadcastReceiver
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.content.pm.LauncherApps
+import android.os.Build
 import android.os.UserHandle
+import android.os.UserManager
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -15,24 +23,27 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.AppOpenCounter
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GestureLetterManager
+import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.SingleLiveEvent
-import com.parem.launcher.helper.ThemeScheduleManager
 import com.parem.launcher.helper.UsageStatsHelper
 import com.parem.launcher.helper.WallpaperWorker
 import com.parem.launcher.helper.WeatherManager
-import com.parem.launcher.helper.formattedTimeSpent
+import com.parem.launcher.helper.WebShortcut
 import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.hasBeenMinutes
 import com.parem.launcher.helper.isParemDefault
 import com.parem.launcher.helper.isPackageInstalled
 import com.parem.launcher.helper.PackageChangeTracker
+import com.parem.launcher.helper.privateProfile
 import com.parem.launcher.helper.showToast
+import com.parem.launcher.helper.notifications.QuietNotificationsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -49,27 +60,47 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val firstOpen = MutableLiveData<Boolean>()
     val refreshHome = MutableLiveData<Boolean>()
     val toggleDateTime = MutableLiveData<Unit>()
-    val updateSwipeApps = MutableLiveData<Any>()
+    val updateSwipeApps = MutableLiveData<Unit>()
     val appList = MutableLiveData<List<AppModel>?>()
     val hiddenApps = MutableLiveData<List<AppModel>?>()
     val isParemDefault = MutableLiveData<Boolean>()
-    val launcherResetFailed = MutableLiveData<Boolean>()
     val homeAppAlignment = MutableLiveData<Int>()
-    val screenTimeValue = MutableLiveData<String>()
+    val screenTimeValue = MutableLiveData<Long>()
     val perAppScreenTime = MutableLiveData<Map<String, Long>>()
     val weatherValue = MutableLiveData<String>()
 
-    var pendingGestureLetter: Char? = null
     private var lastWeatherFetch: Long = 0L
 
     val showDialog = SingleLiveEvent<String>()
     val resetLauncherLiveData = SingleLiveEvent<Unit?>()
+
+    // Private Space lock/unlock is not a package change, so it needs its own
+    // invalidation (trap #5) or an unlock would keep serving the locked query.
+    private var profileReceiver: BroadcastReceiver? = null
 
     init {
         // The raw app-list and icon caches are trusted only while this
         // tracker's stamp is unchanged; the activity-scoped ViewModel is the
         // longest-lived owner available, so it holds the registration.
         PackageChangeTracker.register(appContext)
+        registerProfileReceiver()
+    }
+
+    private fun registerProfileReceiver() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                PackageChangeTracker.invalidate()
+                getAppList()
+                getHiddenApps()
+            }
+        }
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_PROFILE_AVAILABLE)
+            addAction(Intent.ACTION_PROFILE_UNAVAILABLE)
+        }
+        ContextCompat.registerReceiver(appContext, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        profileReceiver = receiver
     }
 
     /**
@@ -82,26 +113,43 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     @Volatile var homeAppsCapacity: Int = 8
 
     override fun onCleared() {
+        profileReceiver?.let { appContext.unregisterReceiver(it) }
+        profileReceiver = null
         PackageChangeTracker.unregister()
         super.onCleared()
     }
 
-    fun selectedApp(appModel: AppModel, flag: Int) {
+    fun selectedApp(appModel: AppModel, flag: Int, gestureLetter: Char? = null) {
         when (flag) {
             Constants.FLAG_LAUNCH_APP, Constants.FLAG_HIDDEN_APPS -> {
-                if (!FocusModeManager.isAppAllowed(appContext, appModel.appPackage)) {
-                    appContext.showToast(appContext.getString(R.string.app_blocked_focus))
+                // Before the package check: a website's package is the browser the
+                // launch gate picked (or "" from an ungated caller) and must not be
+                // judged as an app launch
+                if (appModel.url != null) {
+                    launchUrl(appModel.url, appModel.appPackage)
                     return
                 }
-                launchApp(appModel.appPackage, appModel.activityClassName, appModel.user)
+                if (!FocusModeManager.isAppAllowed(appContext, appModel.appPackage)) {
+                    showFocusBlocked()
+                    return
+                }
+                if (appModel.shortcutId != null) {
+                    launchShortcut(appModel, appModel.shortcutId)
+                    return
+                }
+                launchApp(appModel.appPackage, appModel.activityClassName, appModel.user, appModel.isPrivate)
             }
 
             in Constants.FLAG_SET_HOME_APP_1..Constants.FLAG_SET_HOME_APP_8 -> {
+                // Replace only after a successful selection; cancellation keeps the folder.
+                com.parem.launcher.helper.FolderManager(getApplication()).removeFolder(flag)
                 prefs.setHomeAppName(flag, appModel.appLabel)
                 prefs.setHomeAppPackage(flag, appModel.appPackage)
                 prefs.setHomeAppUser(flag, appModel.user.toString())
                 prefs.setHomeAppActivityClassName(flag, appModel.activityClassName)
-                refreshHome(false)
+                // Picking a normal app clears a website left on the slot
+                prefs.setHomeAppUrl(flag, appModel.url ?: "")
+                refreshHome.postValue(false)
             }
 
             Constants.FLAG_SET_SWIPE_LEFT_APP -> {
@@ -109,7 +157,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 prefs.appPackageSwipeLeft = appModel.appPackage
                 prefs.appUserSwipeLeft = appModel.user.toString()
                 prefs.appActivityClassNameSwipeLeft = appModel.activityClassName
-                updateSwipeApps()
+                updateSwipeApps.postValue(Unit)
             }
 
             Constants.FLAG_SET_SWIPE_RIGHT_APP -> {
@@ -117,7 +165,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 prefs.appPackageSwipeRight = appModel.appPackage
                 prefs.appUserSwipeRight = appModel.user.toString()
                 prefs.appActivityClassNameSwipeRight = appModel.activityClassName
-                updateSwipeApps()
+                updateSwipeApps.postValue(Unit)
             }
 
             Constants.FLAG_SET_CLOCK_APP -> {
@@ -132,16 +180,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 prefs.calendarAppClassName = appModel.activityClassName
             }
 
-            in Constants.FLAG_SET_SWIPE_UP_APP_1..Constants.FLAG_SET_SWIPE_UP_APP_8 -> {
-                val slot = flag - Constants.FLAG_SET_SWIPE_UP_APP_1 + 1
-                com.parem.launcher.helper.SwipeUpAppManager.setSwipeUpApp(
-                    appContext, slot,
-                    appModel.appLabel, appModel.appPackage,
-                    appModel.activityClassName ?: "", appModel.user.toString()
-                )
-                refreshHome(false)
-            }
-
             Constants.FLAG_SET_DOUBLE_TAP_APP -> {
                 com.parem.launcher.helper.DoubleTapActionManager.setApp(
                     appContext,
@@ -152,40 +190,73 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             Constants.FLAG_SET_GESTURE_LETTER_APP -> {
-                pendingGestureLetter?.let { letter ->
+                gestureLetter?.let { letter ->
                     GestureLetterManager.setMapping(
                         appContext, letter,
                         appModel.appPackage,
                         appModel.activityClassName ?: "",
                         appModel.user.toString()
                     )
-                    pendingGestureLetter = null
                 }
             }
+
+            Constants.FLAG_PICK_SILENT_APP ->
+                QuietNotificationsManager.openAppNotificationSettings(appContext, appModel.appPackage)
         }
     }
 
-    fun firstOpen(value: Boolean) {
-        firstOpen.postValue(value)
+    private fun showFocusBlocked() = FocusModeManager.showBlocked(appContext)
+
+    /**
+     * [packageName] is the app BadHabitDialogs.gateWebOpen gated and the intent
+     * is pinned to it, so the limit and pause that ran apply to the receiver; the
+     * focus resolution below is only the backstop for an ungated caller.
+     */
+    private fun launchUrl(url: String, packageName: String) {
+        val safeUrl = WebShortcut.normalize(url) ?: run {
+            appContext.showToast(appContext.getString(R.string.unable_to_open_link))
+            return
+        }
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(safeUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (packageName.isNotEmpty()) {
+            if (!FocusModeManager.isAppAllowed(appContext, packageName)) {
+                showFocusBlocked()
+                return
+            }
+            intent.setPackage(packageName)
+        } else if (FocusModeManager.isActive(appContext)) {
+            val pm = appContext.packageManager
+            val handler = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
+            if (handler != null && handler != "android") {
+                if (!FocusModeManager.isAppAllowed(appContext, handler)) {
+                    showFocusBlocked()
+                    return
+                }
+            } else {
+                // No default browser: the system chooser would also offer
+                // browsers focus blocks, so pin the first whitelisted one
+                val allowed = pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                    .map { it.activityInfo.packageName }
+                    .firstOrNull { FocusModeManager.isAppAllowed(appContext, it) }
+                if (allowed == null) {
+                    showFocusBlocked()
+                    return
+                }
+                intent.setPackage(allowed)
+            }
+        }
+        try {
+            appContext.startActivity(intent)
+        } catch (_: Exception) {
+            appContext.showToast(appContext.getString(R.string.unable_to_open_link))
+        }
     }
 
-    fun refreshHome(appCountUpdated: Boolean) {
-        refreshHome.postValue(appCountUpdated)
-    }
-
-    fun toggleDateTime() {
-        toggleDateTime.postValue(Unit)
-    }
-
-    private fun updateSwipeApps() {
-        updateSwipeApps.postValue(Unit)
-    }
-
-    private fun launchApp(packageName: String, activityClassName: String?, userHandle: UserHandle) {
+    private fun launchApp(packageName: String, activityClassName: String?, userHandle: UserHandle, isPrivate: Boolean = false) {
         // Fast path: the activity is known for every home slot and drawer row —
         // launch synchronously instead of paying two dispatcher hops per tap
         if (!activityClassName.isNullOrBlank()) {
-            if (startApp(ComponentName(packageName, activityClassName), userHandle, packageName)) return
+            if (startApp(ComponentName(packageName, activityClassName), userHandle, packageName, isPrivate)) return
             // Stale component (app updated and renamed its activity) — fall through to resolve
         }
         viewModelScope.launch {
@@ -206,40 +277,77 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 appContext.showToast(appContext.getString(R.string.app_not_found))
                 return@launch
             }
-            if (!startApp(component, userHandle, packageName)) {
+            if (!startApp(component, userHandle, packageName, isPrivate)) {
                 appContext.showToast(appContext.getString(R.string.unable_to_open_app))
             }
         }
     }
 
+    /**
+     * Any failure toasts, including SecurityException when Parem stopped being
+     * the default home after the drawer listed the shortcut.
+     */
+    private fun launchShortcut(appModel: AppModel, shortcutId: String) {
+        try {
+            launcherApps.startShortcut(appModel.appPackage, shortcutId, null, null, appModel.user)
+            if (!appModel.isPrivate) AppOpenCounter.increment(appContext, appModel.appPackage)
+        } catch (e: Exception) {
+            Log.e("MainViewModel", "Failed to start shortcut $shortcutId of ${appModel.appPackage}", e)
+            appContext.showToast(appContext.getString(R.string.unable_to_open_app))
+        }
+    }
+
     /** Returns true if the app was started. */
-    private fun startApp(component: ComponentName, userHandle: UserHandle, packageName: String): Boolean {
-        return try {
+    private fun startApp(component: ComponentName, userHandle: UserHandle, packageName: String, isPrivate: Boolean): Boolean {
+        val started = try {
             launcherApps.startMainActivity(component, userHandle, null, null)
-            AppOpenCounter.increment(appContext, packageName)
+            // Open counts are exported; a private package name must never land there
+            if (!isPrivate) AppOpenCounter.increment(appContext, packageName)
             true
         } catch (e: SecurityException) {
+            CrashReporter.reportNonFatal("MainViewModel", e)
             try {
                 launcherApps.startMainActivity(component, android.os.Process.myUserHandle(), null, null)
-                AppOpenCounter.increment(appContext, packageName)
+                if (!isPrivate) AppOpenCounter.increment(appContext, packageName)
                 true
             } catch (e: Exception) {
+                CrashReporter.reportNonFatal("MainViewModel", e)
                 false
             }
         } catch (e: Exception) {
+            CrashReporter.reportNonFatal("MainViewModel", e)
             false
         }
+        // Grey before the app draws, so there is no colour flash; only after a
+        // launch that worked, and only when home can bring colour back
+        if (started && GrayscaleController.isAppMarked(appContext, packageName) && GrayscaleController.appModeReady(appContext))
+            GrayscaleController.setAppForeground(appContext, true)
+        return started
     }
 
     fun getAppList(includeHiddenApps: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
-            appList.postValue(getAppsList(appContext, prefs, includeRegularApps = true, includeHiddenApps))
+            // Always includes private apps: appList is shared by every non-hidden
+            // drawer flag, so AppDrawerAdapter.setAppList gates them per flag.
+            appList.postValue(getAppsList(appContext, prefs, includeRegularApps = true, includeHiddenApps, includePrivate = true))
         }
     }
 
     fun getHiddenApps() {
         viewModelScope.launch(Dispatchers.IO) {
             hiddenApps.postValue(getAppsList(appContext, prefs, includeRegularApps = false, includeHiddenApps = true))
+        }
+    }
+
+    /** Locks or unlocks the Private Space; the system shows the credential prompt on unlock. */
+    fun setPrivateLocked(locked: Boolean) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return
+        val profile = privateProfile(appContext) ?: return
+        try {
+            (appContext.getSystemService(Context.USER_SERVICE) as UserManager)
+                .requestQuietModeEnabled(locked, profile)
+        } catch (e: Exception) {
+            Log.e("MainViewModel", "Failed to change the private space lock", e)
         }
     }
 
@@ -275,8 +383,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         prefs.dailyWallpaper = false
     }
 
+    /** Turning weather off cleared the cache, so a newly picked place must not wait out the throttle. */
+    fun resetWeatherThrottle() {
+        lastWeatherFetch = 0L
+    }
+
     fun getWeather() {
-        if (!WeatherManager.isEnabled(appContext)) return
+        if (!WeatherManager.isEnabled(appContext)) {
+            WeatherManager.clearUnusedData(appContext)
+            return
+        }
         val now = System.currentTimeMillis()
         if (now - lastWeatherFetch < 30 * 60 * 1000L) return  // 30 min throttle
         lastWeatherFetch = now
@@ -285,18 +401,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (temp != null) {
                 weatherValue.postValue(temp)
             } else {
-                val cached = WeatherManager.getDisplayString(appContext)
+                val cached = WeatherManager.getCachedTemp(appContext)
                 if (cached.isNotEmpty()) weatherValue.postValue(cached)
             }
         }
-    }
-
-    fun startThemeScheduleWorker() {
-        ThemeScheduleManager.startWorker(appContext)
-    }
-
-    fun cancelThemeScheduleWorker() {
-        ThemeScheduleManager.cancelWorker(appContext)
     }
 
     fun updateHomeAlignment(gravity: Int) {
@@ -312,15 +420,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // Total = sum of the shared per-app map, so the home screen, drawer
             // and limit checks all reuse one cached event-log scan (PAREM-115).
             val timeSpent = UsageStatsHelper.getPerAppUsageToday(appContext).values.sum()
-            val viewTimeSpent = appContext.formattedTimeSpent(timeSpent)
-            screenTimeValue.postValue(viewTimeSpent)
+            screenTimeValue.postValue(timeSpent)
             prefs.screenTimeLastUpdated = endTime
         }
     }
 
     fun getPerAppScreenTime() {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) return
-
         viewModelScope.launch(Dispatchers.IO) {
             // The helper's 60s TTL throttles this path (it used to re-scan on
             // every drawer open).

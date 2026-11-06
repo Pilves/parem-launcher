@@ -111,11 +111,8 @@ object IconPackManager {
             val drawable = packResources.getDrawable(resId, null)
             drawable?.constantState?.let { iconStateCache[cacheKey] = it }
             drawable
-        } catch (_: PackageManager.NameNotFoundException) {
-            null
-        } catch (_: Resources.NotFoundException) {
-            null
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            CrashReporter.reportNonFatal("IconPackManager", e)
             null
         }
     }
@@ -140,28 +137,23 @@ object IconPackManager {
             if (resId == 0) {
                 // Some icon packs store appfilter.xml as a raw asset instead.
                 // Attempt to read from assets as a fallback.
-                val rawResult = parseAppFilterFromAssets(packResources, packageName)
-                if (rawResult != null) {
-                    cache[packageName] = rawResult
-                    buildPackageIndex(packageName, rawResult)
-                    return rawResult
-                }
-                cache[packageName] = result
-                buildPackageIndex(packageName, result)
-                return result
+                return store(packageName, parseAppFilterFromAssets(packResources, packageName) ?: result)
             }
 
             val parser = packResources.getXml(resId)
             parseAppFilterXml(parser, result)
-        } catch (_: PackageManager.NameNotFoundException) {
-            // Icon pack not installed.
-        } catch (_: Exception) {
-            // Malformed XML or other issue — return whatever we parsed so far.
+        } catch (e: Exception) {
+            CrashReporter.reportNonFatal("IconPackManager", e)
+            // Not installed, malformed XML or other issue — return whatever we parsed so far.
         }
 
-        cache[packageName] = result
-        buildPackageIndex(packageName, result)
-        return result
+        return store(packageName, result)
+    }
+
+    private fun store(packageName: String, map: Map<String, String>): Map<String, String> {
+        cache[packageName] = map
+        buildPackageIndex(packageName, map)
+        return map
     }
 
     /**
@@ -221,7 +213,8 @@ object IconPackManager {
                 parseAppFilterXml(parser, result)
                 result
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            CrashReporter.reportNonFatal("IconPackManager", e)
             null
         }
     }

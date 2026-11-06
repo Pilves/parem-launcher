@@ -1,0 +1,50 @@
+name: Motion before and after performance
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/motion]
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Build before and after full debug
+        run: |
+          git worktree add --detach ../motion-before 094455cc791075102eaee66dcfd1803ca2603020
+          (cd ../motion-before && ./gradlew assembleFullDebug)
+          ./gradlew assembleFullDebug
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Compare the same workload on one emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          profile: pixel_6
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: bash scripts/motion-perf.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: motion-paired-performance
+          path: app/build/motion-perf/
+          if-no-files-found: warn
+          retention-days: 14

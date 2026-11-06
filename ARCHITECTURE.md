@@ -43,13 +43,17 @@ ui/
                            WellbeingSettingsCard. Plus two extracted dialogs:
                            WeatherSettingsDialog, GestureLetterConfigDialog.
   BottomSheetMenu.kt       THE way to build bottom sheets (handle + title + rows).
-  BadHabitDialogs.kt       Shared "limit reached" warning + time-limit picker.
+  BadHabitDialogs.kt       Launch gate for limited apps (mindful pause, "limit
+                           reached" warning) + time-limit picker; every launch
+                           route calls gateLaunch (home via
+                           HomeSlotsController.launchApp, drawer/omnibox).
   FocusModeDialog.kt, ScreenTimeGraphDialog.kt, ScreenTimeLimitDialog.kt,
   GestureLetterOverlayView.kt, ScreenTimeGraphView.kt, Onboarding*.kt
 
 helper/
   One object per feature, each owning its own SharedPreferences keys:
-  FocusModeManager, AppLimitManager, FolderManager (class),
+  FocusModeManager, AppLimitManager (+ mindful-pause opt-in; logic in
+  MindfulPause), FolderManager (class),
   GestureLetterManager, SwipeUpAppManager, WeatherManager (Open-Meteo),
   DoubleTapActionManager, ThemeScheduleManager (+ Worker), IconPackManager,
   AppIconCache (bounded ConstantState cache for default app icons),
@@ -84,6 +88,8 @@ listener/
 
 - **Storage**: everything is SharedPreferences in the single file `"com.parem.launcher"` (`Prefs.PREFS_NAME`). Core launcher state goes through `data/Prefs.kt`; feature managers in `helper/` read/write their own keys directly. When adding a key that must survive settings export/import with a specific type, register it in `Prefs.LONG_PREF_KEYS`/`FLOAT_PREF_KEYS`, and add device-specific keys to `exportExcludeKeys`.
 - **Bottom sheets**: build them with `ui/BottomSheetMenu`. Don't hand-assemble LinearLayouts.
+  A sheet built outside `BottomSheetMenu` (a direct `BottomSheetDialog`) must call `disableAnimationsOnEink()` before it shows, or it slides on e-ink.
+  A sheet opened from a fragment must be tied to it with `dismissOnDestroy(viewLifecycleOwner)`: dialogs belong to the activity's window, so Home would otherwise pop the fragment and leave the sheet up with callbacks into a dead fragment.
 - **App launching**: goes through `MainViewModel.selectedApp(appModel, flag)`; the `flag` constants in `Constants` say what the selection means (launch, set home slot N, set swipe app, …). The app drawer is reused for every "pick an app" flow via these flags.
 - **Fragments** hold `_binding` nullable + `binding` accessor; async callbacks must check `isAdded` / `_binding != null` (or `isActive()` in HomeWidgetController) before touching views.
 - **Home app slots** are 1-8, stored per-slot via `prefs.getHomeApp*(slot)` / `setHomeApp*(slot, …)`.
@@ -98,10 +104,30 @@ listener/
 
 ## Build & release
 
-- Debug: `./gradlew assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk` (package id gets a `.debug` suffix so it installs alongside release). CI: `.github/workflows/debug-build.yml` runs tests + build on every master push (or manually via workflow_dispatch) and uploads the APK as an artifact. Note the CI debug keystore differs per run — updating a CI-built debug install usually needs an uninstall first.
+- Flavours: `play` is the Google Play bundle. `full` is the APK for GitHub and F-Droid. Both flavours use the same applicationId; signing may differ by distribution channel. `full` adds in-app adb pairing, in `app/src/full/` (`helper/adb/`, `GrayscalePairing`, its receiver, POST_NOTIFICATIONS and the pairing strings). `play` has none of that code, and `scripts/check-play-build.sh` fails CI if any comes back (`docs/design/DECISIONS.md`). Shared code reaches the difference only through `helper/ChannelFeatures`, which exists once per flavour. Strings in `app/src/full/res/` override the wording in `main`, which is Play's.
+- Debug: `./gradlew assembleFullDebug` → `app/build/outputs/apk/full/debug/app-full-debug.apk`, likewise `play` (package id gets a `.debug` suffix so it installs alongside release). CI: `.github/workflows/debug-build.yml` runs tests + build of both flavours on every master push (or manually via workflow_dispatch) and uploads the APKs as an artifact. A manual run also builds the `full` release APK and `play` bundle, signed with that run's debug key, as a `play-check` artifact: the way to prove the bundle before a tag, because `release.yml` publishes. Note the CI debug keystore differs per run — updating a CI-built debug install usually needs an uninstall first.
 - Every behavior-changing PR adds an entry under `## [Unreleased]` in CHANGELOG.md; at release time, rename that section to the version and prepend a fresh `## [Unreleased]`.
-- Release: bump `versionCode`/`versionName` in `app/build.gradle`, add `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` and a CHANGELOG.md entry, then push a tag matching `v*` → `.github/workflows/release.yml` builds a signed APK (keystore comes from repo secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) and attaches it to a GitHub release.
+- Release: run the device pass in [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) first. Then bump `versionCode`/`versionName` in `app/build.gradle`, add `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` and a CHANGELOG.md entry, then push a tag matching `v*` → `.github/workflows/release.yml` builds a signed APK (keystore comes from repo secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) and attaches it to a GitHub release. A later step builds the Play bundle; the AAB and R8 `mapping.txt` are kept as the run's `play-<tag>` artifact for 90 days, not on the public release. The AAB carries the same mapping as `BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map`, so a Play upload needs no separate file. The first upload's signing key matters: see "Play App Signing" below.
 - Dependency versions live in `gradle/libs.versions.toml`. AGP 8.9.1 / Gradle 8.11.1 / Kotlin 2.1.20; JDK 17+ (21 works).
+
+### Play App Signing
+
+Decided 2026-11-06: **Google generates the app signing key, with a new, separate upload key** (`docs/play/signing.md`). The existing keystore stays the release key for GitHub and F-Droid, and is never given to Play.
+
+| Option | Play and GitHub certificate | Cost |
+|---|---|---|
+| **Google-generated signing key, new upload key** (recommended) | Different | One more set of repo secrets |
+| Google-generated signing key, existing keystore as upload key | Different | Saves those secrets, but one key holds two roles. Recoverable with an upload key reset |
+| Copy of the existing key to Google (PEPK), new upload key | Same | Google permanently holds the key every sideloaded install trusts, and one leak hits all channels. Cannot be taken back |
+
+- The existing key (certificate SHA-256 `e3f739b2acf8094cbd61fe6016c532d6b102af36f8fb3b083c89dd78cf0fbc0f`, RSA 2048, valid to 2053, read from the published APK) qualifies for either role, so this is a choice rather than a constraint.
+- That key cannot be replaced: GitHub and F-Droid installs accept updates only from it, and the draft F-Droid recipe pins it in `AllowedAPKSigningKeys`. An upload key can be reset in Play Console. Keep the replaceable key apart from the irreplaceable one.
+- Sharing the key buys one thing: an in-place move from GitHub to Play. All published APKs together have 37 downloads (2026-11-05), and `docs/fdroid/README.md` already plans Play as a separate install, so that does not pay for the permanent cost.
+- "Updates must keep the same signing key" (`docs/releases/v6.0.0-beta.2-validation.md`) holds per channel, and the GitHub channel does not change. Moving between Play and a sideload channel means uninstalling, which erases app data, so users export their settings first.
+- **The trap:** with a Google-generated key, whichever key signs the first uploaded bundle becomes the upload key. `release.yml` signs the bundle with `UPLOAD_KEYSTORE_*` for that reason, so check the bundle's certificate against `docs/play/signing.md` before the first upload.
+- The app signing key can only be changed until a release reaches open testing or production. Closed testing does not lock it.
+- Android developer verification ties a package name to signing keys, so `com.parem.launcher` needs both fingerprints registered: the existing certificate, and Play's from the Play App Signing page. Google may ask for proof of the existing key: an APK signed with it, carrying the console's snippet in `assets/adi-registration.properties`.
+- GitHub secrets are write-only and Play cannot recover this key, so keep an offline backup of the keystore.
 
 ### Building on ARM64 hosts (Raspberry Pi etc.)
 
@@ -124,7 +150,6 @@ After an AGP upgrade, re-copy the new aapt2 binary — the override pins a speci
   temperature at 3-24h old and hides it past 24h old; classification lives
   in `helper/WeatherStaleness`. Still no per-fetch failure toast/indicator
   beyond that (by design — the home screen stays quiet).
-- `Constants.URL_ABOUT_PAREM` / `URL_PAREM_PRIVACY` / `URL_DOUBLE_TAP` are empty; their settings rows are hidden until filled in.
 - Gesture-letter drawing and swipe gestures both see the same touch stream; a fast letter draw can also register as a swipe.
 - JVM unit tests exist only for pure logic (`app/src/test`: evaluator, search
   matcher, sunrise calculator — `./gradlew testDebugUnitTest`); everything

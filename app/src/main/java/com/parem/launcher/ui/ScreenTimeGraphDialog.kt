@@ -1,20 +1,24 @@
 package com.parem.launcher.ui
 
 import android.content.Context
+import androidx.core.text.BidiFormatter
 import android.graphics.Typeface
-import android.os.Build
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.parem.launcher.R
 import com.parem.launcher.helper.AppIconCache
 import com.parem.launcher.helper.UsageStatsHelper
+import com.parem.launcher.helper.appLabelOrNull
+import com.parem.launcher.helper.convertEpochToMidnight
+import com.parem.launcher.helper.WeeklyReview
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.usageStats.EventLogWrapper
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -23,13 +27,18 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.abs
 
 /**
- * Bottom sheet showing a 7-day screen time graph plus the week's most-used
- * apps (icon, name, weekly total). Usage data loads via EventLogWrapper on a
- * background thread after the sheet is visible.
+ * Bottom sheet showing a 7-day screen time graph, a this-week-vs-last-week
+ * review, and the week's most-used apps (icon, name, weekly total). Usage
+ * data loads via EventLogWrapper on a background thread after the sheet is
+ * visible.
  */
-class ScreenTimeGraphDialog(private val context: Context) {
+class ScreenTimeGraphDialog(
+    private val context: Context,
+    private val lifecycleOwner: LifecycleOwner,
+) {
 
     companion object {
         // Completed days can never change, so each historical day's per-app
@@ -57,8 +66,8 @@ class ScreenTimeGraphDialog(private val context: Context) {
             }
         }
         val averageView = TextView(context).apply {
-            textSize = 12f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            textSize = 14f
+            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             gravity = Gravity.END
             setPadding(24.dpToPx(), 2.dpToPx(), 24.dpToPx(), 4.dpToPx())
         }
@@ -67,33 +76,42 @@ class ScreenTimeGraphDialog(private val context: Context) {
         val topAppsColumn = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
         }
+        val reviewColumn = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+        }
 
         BottomSheetMenu(context)
             .title(context.getString(R.string.screen_time_week_title))
             .customView(graphView)
             .customView(averageView)
+            .customView(reviewColumn)
             .customView(topAppsColumn)
             .onDismiss { loadJob?.cancel() }
             .show()
 
-        loadData(graphView, averageView, topAppsColumn)
+        loadData(graphView, averageView, reviewColumn, topAppsColumn)
     }
 
     private fun loadData(
         graphView: ScreenTimeGraphView,
         averageView: TextView,
+        reviewColumn: LinearLayout,
         topAppsColumn: LinearLayout,
     ) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
         if (!context.appUsagePermissionGranted()) return
 
         val appContext = context.applicationContext
-        loadJob = CoroutineScope(Dispatchers.Main + Job()).launch {
+        // Scoped to the owner so a recreate mid-scan (rotation, theme change)
+        // cancels it; the window goes away without onDismiss in that case
+        loadJob = lifecycleOwner.lifecycleScope.launch {
             data class WeekData(
                 val days: List<Pair<String, Long>>,
                 val topApps: List<Triple<String, String, Long>>, // pkg, label, ms
                 val perDayTop: List<List<Triple<String, String, Long>>>,
                 val weekTotalMs: Long,
+                val review: WeeklyReview.Result?,
+                val riserLine: String?,
+                val fallerLine: String?,
             )
 
             val week = withContext(Dispatchers.IO) {
@@ -106,29 +124,29 @@ class ScreenTimeGraphDialog(private val context: Context) {
                     wrapper.aggregateForegroundStats(
                         wrapper.getForegroundStatsByTimestamps(dayStart, dayEnd)
                     )
-                        .groupBy { it.applicationId }
-                        .mapValues { (_, stats) -> stats.sumOf { it.timeUsed } }
 
                 val days = mutableListOf<Pair<String, Long>>()
                 val dayMaps = mutableListOf<Map<String, Long>>()
                 val weekly = mutableMapOf<String, Long>()
+                // The 7 days before the graph's, oldest first, for the weekly review
+                val lastWeekMaps = mutableListOf<Map<String, Long>>()
+                // How much of today has elapsed, so the review weighs the partial day fairly
+                var todayFraction = 1.0
 
-                for (offset in 6 downTo 0) {
+                for (offset in (2 * WeeklyReview.DAYS - 1) downTo 0) {
                     calendar.timeInMillis = now
                     calendar.add(Calendar.DAY_OF_YEAR, -offset)
                     val dayLabel = dayFormat.format(calendar.time)
 
                     // Scan by explicit day bounds so the cache key and the
                     // scanned range can't disagree if midnight passes mid-loop
-                    calendar.set(Calendar.HOUR_OF_DAY, 0)
-                    calendar.set(Calendar.MINUTE, 0)
-                    calendar.set(Calendar.SECOND, 0)
-                    calendar.set(Calendar.MILLISECOND, 0)
+                    calendar.timeInMillis = calendar.timeInMillis.convertEpochToMidnight()
                     val dayStart = calendar.timeInMillis
                     calendar.add(Calendar.DAY_OF_YEAR, 1)
                     val dayEnd = calendar.timeInMillis
 
                     val perApp = if (offset == 0) {
+                        todayFraction = (now - dayStart).toDouble() / (dayEnd - dayStart)
                         // Today rides the shared 60s cache all other screen-time
                         // consumers use instead of running its own scan
                         UsageStatsHelper.getPerAppUsageToday(appContext)
@@ -136,6 +154,10 @@ class ScreenTimeGraphDialog(private val context: Context) {
                         completedDayStats.getOrPut(dayStart) { scanDayPerApp(dayStart, dayEnd) }
                     }
 
+                    if (offset >= WeeklyReview.DAYS) {
+                        lastWeekMaps.add(perApp)
+                        continue
+                    }
                     days.add(Pair(dayLabel, perApp.values.sum()))
                     dayMaps.add(perApp)
                     for ((pkg, ms) in perApp) {
@@ -143,7 +165,7 @@ class ScreenTimeGraphDialog(private val context: Context) {
                     }
                 }
 
-                val pm = appContext.packageManager
+                fun labelOf(pkg: String): String? = appContext.appLabelOrNull(pkg)
                 fun resolveTop(usage: Map<String, Long>): List<Triple<String, String, Long>> =
                     usage.entries
                         .sortedByDescending { it.value }
@@ -151,19 +173,29 @@ class ScreenTimeGraphDialog(private val context: Context) {
                         .mapNotNull { (pkg, ms) ->
                             // Uninstalled apps drop out of the list rather than
                             // showing a bare package name with no icon
-                            try {
-                                val label = pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
-                                Triple(pkg, label, ms)
-                            } catch (_: Exception) {
-                                null
-                            }
+                            labelOf(pkg)?.let { Triple(pkg, it, ms) }
                         }
                         .take(TOP_APPS_COUNT)
                         .toList()
 
+                val review = WeeklyReview.compare(dayMaps, lastWeekMaps, todayFraction)
+                // Same rule as the top list: the first change with a resolvable
+                // label wins, so an uninstalled app never shows as a package name
+                fun changeLine(changes: List<WeeklyReview.AppChange>?, format: Int): String? =
+                    changes?.firstNotNullOfOrNull { change ->
+                        labelOf(change.pkg)?.let { label ->
+                            context.getString(format, BidiFormatter.getInstance().unicodeWrap(label), context.formattedTimeSpent(abs(change.deltaMsPerDay)))
+                        }
+                    }
+
                 // Per-day lists are resolved up front so a bar tap swaps the
                 // list synchronously instead of doing PackageManager IPC on tap
-                WeekData(days, resolveTop(weekly), dayMaps.map(::resolveTop), days.sumOf { it.second })
+                WeekData(
+                    days, resolveTop(weekly), dayMaps.map(::resolveTop), days.sumOf { it.second },
+                    review,
+                    changeLine(review?.risers, R.string.weekly_review_riser),
+                    changeLine(review?.fallers, R.string.weekly_review_faller),
+                )
             }
 
             graphView.setData(week.days)
@@ -171,6 +203,7 @@ class ScreenTimeGraphDialog(private val context: Context) {
                 R.string.daily_average,
                 context.formattedTimeSpent(week.weekTotalMs / 7)
             )
+            populateReview(reviewColumn, week.review, week.riserLine, week.fallerLine)
             populateTopApps(topAppsColumn, week.topApps, context.getString(R.string.top_apps_week))
             graphView.onDaySelected = { index ->
                 if (index == null) {
@@ -186,6 +219,47 @@ class ScreenTimeGraphDialog(private val context: Context) {
         }
     }
 
+    private fun populateReview(
+        column: LinearLayout,
+        review: WeeklyReview.Result?,
+        riserLine: String?,
+        fallerLine: String?,
+    ) {
+        column.addView(TextView(context).apply {
+            text = context.getString(R.string.weekly_review_title)
+            textSize = 14f
+            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
+            setTypeface(null, Typeface.BOLD)
+            setPadding(24.dpToPx(), 12.dpToPx(), 24.dpToPx(), 4.dpToPx())
+        })
+
+        val lines = listOfNotNull(
+            if (review == null) {
+                context.getString(R.string.weekly_review_no_history)
+            } else {
+                val lastAvg = context.formattedTimeSpent(review.lastWeekAvgMs)
+                val pct = review.percentChange
+                when {
+                    pct > 0 -> context.getString(R.string.weekly_review_up, pct, lastAvg)
+                    pct < 0 -> context.getString(R.string.weekly_review_down, -pct, lastAvg)
+                    else -> context.getString(R.string.weekly_review_same, lastAvg)
+                }
+            },
+            review?.takeIf { it.lastWeekDays < WeeklyReview.DAYS }
+                ?.let { context.getString(R.string.weekly_review_partial, it.lastWeekDays) },
+            riserLine,
+            fallerLine,
+        )
+        for (line in lines) {
+            column.addView(TextView(context).apply {
+                text = line
+                textSize = 14f
+                setTextColor(context.getColorFromAttr(R.attr.textColor))
+                setPadding(24.dpToPx(), 4.dpToPx(), 24.dpToPx(), 4.dpToPx())
+            })
+        }
+    }
+
     private fun populateTopApps(
         column: LinearLayout,
         topApps: List<Triple<String, String, Long>>,
@@ -197,7 +271,7 @@ class ScreenTimeGraphDialog(private val context: Context) {
         val header = TextView(context).apply {
             text = headerText
             textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             setTypeface(null, Typeface.BOLD)
             setPadding(24.dpToPx(), 12.dpToPx(), 24.dpToPx(), 8.dpToPx())
         }
@@ -213,7 +287,7 @@ class ScreenTimeGraphDialog(private val context: Context) {
             val nameView = TextView(context).apply {
                 text = label
                 textSize = 16f
-                setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+                setTextColor(context.getColorFromAttr(R.attr.textColor))
                 isSingleLine = true
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 AppIconCache.get(context, pkg)?.let { icon ->
@@ -226,7 +300,7 @@ class ScreenTimeGraphDialog(private val context: Context) {
             val timeView = TextView(context).apply {
                 text = context.formattedTimeSpent(ms)
                 textSize = 14f
-                setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+                setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             }
             row.addView(timeView)
             column.addView(row)

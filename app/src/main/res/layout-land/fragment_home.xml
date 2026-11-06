@@ -7,11 +7,23 @@
     android:animateLayoutChanges="true"
     tools:context=".ui.HomeFragment">
 
+
+    <!-- Opt-in wallpaper dim behind the home text (Settings > Appearance); hidden on e-ink -->
+    <View
+        android:id="@+id/wallpaperDim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_wallpaper_dim"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
+
     <!-- Placeholder layout for locking screen-->
+    <!-- Not focusable: d-pad Enter on it would lock the phone (ARCHITECTURE trap #1) -->
     <FrameLayout
         android:id="@+id/lock"
         android:layout_width="match_parent"
         android:layout_height="1dp"
+        android:focusable="false"
         android:contentDescription="@string/lock_layout_description" />
 
     <!-- Clock and calendar-->
@@ -20,7 +32,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="24dp"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         android:visibility="gone"
@@ -28,38 +40,44 @@
 
         <TextClock
             android:id="@+id/clock"
-            style="@style/TextDefault"
+            style="@style/TextOnWallpaper"
+            android:textAppearance="@style/TextAppearance.Parem.Display"
+            android:background="@drawable/bg_focus_highlight"
+            android:focusable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-light"
             android:format12Hour="h:mm"
-            android:textSize="@dimen/time_size"
             tools:text="02:34" />
 
         <TextView
             android:id="@+id/date"
-            style="@style/TextDefault"
+            style="@style/TextOnWallpaper"
+            android:textAppearance="@style/TextAppearance.Parem.Subtitle"
+            android:background="@drawable/bg_focus_highlight"
+            android:focusable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:format12Hour="EEE, dd MMM"
             android:format24Hour="EEE, dd MMM"
             android:paddingHorizontal="3dp"
-            android:textSize="@dimen/date_size"
             tools:text="Thu, 30 Dec" />
     </LinearLayout>
 
     <!-- Screen time-->
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/tvScreenTime"
-        style="@style/TextSmall"
+        style="@style/TextOnWallpaper"
+        android:textAppearance="@style/TextAppearance.Parem.Subtitle"
+        android:textColor="?attr/primaryColorTrans80"
+        android:background="@drawable/bg_focus_highlight"
+        android:focusable="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_marginHorizontal="10dp"
-        android:layout_marginTop="72dp"
+        android:layout_gravity="start"
+        android:layout_marginStart="74dp"
+        android:layout_marginTop="48dp"
         android:gravity="center"
         android:padding="10dp"
-        android:textSize="@dimen/date_size"
         android:visibility="gone"
         tools:text="2h 11m"
         tools:visibility="visible" />
@@ -82,93 +100,124 @@
             android:orientation="vertical"
             android:paddingVertical="@dimen/home_app_padding_vertical">
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp1"
-                style="@style/TextLarge"
+                style="@style/TextOnWallpaper"
+                android:textAppearance="@style/TextAppearance.Parem.Title"
+                android:background="@drawable/bg_focus_highlight"
+                android:focusable="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="@string/app"
                 android:paddingVertical="@dimen/home_app_padding_vertical"
                 android:tag="@string/tag_1"
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp2"
-                style="@style/TextLarge"
+                style="@style/TextOnWallpaper"
+                android:textAppearance="@style/TextAppearance.Parem.Title"
+                android:background="@drawable/bg_focus_highlight"
+                android:focusable="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="@string/app"
                 android:paddingVertical="@dimen/home_app_padding_vertical"
                 android:tag="@string/tag_2"
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp3"
-                style="@style/TextLarge"
+                style="@style/TextOnWallpaper"
+                android:textAppearance="@style/TextAppearance.Parem.Title"
+                android:background="@drawable/bg_focus_highlight"
+                android:focusable="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="@string/app"
                 android:paddingVertical="@dimen/home_app_padding_vertical"
                 android:tag="@string/tag_3"
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp4"
-                style="@style/TextLarge"
+                style="@style/TextOnWallpaper"
+                android:textAppearance="@style/TextAppearance.Parem.Title"
+                android:background="@drawable/bg_focus_highlight"
+                android:focusable="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="@string/app"
                 android:paddingVertical="@dimen/home_app_padding_vertical"
                 android:tag="@string/tag_4"
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp5"
-                style="@style/TextLarge"
+                style="@style/TextOnWallpaper"
+                android:textAppearance="@style/TextAppearance.Parem.Title"
+                android:background="@drawable/bg_focus_highlight"
+                android:focusable="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="@string/app"
                 android:paddingVertical="@dimen/home_app_padding_vertical"
                 android:tag="@string/tag_5"
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp6"
-                style="@style/TextLarge"
+                style="@style/TextOnWallpaper"
+                android:textAppearance="@style/TextAppearance.Parem.Title"
+                android:background="@drawable/bg_focus_highlight"
+                android:focusable="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="@string/app"
                 android:paddingVertical="@dimen/home_app_padding_vertical"
                 android:tag="@string/tag_6"
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp7"
-                style="@style/TextLarge"
+                style="@style/TextOnWallpaper"
+                android:textAppearance="@style/TextAppearance.Parem.Title"
+                android:background="@drawable/bg_focus_highlight"
+                android:focusable="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="@string/app"
                 android:paddingVertical="@dimen/home_app_padding_vertical"
                 android:tag="@string/tag_7"
                 android:visibility="gone"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.parem.launcher.ui.MotionTextView
                 android:id="@+id/homeApp8"
-                style="@style/TextLarge"
+                style="@style/TextOnWallpaper"
+                android:textAppearance="@style/TextAppearance.Parem.Title"
+                android:background="@drawable/bg_focus_highlight"
+                android:focusable="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="@string/app"
                 android:paddingVertical="@dimen/home_app_padding_vertical"
                 android:tag="@string/tag_8"
                 android:visibility="gone"
                 tools:visibility="visible" />
+
+            <!-- Shown only while touch exploration (TalkBack) is on: a visible route to
+                 the drawer for people who can't swipe up (UX-2) -->
+            <TextView
+                android:id="@+id/homeAllApps"
+                style="@style/TextOnWallpaper"
+                android:textAppearance="@style/TextAppearance.Parem.Title"
+                android:background="@drawable/bg_focus_highlight"
+                android:focusable="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingVertical="@dimen/home_app_padding_vertical"
+                android:text="@string/a11y_all_apps"
+                android:textColor="?attr/primaryColorTrans50"
+                android:visibility="gone" />
         </LinearLayout>
 
         <!-- Widget column: both placement variants (above/below) live here so
@@ -184,8 +233,8 @@
             android:layout_marginStart="24dp"
             android:gravity="top"
             android:orientation="vertical"
-            android:paddingTop="112dp"
-            android:paddingBottom="48dp">
+            android:paddingTop="80dp"
+            android:paddingBottom="16dp">
 
             <ScrollView
                 android:id="@+id/widgetScrollViewAbove"
@@ -230,27 +279,30 @@
 
     <TextView
         android:id="@+id/firstRunTips"
-        style="@style/TextSmall"
+        android:visibility="gone"
+        style="@style/TextOnWallpaper"
+        android:textAppearance="@style/TextAppearance.Parem.Body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginHorizontal="8dp"
-        android:layout_marginBottom="56dp"
+        android:layout_marginBottom="24dp"
         android:gravity="center"
         android:text="@string/swipe_up_for_apps" />
 
     <!-- Set default launcher -->
     <TextView
         android:id="@+id/setDefaultLauncher"
-        style="@style/TextMedium"
+        style="@style/TextOnWallpaper"
+        android:textAppearance="@style/TextAppearance.Parem.Body"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="56dp"
+        android:layout_marginBottom="24dp"
         android:ellipsize="end"
         android:maxLines="1"
-        android:text="@string/set_as_default_launcher_u"
+        android:text="@string/make_parem_home"
         android:visibility="gone" />
 </FrameLayout>

@@ -2,6 +2,7 @@ package com.parem.launcher.helper
 
 import android.content.Context
 import android.content.pm.LauncherApps
+import android.os.Build
 import android.os.UserHandle
 import android.os.UserManager
 import android.util.Log
@@ -34,7 +35,25 @@ suspend fun getAppsList(
     prefs: Prefs,
     includeRegularApps: Boolean = true,
     includeHiddenApps: Boolean = false,
-): MutableList<AppModel> {
+    // Off by default so a caller that does not opt in (folder picker) can
+    // never receive a Private Space app.
+    includePrivate: Boolean = false,
+): MutableList<AppModel> = loadAppsList(
+    context, prefs, includeRegularApps, includeHiddenApps, includePrivate, requireComplete = false
+) ?: mutableListOf()
+
+/** Hidden labels are used to protect web searches, so a partial query must not authorize one. */
+suspend fun getHiddenAppsForSearch(context: Context, prefs: Prefs): List<AppModel>? =
+    loadAppsList(context, prefs, false, true, false, requireComplete = true)
+
+private suspend fun loadAppsList(
+    context: Context,
+    prefs: Prefs,
+    includeRegularApps: Boolean,
+    includeHiddenApps: Boolean,
+    includePrivate: Boolean,
+    requireComplete: Boolean,
+): MutableList<AppModel>? {
     return withContext(Dispatchers.IO) {
         try {
             if (!prefs.hiddenAppsUpdated) upgradeHiddenApps(prefs)
@@ -49,26 +68,36 @@ suspend fun getAppsList(
                 val (fresh, complete) = queryRawApps(context)
                 // Never cache a failed/partial query — the next call must retry live.
                 if (complete) rawAppSnapshot = RawAppSnapshot(stamp, fresh)
+                if (requireComplete && !complete) return@withContext null
                 fresh
             }
+
+            if (requireComplete && stamp != PackageChangeTracker.stamp()) return@withContext null
+
+            // Lock state is read per call, never cached: the snapshot may hold
+            // private apps queried while the space was unlocked.
+            val privateLocked = !includePrivate || isPrivateSpaceLocked(context)
 
             // Renames, hidden-apps filtering and the isNew window are re-applied
             // per call so prefs changes never need cache invalidation.
             AppListRebuilder.rebuild(
                 rawApps,
                 ownPackageName = BuildConfig.APPLICATION_ID,
+                personalUser = android.os.Process.myUserHandle(),
                 hiddenApps = prefs.hiddenApps,
                 includeRegularApps = includeRegularApps,
                 includeHiddenApps = includeHiddenApps,
+                includePrivate = includePrivate,
+                privateLocked = privateLocked,
                 renameLabel = { prefs.getAppRenameLabel(it) },
                 now = System.currentTimeMillis(),
                 newAppWindowMillis = Constants.ONE_HOUR_IN_MILLIS,
             ).mapTo(mutableListOf()) {
-                AppModel(it.shownLabel, it.app.key, it.app.packageName, it.app.activityClassName, it.isNew, it.app.user)
+                AppModel(it.shownLabel, it.app.key, it.app.packageName, it.app.activityClassName, it.isNew, it.app.user, isPrivate = it.app.isPrivate)
             }
         } catch (e: Exception) {
-            Log.e("Utils", "Failed to get apps list", e)
-            mutableListOf()
+            CrashReporter.reportNonFatal("AppListSource.build", e)
+            null
         }
     }
 }
@@ -80,10 +109,16 @@ suspend fun getAppsList(
  */
 private fun queryRawApps(context: Context): Pair<List<AppListRebuilder.RawApp<UserHandle>>, Boolean> {
     val rawApps = mutableListOf<AppListRebuilder.RawApp<UserHandle>>()
+    val profiles = AppListProfileQuery()
     return try {
         val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
         val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
         for (profile in userManager.userProfiles) {
+            // Fails closed: a profile whose type can't be read is skipped
+            // rather than risk listing private apps as regular ones.
+            val isPrivate = isPrivateProfile(launcherApps, profile)
+            val quiet = isPrivate != null && userManager.isQuietModeEnabled(profile)
+            if (!profiles.shouldQuery(isPrivate, quiet)) continue
             for (app in launcherApps.getActivityList(null, profile)) {
                 val label = app.label.toString()
                 // RuleBasedCollator is not thread-safe, and two callers (e.g. the
@@ -99,36 +134,93 @@ private fun queryRawApps(context: Context): Pair<List<AppListRebuilder.RawApp<Us
                         app.firstInstallTime,
                         profile,
                         profile.toString(),
+                        isPrivate == true,
                     )
                 )
             }
         }
-        Pair(rawApps, true)
+        Pair(rawApps, profiles.complete)
     } catch (e: Exception) {
-        Log.e("Utils", "Failed to query apps list", e)
+        CrashReporter.reportNonFatal("AppListSource.query", e)
         Pair(rawApps, false)
+    }
+}
+
+/** Raw shortcut query, valid only while both tracker stamps still match (trap #5). */
+private class ShortcutSnapshot(val stamp: Long, val shortcutStamp: Long, val raws: List<ShortcutMatcher.Raw>)
+
+@Volatile
+private var shortcutSnapshot: ShortcutSnapshot? = null
+
+/**
+ * App shortcuts for the omnibox (M4-WP14). Only the default launcher may read
+ * them, so this is empty otherwise. Labels are joined per app list by the
+ * caller, so a rename never goes stale here.
+ */
+suspend fun getShortcutRaws(context: Context): List<ShortcutMatcher.Raw> = withContext(Dispatchers.IO) {
+    val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+    // Checked before the cache: Parem stays openable after another home app
+    // takes over, and no shortcut callbacks reach it meanwhile, so a snapshot
+    // from the default-launcher days would serve dead rows now and stale ones
+    // when Parem is default again.
+    if (!runCatching { launcherApps.hasShortcutHostPermission() }.getOrDefault(false)) {
+        shortcutSnapshot = null
+        return@withContext emptyList()
+    }
+    val stamp = PackageChangeTracker.stamp()
+    val shortcutStamp = PackageChangeTracker.shortcutStamp()
+    val snapshot = shortcutSnapshot
+    if (snapshot != null && snapshot.stamp == stamp && snapshot.shortcutStamp == shortcutStamp) return@withContext snapshot.raws
+    val (fresh, complete) = queryShortcutRaws(context, launcherApps)
+    // A partial or no-permission result is never cached: the next open retries
+    if (complete) shortcutSnapshot = ShortcutSnapshot(stamp, shortcutStamp, fresh)
+    fresh
+}
+
+/** One getShortcuts IPC per running profile; a stopped profile makes the result partial. */
+private fun queryShortcutRaws(context: Context, launcherApps: LauncherApps): Pair<List<ShortcutMatcher.Raw>, Boolean> {
+    val raws = mutableListOf<ShortcutMatcher.Raw>()
+    return try {
+        val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
+        val query = LauncherApps.ShortcutQuery().setQueryFlags(
+            LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC or
+                LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST or
+                LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED
+        )
+        var complete = true
+        for (profile in userManager.userProfiles) {
+            // Paused work profile or locked Private Space: skipped and still
+            // complete; unpausing/unlocking bumps the package stamp.
+            if (userManager.isQuietModeEnabled(profile)) continue
+            try {
+                for (shortcut in launcherApps.getShortcuts(query, profile).orEmpty()) {
+                    if (!shortcut.isEnabled) continue
+                    val label = shortcut.shortLabel?.toString()?.takeIf { it.isNotBlank() } ?: continue
+                    raws.add(ShortcutMatcher.Raw(shortcut.`package`, profile.toString(), shortcut.id, label, shortcut.rank))
+                }
+            } catch (e: IllegalStateException) {
+                complete = false
+            } catch (e: SecurityException) {
+                complete = false
+            }
+        }
+        Log.d("Utils", "Queried ${raws.size} app shortcuts (complete=$complete)")
+        Pair(raws, complete)
+    } catch (e: Exception) {
+        Log.e("Utils", "Failed to query app shortcuts", e)
+        Pair(raws, false)
     }
 }
 
 // This is to ensure backward compatibility with older app versions
 // which did not support multiple user profiles
 private fun upgradeHiddenApps(prefs: Prefs) {
-    val hiddenAppsSet = prefs.hiddenApps
-    val newHiddenAppsSet = mutableSetOf<String>()
-    for (hiddenPackage in hiddenAppsSet) {
-        if (hiddenPackage.contains("|")) newHiddenAppsSet.add(hiddenPackage)
-        else newHiddenAppsSet.add(hiddenPackage + android.os.Process.myUserHandle().toString())
-    }
-    prefs.hiddenApps = newHiddenAppsSet
+    prefs.hiddenApps = AppListRebuilder.upgradeHiddenApps(prefs.hiddenApps, android.os.Process.myUserHandle().toString()).toMutableSet()
     prefs.hiddenAppsUpdated = true
 }
 
-fun isPackageInstalled(context: Context, packageName: String, userString: String): Boolean {
-    val launcher = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-    val activityInfo = launcher.getActivityList(packageName, getUserHandleFromString(context, userString))
-    if (activityInfo.size > 0) return true
-    return false
-}
+fun isPackageInstalled(context: Context, packageName: String, userString: String): Boolean =
+    context.isPackageInstalled(packageName, getUserHandleFromString(context, userString))
 
 /**
  * Cache-aware [isPackageInstalled] for the home-resume hot path (PAREM-117).
@@ -140,17 +232,59 @@ fun isPackageInstalled(context: Context, packageName: String, userString: String
 fun isPackageInstalledCached(context: Context, packageName: String, userString: String): Boolean {
     val snapshot = rawAppSnapshot
     if (snapshot != null && snapshot.stamp == PackageChangeTracker.stamp() &&
-        snapshot.apps.any { it.packageName == packageName && it.userString == userString }
+        snapshot.apps.any { !it.isPrivate && it.packageName == packageName && it.userString == userString }
     ) return true
     return isPackageInstalled(context, packageName, userString)
 }
 
+/**
+ * Every userString-based launch (home slots, folders, swipe, gesture letters,
+ * double-tap) resolves here. A Private Space handle is never returned: such a
+ * string falls back to the main profile, so home never launches a private app.
+ */
 fun getUserHandleFromString(context: Context, userHandleString: String): UserHandle {
     val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
+    val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
     for (userHandle in userManager.userProfiles) {
         if (userHandle.toString() == userHandleString) {
+            if (isPrivateProfile(launcherApps, userHandle) != false) break
             return userHandle
         }
     }
     return android.os.Process.myUserHandle()
+}
+
+/** The Private Space profile (API 35+), or null when there is none or it is not visible to Parem. */
+fun privateProfile(context: Context): UserHandle? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return null
+    return try {
+        val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
+        val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+        userManager.userProfiles.firstOrNull { isPrivateProfile(launcherApps, it) == true }
+    } catch (e: Exception) {
+        Log.e("Utils", "Failed to look up the private profile", e)
+        null
+    }
+}
+
+/** True when there is no private profile, or it is locked (quiet mode). */
+fun isPrivateSpaceLocked(context: Context): Boolean {
+    val profile = privateProfile(context) ?: return true
+    return try {
+        (context.getSystemService(Context.USER_SERVICE) as UserManager).isQuietModeEnabled(profile)
+    } catch (e: Exception) {
+        true
+    }
+}
+
+/** Whether [profile] is the Private Space; false below API 35 and for the own user, null if unreadable. */
+private fun isPrivateProfile(launcherApps: LauncherApps, profile: UserHandle): Boolean? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return false
+    if (profile == android.os.Process.myUserHandle()) return false
+    return try {
+        launcherApps.getLauncherUserInfo(profile)?.userType == UserManager.USER_TYPE_PROFILE_PRIVATE
+    } catch (e: Exception) {
+        Log.e("Utils", "Failed to read the profile type of $profile", e)
+        null
+    }
 }

@@ -5,12 +5,19 @@ object Constants {
     object Key {
         const val FLAG = "flag"
         const val RENAME = "rename"
+        const val QUERY = "query"
+        // Letter a FLAG_SET_GESTURE_LETTER_APP pick maps; travels with the flag so it survives process death
+        const val LETTER = "letter"
+        // View id of the settings row the omnibox opens Settings at
+        const val SETTING = "setting"
     }
 
     object Dialog {
         const val HIDDEN = "HIDDEN"
         const val KEYBOARD = "KEYBOARD"
         const val DIGITAL_WELLBEING = "DIGITAL_WELLBEING"
+        const val GRAYSCALE_USAGE_ACCESS = "GRAYSCALE_USAGE_ACCESS"
+        const val GRAYSCALE_DEFAULT_HOME = "GRAYSCALE_DEFAULT_HOME"
     }
 
     object WidgetPlacement {
@@ -45,21 +52,8 @@ object Constants {
         const val OPEN_CAMERA = 4
         const val TOGGLE_FLASHLIGHT = 5
         const val NONE = 6
-    }
-
-    object TextSize {
-        const val ONE = 0.6f
-        const val TWO = 0.75f
-        const val THREE = 0.9f
-        const val FOUR = 1f
-        const val FIVE = 1.1f
-        const val SIX = 1.2f
-        const val SEVEN = 1.3f
-    }
-
-    object CharacterIndicator {
-        const val SHOW = 202
-        const val HIDE = 201
+        // Swipe left/right only; the double-tap picker never offers it
+        const val QUIET_LIST = 7
     }
 
     val CLOCK_APP_PACKAGES = arrayOf(
@@ -76,12 +70,6 @@ object Constants {
     const val FLAG_HIDDEN_APPS = 101
 
     const val FLAG_SET_HOME_APP_1 = 1
-    const val FLAG_SET_HOME_APP_2 = 2
-    const val FLAG_SET_HOME_APP_3 = 3
-    const val FLAG_SET_HOME_APP_4 = 4
-    const val FLAG_SET_HOME_APP_5 = 5
-    const val FLAG_SET_HOME_APP_6 = 6
-    const val FLAG_SET_HOME_APP_7 = 7
     const val FLAG_SET_HOME_APP_8 = 8
 
     const val FLAG_SET_SWIPE_LEFT_APP = 11
@@ -89,23 +77,16 @@ object Constants {
     const val FLAG_SET_CLOCK_APP = 13
     const val FLAG_SET_CALENDAR_APP = 14
 
-    const val FLAG_SET_SWIPE_UP_APP_1 = 21
-    const val FLAG_SET_SWIPE_UP_APP_2 = 22
-    const val FLAG_SET_SWIPE_UP_APP_3 = 23
-    const val FLAG_SET_SWIPE_UP_APP_4 = 24
-    const val FLAG_SET_SWIPE_UP_APP_5 = 25
-    const val FLAG_SET_SWIPE_UP_APP_6 = 26
-    const val FLAG_SET_SWIPE_UP_APP_7 = 27
-    const val FLAG_SET_SWIPE_UP_APP_8 = 28
     const val FLAG_SET_DOUBLE_TAP_APP = 30
     const val FLAG_SET_GESTURE_LETTER_APP = 40
+    // Opens the picked app's notification settings ("Make silent")
+    const val FLAG_PICK_SILENT_APP = 50
 
     const val APPWIDGET_HOST_ID = 1024
 
     // Bump to re-show onboarding after major feature additions
-    const val ONBOARDING_VERSION = 2
+    const val ONBOARDING_VERSION = 3
 
-    const val LONG_PRESS_DELAY_MS = 500L
     const val ONE_DAY_IN_MILLIS = 86400000L
     const val ONE_HOUR_IN_MILLIS = 3600000L
     const val ONE_MINUTE_IN_MILLIS = 60000L
@@ -113,11 +94,10 @@ object Constants {
     const val MIN_ANIM_REFRESH_RATE = 10f
 
     // Rows in settings whose URL is empty are hidden (see SettingsFragment)
-    const val URL_ABOUT_PAREM = ""
-    const val URL_PAREM_PRIVACY = ""
-    const val URL_DOUBLE_TAP = ""
+    const val URL_ABOUT_PAREM = "https://github.com/Pilves/parem-launcher"
+    const val URL_PAREM_PRIVACY = "https://pilves.github.io/parem-launcher/privacy.html"
     const val URL_PAREM_GITHUB = "https://github.com/Pilves/parem-launcher"
-    const val URL_WALLPAPERS = "https://gist.githubusercontent.com/tanujnotes/85e2d0343ace71e76615ac346fbff82b/raw"
+    const val URL_WALLPAPERS = "https://pilves.github.io/parem-launcher/wallpapers.json"
     const val URL_DEFAULT_DARK_WALLPAPER = "https://images.unsplash.com/photo-1512551980832-13df02babc9e"
     const val URL_DEFAULT_LIGHT_WALLPAPER = "https://images.unsplash.com/photo-1515549832467-8783363e19b6"
     const val URL_DUCK_SEARCH = "https://duckduckgo.com/?q="
@@ -125,17 +105,8 @@ object Constants {
 
     const val DIGITAL_WELLBEING_PACKAGE_NAME = "com.google.android.apps.wellbeing"
     const val DIGITAL_WELLBEING_ACTIVITY = "com.google.android.apps.wellbeing.settings.TopLevelSettingsActivity"
-    const val DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME = "com.samsung.android.forest"
-    const val DIGITAL_WELLBEING_SAMSUNG_ACTIVITY = "com.samsung.android.forest.launcher.LauncherActivity"
     const val WALLPAPER_WORKER_NAME = "WALLPAPER_WORKER_NAME"
-    const val THEME_SCHEDULE_WORKER_NAME = "THEME_SCHEDULE_WORKER"
 
-    object FocusTimer {
-        const val MINUTES_25 = 25
-        const val HOURS_1 = 60
-        const val HOURS_2 = 120
-        const val UNTIL_DISABLED = -1
-    }
 
     object ThemeScheduleMode {
         const val MANUAL = 0

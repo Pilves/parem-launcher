@@ -5,7 +5,12 @@ import android.content.SharedPreferences
 import android.view.Gravity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
+import com.parem.launcher.helper.CsvPairs
+import com.parem.launcher.helper.SettingsImport
 import org.json.JSONObject
+
+/** The single SharedPreferences file every feature manager reads and writes. */
+fun Context.paremPrefs(): SharedPreferences = getSharedPreferences(Prefs.PREFS_NAME, 0)
 
 class Prefs(context: Context) {
     companion object {
@@ -13,34 +18,33 @@ class Prefs(context: Context) {
         const val KEY_APP_THEME = "APP_THEME"
         const val KEY_LAUNCHER_RECREATE_TIMESTAMP = "LAUNCHER_RECREATE_TIMESTAMP"
 
-        // Keys that must always be stored as Long (timestamps etc.)
-        // Uses the actual SharedPreferences key strings, not field names.
+        // Registered types keep small JSON numbers from changing SharedPreferences types.
         private val LONG_PREF_KEYS = setOf(
-            "FIRST_OPEN_TIME",
-            "SCREEN_TIME_LAST_UPDATED",
-            KEY_LAUNCHER_RECREATE_TIMESTAMP,
-            "WEATHER_LAST_FETCHED",
-            "WEATHER_LAST_SUCCESS_MS"
+            "FIRST_OPEN_TIME", "SCREEN_TIME_LAST_UPDATED", KEY_LAUNCHER_RECREATE_TIMESTAMP,
+            "WEATHER_LAST_FETCHED", "WEATHER_LAST_SUCCESS_MS", "CURRENCY_LAST_SUCCESS_MS", "CURRENCY_LAST_ATTEMPT_MS",
+            "FOCUS_MODE_END_TIME", "FOCUS_SCHEDULE_SKIP_UNTIL", "OPEN_COUNTS_DAY"
         )
-
-        private val FLOAT_PREF_KEYS = setOf(
-            "TEXT_SIZE_SCALE"
-        )
+        private val FLOAT_PREF_KEYS = setOf("TEXT_SIZE_SCALE")
     }
-
-    private val PREFS_FILENAME = PREFS_NAME
 
     private val FIRST_OPEN = "FIRST_OPEN"
     private val FIRST_OPEN_TIME = "FIRST_OPEN_TIME"
-    private val FIRST_HIDE = "FIRST_HIDE"
     private val LOCK_MODE = "LOCK_MODE"
+    private val LOCK_SERVICE_CONNECTED = "LOCK_SERVICE_CONNECTED"
+    private val LOCK_SERVICE_OFF_EXPLAINED = "LOCK_SERVICE_OFF_EXPLAINED"
+    private val CRASH_REPORTS_ENABLED = "CRASH_REPORTS_ENABLED"
+    private val OMNIBOX_HISTORY_ENABLED = "OMNIBOX_HISTORY_ENABLED"
+    private val OMNIBOX_HISTORY = "OMNIBOX_HISTORY"
+    private val AUTO_LAUNCH_SINGLE_MATCH = "AUTO_LAUNCH_SINGLE_MATCH"
     private val HOME_APPS_NUM = "HOME_APPS_NUM"
     private val AUTO_SHOW_KEYBOARD = "AUTO_SHOW_KEYBOARD"
     private val KEYBOARD_MESSAGE = "KEYBOARD_MESSAGE"
     private val DAILY_WALLPAPER = "DAILY_WALLPAPER"
     private val DAILY_WALLPAPER_URL = "DAILY_WALLPAPER_URL"
+    private val DIM_WALLPAPER = "DIM_WALLPAPER"
     private val HOME_ALIGNMENT = "HOME_ALIGNMENT"
     private val HOME_BOTTOM_ALIGNMENT = "HOME_BOTTOM_ALIGNMENT"
+    private val HOME_LAYOUT_LOCKED = "HOME_LAYOUT_LOCKED"
     private val APP_LABEL_ALIGNMENT = "APP_LABEL_ALIGNMENT"
     private val STATUS_BAR = "STATUS_BAR"
     private val DATE_TIME_VISIBILITY = "DATE_TIME_VISIBILITY"
@@ -51,6 +55,7 @@ class Prefs(context: Context) {
     private val APP_THEME = KEY_APP_THEME
     private val SWIPE_DOWN_ACTION = "SWIPE_DOWN_ACTION"
     private val TEXT_SIZE_SCALE = "TEXT_SIZE_SCALE"
+    private val BOLD_FONT = "BOLD_FONT"
     private val HIDE_SET_DEFAULT_LAUNCHER = "HIDE_SET_DEFAULT_LAUNCHER"
     private val SCREEN_TIME_LAST_UPDATED = "SCREEN_TIME_LAST_UPDATED"
     private val PERIODIC_SELF_RECREATE_ENABLED = "PERIODIC_SELF_RECREATE_ENABLED"
@@ -82,7 +87,12 @@ class Prefs(context: Context) {
     private val CALENDAR_APP_USER = "CALENDAR_APP_USER"
     private val CALENDAR_APP_CLASS_NAME = "CALENDAR_APP_CLASS_NAME"
 
-    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_FILENAME, 0)
+    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, 0)
+
+    // Omnibox history lives in its own file: the export only reads the main
+    // file, and backup_rules / data_extraction_rules keep this one on the device.
+    private val historyPrefs: SharedPreferences =
+        context.getSharedPreferences("$PREFS_NAME.omnibox_history", 0)
 
     private var widgetHeightsCache: Map<Int, Int>? = null
     private var widgetProvidersCache: Map<Int, String>? = null
@@ -96,13 +106,41 @@ class Prefs(context: Context) {
         get() = prefs.getLong(FIRST_OPEN_TIME, 0L)
         set(value) = prefs.edit { putLong(FIRST_OPEN_TIME, value) }
 
-    var firstHide: Boolean
-        get() = prefs.getBoolean(FIRST_HIDE, true)
-        set(value) = prefs.edit { putBoolean(FIRST_HIDE, value) }
-
     var lockModeOn: Boolean
         get() = prefs.getBoolean(LOCK_MODE, false)
         set(value) = prefs.edit { putBoolean(LOCK_MODE, value) }
+
+    // Device-specific (export-excluded): an imported "connected" would turn the
+    // first-time consent sheet into a "your service was turned off" sheet.
+    var lockServiceConnected: Boolean
+        get() = prefs.getBoolean(LOCK_SERVICE_CONNECTED, false)
+        set(value) = prefs.edit { putBoolean(LOCK_SERVICE_CONNECTED, value) }
+
+    var lockServiceOffExplained: Boolean
+        get() = prefs.getBoolean(LOCK_SERVICE_OFF_EXPLAINED, false)
+        set(value) = prefs.edit { putBoolean(LOCK_SERVICE_OFF_EXPLAINED, value) }
+
+    var crashReportsEnabled: Boolean
+        get() = prefs.getBoolean(CRASH_REPORTS_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(CRASH_REPORTS_ENABLED, value) }
+
+    // Turning history off also wipes it: off means nothing is kept.
+    var omniboxHistoryEnabled: Boolean
+        get() = prefs.getBoolean(OMNIBOX_HISTORY_ENABLED, false)
+        set(value) {
+            prefs.edit { putBoolean(OMNIBOX_HISTORY_ENABLED, value) }
+            if (!value) omniboxHistory = ""
+        }
+
+    // Default on (DECISIONS: "auto-launch stays king"); a plain boolean, so it
+    // exports and imports without type registration.
+    var autoLaunchSingleMatch: Boolean
+        get() = prefs.getBoolean(AUTO_LAUNCH_SINGLE_MATCH, true)
+        set(value) = prefs.edit { putBoolean(AUTO_LAUNCH_SINGLE_MATCH, value) }
+
+    var omniboxHistory: String
+        get() = historyPrefs.getString(OMNIBOX_HISTORY, "").orEmpty()
+        set(value) = historyPrefs.edit { if (value.isEmpty()) remove(OMNIBOX_HISTORY) else putString(OMNIBOX_HISTORY, value) }
 
     // Versioned so updates that add major features re-show onboarding once;
     // also immune to auto-backup restoring the old boolean flag
@@ -122,6 +160,11 @@ class Prefs(context: Context) {
         get() = prefs.getBoolean(DAILY_WALLPAPER, false)
         set(value) = prefs.edit { putBoolean(DAILY_WALLPAPER, value) }
 
+    // Unset follows the daily-wallpaper switch, so a photo wallpaper gets the dim by default
+    var dimWallpaper: Boolean
+        get() = prefs.getBoolean(DIM_WALLPAPER, dailyWallpaper)
+        set(value) = prefs.edit { putBoolean(DIM_WALLPAPER, value) }
+
     var dailyWallpaperUrl: String
         get() = prefs.getString(DAILY_WALLPAPER_URL, "").toString()
         set(value) = prefs.edit { putString(DAILY_WALLPAPER_URL, value) }
@@ -137,6 +180,10 @@ class Prefs(context: Context) {
     var homeBottomAlignment: Boolean
         get() = prefs.getBoolean(HOME_BOTTOM_ALIGNMENT, false)
         set(value) = prefs.edit { putBoolean(HOME_BOTTOM_ALIGNMENT, value) }
+
+    var homeLayoutLocked: Boolean
+        get() = prefs.getBoolean(HOME_LAYOUT_LOCKED, false)
+        set(value) = prefs.edit { putBoolean(HOME_LAYOUT_LOCKED, value) }
 
     var appLabelAlignment: Int
         get() = prefs.getInt(APP_LABEL_ALIGNMENT, Gravity.START)
@@ -162,9 +209,17 @@ class Prefs(context: Context) {
         get() = prefs.getInt(APP_THEME, AppCompatDelegate.MODE_NIGHT_YES)
         set(value) = prefs.edit { putInt(APP_THEME, value) }
 
+    /** False until the user (settings, theme schedule or import) has ever set a theme. */
+    val hasAppTheme: Boolean
+        get() = prefs.contains(APP_THEME)
+
     var textSizeScale: Float
         get() = prefs.getFloat(TEXT_SIZE_SCALE, 1.0f)
         set(value) = prefs.edit { putFloat(TEXT_SIZE_SCALE, value) }
+
+    var boldFont: Boolean
+        get() = prefs.getBoolean(BOLD_FONT, false)
+        set(value) = prefs.edit { putBoolean(BOLD_FONT, value) }
 
     var hideSetDefaultLauncher: Boolean
         get() = prefs.getBoolean(HIDE_SET_DEFAULT_LAUNCHER, false)
@@ -206,16 +261,8 @@ class Prefs(context: Context) {
 
     fun getCachedUsageStats(): Map<String, Long> {
         usageStatsCache?.let { return it }
-        val raw = prefs.getString(CACHED_USAGE_STATS, "").toString()
-        if (raw.isBlank()) return emptyMap()
-        val parsed = raw.split(",").mapNotNull { entry ->
-            val sep = entry.indexOf('=')
-            if (sep > 0) {
-                val pkg = entry.substring(0, sep)
-                val time = entry.substring(sep + 1).toLongOrNull()
-                if (time != null) pkg to time else null
-            } else null
-        }.toMap()
+        val parsed = CsvPairs.parse(prefs.getString(CACHED_USAGE_STATS, "").toString(), '=', trim = false)
+            .mapNotNull { (pkg, time) -> time.toLongOrNull()?.let { pkg to it } }.toMap()
         usageStatsCache = parsed
         return parsed
     }
@@ -267,30 +314,30 @@ class Prefs(context: Context) {
     fun setWidgetHeight(widgetId: Int, heightDp: Int) {
         val map = parseWidgetHeights().toMutableMap()
         map[widgetId] = heightDp
+        storeWidgetHeights(map)
+    }
+
+    /** Drops heights of widgets that no longer exist, including ones removed by older versions. */
+    fun pruneWidgetHeights(keep: Set<Int>) {
+        val map = parseWidgetHeights()
+        val kept = map.filterKeys { it in keep }
+        if (kept.size != map.size) storeWidgetHeights(kept)
+    }
+
+    private fun storeWidgetHeights(map: Map<Int, Int>) {
         widgetHeights = map.entries.joinToString(",") { "${it.key}:${it.value}" }
     }
 
     fun removeWidgetHeight(widgetId: Int) {
-        val current = widgetHeightsCache ?: parseWidgetHeights()
-        val updated = current.toMutableMap()
-        updated.remove(widgetId)
-        val raw = updated.entries.joinToString(",") { "${it.key}:${it.value}" }
-        prefs.edit { putString(WIDGET_HEIGHTS, raw) }
-        widgetHeightsCache = updated
+        val map = parseWidgetHeights().toMutableMap()
+        map.remove(widgetId)
+        storeWidgetHeights(map)
     }
 
     private fun parseWidgetHeights(): Map<Int, Int> {
         widgetHeightsCache?.let { return it }
-        val raw = widgetHeights
-        if (raw.isBlank()) return emptyMap()
-        val parsed = raw.split(",").mapNotNull { entry ->
-            val parts = entry.split(":")
-            if (parts.size == 2) {
-                val id = parts[0].trim().toIntOrNull()
-                val h = parts[1].trim().toIntOrNull()
-                if (id != null && h != null) id to h else null
-            } else null
-        }.toMap()
+        val parsed = CsvPairs.parse(widgetHeights, ':')
+            .mapNotNull { (id, h) -> id.toIntOrNull()?.let { i -> h.toIntOrNull()?.let { i to it } } }.toMap()
         widgetHeightsCache = parsed
         return parsed
     }
@@ -301,11 +348,6 @@ class Prefs(context: Context) {
             widgetProvidersCache = null
             prefs.edit { putString(WIDGET_PROVIDERS, value) }
         }
-
-    fun getWidgetProvider(widgetId: Int): String? {
-        val map = parseWidgetProviders()
-        return map[widgetId]
-    }
 
     fun setWidgetProvider(widgetId: Int, provider: String) {
         val map = parseWidgetProviders().toMutableMap()
@@ -323,17 +365,9 @@ class Prefs(context: Context) {
 
     private fun parseWidgetProviders(): Map<Int, String> {
         widgetProvidersCache?.let { return it }
-        val raw = widgetProviders
-        if (raw.isBlank()) return emptyMap()
-        val parsed = raw.split(",").mapNotNull { entry ->
-            // Format: "id:component/class" — split only on first ':'
-            val sep = entry.indexOf(':')
-            if (sep > 0) {
-                val id = entry.substring(0, sep).trim().toIntOrNull()
-                val comp = entry.substring(sep + 1).trim()
-                if (id != null && comp.isNotBlank()) id to comp else null
-            } else null
-        }.toMap()
+        // Format: "id:component/class" — split only on first ':'
+        val parsed = CsvPairs.parse(widgetProviders, ':')
+            .mapNotNull { (id, comp) -> id.toIntOrNull()?.takeIf { comp.isNotBlank() }?.let { it to comp } }.toMap()
         widgetProvidersCache = parsed
         return parsed
     }
@@ -422,6 +456,7 @@ class Prefs(context: Context) {
     private fun packageKeyForSlot(slot: Int) = "APP_PACKAGE_$slot"
     private fun activityKeyForSlot(slot: Int) = "APP_ACTIVITY_CLASS_NAME_$slot"
     private fun userKeyForSlot(slot: Int) = "APP_USER_$slot"
+    private fun urlKeyForSlot(slot: Int) = "APP_URL_$slot"
 
     fun getHomeAppName(slot: Int): String {
         require(slot in 1..8)
@@ -459,9 +494,33 @@ class Prefs(context: Context) {
         prefs.edit { putString(userKeyForSlot(slot), value) }
     }
 
+    /** Website shortcut URL for a home slot; "" when the slot holds an app. */
+    fun getHomeAppUrl(slot: Int): String {
+        require(slot in 1..8)
+        return prefs.getString(urlKeyForSlot(slot), "") ?: ""
+    }
+    fun setHomeAppUrl(slot: Int, value: String) {
+        require(slot in 1..8)
+        prefs.edit { putString(urlKeyForSlot(slot), value) }
+    }
+
     fun getAppRenameLabel(appPackage: String): String = prefs.getString("RENAME_$appPackage", "").toString()
 
     fun setAppRenameLabel(appPackage: String, renameLabel: String) = prefs.edit { putString("RENAME_$appPackage", renameLabel) }
+
+    // State that describes this device at this moment (which service is bound,
+    // whether grayscale is applied right now, a paused schedule). Android
+    // backup and device transfer carry the whole prefs file, so a restored
+    // phone would otherwise claim its lock service "was turned off" and skip
+    // the first-time consent; ParemBackupAgent clears these after a restore.
+    val deviceOnlyKeys = setOf(
+        LOCK_SERVICE_CONNECTED, LOCK_SERVICE_OFF_EXPLAINED,
+        "FOCUS_MODE_ENABLED", "FOCUS_MODE_END_TIME", "FOCUS_SCHEDULE_SKIP_UNTIL",
+        "GRAYSCALE_MANUAL", "GRAYSCALE_APPLIED", "GRAYSCALE_SUPPRESSED", "GRAYSCALE_LIMIT_OVERRIDE",
+        "GRAYSCALE_LEFT_SINCE_OVERRIDE", "GRAYSCALE_PREV_ENABLED", "GRAYSCALE_PREV_MODE", "GRAYSCALE_APP_FG"
+    )
+
+    fun clearDeviceOnlyState() = prefs.edit { for (key in deviceOnlyKeys) remove(key) }
 
     // Keys to exclude from export (device-specific, not transferable)
     private val exportExcludeKeys = setOf(
@@ -469,10 +528,10 @@ class Prefs(context: Context) {
         CACHED_USAGE_STATS,
         "OPEN_COUNTS", "OPEN_COUNTS_DAY",
         "WEATHER_CACHED_TEMP", "WEATHER_LAST_FETCHED", "WEATHER_LAST_SUCCESS_MS",
-        "FOCUS_MODE_ENABLED", "FOCUS_MODE_END_TIME",
+        "CURRENCY_RATES", "CURRENCY_LAST_SUCCESS_MS", "CURRENCY_LAST_ATTEMPT_MS",
         "ONBOARDING_COMPLETE", ONBOARDING_VERSION_SEEN,
         PERIODIC_SELF_RECREATE_ENABLED
-    )
+    ) + deviceOnlyKeys
 
     fun exportToJson(): JSONObject {
         val json = JSONObject()
@@ -500,6 +559,17 @@ class Prefs(context: Context) {
             throw IllegalArgumentException("Not a valid Parem Launcher settings file")
         }
 
+        require(json.get("__parem_export_version") == 1) { "Unsupported settings version" }
+        val values = mutableMapOf<String, Any>()
+        for (key in json.keys()) {
+            if (key == "__parem_export_version") continue
+            val value = json.get(key)
+            values[key] = if (value is org.json.JSONArray) {
+                (0 until value.length()).map { value.get(it) }
+            } else value
+        }
+        val validated = SettingsImport.validate(values, LONG_PREF_KEYS, FLOAT_PREF_KEYS)
+
         // Invalidate all in-memory caches before import
         widgetHeightsCache = null
         widgetProvidersCache = null
@@ -523,32 +593,18 @@ class Prefs(context: Context) {
                     is Set<*> -> @Suppress("UNCHECKED_CAST") putStringSet(key, value as Set<String>)
                 }
             }
-            for (key in json.keys()) {
+            for ((key, value) in validated) {
                 if (key in exportExcludeKeys) continue
-                if (key == "__parem_export_version") continue
-                val value = json.get(key)
-                when {
-                    key in LONG_PREF_KEYS -> putLong(key, (value as Number).toLong())
-                    key in FLOAT_PREF_KEYS -> putFloat(key, (value as Number).toFloat())
-                    value is Boolean -> putBoolean(key, value)
-                    value is String -> putString(key, value)
-                    value is Int -> {
-                        val doubleVal = value.toDouble()
-                        if (doubleVal != doubleVal.toLong().toDouble()) {
-                            putFloat(key, doubleVal.toFloat())
-                        } else {
-                            putInt(key, value)
-                        }
-                    }
-                    value is Long -> putLong(key, value)
-                    value is Double -> putFloat(key, value.toFloat())
-                    value is org.json.JSONArray -> {
-                        val set = mutableSetOf<String>()
-                        for (i in 0 until value.length()) set.add(value.getString(i))
-                        putStringSet(key, set)
-                    }
+                when (value) {
+                    is Boolean -> putBoolean(key, value)
+                    is String -> putString(key, value)
+                    is Int -> putInt(key, value)
+                    is Long -> putLong(key, value)
+                    is Float -> putFloat(key, value)
+                    is Set<*> -> @Suppress("UNCHECKED_CAST") putStringSet(key, value as Set<String>)
                 }
             }
         }
+        if (!omniboxHistoryEnabled) omniboxHistory = ""
     }
 }

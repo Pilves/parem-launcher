@@ -1,14 +1,20 @@
 # Parem Launcher
 
+Parem was built with AI. Patrick has not written its code by hand. In his words:
+
+> i havent written a single line. olauncher was close but not it so i forked and vibed and then it diverged into parem and now we are here
+
+There has been no human code review, independent security audit or complete physical-phone pass for this release.
+
 **Minimal but hyperfunctional.** A text-based Android launcher that strips your home screen to what matters, then packs real utility behind a single search bar.
 
-No icons, no clutter — just the apps you need, the habits you want to build, and the tools to stay in control of your screen time.
+A short list of apps, optional icons, and tools for choosing how you use your screen time.
 
 ## The Omnibox
 
 The app drawer search bar is a single point of truth:
 
-- **Type** — apps filter instantly; a single match auto-launches
+- **Type** — apps filter as you type; a single match can auto-launch (you can turn this off)
 - **Fuzzy match** — `gm` finds Google Maps (initials); `s ki` finds Shaurmas Kitchen (word prefixes, GE-style)
 - **`2+2`** — arithmetic shows a live result inline (`+ - * / % ^`, parentheses); tap or hit enter to copy it
 - **`0612 3456`** — type a number, enter opens the dialer with it
@@ -34,7 +40,7 @@ The app drawer search bar is a single point of truth:
 - **Focus Mode** — Timed sessions (25m, 1h, 2h) that block all but 5 whitelisted apps
 - **Screen Time Graph** — 7-day usage bar chart, tap the home screen time display to view
 - **Screen Time Limits** — Soft per-app time limits with warnings when exceeded
-- **Bad Habit Apps** — Mark distracting apps with a daily time limit; a confirmation dialog asks "Open anyway?" once the limit is reached
+- **Mindful Pause** — Choose any app for a five-second pause before opening it through Parem; a time limit is optional
 - **Configurable Double-Tap** — Lock screen, open app, notifications, search, camera, flashlight, or nothing
 
 ### App Drawer
@@ -46,23 +52,22 @@ The app drawer search bar is a single point of truth:
 ### Gestures & Shortcuts
 - **Custom Swipe Actions** — Left and right swipes can open an app, notifications, search, lock screen, camera, flashlight, or do nothing
 - **Gesture Letters** — Draw letter shapes (A, C, L, M, N, O, S, V, W, Z) on the home screen to launch assigned apps
-- **Swipe-Up Apps** — Assign a per-slot swipe-up companion app to any home screen slot
 - **App Folders** — Group up to 4 apps into a named folder on any home screen slot
 
 ### Personalization
 - **Icon Packs** — Load icons from third-party ADW-compatible icon packs
 - **Weather Display** — Current temperature on the home screen date line via Open-Meteo (free, no API key)
 - **Theme Schedule** — Automatic dark/light switching by time or sunrise/sunset
-- **Settings Backup & Restore** — Export/import all settings as JSON; Android auto-backup enabled
+- **Settings Backup & Restore** — Export/import supported settings as JSON; Android cloud backup leaves Parem out
 
 ## Building
 
 ```
-# Requires Android SDK (min SDK 24, target 35), JDK 17+
-./gradlew assembleDebug
+# Requires Android SDK (min SDK 29, target 36), JDK 17+
+./gradlew assembleFullDebug
 ```
 
-The debug APK lands at `app/build/outputs/apk/debug/app-debug.apk`.
+The debug APK lands at `app/build/outputs/apk/full/debug/app-full-debug.apk`.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the code map, release process, and notes on building on ARM64 hosts (e.g. a Raspberry Pi).
 

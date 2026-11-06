@@ -1,8 +1,10 @@
 package com.parem.launcher.helper
 
 import android.content.Context
+import androidx.core.content.edit
 import com.parem.launcher.data.FolderApp
 import com.parem.launcher.data.FolderGroup
+import com.parem.launcher.data.paremPrefs
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -14,7 +16,7 @@ import org.json.JSONObject
  *   "1": {
  *     "name": "Social",
  *     "apps": [
- *       {"appName":"...", "packageName":"...", "activityClassName":"...", "userString":"..."}
+ *       {"appName":"...", "packageName":"...", "activityClassName":"...", "userString":"...", "url":"..."}
  *     ]
  *   },
  *   ...
@@ -26,7 +28,6 @@ class FolderManager(context: Context) {
 
     companion object {
         private val lock = Any()
-        private const val PREFS_NAME = "com.parem.launcher"
         private const val KEY_FOLDER_DATA = "FOLDER_DATA"
         private const val MAX_APPS_PER_FOLDER = 4
 
@@ -36,9 +37,10 @@ class FolderManager(context: Context) {
         private const val JSON_PACKAGE_NAME = "packageName"
         private const val JSON_ACTIVITY_CLASS_NAME = "activityClassName"
         private const val JSON_USER_STRING = "userString"
+        private const val JSON_URL = "url"
     }
 
-    private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, 0)
+    private val prefs = context.applicationContext.paremPrefs()
 
     /** Returns true if the given home-app [slot] is currently occupied by a folder. */
     fun isFolderSlot(slot: Int): Boolean {
@@ -78,6 +80,7 @@ class FolderManager(context: Context) {
                 appObj.put(JSON_PACKAGE_NAME, app.packageName)
                 appObj.put(JSON_ACTIVITY_CLASS_NAME, app.activityClassName)
                 appObj.put(JSON_USER_STRING, app.userString)
+                if (app.url.isNotEmpty()) appObj.put(JSON_URL, app.url)
                 appsArray.put(appObj)
             }
             folderObj.put(JSON_APPS, appsArray)
@@ -96,44 +99,31 @@ class FolderManager(context: Context) {
         }
     }
 
-    /** Returns every stored folder keyed by slot number. */
-    fun getAllFolders(): Map<Int, FolderGroup> {
-        synchronized(lock) {
-            val root = readJson()
-            val result = mutableMapOf<Int, FolderGroup>()
-            val keys = root.keys()
-            while (keys.hasNext()) {
-                val key = keys.next()
-                val slotNum = key.toIntOrNull() ?: continue
-                val obj = root.optJSONObject(key) ?: continue
-                result[slotNum] = parseFolderGroup(obj)
-            }
-            return result
-        }
-    }
-
     // ── Private helpers ─────────────────────────────────────────────────
 
     // Parsed-root cache: isFolderSlot() runs per slot on every home resume,
     // so avoid re-parsing the JSON string each time. Guarded by `lock` like
     // every public method.
     private var cachedRoot: JSONObject? = null
+    private var cachedRaw: String? = null
 
     private fun readJson(): JSONObject {
-        cachedRoot?.let { return it }
         val raw = prefs.getString(KEY_FOLDER_DATA, null)
+        if (raw == cachedRaw) cachedRoot?.let { return it }
         val root = if (raw.isNullOrBlank()) JSONObject() else try {
             JSONObject(raw)
         } catch (_: Exception) {
             JSONObject()
         }
         cachedRoot = root
+        cachedRaw = raw
         return root
     }
 
     private fun writeJson(json: JSONObject) {
         cachedRoot = json
-        prefs.edit().putString(KEY_FOLDER_DATA, json.toString()).apply()
+        cachedRaw = json.toString()
+        prefs.edit { putString(KEY_FOLDER_DATA, cachedRaw) }
     }
 
     private fun parseFolderGroup(obj: JSONObject): FolderGroup {
@@ -147,7 +137,8 @@ class FolderManager(context: Context) {
                     appName = a.optString(JSON_APP_NAME, ""),
                     packageName = a.optString(JSON_PACKAGE_NAME, ""),
                     activityClassName = a.optString(JSON_ACTIVITY_CLASS_NAME, ""),
-                    userString = a.optString(JSON_USER_STRING, "")
+                    userString = a.optString(JSON_USER_STRING, ""),
+                    url = a.optString(JSON_URL, "")
                 )
             )
         }

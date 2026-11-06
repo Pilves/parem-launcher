@@ -1,0 +1,12 @@
+:root { color-scheme: light dark; --fg: #111; --bg: #fff; --muted: #666; }
+@media (prefers-color-scheme: dark) { :root { --fg: #eee; --bg: #000; --muted: #999; } }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.5 system-ui, sans-serif; }
+main { max-width: 36rem; margin: 0 auto; padding: 2rem 16px; }
+h1 { font-size: 1.5rem; font-weight: 600; }
+li { margin-bottom: .5rem; }
+.privacy { border-left: 3px solid var(--muted); padding-left: .75rem; }
+button { font: inherit; font-weight: 600; padding: .7rem 2rem; border: 2px solid var(--fg); border-radius: 999px; background: var(--fg); color: var(--bg); cursor: pointer; }
+button:disabled { opacity: .5; cursor: default; }
+#status { min-height: 3em; font-weight: 600; }
+.small { color: var(--muted); font-size: .9rem; }
+code { overflow-wrap: anywhere; }

@@ -1,28 +1,33 @@
 package com.parem.launcher.ui
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
+import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GestureLetterManager
+import com.parem.launcher.helper.padForSystemBars
 import com.parem.launcher.helper.WeatherManager
+import com.parem.launcher.helper.WellbeingRowState
 import com.parem.launcher.helper.appUsagePermissionGranted
+import com.parem.launcher.helper.skipAnimations
 import com.parem.launcher.ui.settings.AppInfoSettingsCard
 import com.parem.launcher.ui.settings.AppearanceSettingsCard
 import com.parem.launcher.ui.settings.GesturesSettingsCard
 import com.parem.launcher.ui.settings.HomeScreenSettingsCard
 import com.parem.launcher.ui.settings.WellbeingSettingsCard
+import com.parem.launcher.ui.settings.bindSwitchRow
+import com.parem.launcher.ui.settings.bindValueRow
 
 /**
  * Settings screen. Split into per-card helper classes under ui/settings/
@@ -39,7 +44,7 @@ import com.parem.launcher.ui.settings.WellbeingSettingsCard
  *  - [importSettingsLauncher], since ActivityResultLauncher must be registered
  *    in onCreate, before the cards (which own the export/import logic) exist.
  */
-class SettingsFragment : Fragment() {
+class SettingsFragment : BaseFragment() {
 
     private lateinit var prefs: Prefs
     private lateinit var viewModel: MainViewModel
@@ -52,8 +57,10 @@ class SettingsFragment : Fragment() {
 
     private lateinit var importSettingsLauncher: ActivityResultLauncher<Intent>
     private lateinit var requestContactsPermissionLauncher: ActivityResultLauncher<String>
+    private lateinit var requestNotificationPermissionLauncher: ActivityResultLauncher<String>
     private lateinit var appInfoCard: AppInfoSettingsCard
     private lateinit var homeScreenCard: HomeScreenSettingsCard
+    private lateinit var wellbeingCard: WellbeingSettingsCard
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +78,12 @@ class SettingsFragment : Fragment() {
         ) { granted ->
             if (_binding != null) homeScreenCard.onContactsPermissionResult(granted)
         }
+        // Only launched by the grayscale pairing flow (the code is typed into a notification)
+        requestNotificationPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            if (_binding != null) wellbeingCard.onNotificationPermissionResult(granted)
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -85,6 +98,7 @@ class SettingsFragment : Fragment() {
             ViewModelProvider(this)[MainViewModel::class.java]
         } ?: throw Exception("Invalid Activity")
         viewModel.isParemDefault()
+        binding.scrollView.padForSystemBars()
 
         // Closes any open inline picker when the background is tapped
         binding.scrollLayout.setOnClickListener { resetOpenPickers(it.id) }
@@ -95,13 +109,25 @@ class SettingsFragment : Fragment() {
         homeScreenCard.bind()
         AppearanceSettingsCard(this, binding, prefs, viewModel, onWellbeingChanged = ::populateWellbeingSection).bind()
         GesturesSettingsCard(this, binding, prefs, viewModel, onWellbeingChanged = ::populateWellbeingSection).bind()
-        WellbeingSettingsCard(this, binding, prefs, viewModel, onWellbeingChanged = ::populateWellbeingSection).bind()
+        wellbeingCard = WellbeingSettingsCard(
+            this, binding, prefs, viewModel, onWellbeingChanged = ::populateWellbeingSection,
+            requestNotificationPermission = requestNotificationPermissionLauncher,
+        )
+        wellbeingCard.bind()
 
         populateWellbeingSection()
+        Motion.pressChildren(binding.scrollLayout)
+
+        // Consumed once: returning from a picker this screen opened rebuilds
+        // the view, and that must not jump back to the searched row.
+        arguments?.getInt(Constants.Key.SETTING)?.takeIf { it != 0 }?.let { anchor ->
+            arguments?.remove(Constants.Key.SETTING)
+            binding.scrollView.post { scrollToSetting(anchor) }
+        }
 
         // Focus mode / screen-time dialogs rank apps by today's usage; without this
         // the list is empty unless the app drawer happened to load first
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && requireContext().appUsagePermissionGranted())
+        if (requireContext().appUsagePermissionGranted())
             viewModel.getPerAppScreenTime()
     }
 
@@ -111,23 +137,79 @@ class SettingsFragment : Fragment() {
      * opening one picker should close whichever other one was left open.
      */
     internal fun resetOpenPickers(clickedId: Int) {
+        if (_binding == null) return
         binding.appsNumSelectLayout.visibility = View.GONE
         binding.dateTimeSelectLayout.visibility = View.GONE
         binding.swipeDownSelectLayout.visibility = View.GONE
-        binding.flSwipeDown.visibility = View.GONE
+        // The row is its own picker's parent: hiding it for a click on the row would hide the picker too
+        if (clickedId != R.id.flSwipeDown && clickedId != R.id.notifications && clickedId != R.id.search)
+            binding.flSwipeDown.visibility = View.GONE
         binding.textSizesLayout.visibility = View.GONE
         if (clickedId != R.id.alignmentBottom)
             binding.alignmentSelectLayout.visibility = View.GONE
     }
 
+    /**
+     * Navigates only while Settings is still the current destination: a fast
+     * double-tap on a row would otherwise fire the settings action a second
+     * time from the app list, which has no such action, and crash.
+     */
+    internal fun navigateFromSettings(actionId: Int, args: Bundle? = null) {
+        if (!isAdded) return
+        val nav = findNavController()
+        if (nav.currentDestination?.id != R.id.settingsFragment) return
+        nav.navigate(actionId, args)
+    }
+
+    /**
+     * Puts the row an omnibox search named a third of the way down and fades
+     * it in once so the eye lands on it. The row is the anchor's ancestor
+     * directly inside its card, so a quiet sub-row hidden while the feature is
+     * off lands on the quiet group. A row this layout lacks (layout-land has
+     * fewer rows) leaves the screen at the top.
+     */
+    private fun scrollToSetting(anchorId: Int) {
+        val b = _binding ?: return
+        val anchor = b.root.findViewById<View>(anchorId) ?: return
+        // anchor … row, card — everything below scrollLayout
+        val chain = generateSequence(anchor) { it.parent as? View }.takeWhile { it !== b.scrollLayout }.toList()
+        val row = chain.getOrNull(chain.size - 2) ?: anchor
+        if (chain.dropWhile { it !== row }.any { it.visibility != View.VISIBLE }) return
+        val rect = android.graphics.Rect()
+        row.getDrawingRect(rect)
+        b.scrollView.offsetDescendantRectToMyCoords(row, rect)
+        b.scrollView.scrollTo(0, (rect.top - b.scrollView.height / 3).coerceAtLeast(0))
+        if (!requireContext().skipAnimations()) {
+            row.alpha = 0.2f
+            row.animate().alpha(1f).setDuration(resources.getInteger(R.integer.motion_medium).toLong()).start()
+        }
+    }
+
     internal fun populateWellbeingSection() {
-        binding.focusModeToggle?.text = if (FocusModeManager.isActive(requireContext())) getString(R.string.on) else getString(R.string.off)
+        // Also reached from sheet dismiss listeners, which can run after onDestroyView
+        if (_binding == null) return
+        val ctx = requireContext()
+        binding.focusModeToggle?.text = getString(
+            when (WellbeingRowState.focus(
+                active = FocusModeManager.isActive(ctx),
+                scheduleEnabled = FocusModeManager.isScheduleEnabled(ctx),
+                hasWindows = FocusModeManager.getSchedule(ctx).isNotEmpty(),
+            )) {
+                WellbeingRowState.Row.ON -> R.string.on
+                WellbeingRowState.Row.SCHEDULED -> R.string.focus_scheduled
+                else -> R.string.off
+            }
+        )
+        binding.focusModeRow?.bindValueRow(binding.focusModeToggle?.text)
 
         binding.gestureLettersToggle?.text = if (GestureLetterManager.isEnabled(requireContext())) getString(R.string.on) else getString(R.string.off)
         binding.weatherToggle?.text = if (WeatherManager.isEnabled(requireContext())) {
             val city = WeatherManager.getCityName(requireContext())
             city.ifEmpty { getString(R.string.on) }
         } else getString(R.string.off)
+        // Not a switch: tapping while on opens the letter config, not off
+        binding.gestureLettersRow?.bindValueRow(binding.gestureLettersToggle?.text)
+        binding.weatherRow?.bindValueRow(binding.weatherToggle?.text)
     }
 
     override fun onDestroyView() {

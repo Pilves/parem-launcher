@@ -1,0 +1,246 @@
+package com.parem.launcher.helper
+
+import com.parem.launcher.helper.ContactMatcher.Contact
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class OmniboxResolverTest {
+
+    private val contacts = listOf(
+        Contact("John Smith", "555 1000"),
+        Contact("Kim Mi", "555 2000"),
+    )
+
+    private fun resolve(query: String, contacts: List<Contact> = this.contacts) =
+        OmniboxResolver.resolve(query, contacts)
+
+    // --- digits from Arabic and Persian keyboards ---
+
+    @Test
+    fun arabicIndicDigitsCalculate() {
+        assertEquals(OmniboxMode.Calc("10"), resolve("٥+٥"))
+    }
+
+    @Test
+    fun persianDigitsCalculate() {
+        assertEquals(OmniboxMode.Calc("10"), resolve("۵+۵"))
+    }
+
+    @Test
+    fun arabicDecimalSeparatorCalculates() {
+        assertEquals(OmniboxMode.Calc("3"), resolve("١٫٥*٢"))
+    }
+
+    @Test
+    fun arabicIndicDigitsConvert() {
+        assertEquals(OmniboxMode.Conversion("6.213712 mi"), resolve("١٠ km in mi"))
+    }
+
+    @Test
+    fun arabicIndicDigitsDial() {
+        assertEquals(OmniboxMode.Dial("+372 555 1234"), resolve("+٣٧٢ ٥٥٥ ١٢٣٤"))
+    }
+
+    @Test
+    fun arabicIndicNumberBlocksAutoLaunch() {
+        assertTrue(OmniboxResolver.blocksAutoLaunch("٥"))
+    }
+
+    // --- each mode on its own ---
+
+    @Test
+    fun calc() {
+        assertEquals(OmniboxMode.Calc("6"), resolve("2*3"))
+        assertEquals(OmniboxMode.Calc("2.5"), resolve("10/4"))
+    }
+
+    @Test
+    fun conversion() {
+        assertEquals(OmniboxMode.Conversion("3.106856 mi"), resolve("5 km to mi"))
+    }
+
+    private val rates = CurrencyConverter.Rates("2026-10-02", mapOf("USD" to 1.1225))
+
+    @Test
+    fun currency() {
+        assertEquals(OmniboxMode.Currency("112.25 USD", "2026-10-02"),
+            OmniboxResolver.resolve("100 eur in usd", contacts, rates))
+    }
+
+    @Test
+    fun currency_withoutRates_isNoRates() {
+        assertEquals(OmniboxMode.CurrencyNoRates, OmniboxResolver.resolve("10 eur in usd", contacts, null))
+    }
+
+    @Test
+    fun currency_rateMissing_fallsThrough() {
+        assertEquals(OmniboxMode.None, OmniboxResolver.resolve("10 eur in gbp", emptyList(), rates))
+    }
+
+    @Test
+    fun unitsBeatCurrency_andAreUnchangedByRates() {
+        assertEquals(OmniboxMode.Conversion("12.7 cm"), OmniboxResolver.resolve("5 in to cm", contacts, rates))
+        assertEquals(OmniboxMode.Conversion("37.777778 °C"), OmniboxResolver.resolve("100 f c", contacts, rates))
+        assertEquals(OmniboxMode.Conversion("3.106856 mi"), OmniboxResolver.resolve("5 km to mi", contacts, null))
+    }
+
+    @Test
+    fun dial_keepsTrimmedNumber() {
+        assertEquals(OmniboxMode.Dial("+372 5555 1234"), resolve("  +372 5555 1234 "))
+        assertEquals(OmniboxMode.Dial("12 34"), resolve("12 34"))
+    }
+
+    @Test
+    fun webSearch_needsLeadingSpaceAndText() {
+        assertEquals(OmniboxMode.WebSearch, resolve(" weather tallinn"))
+        assertEquals(OmniboxMode.None, resolve("   "))
+    }
+
+    @Test
+    fun contact() {
+        assertEquals(OmniboxMode.Contact("John Smith", "555 1000"), resolve("john"))
+    }
+
+    // --- precedence ---
+
+    @Test
+    fun calcBeatsDial_forHyphenatedNumbers() {
+        assertEquals(OmniboxMode.Calc("-679"), resolve("555-1234"))
+    }
+
+    @Test
+    fun calcConversionAndDialBeatWeb_despiteLeadingSpace() {
+        assertEquals(OmniboxMode.Calc("4"), resolve(" 2+2"))
+        assertEquals(OmniboxMode.Conversion("3.106856 mi"), resolve(" 5 km to mi"))
+        assertEquals(OmniboxMode.Dial("555 1234"), resolve(" 555 1234"))
+    }
+
+    @Test
+    fun webBeatsContact() {
+        assertEquals(OmniboxMode.WebSearch, resolve(" john"))
+    }
+
+    @Test
+    fun conversionBeatsContact_evenWhenAContactMatches() {
+        // A contact whose name matches the query exactly still loses to a valid conversion.
+        val clash = listOf(Contact("5 km mi", "555 3000"))
+        assertEquals(1, ContactMatcher.match("5 km mi", clash).size)
+        assertEquals(OmniboxMode.Conversion("3.106856 mi"), resolve("5 km mi", clash))
+    }
+
+    // --- recognised but unresolved queries fall through ---
+
+    @Test
+    fun expressionThatFailsToEvaluate_fallsThrough() {
+        assertEquals(OmniboxMode.None, resolve("1/0"))
+    }
+
+    @Test
+    fun conversionThatFailsToConvert_fallsThrough() {
+        // Mixed categories: not a conversion, and with no contacts it is plain search.
+        assertEquals(OmniboxMode.None, resolve("5 c to kg", emptyList()))
+    }
+
+    // --- plain app searches resolve to None ---
+
+    @Test
+    fun plainAppSearches_areNone() {
+        // "123" and "1 2 3" have fewer than the 4 digits dialing needs.
+        for (q in listOf("", "a", "chrome", "maps", "set", "-5", "123", "1 2 3")) {
+            assertEquals("query '$q'", OmniboxMode.None, resolve(q))
+        }
+    }
+
+    @Test
+    fun letterQueries_areNone_withoutAMatchingContact() {
+        assertEquals(OmniboxMode.None, resolve("chrome"))
+        assertEquals(OmniboxMode.None, resolve("john", emptyList()))
+    }
+
+    // --- quick actions: after web, above contacts and settings ---
+
+    private val saturday = java.time.LocalDateTime.of(2026, 10, 3, 10, 0)
+
+    private fun quick(query: String, contacts: List<Contact> = this.contacts) =
+        OmniboxResolver.resolve(query, contacts, null, settings, saturday)
+
+    @Test
+    fun quickAction_resolves() {
+        assertEquals(OmniboxMode.QuickAction(QuickAction.Alarm(7, 30, null)), quick("alarm 7:30"))
+        assertEquals(OmniboxMode.QuickAction(QuickAction.Timer(600, null)), quick("timer 10m"))
+    }
+
+    @Test
+    fun quickAction_leadingSpace_isWebSearch() {
+        assertEquals(OmniboxMode.WebSearch, quick(" alarm 7:30"))
+    }
+
+    @Test
+    fun quickAction_beatsContactAndSetting() {
+        val timerContact = listOf(Contact("Timer", "555 3000"))
+        assertEquals(OmniboxMode.QuickAction(QuickAction.Timer(600, null)), quick("timer 10m", timerContact))
+        assertEquals(OmniboxMode.QuickAction(QuickAction.Timer(600, null)),
+            OmniboxResolver.resolve("timer 10m", emptyList(), null, listOf(SettingsSearch.Row("Timer 10m", 1)), saturday))
+    }
+
+    @Test
+    fun keywordWithoutAction_fallsThrough() {
+        assertEquals(OmniboxMode.Contact("Timer", "555 3000"), quick("timer", listOf(Contact("Timer", "555 3000"))))
+        assertEquals(OmniboxMode.None, quick("alarm clock", emptyList()))
+    }
+
+    // --- settings rows rank last ---
+
+    private val settings = listOf(SettingsSearch.Row("Show icons", 7), SettingsSearch.Row("Johnny mode", 8))
+
+    @Test
+    fun setting_whenNothingElseResolves() {
+        assertEquals(OmniboxMode.Setting("Show icons", 7), OmniboxResolver.resolve("icons", contacts, null, settings))
+        assertEquals(OmniboxMode.None, OmniboxResolver.resolve("chrome", contacts, null, settings))
+    }
+
+    @Test
+    fun contactAndCalc_beatSetting() {
+        assertEquals(OmniboxMode.Contact("John Smith", "555 1000"), OmniboxResolver.resolve("john", contacts, null, settings))
+        assertEquals(OmniboxMode.Setting("Johnny mode", 8), OmniboxResolver.resolve("john", emptyList(), null, settings))
+        assertEquals(OmniboxMode.Calc("6"), OmniboxResolver.resolve("2*3", contacts, null, listOf(SettingsSearch.Row("2*3", 1))))
+    }
+
+    // --- single-match auto-launch guard (M4-WP27) ---
+
+    @Test
+    fun blocksAutoLaunch_forValues() {
+        assertTrue(OmniboxResolver.blocksAutoLaunch("5"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("10"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("2+2"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("10/4"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("5 km in mi"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("10 eur in usd"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("+372"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("+372 555 1234"))
+        assertTrue(OmniboxResolver.blocksAutoLaunch("555 1234"))
+    }
+
+    @Test
+    fun blocksAutoLaunch_notForAppQueries() {
+        assertFalse(OmniboxResolver.blocksAutoLaunch(""))
+        assertFalse(OmniboxResolver.blocksAutoLaunch("m"))
+        assertFalse(OmniboxResolver.blocksAutoLaunch("maps"))
+        assertFalse(OmniboxResolver.blocksAutoLaunch("1p"))
+        assertFalse(OmniboxResolver.blocksAutoLaunch("m365"))
+        assertFalse(OmniboxResolver.blocksAutoLaunch("timer 10m"))
+    }
+
+    // --- setting x screen reader x value guard (M4-WP46) ---
+
+    @Test
+    fun autoLaunchAllowed_gating() {
+        assertTrue(OmniboxResolver.autoLaunchAllowed("maps", enabled = true, screenReaderOn = false))
+        assertFalse(OmniboxResolver.autoLaunchAllowed("maps", enabled = false, screenReaderOn = false))
+        assertFalse(OmniboxResolver.autoLaunchAllowed("maps", enabled = true, screenReaderOn = true))
+        assertFalse(OmniboxResolver.autoLaunchAllowed("maps", enabled = false, screenReaderOn = true))
+        assertFalse(OmniboxResolver.autoLaunchAllowed("5", enabled = true, screenReaderOn = false))
+    }
+}

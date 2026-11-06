@@ -1,48 +1,66 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <!-- Everything that does not change between light and dark. AppTheme adds the colours;
+         values-night/styles.xml overrides AppTheme with colour items only (DESIGN 5). -->
+    <style name="Base.AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
 
-        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
+        <item name="android:forceDarkAllowed">false</item>
 
-        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges
-        </item>
-        <item name="android:windowTranslucentStatus">true</item>
-        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="android:colorEdgeEffect">@android:color/transparent</item>
 
         <item name="android:fitsSystemWindows">false</item>
         <item name="android:windowShowWallpaper">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowFullscreen">false</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+        <item name="android:windowLightStatusBar">@bool/light_system_bars</item>
+        <item name="android:windowLightNavigationBar">@bool/light_system_bars</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
 
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <!--        <item name="android:enforceStatusBarContrast">false</item>-->
-        <item name="android:enforceNavigationBarContrast" tools:targetApi="q">false</item>
-        <!--        <item name="android:windowTranslucentStatus">false</item>-->
-        <!--        <item name="android:windowTranslucentNavigation">true</item>-->
+        <item name="android:enforceNavigationBarContrast">false</item>
 
-        <item name="colorPrimary">@color/black</item>
         <item name="colorPrimaryDark">@android:color/darker_gray</item>
-        <item name="colorAccent">@color/black</item>
+
+        <item name="mainFontFamily">sans-serif-light</item>
+
+    </style>
+
+    <style name="AppTheme" parent="Base.AppTheme">
+        <item name="colorPrimary">@color/parem_text_light</item>
+        <item name="colorAccent">@color/parem_accent_light</item>
 
         <item name="primaryColor">@color/black</item>
-        <item name="primaryInverseColor">@color/blackInverse</item>
-        <item name="primaryTextShadowColor">@color/blackInverseTrans50</item>
+        <item name="primaryInverseColor">@color/parem_surface_light</item>
+        <item name="primaryTextShadowColor">@color/whiteTrans50</item>
         <item name="primaryColorTrans50">@color/blackTrans50</item>
+        <item name="primaryColorTrans60">@color/blackTrans60</item>
         <item name="primaryColorTrans80">@color/blackTrans80</item>
-        <item name="primaryColorInverseTrans50">@color/blackInverseTrans50</item>
-        <item name="primaryColorInverseTrans80">@color/blackInverseTrans80</item>
-        <item name="primaryColorInverseTrans90">@color/blackInverseTrans90</item>
-        <item name="primaryShadeColor">@color/blackInverseTrans10</item>
-        <item name="primaryShadeDarkColor">@color/blackInverseTrans25</item>
-        <item name="dialogShadeColor">@color/blackInverseTrans50</item>
+        <item name="primaryColorInverseTrans80">@color/whiteTrans80</item>
+        <item name="primaryShadeColor">@color/parem_variant_light</item>
+        <item name="primaryShadeDarkColor">@color/parem_accent_container_light</item>
+        <item name="surfaceScrimColor">@color/parem_scrim_light</item>
+        <item name="wallpaperDimColor">@color/whiteTrans35</item>
+        <item name="textColor">@color/parem_text_light</item>
+        <item name="textSecondaryColor">@color/parem_secondary_light</item>
+        <item name="surfaceColor">@color/parem_surface_light</item>
+        <item name="surfaceVariantColor">@color/parem_variant_light</item>
+        <item name="outlineColor">@color/parem_outline_light</item>
+        <item name="accentColor">@color/parem_accent_light</item>
+        <item name="onAccentColor">@color/parem_on_accent_light</item>
+        <item name="accentContainerColor">@color/parem_accent_container_light</item>
+        <item name="onAccentContainerColor">@color/parem_on_accent_container_light</item>
+        <item name="destructiveColor">@color/parem_destructive_light</item>
+        <item name="colorControlHighlight">@color/parem_ripple_light</item>
+        <item name="colorControlActivated">@color/parem_accent_light</item>
+    </style>
 
+    <!-- Applied over AppTheme in MainActivity when bold font is on -->
+    <style name="BoldFontOverlay">
+        <item name="mainFontFamily">sans-serif</item>
     </style>
 
     <style name="WindowAnimationTransition">
@@ -51,36 +69,74 @@
     </style>
 
     <style name="AppSearchText" parent="Widget.AppCompat.SearchView">
+        <item name="android:textCursorDrawable">@drawable/text_cursor</item>
         <item name="android:maxLength">200</item>
         <item name="android:textSize">@dimen/text_large</item>
-        <item name="android:textColor">?attr/primaryColor</item>
-        <item name="android:editTextColor">?attr/primaryColor</item>
-        <item name="android:textColorHint">?attr/primaryColor</item>
-        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:textColor">?attr/textColor</item>
+        <item name="android:editTextColor">?attr/textColor</item>
+        <item name="android:textColorHint">?attr/textSecondaryColor</item>
+        <item name="android:fontFamily">?attr/mainFontFamily</item>
         <item name="android:inputType">textCapSentences|textNoSuggestions</item>
-        <item name="android:cursorVisible">false</item>
     </style>
 
-    <style name="TextDefault" parent="@android:style/TextAppearance.Large">
+    <!-- DESIGN 3.2 type scale. Sizes come from dimens (values / values-sw600dp). -->
+    <style name="TextAppearance.Parem" parent="@android:style/TextAppearance">
         <item name="android:textColor">@drawable/text_colors_default</item>
-        <item name="android:textColorHint">?attr/primaryColorTrans80</item>
+        <item name="android:textColorHint">?attr/textSecondaryColor</item>
+    </style>
+
+    <style name="TextAppearance.Parem.Display">
+        <item name="android:textSize">@dimen/time_size</item>
+        <item name="android:fontFamily">?attr/mainFontFamily</item>
+    </style>
+
+    <style name="TextAppearance.Parem.Subtitle">
+        <item name="android:textSize">@dimen/date_size</item>
+    </style>
+
+    <style name="TextAppearance.Parem.Title">
+        <item name="android:textSize">@dimen/text_large</item>
+        <item name="android:fontFamily">?attr/mainFontFamily</item>
+    </style>
+
+    <style name="TextAppearance.Parem.Body">
+        <item name="android:lineHeight">24sp</item>
+        <item name="android:textSize">@dimen/text_small</item>
+    </style>
+
+    <style name="TextAppearance.Parem.Label">
+        <item name="android:textSize">@dimen/text_label</item>
+    </style>
+
+    <style name="TextAppearance.Parem.Caption">
+        <item name="android:lineHeight">20sp</item>
+        <item name="android:textSize">@dimen/text_caption</item>
+        <item name="android:textColor">?attr/textSecondaryColor</item>
+    </style>
+
+    <!-- Only for text drawn directly on the wallpaper (home). Text on a scrim or surface has no shadow. -->
+    <style name="TextOnWallpaper">
+        <item name="android:textColor">@drawable/text_colors_wallpaper</item>
         <item name="android:shadowColor">?attr/primaryTextShadowColor</item>
         <item name="android:shadowDx">0</item>
         <item name="android:shadowDy">2</item>
         <item name="android:shadowRadius">4</item>
     </style>
 
-    <style name="TextLarge" parent="TextDefault">
-        <item name="android:fontFamily">sans-serif-light</item>
-        <item name="android:textSize">@dimen/text_large</item>
+    <!-- Legacy layout styles, kept as thin aliases of the appearances above -->
+    <style name="TextDefault" parent="">
+        <item name="android:textAppearance">@style/TextAppearance.Parem.Body</item>
+        <item name="android:textColor">@drawable/text_colors_default</item>
+        <item name="android:textColorHint">?attr/textSecondaryColor</item>
     </style>
 
-    <style name="TextMedium" parent="TextDefault">
-        <item name="android:textSize">20sp</item>
+    <style name="TextLarge" parent="TextDefault">
+        <item name="android:textAppearance">@style/TextAppearance.Parem.Title</item>
     </style>
 
     <style name="TextSmall" parent="TextDefault">
-        <item name="android:textSize">@dimen/text_small</item>
+        <item name="android:textAppearance">@style/TextAppearance.Parem.Body</item>
+        <item name="android:lineHeight">24sp</item>
     </style>
 
     <style name="TextSmallBold" parent="TextSmall">
@@ -91,4 +147,28 @@
         <item name="android:textColor">@drawable/text_colors_light</item>
     </style>
 
+
+    <style name="ThemeOverlay.Parem.Eink" parent="">
+        <item name="textColor">@color/black</item>
+        <item name="textSecondaryColor">@color/black</item>
+        <item name="surfaceColor">@color/white</item>
+        <item name="surfaceVariantColor">@color/white</item>
+        <item name="outlineColor">@color/black</item>
+        <item name="accentColor">@color/black</item>
+        <item name="onAccentColor">@color/white</item>
+        <item name="accentContainerColor">@color/white</item>
+        <item name="onAccentContainerColor">@color/black</item>
+        <item name="destructiveColor">@color/black</item>
+        <item name="primaryInverseColor">@color/white</item>
+        <item name="primaryShadeColor">@color/white</item>
+        <item name="primaryShadeDarkColor">@color/white</item>
+        <item name="primaryColorTrans50">@color/black</item>
+        <item name="primaryColorTrans60">@color/black</item>
+        <item name="primaryColorTrans80">@color/black</item>
+        <item name="surfaceScrimColor">@color/white</item>
+        <item name="colorAccent">@color/black</item>
+        <item name="colorControlActivated">@color/black</item>
+        <item name="colorControlHighlight">@color/black</item>
+        <item name="primaryTextShadowColor">@android:color/transparent</item>
+    </style>
 </resources>

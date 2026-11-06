@@ -2,6 +2,7 @@ package com.parem.launcher.helper
 
 import android.content.Context
 import android.content.pm.LauncherApps
+import android.content.pm.ShortcutInfo
 import android.os.UserHandle
 import java.util.concurrent.atomic.AtomicLong
 
@@ -21,10 +22,15 @@ import java.util.concurrent.atomic.AtomicLong
 object PackageChangeTracker {
 
     private val stamp = AtomicLong(0L)
+    // Shortcut changes alone don't touch icons, so they get their own stamp
+    // rather than invalidate() (chat apps update dynamic shortcuts often).
+    private val shortcutStamp = AtomicLong(0L)
     private var callback: LauncherApps.Callback? = null
     private var registeredWith: LauncherApps? = null
 
     fun stamp(): Long = stamp.get()
+
+    fun shortcutStamp(): Long = shortcutStamp.get()
 
     fun register(context: Context) {
         synchronized(this) {
@@ -35,13 +41,16 @@ object PackageChangeTracker {
             val launcherApps = context.applicationContext
                 .getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
             val cb = object : LauncherApps.Callback() {
-                override fun onPackageRemoved(packageName: String?, user: UserHandle?) = bump()
-                override fun onPackageAdded(packageName: String?, user: UserHandle?) = bump()
-                override fun onPackageChanged(packageName: String?, user: UserHandle?) = bump()
-                override fun onPackagesAvailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) = bump()
-                override fun onPackagesUnavailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) = bump()
-                override fun onPackagesSuspended(packageNames: Array<out String>?, user: UserHandle?) = bump()
-                override fun onPackagesUnsuspended(packageNames: Array<out String>?, user: UserHandle?) = bump()
+                override fun onPackageRemoved(packageName: String?, user: UserHandle?) = invalidate()
+                override fun onPackageAdded(packageName: String?, user: UserHandle?) = invalidate()
+                override fun onPackageChanged(packageName: String?, user: UserHandle?) = invalidate()
+                override fun onPackagesAvailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) = invalidate()
+                override fun onPackagesUnavailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) = invalidate()
+                override fun onPackagesSuspended(packageNames: Array<out String>?, user: UserHandle?) = invalidate()
+                override fun onPackagesUnsuspended(packageNames: Array<out String>?, user: UserHandle?) = invalidate()
+                override fun onShortcutsChanged(packageName: String, shortcuts: MutableList<ShortcutInfo>, user: UserHandle) {
+                    shortcutStamp.incrementAndGet()
+                }
             }
             launcherApps.registerCallback(cb)
             callback = cb
@@ -57,7 +66,7 @@ object PackageChangeTracker {
         }
     }
 
-    private fun bump() {
+    fun invalidate() {
         stamp.incrementAndGet()
         // An updated app may ship a new icon; both icon caches key on package
         // name alone and can't tell, so drop them wholesale (cheap, rare).

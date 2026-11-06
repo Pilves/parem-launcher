@@ -3,7 +3,6 @@ package com.parem.launcher.ui.settings
 import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.os.Process
 import android.provider.MediaStore
@@ -12,7 +11,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import com.parem.launcher.BuildConfig
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -20,11 +18,14 @@ import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.AppLimitManager
+import com.parem.launcher.helper.CrashReporter
+import com.parem.launcher.helper.onOff
 import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.openUrl
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SettingsFragment
+import com.parem.launcher.ui.dismissOnDestroy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -57,12 +58,15 @@ class AppInfoSettingsCard(
         binding.privacy.isVisible = Constants.URL_PAREM_PRIVACY.isNotEmpty()
         binding.github.isVisible = Constants.URL_PAREM_GITHUB.isNotEmpty()
 
+        populateCrashReports()
+        populateHiddenApps(prefs.hiddenApps.size)
         initClickListeners()
         initObservers()
     }
 
     private fun initClickListeners() {
         binding.paremHiddenApps.setOnClickListener(this)
+        binding.hiddenAppsRow.setOnClickListener(this)
         binding.appInfo.setOnClickListener(this)
         binding.setLauncher.setOnClickListener(this)
         binding.exportSettings?.setOnClickListener(this)
@@ -70,6 +74,7 @@ class AppInfoSettingsCard(
         binding.aboutParem.setOnClickListener(this)
         binding.github.setOnClickListener(this)
         binding.privacy.setOnClickListener(this)
+        binding.crashReportsRow.setOnClickListener(this)
     }
 
     private fun initObservers() {
@@ -78,12 +83,15 @@ class AppInfoSettingsCard(
                 binding.setLauncher.text = context.getString(R.string.change_default_launcher)
             }
         }
+        // Installed hidden apps, so the count agrees with the list it opens
+        viewModel.hiddenApps.observe(fragment.viewLifecycleOwner) { it?.let { populateHiddenApps(it.size) } }
+        viewModel.getHiddenApps()
     }
 
     override fun onClick(view: View) {
         fragment.resetOpenPickers(view.id)
         when (view.id) {
-            R.id.paremHiddenApps -> showHiddenApps()
+            R.id.paremHiddenApps, R.id.hiddenAppsRow -> showHiddenApps()
             R.id.appInfo -> openAppInfo(context, Process.myUserHandle(), BuildConfig.APPLICATION_ID)
             R.id.setLauncher -> viewModel.resetLauncherLiveData.call()
             R.id.exportSettings -> exportSettings()
@@ -91,7 +99,26 @@ class AppInfoSettingsCard(
             R.id.aboutParem -> context.openUrl(Constants.URL_ABOUT_PAREM)
             R.id.github -> context.openUrl(Constants.URL_PAREM_GITHUB)
             R.id.privacy -> context.openUrl(Constants.URL_PAREM_PRIVACY)
+            R.id.crashReportsRow -> toggleCrashReports()
         }
+    }
+
+    private fun toggleCrashReports() {
+        prefs.crashReportsEnabled = !prefs.crashReportsEnabled
+        // Turning it off also drops a report that is still waiting
+        if (!prefs.crashReportsEnabled) CrashReporter.clear(context)
+        populateCrashReports()
+    }
+
+    private fun populateCrashReports() {
+        binding.crashReportsToggle.text =
+            context.onOff(prefs.crashReportsEnabled)
+        binding.crashReportsRow.bindSwitchRow(prefs.crashReportsEnabled)
+    }
+
+    private fun populateHiddenApps(count: Int) {
+        binding.hiddenAppsCount.text = count.toString()
+        binding.hiddenAppsRow.bindValueRow(count.toString())
     }
 
     private fun showHiddenApps() {
@@ -100,7 +127,7 @@ class AppInfoSettingsCard(
             return
         }
         viewModel.getHiddenApps()
-        fragment.findNavController().navigate(
+        fragment.navigateFromSettings(
             R.id.action_settingsFragment_to_appListFragment,
             bundleOf(Constants.Key.FLAG to Constants.FLAG_HIDDEN_APPS)
         )
@@ -120,9 +147,7 @@ class AppInfoSettingsCard(
                     val contentValues = ContentValues().apply {
                         put(MediaStore.Downloads.DISPLAY_NAME, "parem_settings.json")
                         put(MediaStore.Downloads.MIME_TYPE, "application/json")
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                        }
+                        put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
                     }
 
                     val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
@@ -131,7 +156,7 @@ class AppInfoSettingsCard(
                 }
                 ctx.showToast(ctx.getString(R.string.settings_exported))
             } catch (e: Exception) {
-                ctx.showToast(ctx.getString(R.string.settings_export_failed, e.message))
+                ctx.showToast(ctx.getString(R.string.settings_export_failed_plain))
             }
         }
     }
@@ -144,10 +169,12 @@ class AppInfoSettingsCard(
                     addCategory(Intent.CATEGORY_OPENABLE)
                     type = "application/json"
                 }
-                importSettingsLauncher.launch(intent)
+                // The launcher is unregistered once the fragment is destroyed
+                if (fragment.isAdded) importSettingsLauncher.launch(intent)
             }
             .option(context.getString(R.string.cancel), dimmed = true) {}
             .show()
+            .dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     /** Called from the fragment's registerForActivityResult callback. */
@@ -172,7 +199,7 @@ class AppInfoSettingsCard(
                     activity.recreate()
                 }
             } catch (e: Exception) {
-                ctx.showToast(ctx.getString(R.string.settings_import_failed, e.message))
+                ctx.showToast(ctx.getString(R.string.settings_import_failed_plain))
             }
         }
     }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/recentTitle"
+    style="@style/TextLarge"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_focus_highlight"
+    android:ellipsize="end"
+    android:focusable="true"
+    android:maxLines="1"
+    android:paddingStart="20dp"
+    android:paddingEnd="80dp"
+    android:paddingVertical="@dimen/app_padding_vertical" />

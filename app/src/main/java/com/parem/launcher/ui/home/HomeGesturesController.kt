@@ -1,15 +1,21 @@
 package com.parem.launcher.ui.home
 
 import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
 import android.content.Context
-import android.os.Build
-import android.util.Log
+import android.content.Intent
+import android.content.ActivityNotFoundException
+import android.provider.Settings
 import android.view.MotionEvent
 import android.view.View
-import android.widget.TextView
+import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
+import androidx.core.text.BidiFormatter
+import androidx.core.view.ViewCompat
+import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.parem.launcher.helper.CrashReporter
+import com.parem.launcher.MainActivity
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
@@ -17,17 +23,26 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
 import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.GestureLetterManager
-import com.parem.launcher.helper.SwipeUpAppManager
+import com.parem.launcher.helper.Haptics
+import com.parem.launcher.helper.HomeAccessibilityActions
+import com.parem.launcher.helper.settingsPath
 import com.parem.launcher.helper.expandNotificationDrawer
+import com.parem.launcher.helper.LockServiceCheck
+import com.parem.launcher.helper.isAccessServiceBound
 import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.openCameraApp
 import com.parem.launcher.helper.openDialerApp
-import com.parem.launcher.helper.openSearch
 import com.parem.launcher.helper.showToast
+import com.parem.launcher.listener.DeviceAdmin
 import com.parem.launcher.listener.OnSwipeTouchListener
-import com.parem.launcher.listener.ViewSwipeTouchListener
 import com.parem.launcher.ui.HomeFragment
-import com.parem.launcher.ui.transparentSheetFrame
+import com.parem.launcher.ui.BottomSheetMenu
+import com.parem.launcher.ui.dismissOnDestroy
+import com.parem.launcher.ui.QuietListSheet
+import com.parem.launcher.ui.isAlive
+import com.parem.launcher.ui.requestLockAdmin
+import com.parem.launcher.ui.showLockConsent
+import com.parem.launcher.ui.showLockServiceOff
 
 /**
  * Owns the home screen's touch input and gesture actions: the screen and
@@ -47,13 +62,13 @@ class HomeGesturesController(
 ) {
 
     private val context get() = binding.root.context
-    private val deviceManager =
-        context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
 
     private var screenTouchListener: OnSwipeTouchListener? = null
-    private val viewTouchListeners = mutableListOf<ViewSwipeTouchListener>()
+    private val viewTouchListeners = mutableListOf<OnSwipeTouchListener>()
     private var flashlightOn: Boolean = false
     private var torchCallback: android.hardware.camera2.CameraManager.TorchCallback? = null
+    private val accessibilityActionIds = mutableListOf<Pair<View, Int>>()
+    private var touchExplorationListener: AccessibilityManager.TouchExplorationStateChangeListener? = null
 
     // Track the real torch state so toggleFlashlight() can't desync when
     // another app (or quick settings) switches the torch
@@ -66,7 +81,7 @@ class HomeGesturesController(
                 }
             }.also { cameraManager.registerTorchCallback(it, null) }
         } catch (e: Exception) {
-            Log.e("HomeFragment", "Failed to register torch callback", e)
+            CrashReporter.reportNonFatal("HomeFragment: Failed to register torch callback", e)
         }
     }
 
@@ -75,12 +90,18 @@ class HomeGesturesController(
             try {
                 val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as android.hardware.camera2.CameraManager
                 cameraManager.unregisterTorchCallback(it)
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                CrashReporter.reportNonFatal("HomeGesturesController.unregisterTorch", e)
+            }
         }
         torchCallback = null
     }
 
     fun cleanupListeners() {
+        touchExplorationListener?.let {
+            context.getSystemService(AccessibilityManager::class.java)?.removeTouchExplorationStateChangeListener(it)
+        }
+        touchExplorationListener = null
         screenTouchListener?.cleanup()
         screenTouchListener = null
         viewTouchListeners.forEach { it.cleanup() }
@@ -92,7 +113,75 @@ class HomeGesturesController(
         viewTouchListeners.clear()
         screenTouchListener = getSwipeGestureListener(context)
         binding.mainLayout.setOnTouchListener(screenTouchListener)
-        fragment.slotsController?.homeAppViews?.forEach { it.setOnTouchListener(getViewSwipeTouchListener(context, it)) }
+        fragment.slotsController?.homeAppViews?.forEach { it.setOnTouchListener(getOnSwipeTouchListener(context, it)) }
+    }
+
+    /**
+     * Non-gesture routes out of home (UX-2): TalkBack, Switch Access and Voice
+     * Access consume the swipes and the long-press, so mainLayout and every slot
+     * carry custom actions, and a visible "All apps" row appears while touch
+     * exploration is on. Called from onResume so changed swipe apps show up.
+     */
+    fun refreshAccessibilityRoutes() {
+        accessibilityActionIds.forEach { (view, id) -> ViewCompat.removeAccessibilityAction(view, id) }
+        accessibilityActionIds.clear()
+        val left = HomeAccessibilityActions.configuredApp(
+            prefs.swipeLeftEnabled,
+            prefs.getEffectiveSwipeLeftAction() == Constants.GestureAction.OPEN_APP,
+            prefs.appPackageSwipeLeft,
+            prefs.appNameSwipeLeft,
+        )
+        val right = HomeAccessibilityActions.configuredApp(
+            prefs.swipeRightEnabled,
+            prefs.getEffectiveSwipeRightAction() == Constants.GestureAction.OPEN_APP,
+            prefs.appPackageSwipeRight,
+            prefs.appNameSwipeRight,
+        )
+        addAccessibilityActions(binding.mainLayout, HomeAccessibilityActions.forView(left, right))
+        fragment.slotsController?.homeAppViews?.forEach { view ->
+            addAccessibilityActions(view, HomeAccessibilityActions.forView(left, right))
+        }
+        binding.homeAllApps.isVisible =
+            context.getSystemService(AccessibilityManager::class.java)?.isTouchExplorationEnabled == true
+    }
+
+    /** Wires the "All apps" row and keeps it in step when TalkBack is toggled while home is showing. */
+    fun initAllAppsRow() {
+        binding.homeAllApps.setOnClickListener { fragment.showAppList(Constants.FLAG_LAUNCH_APP) }
+        val listener = AccessibilityManager.TouchExplorationStateChangeListener { enabled ->
+            if (!fragment.isAdded || touchExplorationListener == null) return@TouchExplorationStateChangeListener
+            binding.homeAllApps.isVisible = enabled
+            fragment.slotsController?.populateHomeScreen(false)
+        }
+        context.getSystemService(AccessibilityManager::class.java)?.addTouchExplorationStateChangeListener(listener)
+        touchExplorationListener = listener
+    }
+
+    private fun addAccessibilityActions(view: View, actions: List<HomeAccessibilityActions.Action>) {
+        actions.forEach { action ->
+            val label = when (action.kind) {
+                HomeAccessibilityActions.Kind.ALL_APPS -> context.getString(R.string.a11y_all_apps)
+                HomeAccessibilityActions.Kind.SETTINGS -> context.getString(R.string.settings)
+                HomeAccessibilityActions.Kind.NOTIFICATIONS -> context.getString(R.string.notifications)
+                HomeAccessibilityActions.Kind.ADD_WIDGET -> context.getString(R.string.add_widget)
+                HomeAccessibilityActions.Kind.SWIPE_LEFT_APP,
+                HomeAccessibilityActions.Kind.SWIPE_RIGHT_APP -> context.getString(R.string.a11y_open_app, BidiFormatter.getInstance().unicodeWrap(action.appName))
+            }
+            val id = ViewCompat.addAccessibilityAction(view, label) { _, _ ->
+                if (!fragment.isAdded) return@addAccessibilityAction false
+                when (action.kind) {
+                    HomeAccessibilityActions.Kind.ALL_APPS -> fragment.showAppList(Constants.FLAG_LAUNCH_APP)
+                    HomeAccessibilityActions.Kind.SETTINGS -> openSettings()
+                    HomeAccessibilityActions.Kind.NOTIFICATIONS -> expandNotificationDrawer(context)
+                    HomeAccessibilityActions.Kind.ADD_WIDGET -> fragment.widgetController?.showWidgetPicker()
+                    HomeAccessibilityActions.Kind.SWIPE_LEFT_APP -> openSwipeApp(isLeft = true)
+                    HomeAccessibilityActions.Kind.SWIPE_RIGHT_APP -> openSwipeApp(isLeft = false)
+                }
+                true
+            }
+            // View.NO_ID: the view has run out of custom action ids
+            if (id != View.NO_ID) accessibilityActionIds += view to id
+        }
     }
 
     fun initGestureLetterOverlay() {
@@ -100,10 +189,13 @@ class HomeGesturesController(
             val mapping = GestureLetterManager.getMapping(context, letter)
             if (mapping != null) {
                 // Recognition tick: confirms the letter registered before the app appears
-                binding.gestureLetterOverlay?.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
+                binding.gestureLetterOverlay?.let { Haptics.confirm(it) }
                 fragment.slotsController?.launchApp("", mapping.first, mapping.second, mapping.third)
+                true
             } else {
+                // Returning false lets the overlay buzz REJECT and fade the trail
                 context.showToast(context.getString(R.string.no_app_for_letter, letter.toString()))
+                false
             }
         }
     }
@@ -148,12 +240,12 @@ class HomeGesturesController(
 
             override fun onSwipeLeft() {
                 super.onSwipeLeft()
-                openSwipeLeftApp()
+                openSwipeApp(isLeft = true)
             }
 
             override fun onSwipeRight() {
                 super.onSwipeRight()
-                openSwipeRightApp()
+                openSwipeApp(isLeft = false)
             }
 
             override fun onSwipeUp() {
@@ -171,30 +263,35 @@ class HomeGesturesController(
                 try {
                     // GestureDetector callbacks bypass the framework's long-press
                     // haptic, so fire it ourselves — silence here feels broken
-                    binding.mainLayout.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+                    Haptics.longPress(binding.mainLayout)
                     showHomeLongPressMenu()
                 } catch (e: Exception) {
-                    Log.e("HomeFragment", "Failed to show home long press menu", e)
+                    CrashReporter.reportNonFatal("HomeFragment: Failed to show home long press menu", e)
                 }
             }
 
             override fun onDoubleClick() {
                 super.onDoubleClick()
-                DoubleTapActionManager.execute(
-                    context,
-                    lockPhone = { lockPhone() },
-                    toggleFlashlight = { toggleFlashlight() }
-                )
+                executeGestureAction(
+                    DoubleTapActionManager.getAction(context),
+                    onLockDecline = { DoubleTapActionManager.setAction(context, Constants.GestureAction.NONE) },
+                ) {
+                    val packageName = DoubleTapActionManager.getAppPackage(context)
+                    if (packageName.isNotEmpty())
+                        fragment.slotsController?.launchApp(
+                            "",
+                            packageName,
+                            DoubleTapActionManager.getAppActivity(context),
+                            DoubleTapActionManager.getAppUser(context)
+                        )
+                }
             }
 
-            override fun onClick() {
-                super.onClick()
-            }
         }
     }
 
-    private fun getViewSwipeTouchListener(context: Context, view: View): ViewSwipeTouchListener {
-        val listener = object : ViewSwipeTouchListener(context, view) {
+    private fun getOnSwipeTouchListener(context: Context, view: View): OnSwipeTouchListener {
+        val listener = object : OnSwipeTouchListener(context, view) {
             override fun onTouch(v: View, motionEvent: MotionEvent): Boolean {
                 if (forwardToLetterOverlay(v, motionEvent)) {
                     v.isPressed = false
@@ -205,27 +302,17 @@ class HomeGesturesController(
 
             override fun onSwipeLeft() {
                 super.onSwipeLeft()
-                openSwipeLeftApp()
+                openSwipeApp(isLeft = true)
             }
 
             override fun onSwipeRight() {
                 super.onSwipeRight()
-                openSwipeRightApp()
+                openSwipeApp(isLeft = false)
             }
 
             override fun onSwipeUp() {
                 super.onSwipeUp()
-                val slot = try { view.tag.toString().toInt() } catch (_: Exception) { 0 }
-                if (slot in 1..8 && SwipeUpAppManager.hasSwipeUpApp(context, slot)) {
-                    fragment.slotsController?.launchApp(
-                        SwipeUpAppManager.getSwipeUpAppName(context, slot),
-                        SwipeUpAppManager.getSwipeUpAppPackage(context, slot),
-                        SwipeUpAppManager.getSwipeUpAppActivity(context, slot),
-                        SwipeUpAppManager.getSwipeUpAppUser(context, slot)
-                    )
-                } else {
-                    fragment.showAppList(Constants.FLAG_LAUNCH_APP)
-                }
+                fragment.showAppList(Constants.FLAG_LAUNCH_APP)
             }
 
             override fun onSwipeDown() {
@@ -233,70 +320,63 @@ class HomeGesturesController(
                 swipeDownAction()
             }
 
-            override fun onLongClick(view: View) {
-                super.onLongClick(view)
-                textOnLongClick(view)
+            override fun onLongClick() {
+                super.onLongClick()
+                Haptics.longPress(view)
+                fragment.onLongClick(view)
             }
 
-            override fun onClick(view: View) {
-                super.onClick(view)
-                textOnClick(view)
+            override fun onClick() {
+                super.onClick()
+                fragment.onClick(view)
             }
         }
         viewTouchListeners.add(listener)
         return listener
     }
 
-    private fun textOnClick(view: View) = fragment.onClick(view)
-
-    private fun textOnLongClick(view: View) = fragment.onLongClick(view)
-
     private fun swipeDownAction() {
         when (prefs.swipeDownAction) {
-            Constants.SwipeDownAction.SEARCH -> context.openSearch()
+            Constants.SwipeDownAction.SEARCH -> fragment.slotsController?.launchSearch()
             else -> expandNotificationDrawer(context)
         }
     }
 
-    private fun openSwipeRightApp() {
-        if (!prefs.swipeRightEnabled) return
-        executeGestureAction(prefs.getEffectiveSwipeRightAction()) {
+    private fun openSwipeApp(isLeft: Boolean) {
+        if (!(if (isLeft) prefs.swipeLeftEnabled else prefs.swipeRightEnabled)) return
+        executeGestureAction(
+            if (isLeft) prefs.getEffectiveSwipeLeftAction() else prefs.getEffectiveSwipeRightAction(),
+            onLockDecline = {
+                if (isLeft) prefs.swipeLeftAction = Constants.GestureAction.NONE
+                else prefs.swipeRightAction = Constants.GestureAction.NONE
+            },
+        ) {
             // Fallback for OPEN_APP action
-            if (prefs.appPackageSwipeRight.isNotEmpty())
+            val pkg = if (isLeft) prefs.appPackageSwipeLeft else prefs.appPackageSwipeRight
+            if (pkg.isNotEmpty())
                 fragment.slotsController?.launchApp(
-                    prefs.appNameSwipeRight,
-                    prefs.appPackageSwipeRight,
-                    prefs.appActivityClassNameSwipeRight,
-                    prefs.appUserSwipeRight
+                    if (isLeft) prefs.appNameSwipeLeft else prefs.appNameSwipeRight,
+                    pkg,
+                    if (isLeft) prefs.appActivityClassNameSwipeLeft else prefs.appActivityClassNameSwipeRight,
+                    if (isLeft) prefs.appUserSwipeLeft else prefs.appUserSwipeRight
                 )
-            else openDialerApp(context)
+            else if (isLeft) openCameraApp(context) else openDialerApp(context)
         }
     }
 
-    private fun openSwipeLeftApp() {
-        if (!prefs.swipeLeftEnabled) return
-        executeGestureAction(prefs.getEffectiveSwipeLeftAction()) {
-            // Fallback for OPEN_APP action
-            if (prefs.appPackageSwipeLeft.isNotEmpty())
-                fragment.slotsController?.launchApp(
-                    prefs.appNameSwipeLeft,
-                    prefs.appPackageSwipeLeft,
-                    prefs.appActivityClassNameSwipeLeft,
-                    prefs.appUserSwipeLeft
-                )
-            else openCameraApp(context)
-        }
-    }
-
-    private fun executeGestureAction(action: Int, openAppFallback: () -> Unit) {
+    private fun executeGestureAction(action: Int, onLockDecline: () -> Unit, openAppFallback: () -> Unit) {
         when (action) {
             Constants.GestureAction.OPEN_APP -> openAppFallback()
             Constants.GestureAction.OPEN_NOTIFICATIONS -> expandNotificationDrawer(context)
-            Constants.GestureAction.OPEN_SEARCH -> context.openSearch()
-            Constants.GestureAction.LOCK_SCREEN -> lockPhone()
+            Constants.GestureAction.OPEN_SEARCH -> fragment.slotsController?.launchSearch()
+            Constants.GestureAction.LOCK_SCREEN -> lockPhone(onLockDecline)
             Constants.GestureAction.OPEN_CAMERA -> openCameraApp(context)
             Constants.GestureAction.TOGGLE_FLASHLIGHT -> toggleFlashlight()
             Constants.GestureAction.NONE -> { /* do nothing */ }
+            Constants.GestureAction.QUIET_LIST -> {
+                if (fragment.isAdded)
+                    QuietListSheet.openFromGesture(fragment, prefs, isAlive = { fragment.view != null })
+            }
         }
     }
 
@@ -307,21 +387,63 @@ class HomeGesturesController(
             flashlightOn = !flashlightOn
             cameraManager.setTorchMode(cameraId, flashlightOn)
         } catch (e: Exception) {
-            Log.e("HomeFragment", "Failed to toggle flashlight", e)
+            CrashReporter.reportNonFatal("HomeFragment: Failed to toggle flashlight", e)
         }
     }
 
-    private fun lockPhone() {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && isAccessServiceEnabled(context)) {
-                // Trap #1 (ARCHITECTURE.md): clicking the invisible lock view emits the
-                // accessibility event MyAccessibilityService matches (by contentDescription)
-                // to perform GLOBAL_ACTION_LOCK_SCREEN. The no-op click handler lives in
-                // HomeFragment.onClick (R.id.lock).
-                binding.lock.performClick()
-            } else {
-                deviceManager.lockNow()
+    /** [onDecline] turns the triggering gesture off so a declined consent doesn't nag on every tap. */
+    private fun lockPhone(onDecline: () -> Unit) {
+        val deviceManager = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        val outcome = LockServiceCheck.decide(
+            enabled = isAccessServiceEnabled(context),
+            bound = isAccessServiceBound(context),
+            connectedBefore = prefs.lockServiceConnected,
+            offExplained = prefs.lockServiceOffExplained,
+            adminActive = deviceManager.isAdminActive(ComponentName(context, DeviceAdmin::class.java)),
+        )
+        when (outcome) {
+            LockServiceCheck.Outcome.LOCK, LockServiceCheck.Outcome.LOCK_ADMIN -> Unit
+            LockServiceCheck.Outcome.CONSENT -> {
+                if (!fragment.isAdded) return
+                showLockConsent(
+                    context,
+                    onAccept = {
+                        if (fragment.isAdded)
+                            fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                    },
+                    onDecline = onDecline,
+                )
+                return
             }
+            LockServiceCheck.Outcome.EXPLAIN_OFF -> {
+                if (!fragment.isAdded) return
+                prefs.lockServiceOffExplained = true
+                // Cancelling the admin activation keeps the gesture, like dismissing this sheet
+                showLockServiceOff(
+                    context,
+                    onAccept = {
+                        if (fragment.isAdded)
+                            fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                    },
+                    onUseAdmin = {
+                        (fragment.activity as? MainActivity)?.let { requestLockAdmin(it) {} }
+                    },
+                )
+                return
+            }
+            LockServiceCheck.Outcome.OFF_EXPLAINED -> {
+                context.showToast(context.getString(R.string.lock_service_off_toast, context.settingsPath(R.string.gestures)))
+                return
+            }
+        }
+        try {
+            // Trap #1 (ARCHITECTURE.md): clicking the invisible lock view emits the
+            // accessibility event MyAccessibilityService matches (by contentDescription)
+            // to perform GLOBAL_ACTION_LOCK_SCREEN. The no-op click handler lives in
+            // HomeFragment.onClick (R.id.lock). The admin fallback's lockNow() forces
+            // PIN/pattern/password on the next unlock, hence accessibility first.
+            if (outcome == LockServiceCheck.Outcome.LOCK_ADMIN) deviceManager.lockNow()
+            else binding.lock.performClick()
         } catch (e: SecurityException) {
             prefs.lockModeOn = false
             context.showToast(context.getString(R.string.please_turn_on_double_tap_to_unlock), Toast.LENGTH_LONG)
@@ -331,20 +453,33 @@ class HomeGesturesController(
         }
     }
 
+    private fun openSettings() {
+        fragment.findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
+        viewModel.firstOpen.postValue(false)
+    }
+
     private fun showHomeLongPressMenu() {
-        val dialog = BottomSheetDialog(context)
-        val view = fragment.layoutInflater.inflate(R.layout.dialog_home_menu, null)
-        view.findViewById<TextView>(R.id.menuAddWidget).setOnClickListener {
-            dialog.dismiss()
-            fragment.widgetController?.showWidgetPicker()
-        }
-        view.findViewById<TextView>(R.id.menuSettings).setOnClickListener {
-            dialog.dismiss()
-            fragment.findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
-            viewModel.firstOpen(false)
-        }
-        dialog.setContentView(view)
-        dialog.transparentSheetFrame()
-        dialog.show()
+        BottomSheetMenu(context)
+            .title(context.getString(R.string.app_menu_home))
+            .option(context.getString(R.string.a11y_all_apps)) {
+                if (fragment.isAlive) fragment.showAppList(Constants.FLAG_LAUNCH_APP)
+            }
+            .option(context.getString(R.string.notifications)) {
+                if (fragment.isAlive) expandNotificationDrawer(context)
+            }
+            .option(context.getString(R.string.add_widget)) {
+                if (fragment.isAlive) fragment.widgetController?.showWidgetPicker()
+            }
+            .option(context.getString(R.string.app_menu_wallpaper)) {
+                if (fragment.isAlive) try {
+                    fragment.startActivity(Intent(Intent.ACTION_SET_WALLPAPER))
+                } catch (_: ActivityNotFoundException) {
+                    context.showToast(context.getString(R.string.app_menu_wallpaper_unavailable))
+                }
+            }
+            .option(context.getString(R.string.settings)) {
+                if (fragment.isAlive) openSettings()
+            }
+            .show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 }

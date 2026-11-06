@@ -5,13 +5,15 @@ import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.helper.GestureLetterManager
+import com.parem.launcher.helper.appLabelOrNull
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.ui.BottomSheetMenu
+import com.parem.launcher.ui.dismissOnDestroy
 
 /**
  * Bottom sheet listing every supported gesture letter with its current app
@@ -20,15 +22,17 @@ import com.parem.launcher.ui.BottomSheetMenu
  * unchanged, including the dismiss-and-rebuild-self trick used after a
  * mapping is cleared.
  *
+ * @param lifecycleOwner The fragment's viewLifecycleOwner; the sheet, including
+ * the rebuilt copy, is dismissed when it is destroyed.
  * @param onPickAppForLetter Called (with the dialog already dismissed) after the
- * user taps an unmapped/mapped letter row; sets [MainViewModel.pendingGestureLetter]
- * and navigates to the app list.
+ * user taps an unmapped/mapped letter row; navigates to the app list with the
+ * letter as a navigation argument.
  * @param onDisabled Called after gesture letters are turned off, so the caller can
  * refresh its "Wellbeing" row texts.
  */
 class GestureLetterConfigDialog(
     private val context: Context,
-    private val viewModel: MainViewModel,
+    private val lifecycleOwner: LifecycleOwner,
     private val onPickAppForLetter: (Char) -> Unit,
     private val onDisabled: () -> Unit,
 ) {
@@ -41,12 +45,7 @@ class GestureLetterConfigDialog(
         val allMappings = GestureLetterManager.getAllMappings(context)
         for (letter in GestureLetterManager.getSupportedLetters()) {
             val mapping = allMappings[letter]
-            val appLabel = if (mapping != null) {
-                try {
-                    val pm = context.packageManager
-                    pm.getApplicationLabel(pm.getApplicationInfo(mapping.first, 0)).toString()
-                } catch (_: Exception) { mapping.first }
-            } else null
+            val appLabel = mapping?.let { context.appLabelOrNull(it.first) ?: it.first }
 
             val row = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -57,11 +56,10 @@ class GestureLetterConfigDialog(
             val letterTv = TextView(context).apply {
                 text = if (appLabel != null) "$letter  →  $appLabel" else "$letter  —  Not set"
                 textSize = 16f
-                setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+                setTextColor(context.getColorFromAttr(R.attr.textColor))
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
                 setOnClickListener {
                     dialog.dismiss()
-                    viewModel.pendingGestureLetter = letter
                     onPickAppForLetter(letter)
                 }
             }
@@ -71,7 +69,7 @@ class GestureLetterConfigDialog(
                 val clearBtn = TextView(context).apply {
                     text = "✕"
                     textSize = 16f
-                    setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+                    setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
                     setPadding(12.dpToPx(), 0, 0, 0)
                     setOnClickListener {
                         GestureLetterManager.removeMapping(context, letter)
@@ -90,7 +88,7 @@ class GestureLetterConfigDialog(
             onDisabled()
         }
 
-        dialog = menu.show()
+        dialog = menu.show().dismissOnDestroy(lifecycleOwner)
         return dialog
     }
 }

@@ -1,0 +1,49 @@
+Mul sai oma telefonist villand. Iga ikoon tahtis puudutust, iga rakendus tähelepanu. Parem telefon ei pea olema uus telefon. Piisab samast telefonist, mis segab vähem.
+
+Parem on minimalistlik Androidi launcher ehk avakuva rakendus: lühike nimekiri rakenduste nimedest, märguanded, mis võivad oodata, ja piduri ajasööjate ette. Sobib, kui tahad vähem ekraaniaega või korralikku digipaastu, aga nupptelefoni tagasi ei taha.
+
+Reklaami pole. Kontot pole. Konksu pole. Analüütikat ja oste ka pole. Kõik on tasuta.
+
+Seadistamisel määrad Parem avakuva rakenduseks. Sinu rakendused jäävad alles ja võid igal ajal tagasi vahetada. Alates Android 10-st.
+
+Kasutajaliides on praegu inglise keeles, aga otsing mõistab ka eestikeelseid käske: äratus kell 7, kohtumine reedel kell 15 hambaarst.
+
+<b>Avakuva sõnadest</b>
+• Kuni 8 rakendust lihttekstina kella ja kuupäeva all. Ikoonid ja ikoonipakid on valikulised.
+• Kaustad, veebisaitide otseteed ja muudetava suurusega vidinad
+• Pühkimised ja topeltpuudutus teevad seda, mida valid; žestitähed avavad rakendusi
+
+<b>Üks otsinguväli</b>
+Pühi üles ja hakka tippima. Töötavad algustähed ja nimeosad ning ainus vaste avaneb ise (saad välja lülitada). Sama väli oskab veel:
+• arvutada ja teisendada: 2+2, 5 km to mi, 100 eur in usd
+• seada äratusi, taimereid ja sündmusi
+• leida telefoninumbreid, rakenduste otseteid ja seadeid
+• teha veebiotsinguid
+
+<b>Rahuliku telefoni tööriistad</b>
+Kõik on väljas, kuni need sisse lülitad.
+• Ekraaniaeg: tänane summa, 7 päeva graafik ja nädala kokkuvõte.
+• Rakenduste piirangud: päevane limiit, seejärel hoiatus, millest saad mööda minna.
+• Teadlik paus: vali rakendus ja oota pärast küsimust viis sekundit. Kõik kolm vajavad juurdepääsu kasutusele.
+• Fookusrežiim: taimeriga või nädala ajakava järgi. Lubada saad kuni 5 rakendust, telefonirakendust ei blokeerita kunagi.
+• Vaiksed märguanded: lubamata rakenduste märguanded liiguvad märguandealalt vaiksesse nimekirja. Kõned, äratused, meedia, navigeerimine ja hädaolukorra teated jäävad nähtavale, peidetud märguanded tulevad 8 tunni jooksul tagasi. Heli või värin võib tulla, kui sa pole valinud Make silent. Vajab juurdepääsu märguannetele.
+• Halltoonid: kohe, fookuse ajal, pärast piirangut või rakenduse kaupa. Vajab ühekordset luba arendaja tööriistade kaudu, arvuti abil.
+
+Otse öeldes: piirangud, paus ja fookus kehtivad ainult rakendustele, mis avatakse Parem Launcheri kaudu. Need aeglustavad, aga ei lukusta.
+
+<b>Mis läheb võrku ja mis mitte</b>
+Kontot pole, oma serverit pole ning analüütika-, reklaami- ega jälgimiskoodi pole. Lähtekood on avalik, nii et ära usu mind sõnapealt. Kontaktiotsing (valikuline), märguanded ja rakenduste otsing töödeldakse telefonis ning asukohaluba ei küsita kunagi.
+
+Võrku läheb see:
+• Ilm, vaikimisi väljas: otsitud ja valitud linn läheb teenusele Open-Meteo.
+• Igapäevane taustapilt, vaikimisi väljas: nimekiri GitHubist ja pildid kolmandatelt osapooltelt.
+• Valuuta, kui kirjutad teisenduse: kuni kord päevas Euroopa Keskpanga kursifail, ilma sinu päringuta.
+
+Need teenused näevad sinu IP-aadressi. Veebiotsingud avanevad brauseris (tühiku järel Google, !bang puhul DuckDuckGo). Krahhiraportid on vaikimisi väljas ja neid saadad ainult sina. Androidi pilvevarundus jätab Paremi välja; seadistuse kolimiseks kasuta seadete eksporti.
+
+Topeltpuudutusega lukustamine on valikuline ja kasutab pärast nõusolekut Androidi juurdepääsetavuse teenust ainult ekraani lukustamiseks. Teenus näeb ainult puudutusi launcheri sees ega saa ekraani lugeda. Seadme administraatori kaudu lukustades on pärast iga lukustamist vaja PIN-koodi. Enne desinstallimist lülita see Paremi žestide seadetes välja.
+
+Veel: tahvlid, volditavad seadmed, TalkBack, klaviatuurid, tekst kuni 200%, tööprofiilid, privaatne ruum alates Android 15-st.
+
+<b>Tasuta ja avatud lähtekoodiga</b>
+GNU GPLv3. Parem kasvas välja avatud lähtekoodiga launcherist, mille autor on tanujnotes. Lähtekood ja tänusõnad: github.com/Pilves/parem-launcher

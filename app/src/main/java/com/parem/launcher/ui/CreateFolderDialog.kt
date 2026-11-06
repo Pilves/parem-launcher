@@ -1,31 +1,24 @@
 package com.parem.launcher.ui
 
 import android.content.Context
-import android.graphics.Typeface
-import android.text.Editable
-import android.text.InputType
-import android.text.TextWatcher
-import android.view.Gravity
-import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager
+import android.content.res.ColorStateList
+import android.os.Process
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.widget.NestedScrollView
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.R
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.FolderApp
+import com.parem.launcher.data.FolderGroup
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.showToast
 
 /**
- * "Create folder" sheet: name input plus a searchable app picker (max 4),
+ * "Create folder" sheet: name input plus a searchable app picker and
+ * "Add website…" (max 4 items together),
  * extracted from HomeFragment. Pure UI — the caller loads the app list and
  * persists the created folder in [onSave], which only fires with a non-empty
  * name and at least one selected app.
@@ -33,49 +26,40 @@ import com.parem.launcher.helper.showToast
 class CreateFolderDialog(
     private val context: Context,
     private val apps: List<AppModel>,
+    private val initial: FolderGroup? = null,
     private val onSave: (folderName: String, selected: List<FolderApp>) -> Unit,
 ) {
 
-    fun show() {
-        val dialog = BottomSheetDialog(context)
+    private companion object {
+        const val MAX_ITEMS = 4
+    }
+
+    fun show(): BottomSheetDialog {
+        lateinit var dialog: BottomSheetDialog
+        val menu = BottomSheetMenu(context)
         val container = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundResource(R.drawable.bg_bottom_sheet)
-            setPadding(24.dpToPx(), 12.dpToPx(), 24.dpToPx(), 24.dpToPx())
+            setPadding(24.dpToPx(), 0, 24.dpToPx(), 0)
         }
-        container.addView(View(context).apply {
-            layoutParams = LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                gravity = Gravity.CENTER_HORIZONTAL
-                bottomMargin = 16.dpToPx()
-            }
-            setBackgroundColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
-        })
-
-        // Title
-        val title = TextView(context).apply {
-            text = context.getString(R.string.create_folder)
-            textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
-            setTypeface(null, Typeface.BOLD)
-            setPadding(0, 0, 0, 12.dpToPx())
-        }
-        container.addView(title)
+        // A seed from a slot has no name yet: that is still creating a folder
+        menu.title(context.getString(if (initial?.name.isNullOrEmpty()) R.string.create_folder else R.string.edit_folder))
 
         // Folder name input
         val nameLabel = TextView(context).apply {
             text = context.getString(R.string.folder_name)
             textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
         }
         container.addView(nameLabel)
 
         val nameInput = EditText(context).apply {
             textSize = 16f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColor))
-            setHintTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.textColor))
+            setHintTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             hint = context.getString(R.string.folder_name_hint)
             background = null
             setPadding(0, 8.dpToPx(), 0, 16.dpToPx())
+            setText(initial?.name.orEmpty())
         }
         container.addView(nameInput)
 
@@ -83,80 +67,86 @@ class CreateFolderDialog(
         val appsLabel = TextView(context).apply {
             text = context.getString(R.string.select_apps)
             textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
+            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             setPadding(0, 8.dpToPx(), 0, 4.dpToPx())
         }
         container.addView(appsLabel)
 
         // Selection is keyed per row and lives in the adapter's data, so it
         // survives filtering and row recycling; click order is preserved.
-        fun rowId(app: AppModel) = "${app.appPackage}|${app.activityClassName ?: ""}|${app.user}"
+        fun rowKey(pkg: String, activity: String, user: String) = "$pkg|$activity|$user"
+        fun rowId(app: AppModel) = rowKey(app.appPackage, app.activityClassName.orEmpty(), app.user.toString())
+        fun savedRowId(app: FolderApp) = rowKey(app.packageName, app.activityClassName, app.userString)
         val appsById = apps.associateBy(::rowId)
+        // By ID, not via the list: a hidden app is not offered but must survive an edit
+        val initialApps = initial?.apps.orEmpty().filter { it.url.isEmpty() }.associateBy(::savedRowId)
         val pickerAdapter = AppPickerAdapter(
-            textColor = context.getColorFromAttr(R.attr.primaryColor),
-            maxSelected = 4,
-            entries = apps.map { AppPickerAdapter.Entry(rowId(it), it.appLabel) }
+            textColor = context.getColorFromAttr(R.attr.textColor),
+            maxSelected = MAX_ITEMS,
+            entries = apps.map { AppPickerAdapter.Entry(rowId(it), it.appLabel) },
+            initiallySelected = initialApps.keys,
         )
 
-        val searchInput = EditText(context).apply {
-            hint = context.getString(R.string.search_apps)
-            textSize = 16f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColor))
-            setHintTextColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
-            background = null
-            inputType = InputType.TYPE_CLASS_TEXT
-            isSingleLine = true
-            setPadding(0, 8.dpToPx(), 0, 8.dpToPx())
-            addTextChangedListener(object : TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-                override fun afterTextChanged(s: Editable?) {
-                    pickerAdapter.filter(s?.toString() ?: "")
+        container.addAppPicker(pickerAdapter, searchPaddingLeft = 0, searchPaddingTop = 8.dpToPx())
+
+        // Websites sit beside the picked apps under the same 4-item cap;
+        // unchecking one drops it
+        val websites = mutableListOf<FolderApp>()
+        val websiteRows = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+        val textColor = context.getColorFromAttr(R.attr.textColor)
+        fun addWebsite(site: FolderApp) {
+            websites.add(site)
+            websiteRows.addView(CheckBox(context).apply {
+                text = site.appName
+                textSize = 14f
+                setTextColor(textColor)
+                buttonTintList = ColorStateList.valueOf(textColor)
+                setPadding(8.dpToPx(), 2.dpToPx(), 0, 2.dpToPx())
+                isChecked = true
+                setOnCheckedChangeListener { box, _ ->
+                    websites.remove(site)
+                    websiteRows.removeView(box)
                 }
             })
         }
-        container.addView(searchInput)
-
-        val appsList = RecyclerView(context).apply {
-            // Fixed height so rows recycle inside the outer scroll container
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 300.dpToPx()
-            )
-            layoutManager = LinearLayoutManager(context)
-            adapter = pickerAdapter
-        }
-        container.addView(appsList)
-
-        // Save button
-        val saveButton = TextView(context).apply {
-            text = context.getString(R.string.save)
-            textSize = 16f
-            setTextColor(context.getColorFromAttr(R.attr.primaryColor))
-            setTypeface(null, Typeface.BOLD)
-            setPadding(0, 16.dpToPx(), 0, 0)
+        container.addView(TextView(context).apply {
+            text = context.getString(R.string.add_website)
+            textSize = 14f
+            setTextColor(textColor)
+            setPadding(0, 12.dpToPx(), 0, 4.dpToPx())
             setOnClickListener {
-                val folderName = nameInput.text.toString().trim()
-                val selectedApps = pickerAdapter.selectedIds.mapNotNull { appsById[it] }.map {
-                    FolderApp(it.appLabel, it.appPackage, it.activityClassName ?: "", it.user.toString())
-                }
-                if (folderName.isEmpty() || selectedApps.isEmpty()) {
-                    context.showToast(context.getString(R.string.folder_needs_name_and_app))
+                if (pickerAdapter.selectedIds.size + websites.size >= MAX_ITEMS) {
+                    context.showToast(context.getString(R.string.folder_full))
                     return@setOnClickListener
                 }
-                onSave(folderName, selectedApps)
-                dialog.dismiss()
+                WebsiteDialog(context) { url, label ->
+                    addWebsite(FolderApp(label, "", "", Process.myUserHandle().toString(), url))
+                }.show()
             }
-        }
-        container.addView(saveButton)
+        })
+        initial?.apps.orEmpty().filter { it.url.isNotEmpty() }.forEach(::addWebsite)
+        container.addView(websiteRows)
 
-        // Nested-scroll wrapper + expanded: on landscape heights the sheet
-        // exceeds the screen and the save row must stay reachable
-        dialog.setContentView(NestedScrollView(context).apply { addView(container) })
-        dialog.transparentSheetFrame()
-        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.behavior.skipCollapsed = true
-        // Keep the filtered list visible above the keyboard, as the widget picker does
-        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-        dialog.show()
+        menu.customView(container).option(context.getString(R.string.save), dismissOnClick = false) {
+            val folderName = nameInput.text.toString().trim()
+            val selectedApps = pickerAdapter.selectedIds.mapNotNull { id ->
+                initialApps[id] ?: appsById[id]?.let {
+                    FolderApp(it.appLabel, it.appPackage, it.activityClassName ?: "", it.user.toString())
+                }
+            } + websites
+            if (folderName.isEmpty() || selectedApps.isEmpty()) {
+                context.showToast(context.getString(R.string.folder_needs_name_and_app))
+                return@option
+            }
+            if (selectedApps.size > MAX_ITEMS) {
+                context.showToast(context.getString(R.string.folder_full))
+                return@option
+            }
+            onSave(folderName, selectedApps)
+            dialog.dismiss()
+        }
+
+        dialog = menu.show(resizeForKeyboard = true)
+        return dialog
     }
 }

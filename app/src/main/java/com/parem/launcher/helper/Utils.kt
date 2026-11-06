@@ -10,21 +10,25 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.net.Uri
 import android.util.Log
 import android.util.TypedValue
-import android.view.View
-import android.view.animation.LinearInterpolator
 import android.widget.Toast
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
-import androidx.appcompat.app.AppCompatDelegate
 import com.parem.launcher.BuildConfig
 import com.parem.launcher.R
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 fun Context.showToast(message: String?, duration: Int = Toast.LENGTH_SHORT) {
     if (message.isNullOrBlank()) return
     Toast.makeText(this, message, duration).show()
 }
+
+/** The app's label from PackageManager, or null when it is not installed. */
+fun Context.appLabelOrNull(packageName: String): String? = try {
+    packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
+} catch (_: Exception) {
+    null
+}
+
+fun Context.onOff(on: Boolean): String = getString(if (on) R.string.on else R.string.off)
 
 fun Context.showToast(stringResource: Int, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, getString(stringResource), duration).show()
@@ -46,27 +50,6 @@ fun getDefaultLauncherPackage(context: Context): String {
     } else "android"
 }
 
-fun getChangedAppTheme(context: Context, currentAppTheme: Int): Int {
-    return when (currentAppTheme) {
-        AppCompatDelegate.MODE_NIGHT_YES -> AppCompatDelegate.MODE_NIGHT_NO
-        AppCompatDelegate.MODE_NIGHT_NO -> AppCompatDelegate.MODE_NIGHT_YES
-        else -> {
-            if (context.isDarkThemeOn())
-                AppCompatDelegate.MODE_NIGHT_NO
-            else AppCompatDelegate.MODE_NIGHT_YES
-        }
-    }
-}
-
-fun isTablet(context: Context): Boolean {
-    val metrics = context.resources.displayMetrics
-    val widthInches = metrics.widthPixels / metrics.xdpi
-    val heightInches = metrics.heightPixels / metrics.ydpi
-    val diagonalInches = sqrt(widthInches.toDouble().pow(2.0) + heightInches.toDouble().pow(2.0))
-    if (diagonalInches >= 7.0) return true
-    return false
-}
-
 fun Context.isDarkThemeOn(): Boolean {
     return resources.configuration.uiMode and
             Configuration.UI_MODE_NIGHT_MASK == UI_MODE_NIGHT_YES
@@ -80,8 +63,12 @@ fun Context.copyToClipboard(text: String) {
 
 fun Context.openUrl(url: String) {
     if (url.isEmpty()) return
+    val safeUrl = WebShortcut.normalize(url) ?: run {
+        showToast(getString(R.string.unable_to_open_link))
+        return
+    }
     try {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(safeUrl))
         startActivity(intent)
     } catch (e: Exception) {
         showToast(getString(R.string.unable_to_open_link))
@@ -101,20 +88,8 @@ fun Context.isSystemApp(packageName: String): Boolean {
 }
 
 @ColorInt
-fun Context.getColorFromAttr(
-    @AttrRes attrColor: Int,
-    typedValue: TypedValue = TypedValue(),
-    resolveRefs: Boolean = true,
-): Int {
-    theme.resolveAttribute(attrColor, typedValue, resolveRefs)
+fun Context.getColorFromAttr(@AttrRes attrColor: Int): Int {
+    val typedValue = TypedValue()
+    theme.resolveAttribute(attrColor, typedValue, true)
     return typedValue.data
-}
-
-fun View.animateAlpha(alpha: Float = 1.0f) {
-    this.animate().apply {
-        interpolator = LinearInterpolator()
-        duration = 200
-        alpha(alpha)
-        start()
-    }
 }

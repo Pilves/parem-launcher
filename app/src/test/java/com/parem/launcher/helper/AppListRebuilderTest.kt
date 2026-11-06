@@ -8,6 +8,18 @@ import java.text.Collator
 
 class AppListRebuilderTest {
 
+    @Test
+    fun quietWorkProfileRemainsQueryableWhileQuietPrivateProfileIsSkipped() {
+        val profiles = AppListProfileQuery()
+        assertTrue(profiles.shouldQuery(isPrivate = false, isQuiet = true))
+        assertTrue("paused work must not make the query incomplete", profiles.complete)
+        assertFalse(profiles.shouldQuery(isPrivate = true, isQuiet = true))
+        assertTrue(profiles.complete)
+        assertTrue(profiles.shouldQuery(isPrivate = true, isQuiet = false))
+        assertFalse(profiles.shouldQuery(isPrivate = null, isQuiet = false))
+        assertFalse("an unreadable profile type must fail closed", profiles.complete)
+    }
+
     private val collator = Collator.getInstance()
 
     private fun raw(
@@ -15,6 +27,7 @@ class AppListRebuilderTest {
         pkg: String,
         user: String = MAIN_USER,
         firstInstall: Long = 0L,
+        isPrivate: Boolean = false,
     ) = AppListRebuilder.RawApp(
         label = label,
         key = collator.getCollationKey(label),
@@ -23,6 +36,7 @@ class AppListRebuilderTest {
         firstInstallTime = firstInstall,
         user = user,
         userString = user,
+        isPrivate = isPrivate,
     )
 
     private fun rebuild(
@@ -30,11 +44,13 @@ class AppListRebuilderTest {
         hiddenApps: Set<String> = emptySet(),
         includeRegularApps: Boolean = true,
         includeHiddenApps: Boolean = false,
+        includePrivate: Boolean = false,
+        privateLocked: Boolean = false,
         renameLabel: (String) -> String = { "" },
         now: Long = NOW,
     ) = AppListRebuilder.rebuild(
-        rawApps, OWN_PACKAGE, hiddenApps,
-        includeRegularApps, includeHiddenApps, renameLabel, now, HOUR
+        rawApps, OWN_PACKAGE, MAIN_USER, hiddenApps,
+        includeRegularApps, includeHiddenApps, includePrivate, privateLocked, renameLabel, now, HOUR
     )
 
     @Test
@@ -115,11 +131,76 @@ class AppListRebuilderTest {
         assertFalse(result.first { it.app.packageName == "com.old" }.isNew)
     }
 
+    private val withPrivate = listOf(
+        raw("Signal", "org.signal"),
+        raw("Bank", "com.bank", user = PRIVATE_USER, isPrivate = true),
+        raw("Zoom", "us.zoom"),
+    )
+
+    @Test
+    fun private_listedLastWhenIncludedAndUnlocked() {
+        val result = rebuild(withPrivate, includePrivate = true)
+        assertEquals(listOf("org.signal", "us.zoom", "com.bank"), result.map { it.app.packageName })
+    }
+
+    @Test
+    fun private_droppedWhenLocked() {
+        val result = rebuild(withPrivate, includePrivate = true, privateLocked = true)
+        assertEquals(listOf("org.signal", "us.zoom"), result.map { it.app.packageName })
+    }
+
+    @Test
+    fun private_droppedUnlessCallerOptsIn() {
+        val result = rebuild(withPrivate, includeHiddenApps = true)
+        assertEquals(listOf("org.signal", "us.zoom"), result.map { it.app.packageName })
+    }
+
+    @Test
+    fun private_ignoresHiddenSet() {
+        val result = rebuild(
+            withPrivate, includePrivate = true,
+            hiddenApps = setOf("com.bank|$PRIVATE_USER")
+        )
+        assertTrue(result.any { it.app.packageName == "com.bank" })
+    }
+
+    @Test
+    fun private_neverInHiddenList() {
+        val result = rebuild(
+            withPrivate, includePrivate = true,
+            hiddenApps = setOf("com.bank|$PRIVATE_USER", "org.signal|$MAIN_USER"),
+            includeRegularApps = false, includeHiddenApps = true
+        )
+        assertEquals(listOf("org.signal"), result.map { it.app.packageName })
+    }
+
+    @Test
+    fun personalAlias_doesNotRenameOtherProfilesWithSamePackage() {
+        val result = rebuild(listOf(
+            raw("Signal", "org.signal"),
+            raw("Signal", "org.signal", user = WORK_USER),
+            raw("Signal", "org.signal", user = PRIVATE_USER, isPrivate = true),
+        ), includePrivate = true, renameLabel = { "Chat" })
+        assertEquals(mapOf(MAIN_USER to "Chat", WORK_USER to "Signal", PRIVATE_USER to "Signal"),
+            result.associate { it.app.user to it.shownLabel })
+    }
+
     companion object {
+        private const val PRIVATE_USER = "UserHandle{11}"
         private const val OWN_PACKAGE = "com.parem.launcher"
         private const val MAIN_USER = "UserHandle{0}"
         private const val WORK_USER = "UserHandle{10}"
         private const val HOUR = 3_600_000L
         private const val NOW = HOUR * 100
+    }
+
+    @Test
+    fun upgradeHiddenApps_keysBarePackagesWithTheSeparator() {
+        // A27: a legacy bare package must become exactly the key rebuild() matches on
+        val upgraded = AppListRebuilder.upgradeHiddenApps(setOf("com.foo", "com.bar|UserHandle{10}"), MAIN_USER)
+        assertEquals(setOf("com.foo|$MAIN_USER", "com.bar|UserHandle{10}"), upgraded)
+        assertEquals("com.foo|$MAIN_USER", AppListRebuilder.hiddenKey("com.foo", MAIN_USER))
+        val visible = rebuild(listOf(raw("Foo", "com.foo"), raw("Baz", "com.baz")), hiddenApps = upgraded)
+        assertEquals(listOf("com.baz"), visible.map { it.app.packageName })
     }
 }

@@ -1,6 +1,8 @@
 package com.parem.launcher.helper
 
 import android.content.Context
+import androidx.core.content.edit
+import com.parem.launcher.data.paremPrefs
 
 /**
  * Manages per-app daily time limits.
@@ -11,13 +13,16 @@ import android.content.Context
  */
 object AppLimitManager {
 
-    private const val PREFS_NAME = "com.parem.launcher"
     private const val KEY_APP_LIMITS = "BAD_HABIT_APPS"
+    private const val KEY_MINDFUL_PAUSE = "MINDFUL_PAUSE_APPS"
 
     private val lock = Any()
 
     @Volatile
     private var cachedLimits: Map<String, Int>? = null
+
+    @Volatile
+    private var cachedPause: Set<String>? = null
 
     fun hasLimit(context: Context, packageName: String): Boolean {
         return getAllLimits(context).containsKey(packageName)
@@ -42,6 +47,44 @@ object AppLimitManager {
             limits.remove(packageName)
             save(context, limits)
             cachedLimits = null
+            // "No limit" means leave this app alone: a pause-only app is one choice away
+            savePause(context, getPauseInternal(context) - packageName)
+        }
+    }
+
+    /** The mindful pause with no time limit: every launch pauses, nothing counts minutes. */
+    fun setPauseOnly(context: Context, packageName: String) {
+        synchronized(lock) {
+            val limits = getAllLimitsInternal(context).toMutableMap()
+            limits.remove(packageName)
+            save(context, limits)
+            cachedLimits = null
+            savePause(context, getPauseInternal(context) + packageName)
+        }
+    }
+
+    /** Mindful pause is opt-in per app, with a limit or on its own. */
+    fun hasPause(context: Context, packageName: String): Boolean {
+        synchronized(lock) {
+            return packageName in getPauseInternal(context)
+        }
+    }
+
+    /** True when a launch of this app goes through the gate. */
+    fun isGated(context: Context, packageName: String): Boolean =
+        hasLimit(context, packageName) || hasPause(context, packageName)
+
+    /** Apps with a limit or a pause, for sheets that must show them even at zero usage today. */
+    fun configuredApps(context: Context): Set<String> {
+        synchronized(lock) {
+            return getAllLimitsInternal(context).keys + getPauseInternal(context)
+        }
+    }
+
+    fun setPause(context: Context, packageName: String, enabled: Boolean) {
+        synchronized(lock) {
+            val current = getPauseInternal(context)
+            savePause(context, if (enabled) current + packageName else current - packageName)
         }
     }
 
@@ -58,13 +101,26 @@ object AppLimitManager {
     fun clearCache() {
         synchronized(lock) {
             cachedLimits = null
+            cachedPause = null
         }
+    }
+
+    private fun getPauseInternal(context: Context): Set<String> {
+        cachedPause?.let { return it }
+        val prefs = context.paremPrefs()
+        return MindfulPause.parse(prefs.getString(KEY_MINDFUL_PAUSE, "")).also { cachedPause = it }
+    }
+
+    private fun savePause(context: Context, packages: Set<String>) {
+        context.paremPrefs()
+            .edit { putString(KEY_MINDFUL_PAUSE, MindfulPause.serialize(packages)) }
+        cachedPause = packages
     }
 
     private fun getAllLimitsInternal(context: Context): Map<String, Int> {
         cachedLimits?.let { return it }
 
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = context.paremPrefs()
         val csv = prefs.getString(KEY_APP_LIMITS, "") ?: ""
         if (csv.isBlank()) {
             cachedLimits = emptyMap()
@@ -87,9 +143,7 @@ object AppLimitManager {
 
     private fun save(context: Context, limits: Map<String, Int>) {
         val csv = limits.entries.joinToString(",") { "${it.key}=${it.value}" }
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_APP_LIMITS, csv)
-            .apply()
+        context.paremPrefs()
+            .edit { putString(KEY_APP_LIMITS, csv) }
     }
 }

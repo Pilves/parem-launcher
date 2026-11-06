@@ -1,5 +1,8 @@
 package com.parem.launcher.helper
 
+import android.icu.text.MeasureFormat
+import android.icu.util.Measure
+import android.icu.util.MeasureUnit
 import android.app.Activity
 import android.util.Log
 import android.app.AppOpsManager
@@ -11,7 +14,6 @@ import android.content.Intent
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.content.res.Resources
-import android.net.Uri
 import android.os.Build
 import android.os.UserHandle
 import android.provider.Settings
@@ -19,11 +21,14 @@ import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.result.ActivityResultLauncher
-import androidx.annotation.RequiresApi
-import com.parem.launcher.BuildConfig
+import androidx.core.graphics.Insets
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import java.util.Calendar
+import java.util.Locale
 
 fun View.hideKeyboard() {
     this.clearFocus()
@@ -43,7 +48,6 @@ fun View.showKeyboard(show: Boolean = true) {
 }
 
 
-@RequiresApi(Build.VERSION_CODES.Q)
 fun Activity.showLauncherSelector(launcher: ActivityResultLauncher<Intent>) {
     val roleManager = getSystemService(Context.ROLE_SERVICE) as RoleManager
     if (roleManager.isRoleAvailable(RoleManager.ROLE_HOME)) {
@@ -74,9 +78,12 @@ fun Context.resetDefaultLauncher() {
     }
 }
 
-fun Context.isDefaultLauncher(): Boolean {
-    val launcherPackageName = getDefaultLauncherPackage(this)
-    return BuildConfig.APPLICATION_ID == launcherPackageName
+// The compat controller keeps the edge-to-edge layout flags on API 29, which the
+// old raw systemUiVisibility writes used to clear
+fun Activity.setStatusBarVisible(visible: Boolean) {
+    val controller = WindowInsetsControllerCompat(window, window.decorView)
+    if (visible) controller.show(WindowInsetsCompat.Type.statusBars())
+    else controller.hide(WindowInsetsCompat.Type.statusBars())
 }
 
 fun Context.resetLauncherViaFakeActivity() {
@@ -85,27 +92,69 @@ fun Context.resetLauncherViaFakeActivity() {
         startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
 }
 
-fun Context.openSearch(query: String? = null) {
+/** [packageName] pins the search to the app the launch gate was run for. */
+fun Context.openSearch(query: String? = null, packageName: String? = null) {
     try {
         val intent = Intent(Intent.ACTION_WEB_SEARCH)
         intent.putExtra(SearchManager.QUERY, query ?: "")
+        if (!packageName.isNullOrEmpty()) intent.setPackage(packageName)
         startActivity(intent)
     } catch (e: Exception) {
         showToast("No search app found")
     }
 }
 
+// Per process: the built-in display doesn't change type at runtime
+private var isEinkDevice: Boolean? = null
+
 fun Context.isEinkDisplay(): Boolean {
+    isEinkDevice?.let { return it }
+    // Boox devices report 60 Hz+, so the refresh-rate check alone misses them
+    if (isOnyxDevice() || EinkDetector.isEinkBrand(Build.BRAND, Build.MANUFACTURER, Build.MODEL))
+        return true.also { isEinkDevice = it }
+    // Not cached when the display can't be read (e.g. a non-visual context), so a later
+    // call from an Activity still gets a real answer
+    return hasEinkRefreshRate()?.also { isEinkDevice = it } ?: false
+}
+
+private fun Context.hasEinkRefreshRate(): Boolean? {
     return try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            display?.refreshRate?.let { it <= Constants.MIN_ANIM_REFRESH_RATE } ?: false
+        val currentDisplay = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            display
         } else {
             @Suppress("DEPRECATION")
-            (getSystemService(Context.WINDOW_SERVICE) as WindowManager)
-                .defaultDisplay.refreshRate <= Constants.MIN_ANIM_REFRESH_RATE
-        }
+            (getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay
+        } ?: return null
+        // Check the max supported refresh rate, not the current one: adaptive refresh
+        // rate (LTPO) displays drop to 1-10 Hz when idle without being e-ink (Olauncher #724)
+        val maxRefreshRate = currentDisplay.supportedModes.maxOfOrNull { it.refreshRate } ?: currentDisplay.refreshRate
+        EinkDetector.isEinkRefreshRate(maxRefreshRate)
     } catch (e: Exception) {
         Log.e("Extensions", "Failed to detect e-ink display", e)
+        null
+    }
+}
+
+private fun isOnyxDevice(): Boolean {
+    return try {
+        // Onyx firmware ships its e-ink SDK classes in the boot classpath
+        Class.forName("android.onyx.ViewUpdateHelper")
+        true
+    } catch (ignored: Throwable) {
+        false
+    }
+}
+
+/** One gate for every animation site: e-ink, or the user turned any system animation scale to 0. */
+fun Context.skipAnimations(): Boolean = isEinkDisplay() || isSystemAnimationsDisabled()
+
+fun Context.isSystemAnimationsDisabled(): Boolean {
+    return try {
+        Settings.Global.getFloat(contentResolver, Settings.Global.WINDOW_ANIMATION_SCALE, 1f) == 0f
+                || Settings.Global.getFloat(contentResolver, Settings.Global.TRANSITION_ANIMATION_SCALE, 1f) == 0f
+                || Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    } catch (e: Exception) {
+        Log.e("Extensions", "Failed to read system animation scales", e)
         false
     }
 }
@@ -116,7 +165,6 @@ fun Context.isPackageInstalled(packageName: String, userHandle: UserHandle = and
     return activityInfo.isNotEmpty()
 }
 
-@RequiresApi(Build.VERSION_CODES.Q)
 fun Context.appUsagePermissionGranted(): Boolean {
     val appOpsManager = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
     return appOpsManager.unsafeCheckOpNoThrow(
@@ -126,27 +174,30 @@ fun Context.appUsagePermissionGranted(): Boolean {
     ) == AppOpsManager.MODE_ALLOWED
 }
 
+// Drawer rows format on every bind; getInstance loads locale data each call
+@Volatile
+private var narrowDuration: Pair<Locale, MeasureFormat>? = null
+
+private fun narrowDurationFormat(locale: Locale): MeasureFormat =
+    narrowDuration?.takeIf { it.first == locale }?.second
+        ?: MeasureFormat.getInstance(locale, MeasureFormat.FormatWidth.NARROW).also { narrowDuration = locale to it }
+
+/** A duration in the phone's language: "1h 5m", "12 Min.", "12 мин". */
 fun Context.formattedTimeSpent(timeSpent: Long): String {
-    val seconds = timeSpent / 1000
-    val minutes = seconds / 60
-    val hours = minutes / 60
-    val remainingMinutes = minutes % 60
+    val totalMinutes = timeSpent / 60_000
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    val format = narrowDurationFormat(resources.configuration.locales[0])
     return when {
-        timeSpent == 0L -> "0m"
-
-        hours > 0 -> getString(
-            R.string.time_spent_hour,
-            hours.toString(),
-            remainingMinutes.toString()
-        )
-
-        minutes > 0 -> {
-            getString(R.string.time_spent_min, minutes.toString())
-        }
-
-        else -> "<1m"
+        timeSpent in 1 until 60_000 -> getString(R.string.time_spent_under, format.format(Measure(1, MeasureUnit.MINUTE)))
+        hours > 0 && minutes > 0 -> format.formatMeasures(Measure(hours, MeasureUnit.HOUR), Measure(minutes, MeasureUnit.MINUTE))
+        hours > 0 -> format.format(Measure(hours, MeasureUnit.HOUR))
+        else -> format.format(Measure(totalMinutes, MeasureUnit.MINUTE))
     }
 }
+
+/** "Settings › <section>", from the section's own title so a renamed section stays right. */
+fun Context.settingsPath(section: Int): String = getString(R.string.setting_hint, getString(section))
 
 fun Long.convertEpochToMidnight(): Long {
     val calendar = Calendar.getInstance()
@@ -161,15 +212,25 @@ fun Long.convertEpochToMidnight(): Long {
 fun Long.isDaySince(): Int = ((System.currentTimeMillis().convertEpochToMidnight() - this.convertEpochToMidnight())
         / Constants.ONE_DAY_IN_MILLIS).toInt()
 
-fun Long.hasBeenDays(days: Int): Boolean =
-    ((System.currentTimeMillis() - this) / Constants.ONE_DAY_IN_MILLIS) >= days
-
-fun Long.hasBeenHours(hours: Int): Boolean =
-    ((System.currentTimeMillis() - this) / Constants.ONE_HOUR_IN_MILLIS) >= hours
-
 fun Long.hasBeenMinutes(minutes: Int): Boolean =
     ((System.currentTimeMillis() - this) / Constants.ONE_MINUTE_IN_MILLIS) >= minutes
 
 fun Int.dpToPx(): Int {
     return (this * Resources.getSystem().displayMetrics.density).toInt()
+}
+
+/**
+ * Pads [this] by the system bars and display cutout (and the keyboard when [ime]) on top
+ * of its layout padding: the window is edge-to-edge, so content would otherwise sit under
+ * them. Call once after inflation; the layout padding is the design spacing.
+ */
+fun View.padForSystemBars(ime: Boolean = false) {
+    val base = Insets.of(paddingLeft, paddingTop, paddingRight, paddingBottom)
+    var types = WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+    if (ime) types = types or WindowInsetsCompat.Type.ime()
+    ViewCompat.setOnApplyWindowInsetsListener(this) { v, insets ->
+        val i = insets.getInsets(types)
+        v.setPadding(base.left + i.left, base.top + i.top, base.right + i.right, base.bottom + i.bottom)
+        insets
+    }
 }

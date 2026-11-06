@@ -2,6 +2,9 @@ package com.parem.launcher.helper
 
 import android.content.Context
 import android.util.Log
+import androidx.core.content.edit
+import com.parem.launcher.data.Constants
+import com.parem.launcher.data.paremPrefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -26,7 +29,6 @@ data class CityResult(
 
 object WeatherManager {
 
-    private const val PREFS_NAME = "com.parem.launcher"
     private const val WEATHER_ENABLED = "WEATHER_ENABLED"
     private const val WEATHER_LAT = "WEATHER_LAT"
     private const val WEATHER_LNG = "WEATHER_LNG"
@@ -40,25 +42,38 @@ object WeatherManager {
 
     private const val FETCH_INTERVAL_MS = 60 * 60 * 1000L // 1 hour
 
-    private fun prefs(context: Context) =
-        context.getSharedPreferences(PREFS_NAME, 0)
-
     fun isEnabled(context: Context): Boolean =
-        prefs(context).getBoolean(WEATHER_ENABLED, false)
+        context.paremPrefs().getBoolean(WEATHER_ENABLED, false)
 
     fun setEnabled(context: Context, enabled: Boolean) {
-        prefs(context).edit().putBoolean(WEATHER_ENABLED, enabled).apply()
+        context.paremPrefs().edit { putBoolean(WEATHER_ENABLED, enabled) }
+    }
+
+    /**
+     * Drops the cached reading, and the place unless the sunrise and sunset theme
+     * uses it, whenever weather is off. Called on turn-off and on every home
+     * resume, because an update, an import or a device transfer can also leave
+     * a place stored with weather off.
+     */
+    fun clearUnusedData(context: Context) {
+        if (isEnabled(context)) return
+        val p = context.paremPrefs()
+        // The sunrise and sunset theme computes from the same place, on the phone
+        val sunriseTheme = ThemeScheduleManager.getMode(context) == Constants.ThemeScheduleMode.SUNRISE_SUNSET
+        val place = if (sunriseTheme) emptyList() else listOf(WEATHER_LAT, WEATHER_LNG, WEATHER_CITY_NAME)
+        val stale = (place + listOf(WEATHER_CACHED_TEMP, WEATHER_LAST_FETCHED, WEATHER_LAST_SUCCESS)).filter(p::contains)
+        if (stale.isNotEmpty()) p.edit { stale.forEach { remove(it) } }
     }
 
     fun setLocation(context: Context, lat: String, lng: String) {
-        prefs(context).edit()
-            .putString(WEATHER_LAT, lat)
-            .putString(WEATHER_LNG, lng)
-            .apply()
+        context.paremPrefs().edit {
+            putString(WEATHER_LAT, lat)
+            putString(WEATHER_LNG, lng)
+        }
     }
 
     fun getLocation(context: Context): Pair<String, String> {
-        val p = prefs(context)
+        val p = context.paremPrefs()
         return Pair(
             p.getString(WEATHER_LAT, "") ?: "",
             p.getString(WEATHER_LNG, "") ?: ""
@@ -66,16 +81,15 @@ object WeatherManager {
     }
 
     fun getCityName(context: Context): String =
-        prefs(context).getString(WEATHER_CITY_NAME, "") ?: ""
+        context.paremPrefs().getString(WEATHER_CITY_NAME, "") ?: ""
 
     fun setCityName(context: Context, name: String) {
-        prefs(context).edit().putString(WEATHER_CITY_NAME, name).apply()
+        context.paremPrefs().edit { putString(WEATHER_CITY_NAME, name) }
     }
 
     fun getCachedTemp(context: Context): String =
-        prefs(context).getString(WEATHER_CACHED_TEMP, "") ?: ""
+        context.paremPrefs().getString(WEATHER_CACHED_TEMP, "") ?: ""
 
-    fun getDisplayString(context: Context): String = getCachedTemp(context)
 
     /**
      * Staleness of the cached reading, per PAREM-106. A cache with no
@@ -85,14 +99,15 @@ object WeatherManager {
      * flashing an unverified reading as trustworthy or disappearing outright.
      */
     fun getStaleness(context: Context): WeatherStaleness.Level {
-        val p = prefs(context)
+        val p = context.paremPrefs()
         if (!p.contains(WEATHER_LAST_SUCCESS)) return WeatherStaleness.classify(null)
         val lastSuccess = p.getLong(WEATHER_LAST_SUCCESS, 0L)
         val age = System.currentTimeMillis() - lastSuccess
         return WeatherStaleness.classify(age)
     }
 
-    suspend fun searchCities(query: String): List<CityResult> = withContext(Dispatchers.IO) {
+    /** Null means the search itself failed, as opposed to finding nothing. */
+    suspend fun searchCities(query: String): List<CityResult>? = withContext(Dispatchers.IO) {
         if (query.isBlank() || query.length < 2) return@withContext emptyList()
 
         var connection: HttpURLConnection? = null
@@ -106,7 +121,7 @@ object WeatherManager {
             connection.connect()
 
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                return@withContext emptyList()
+                return@withContext null
             }
 
             val response = connection.inputStream.bufferedReader().use { it.readText() }
@@ -131,14 +146,14 @@ object WeatherManager {
             cities
         } catch (e: Exception) {
             Log.e("WeatherManager", "Failed to search cities", e)
-            emptyList()
+            null
         } finally {
             connection?.disconnect()
         }
     }
 
     suspend fun fetchWeather(context: Context): String? = withContext(Dispatchers.IO) {
-        val p = prefs(context)
+        val p = context.paremPrefs()
         val lastFetched = p.getLong(WEATHER_LAST_FETCHED, 0L)
         val now = System.currentTimeMillis()
 
@@ -155,7 +170,9 @@ object WeatherManager {
 
         var connection: HttpURLConnection? = null
         try {
-            val url = URL("https://api.open-meteo.com/v1/forecast?latitude=$latD&longitude=$lngD&current_weather=true")
+            val latParam = WeatherPrivacy.latitudeForRequest(latD)
+            val lngParam = WeatherPrivacy.roundForRequest(lngD)
+            val url = URL("https://api.open-meteo.com/v1/forecast?latitude=$latParam&longitude=$lngParam&current_weather=true")
             connection = url.openConnection() as HttpURLConnection
             connection.connectTimeout = 10_000
             connection.readTimeout = 15_000
@@ -172,17 +189,17 @@ object WeatherManager {
             val temperature = currentWeather.getDouble("temperature")
             val formatted = "${temperature.toInt()}\u00B0"
 
-            p.edit()
-                .putString(WEATHER_CACHED_TEMP, formatted)
-                .putLong(WEATHER_LAST_FETCHED, now)
-                .putLong(WEATHER_LAST_SUCCESS, now)
-                .apply()
+            p.edit {
+                putString(WEATHER_CACHED_TEMP, formatted)
+                putLong(WEATHER_LAST_FETCHED, now)
+                putLong(WEATHER_LAST_SUCCESS, now)
+            }
 
             formatted
         } catch (e: Exception) {
             Log.e("WeatherManager", "Failed to fetch weather", e)
             // Backoff: don't retry for 10 minutes on failure
-            p.edit().putLong(WEATHER_LAST_FETCHED, now - FETCH_INTERVAL_MS + 10 * 60 * 1000L).apply()
+            p.edit { putLong(WEATHER_LAST_FETCHED, now - FETCH_INTERVAL_MS + 10 * 60 * 1000L) }
             val cached = getCachedTemp(context)
             cached.ifEmpty { null }
         } finally {

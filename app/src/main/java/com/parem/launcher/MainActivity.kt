@@ -4,39 +4,43 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetManager
-import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
-import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+import android.view.KeyEvent
 import androidx.appcompat.app.AlertDialog
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.ActivityMainBinding
+import com.parem.launcher.helper.GrayscaleController
+import com.parem.launcher.helper.HomeKeyInput
+import com.parem.launcher.helper.NightModeChange
+import com.parem.launcher.helper.TextScale
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.isDarkThemeOn
-import com.parem.launcher.helper.isDefaultLauncher
+import com.parem.launcher.helper.isParemDefault
 import com.parem.launcher.helper.isEinkDisplay
-import com.parem.launcher.helper.isTablet
 import com.parem.launcher.helper.resetLauncherViaFakeActivity
 import com.parem.launcher.helper.setPlainWallpaper
 import com.parem.launcher.helper.showLauncherSelector
-import com.parem.launcher.helper.showToast
+import com.parem.launcher.ui.BottomSheetMenu
+import com.parem.launcher.ui.HomeFragment
+import com.parem.launcher.ui.showCrashReport
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -45,20 +49,28 @@ class MainActivity : AppCompatActivity() {
 
     private var themeCheckRetries = 0
     private var isRecreating = false
+    // Night bits of the last uiMode seen; the manifest handles uiMode, so a
+    // system dark-mode flip reaches onConfigurationChanged instead of recreating
+    private var nightMode = 0
 
     private lateinit var prefs: Prefs
     private lateinit var navController: NavController
     private lateinit var viewModel: MainViewModel
     private lateinit var binding: ActivityMainBinding
     private var timerJob: Job? = null
+    // Where the per-app grayscale watch starts reading app switches
+    private var lastPauseMs = 0L
 
     lateinit var appWidgetHost: AppWidgetHost
     lateinit var appWidgetManager: AppWidgetManager
-    var pendingWidgetId: Int = -1
-    var pendingWidgetInfo: AppWidgetProviderInfo? = null
+    // The bind/configure step HomeWidgetController is waiting on (its keys, see
+    // HomeWidgetController.PendingOp). Saved state, not a callback: a rotation or
+    // process death under the system dialog must still finish or cancel the widget
+    var pendingWidgetOp: Bundle? = null
+    // A result that arrived while no HomeFragment was up to take it
+    var pendingWidgetResult: Boolean? = null
 
-    var onWidgetBindResult: ((Boolean) -> Unit)? = null
-    var onWidgetConfigureResult: ((Boolean) -> Unit)? = null
+    var onAdminResult: ((Boolean) -> Unit)? = null
 
     lateinit var bindWidgetLauncher: ActivityResultLauncher<Intent>
     lateinit var configureWidgetLauncher: ActivityResultLauncher<Intent>
@@ -66,49 +78,50 @@ class MainActivity : AppCompatActivity() {
     lateinit var launcherSelectorLauncher: ActivityResultLauncher<Intent>
 
     override fun attachBaseContext(context: Context) {
-        val newConfig = Configuration(context.resources.configuration)
-        newConfig.fontScale = Prefs(context).textSizeScale
-        applyOverrideConfiguration(newConfig)
-        super.attachBaseContext(context)
+        // Only fontScale is set: a full Configuration copy carried the system uiMode
+        // into the activity's override, which bypassed AppCompat DayNight and made
+        // checkTheme() recreate() the activity in a loop whenever Parem's fixed theme
+        // disagreed with the system dark mode (home showed only the wallpaper).
+        val delta = Configuration()
+        // Parem's step rides on top of the system font size; it never replaces it (DESIGN.md 3.1)
+        delta.fontScale = TextScale.effective(
+            context.resources.configuration.fontScale,
+            TextScale.nearestStep(Prefs(context).textSizeScale)
+        )
+        super.attachBaseContext(context.createConfigurationContext(delta))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         prefs = Prefs(this)
-        if (isEinkDisplay()) prefs.appTheme = AppCompatDelegate.MODE_NIGHT_NO
+        // First-run default only: forcing it every launch would undo a dark-theme choice
+        // on e-ink (and on any misdetected phone)
+        if (isEinkDisplay() && !prefs.hasAppTheme) prefs.appTheme = AppCompatDelegate.MODE_NIGHT_NO
         AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
+        // HomeFragment restores widgets during content inflation, so its orphan sweep
+        // and deferred-result delivery must already see the saved operation.
+        pendingWidgetOp = savedInstanceState?.getBundle("pendingWidgetOp")
+        // recreate() makes a new instance, so the cap only holds if it survives in state
+        themeCheckRetries = savedInstanceState?.getInt("themeCheckRetries") ?: 0
+        pendingWidgetResult = savedInstanceState?.takeIf { it.containsKey("pendingWidgetResult") }
+            ?.getBoolean("pendingWidgetResult")
         super.onCreate(savedInstanceState)
+        nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        if (prefs.boldFont) theme.applyStyle(R.style.BoldFontOverlay, true)
+        if (isEinkDisplay()) theme.applyStyle(R.style.ThemeOverlay_Parem_Eink, true)
 
         appWidgetManager = AppWidgetManager.getInstance(this)
         appWidgetHost = AppWidgetHost(this, Constants.APPWIDGET_HOST_ID)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        navController = this.findNavController(R.id.nav_host_fragment)
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
-
-        savedInstanceState?.let {
-            pendingWidgetId = it.getInt("pendingWidgetId", -1)
-            val providerStr = it.getString("pendingWidgetProvider")
-            if (providerStr != null && pendingWidgetId != -1) {
-                pendingWidgetInfo = appWidgetManager.getAppWidgetInfo(pendingWidgetId)
-            }
-        }
-
         bindWidgetLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            val success = result.resultCode == Activity.RESULT_OK
-            onWidgetBindResult?.invoke(success)
-            onWidgetBindResult = null
+            deliverWidgetResult(result.resultCode == Activity.RESULT_OK)
         }
 
         configureWidgetLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            val success = result.resultCode == Activity.RESULT_OK
-            onWidgetConfigureResult?.invoke(success)
-            onWidgetConfigureResult = null
+            deliverWidgetResult(result.resultCode == Activity.RESULT_OK)
         }
 
         enableAdminLauncher = registerForActivityResult(
@@ -116,58 +129,111 @@ class MainActivity : AppCompatActivity() {
         ) { result ->
             if (result.resultCode == Activity.RESULT_OK)
                 prefs.lockModeOn = true
+            onAdminResult?.invoke(result.resultCode == Activity.RESULT_OK)
+            onAdminResult = null
         }
 
         launcherSelectorLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            if (result.resultCode == Activity.RESULT_OK)
+            // Only when the grant didn't take: once Parem holds the role, the fake-activity
+            // reset would fire a HOME chooser and then open Default apps settings
+            if (result.resultCode == Activity.RESULT_OK && !isParemDefault(this))
                 resetLauncherViaFakeActivity()
         }
 
-        val onBackPressedCallback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (navController.currentDestination?.id != R.id.mainFragment)
-                    navController.popBackStack()
-            }
+        // Register the result launchers before restored fragments can use them.
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        CrashReporter.pending(this)?.let { showCrashReport(this, it) }
+
+        navController = this.findNavController(R.id.nav_host_fragment)
+        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+
+        // Home swallows Back; other destinations delegate to Navigation.
+        val onBackPressedCallback = object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {}
         }
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            onBackPressedCallback.isEnabled = destination.id == R.id.mainFragment
+        }
 
         if (prefs.firstOpen) {
-            viewModel.firstOpen(true)
+            viewModel.firstOpen.postValue(true)
             prefs.firstOpen = false
             prefs.firstOpenTime = System.currentTimeMillis()
             viewModel.setDefaultClockApp()
-            viewModel.resetLauncherLiveData.call()
+            // No role prompt here: onboarding asks for home with context, on the user's tap
         }
 
         initObservers(viewModel)
+        // Heals grey left behind by a crash or a missed trigger
+        GrayscaleController.reconcile(this)
         viewModel.getAppList()
         setupOrientation()
 
-        window.addFlags(FLAG_LAYOUT_NO_LIMITS)
+        // Edge-to-edge on API 29-34 (35+ enforces it); fragments pad by WindowInsets
+        WindowCompat.setDecorFitsSystemWindows(window, false)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt("pendingWidgetId", pendingWidgetId)
-        outState.putString("pendingWidgetProvider", pendingWidgetInfo?.provider?.flattenToString())
+        outState.putBundle("pendingWidgetOp", pendingWidgetOp)
+        outState.putInt("themeCheckRetries", themeCheckRetries)
+        pendingWidgetResult?.let { outState.putBoolean("pendingWidgetResult", it) }
+    }
+
+    private fun homeFragment(): HomeFragment? =
+        supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+            ?.childFragmentManager?.primaryNavigationFragment as? HomeFragment
+
+    private fun deliverWidgetResult(success: Boolean) {
+        val controller = homeFragment()?.widgetController
+        if (controller != null) controller.onPendingWidgetResult(success)
+        else pendingWidgetResult = success
+    }
+
+    // AppWidgetHost.startAppWidgetConfigureActivityForResult (the only way to configure a
+    // work-profile widget) reports here, not through an ActivityResultLauncher
+    @Deprecated("Needed for AppWidgetHost's configure flow")
+    @Suppress("DEPRECATION")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CONFIGURE_PROFILE_WIDGET)
+            deliverWidgetResult(resultCode == Activity.RESULT_OK)
     }
 
     override fun onDestroy() {
-        onWidgetBindResult = null
-        onWidgetConfigureResult = null
+        onAdminResult = null
         super.onDestroy()
     }
 
     override fun onStart() {
         super.onStart()
-        try { appWidgetHost.startListening() } catch (e: Exception) { Log.e("MainActivity", "Widget host error", e) }
+        try { appWidgetHost.startListening() } catch (e: Exception) { CrashReporter.reportNonFatal("MainActivity: Widget host error", e) }
+        GrayscaleController.onLauncherStarted(this)
         checkTheme()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Not onStart: a translucent or finish-at-once app only pauses Parem,
+        // and coming back from it must still bring colour back
+        GrayscaleController.stopAppWatch()
+        GrayscaleController.setAppForeground(this, false)
+    }
+
+    override fun onPause() {
+        lastPauseMs = System.currentTimeMillis()
+        super.onPause()
+    }
+
     override fun onStop() {
-        try { appWidgetHost.stopListening() } catch (e: Exception) { Log.e("MainActivity", "Widget host error", e) }
+        try { appWidgetHost.stopListening() } catch (e: Exception) { CrashReporter.reportNonFatal("MainActivity: Widget host error", e) }
+        GrayscaleController.onLauncherStopped(this)
+        if (GrayscaleController.hasMarkedApps(this) && GrayscaleController.appModeReady(this))
+            GrayscaleController.startAppWatch(this, lastPauseMs)
         super.onStop()
     }
 
@@ -182,23 +248,41 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
     }
 
+    // Reached only when no focused view consumed the key, so a focused home slot
+    // still gets d-pad/enter and the drawer's search field gets its own typing
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        if (event.repeatCount == 0 && navController.currentDestination?.id == R.id.mainFragment) {
+            val query = HomeKeyInput.drawerQuery(
+                isMenuKey = keyCode == KeyEvent.KEYCODE_MENU,
+                unicodeChar = event.unicodeChar,
+                hasShortcutModifier = event.isCtrlPressed || event.isAltPressed || event.isMetaPressed
+            )
+            val home = homeFragment()
+            if (query != null && home != null && home.isAdded) {
+                home.showAppList(Constants.FLAG_LAUNCH_APP, query = query)
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
-        if (!isRecreating && prefs.dailyWallpaper && AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) {
-            isRecreating = true
+        val previousNightMode = nightMode
+        nightMode = newConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        if (isRecreating || !NightModeChange.needsRestyle(previousNightMode, nightMode, prefs.appTheme)) return
+        isRecreating = true
+        if (prefs.dailyWallpaper) {
             setPlainWallpaper()
             viewModel.setWallpaperWorker()
-            recreate()
         }
+        recreate()
     }
 
     private fun initObservers(viewModel: MainViewModel) {
-        viewModel.launcherResetFailed.observe(this) {
-            openLauncherChooser(it)
-        }
         viewModel.resetLauncherLiveData.observe(this) {
-            if (isDefaultLauncher() || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
+            if (isParemDefault(this))
                 resetLauncherViaFakeActivity()
             else
                 showLauncherSelector(launcherSelectorLauncher)
@@ -206,14 +290,6 @@ class MainActivity : AppCompatActivity() {
         viewModel.showDialog.observe(this) {
             if (isFinishing || isDestroyed) return@observe
             when (it) {
-                Constants.Dialog.HIDDEN -> {
-                    AlertDialog.Builder(this)
-                        .setTitle(R.string.hidden_apps)
-                        .setMessage(R.string.hidden_apps_message)
-                        .setPositiveButton(R.string.okay, null)
-                        .show()
-                }
-
                 Constants.Dialog.KEYBOARD -> {
                     AlertDialog.Builder(this)
                         .setTitle(R.string.app_name)
@@ -223,13 +299,29 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 Constants.Dialog.DIGITAL_WELLBEING -> {
-                    AlertDialog.Builder(this)
-                        .setTitle(R.string.screen_time)
-                        .setMessage(R.string.app_usage_message)
-                        .setPositiveButton(R.string.okay) { _, _ ->
-                            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-                        }
-                        .setNegativeButton(R.string.not_now, null)
+                    BottomSheetMenu(this)
+                        .title(getString(R.string.screen_time))
+                        .message(getString(R.string.app_usage_message))
+                        .option(getString(R.string.okay)) { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
+                        .option(getString(R.string.not_now), dimmed = true) {}
+                        .show()
+                }
+
+                Constants.Dialog.GRAYSCALE_USAGE_ACCESS -> {
+                    BottomSheetMenu(this)
+                        .title(getString(R.string.grayscale))
+                        .message(getString(R.string.grayscale_app_needs_usage))
+                        .option(getString(R.string.agree)) { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
+                        .option(getString(R.string.not_now), dimmed = true) {}
+                        .show()
+                }
+
+                Constants.Dialog.GRAYSCALE_DEFAULT_HOME -> {
+                    BottomSheetMenu(this)
+                        .title(getString(R.string.grayscale))
+                        .message(getString(R.string.grayscale_app_needs_default))
+                        .option(getString(R.string.set_as_default_launcher)) { viewModel.resetLauncherLiveData.call() }
+                        .option(getString(R.string.not_now), dimmed = true) {}
                         .show()
                 }
             }
@@ -238,14 +330,17 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SourceLockedOrientationActivity")
     private fun setupOrientation() {
-        if (isTablet(this) || Build.VERSION.SDK_INT == Build.VERSION_CODES.O)
-            return
-        // In Android 8.0, windowIsTranslucent cannot be used with screenOrientation=portrait
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        // Set both ways: a fold/unfold recreate must not keep a stale portrait lock
+        requestedOrientation = if (resources.getBoolean(R.bool.lock_portrait))
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        else ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     }
 
     private fun backToHomeScreen() {
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return
+        // Becoming home (chooser "Always", or Home pressed in system settings) arrives
+        // as a HOME intent; popping here would skip onboarding's Calm screen
+        if (navController.currentDestination?.id == R.id.onboardingFragment) return
         if (navController.currentDestination?.id != R.id.mainFragment)
             navController.popBackStack(R.id.mainFragment, false)
     }
@@ -254,13 +349,6 @@ class MainActivity : AppCompatActivity() {
         if (this.isDarkThemeOn())
             setPlainWallpaper(this, android.R.color.black)
         else setPlainWallpaper(this, android.R.color.white)
-    }
-
-    private fun openLauncherChooser(resetFailed: Boolean) {
-        if (resetFailed) {
-            val intent = Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS)
-            startActivity(intent)
-        }
     }
 
     // PAREM-108 phase 3: the inherited Olauncher 4-hour self-recreate +
@@ -281,4 +369,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    companion object {
+        const val REQUEST_CONFIGURE_PROFILE_WIDGET = 0x5701
+    }
 }

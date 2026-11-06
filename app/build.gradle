@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdk 35
+    compileSdk 36
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -15,10 +15,13 @@ android {
 
     defaultConfig {
         applicationId "com.parem.launcher"
-        minSdkVersion 24
-        targetSdkVersion 35
-        versionCode 102
-        versionName "v5.7.0"
+        minSdkVersion 29
+        targetSdkVersion 36
+        versionCode 105
+        versionName "v6.0.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments clearPackageData: 'true'
 
         resourceConfigurations += ["en", "ar", "de", "es-rES", "es-rUS", "fr", "he", "hr", "hu", "in", "it", "ja", "pl", "pt-rBR", "ru-rRU", "sv", "tr", "uk", "zh"]
     }
@@ -50,11 +53,43 @@ android {
             applicationIdSuffix ".debug"
         }
     }
+    // play is the Google Play bundle. full is the APK for GitHub, F-Droid and
+    // IzzyOnDroid, and adds in-app adb pairing, which stays out of Play
+    // (docs/design/DECISIONS.md). Same applicationId and signing.
+    flavorDimensions "channel"
+    productFlavors {
+        full { dimension "channel" }
+        play { dimension "channel" }
+    }
+    testOptions {
+        execution 'ANDROIDX_TEST_ORCHESTRATOR'
+        animationsDisabled true
+    }
     buildFeatures {
         viewBinding = true
         buildConfig = true
     }
+    // The dependency-info block is a Google-encrypted blob in the APK signing
+    // block that F-Droid and IzzyOnDroid reject, so the full APK must not carry
+    // it. The play bundle keeps it: this setting covers APKs only.
+    dependenciesInfo {
+        includeInApk = false
+    }
     namespace 'com.parem.launcher'
+    // Not loaded at runtime by anything here: the builtins serve kotlin-reflect
+    // (not a dependency), the probes file serves the coroutines debugger, the
+    // rest are build-tool stamps (M3-WP10 perf audit).
+    packaging {
+        resources.excludes += [
+            'kotlin/**',
+            'DebugProbesKt.bin',
+            'META-INF/*.version',
+            'META-INF/androidx/**',
+            'META-INF/com/android/build/**',
+            'META-INF/version-control-info.textproto',
+            'META-INF/versions/**',
+        ]
+    }
 }
 
 dependencies {
@@ -75,5 +110,10 @@ dependencies {
     implementation libs.material
 
     testImplementation libs.junit
+
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.uiautomator
+    androidTestUtil libs.androidx.test.orchestrator
 
 }

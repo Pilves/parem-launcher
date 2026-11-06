@@ -1,61 +1,80 @@
 package com.parem.launcher.ui
 
-import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.os.UserHandle
-import android.util.Log
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.widget.Filter
 import android.widget.Filterable
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.R
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
 import com.parem.launcher.databinding.AdapterAppDrawerBinding
 import com.parem.launcher.helper.AppIconCache
-import com.parem.launcher.helper.AppLimitManager
+import com.parem.launcher.helper.DrawerRows
+import com.parem.launcher.helper.DrawerFilterState
 import com.parem.launcher.helper.IconPackManager
+import com.parem.launcher.helper.OmniboxResolver
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.formattedTimeSpent
-import com.parem.launcher.helper.hideKeyboard
-import com.parem.launcher.helper.isSystemApp
 import com.parem.launcher.helper.SearchMatcher
-import com.parem.launcher.helper.showKeyboard
+import com.parem.launcher.helper.ShortcutMatcher
 
 class AppDrawerAdapter(
     private var flag: Int,
     private val appLabelGravity: Int,
     private val appClickListener: (AppModel) -> Unit,
-    private val appInfoListener: (AppModel) -> Unit,
-    private val appDeleteListener: (AppModel) -> Unit,
-    private val appHideListener: (AppModel, Int) -> Unit,
-    private val appRenameListener: (AppModel, String) -> Unit,
+    private val appLongPressListener: (AppModel) -> Unit,
 ) : ListAdapter<AppModel, AppDrawerAdapter.ViewHolder>(DIFF_CALLBACK), Filterable {
 
     companion object {
         val DIFF_CALLBACK = object : DiffUtil.ItemCallback<AppModel>() {
             override fun areItemsTheSame(oldItem: AppModel, newItem: AppModel): Boolean =
-                oldItem.appPackage == newItem.appPackage && oldItem.user == newItem.user
+                oldItem.appPackage == newItem.appPackage && oldItem.user == newItem.user &&
+                    oldItem.shortcutId == newItem.shortcutId
 
             override fun areContentsTheSame(oldItem: AppModel, newItem: AppModel): Boolean =
                 oldItem == newItem
         }
     }
 
-    @Volatile private var autoLaunch = true
-    @Volatile private var isBangSearch = false
+    // Main thread only. The same query can publish twice (a re-filter for
+    // late usage stats or shortcuts); only the first may auto-launch.
+    private var autoLaunchedQuery: String? = null
+    private var autoLaunchVersion = 0L
+
+    /**
+     * Builds the private-space header row (empty package, isPrivate, label =
+     * its Lock/Unlock action), or null when there is none. Only the launch
+     * drawer sets it; it is read on every rebuild so the label tracks the
+     * current lock state.
+     */
+    var privateSpaceHeader: () -> AppModel? = { null }
 
     /** Extra veto for auto-launch, checked on the main thread right before firing. */
-    var autoLaunchGuard: () -> Boolean = { true }
+    var autoLaunchGuard: (String) -> Boolean = { true }
+    var onFilterCommitted: (String) -> Unit = { }
+    private val filterState = DrawerFilterState()
+    fun isQueryReady(query: String): Boolean = filterState.isReady(query)
+    fun suppressAutoLaunchForQuery(query: String) {
+        autoLaunchedQuery = query
+        autoLaunchVersion++
+    }
+    private val appListLock = Any()
+    private data class FilteredApps(val generation: Long, val apps: List<AppModel>)
+    private data class FilterSnapshot(
+        val generation: Long,
+        val apps: List<AppModel>,
+        val keys: Map<String, SearchMatcher.LabelKey>,
+        val shortcuts: Pair<List<ShortcutMatcher.Entry>, Map<String, AppModel>>,
+    )
     private val appFilter = createAppFilter()
     private val myUserHandle = android.os.Process.myUserHandle()
 
@@ -69,6 +88,22 @@ class AppDrawerAdapter(
     @Volatile var appFilteredList: MutableList<AppModel> = mutableListOf()
     @Volatile private var labelKeys: Map<String, SearchMatcher.LabelKey> = emptyMap()
 
+    /** App shortcuts (M4-WP14); only the launch drawer sets them. */
+    @Volatile var shortcutRaws: List<ShortcutMatcher.Raw> = emptyList()
+        set(value) {
+            synchronized(appListLock) {
+                field = value
+                rebuildShortcutEntries()
+            }
+        }
+    @Volatile private var shortcutEntries: List<ShortcutMatcher.Entry> = emptyList()
+    @Volatile private var shortcutParents: Map<String, AppModel> = emptyMap()
+
+    // The header shares the row layout; its own view type keeps recycled
+    // header and app rows apart.
+    override fun getItemViewType(position: Int): Int =
+        if (getItem(position).isPrivateHeader()) 1 else 0
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
         ViewHolder(AdapterAppDrawerBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
@@ -77,22 +112,18 @@ class AppDrawerAdapter(
             if (itemCount == 0 || position == RecyclerView.NO_POSITION) return
             val appModel = getItem(position)
             holder.bind(
-                flag,
                 appLabelGravity,
                 myUserHandle,
                 appModel,
                 appClickListener,
-                appDeleteListener,
-                appInfoListener,
-                appHideListener,
-                appRenameListener,
+                appLongPressListener,
                 usageStats,
                 openCounts,
                 showIcons,
                 iconPackPackage
             )
         } catch (e: Exception) {
-            Log.e("AppDrawerAdapter", "Error binding view holder", e)
+            CrashReporter.reportNonFatal("AppDrawerAdapter: Error binding view holder", e)
         }
     }
 
@@ -101,16 +132,17 @@ class AppDrawerAdapter(
     private fun createAppFilter(): Filter {
         return object : Filter() {
             override fun performFiltering(charSearch: CharSequence?): FilterResults {
-                isBangSearch = charSearch?.startsWith("!") ?: false
-                autoLaunch = charSearch?.startsWith(" ")?.not() ?: true
-
-                val snapshot = appsList.toList()
+                val (generation, snapshot, keys, shortcutSnapshot) = synchronized(appListLock) {
+                    val shortcuts = shortcutEntries to shortcutParents
+                    FilterSnapshot(filterState.generation(), appsList.toList(), labelKeys, shortcuts)
+                }
                 val statsSnapshot = usageStats
 
                 val searchText = charSearch?.toString()?.trim() ?: ""
                 var appFilteredList = (if (searchText.isBlank()) snapshot
                 else snapshot.filter { app ->
-                    appLabelMatches(app.appLabel, searchText)
+                    val key = keys[app.appLabel] ?: SearchMatcher.key(app.appLabel)
+                    SearchMatcher.matches(app.appLabel, key, searchText)
                 }).toMutableList()
 
                 if (sortByUsage) {
@@ -124,99 +156,155 @@ class AppDrawerAdapter(
                     }
                 }
 
+                // After the usage sort: shortcuts keep matcher order, under every app row
+                if (flag == Constants.FLAG_LAUNCH_APP && searchText.isNotBlank()) {
+                    val (entries, parents) = shortcutSnapshot
+                    ShortcutMatcher.filter(entries, searchText).mapNotNullTo(appFilteredList) { e ->
+                        parents[e.raw.appKey]?.copy(
+                            key = null, activityClassName = null, isNew = false,
+                            shortcutId = e.raw.id, shortcutLabel = e.raw.shortLabel,
+                        )
+                    }
+                }
+
                 val filterResults = FilterResults()
-                filterResults.values = appFilteredList
+                filterResults.values = FilteredApps(generation, appFilteredList)
                 return filterResults
             }
 
-            @Suppress("UNCHECKED_CAST")
             override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
-                results?.values?.let {
-                    val items = (it as? MutableList<AppModel>) ?: (it as? List<AppModel>)?.toMutableList() ?: return
-                    appFilteredList = items
+                (results?.values as? FilteredApps)?.let { result ->
+                    if (!filterState.isCurrent(result.generation)) return
+                    appFilteredList = decorate(result.apps, constraint.isNullOrBlank())
                     val currentFiltered = appFilteredList.toList()
+                    val query = constraint?.toString().orEmpty()
+                    if (query != autoLaunchedQuery) {
+                        autoLaunchedQuery = null
+                        autoLaunchVersion++
+                    }
                     submitList(currentFiltered) {
-                        autoLaunch(currentFiltered)
+                        if (filterState.commit(query, result.generation)) {
+                            onFilterCommitted(query)
+                            autoLaunch(currentFiltered, query, result.generation)
+                        }
                     }
                 }
             }
         }
     }
 
-    private fun autoLaunch(filteredSnapshot: List<AppModel>) {
+    private fun autoLaunch(filteredSnapshot: List<AppModel>, query: String, generation: Long) {
         try {
-            if (itemCount == 1
-                && autoLaunch
-                && isBangSearch.not()
+            // App rows only: a shortcut row never starts or stops auto-launch
+            if (filteredSnapshot.count { it.shortcutId == null } == 1
+                && query != autoLaunchedQuery
+                && !query.startsWith(" ")
+                && !query.startsWith("!")
                 && flag == Constants.FLAG_LAUNCH_APP
                 && filteredSnapshot.isNotEmpty()
-                && autoLaunchGuard()
+                && !OmniboxResolver.blocksAutoLaunch(query)
+                && autoLaunchGuard(query)
             ) {
+                autoLaunchedQuery = query
+                val token = ++autoLaunchVersion
                 Handler(Looper.getMainLooper()).post {
-                    try { appClickListener(filteredSnapshot[0]) } catch (_: Exception) {}
+                    try {
+                        if (token == autoLaunchVersion && filterState.isCurrent(generation) &&
+                            isQueryReady(query) && autoLaunchGuard(query))
+                            firstApp(filteredSnapshot, includeShortcuts = false)?.let(appClickListener)
+                    } catch (e: Exception) {
+                        CrashReporter.reportNonFatal("AppDrawerAdapter.autoLaunch", e)
+                    }
                 }
             }
         } catch (e: Exception) {
-            Log.e("AppDrawerAdapter", "Error during auto launch", e)
+            CrashReporter.reportNonFatal("AppDrawerAdapter: Error during auto launch", e)
         }
-    }
-
-    private fun appLabelMatches(appLabel: String, charSearch: String): Boolean {
-        val key = labelKeys[appLabel] ?: SearchMatcher.key(appLabel)
-        return SearchMatcher.matches(appLabel, key, charSearch)
     }
 
     fun setAppList(appsList: MutableList<AppModel>) {
-        // Add empty app for bottom padding in recyclerview
-        val list = appsList.toMutableList()
-        list.add(AppModel("", null, "", "", false, android.os.Process.myUserHandle()))
-        this.appsList = list
-        val newKeys = mutableMapOf<String, SearchMatcher.LabelKey>()
-        for (app in list) {
-            newKeys[app.appLabel] = SearchMatcher.key(app.appLabel)
+        // Must stay first: every picker observes the same appList as the launch drawer
+        val list = DrawerRows.gate(appsList, flag == Constants.FLAG_LAUNCH_APP) { it.isPrivate }.toMutableList()
+        val generation = synchronized(appListLock) {
+            val token = filterState.invalidate()
+            this.appsList = list
+            val newKeys = mutableMapOf<String, SearchMatcher.LabelKey>()
+            for (app in list) newKeys[app.appLabel] = SearchMatcher.key(app.appLabel)
+            labelKeys = newKeys
+            rebuildShortcutEntries()
+            token
         }
-        labelKeys = newKeys
+        // Cancel any pending ListAdapter diff based on the previous app list.
+        submitList(emptyList())
         if (sortByUsage && (usageStats.isNotEmpty() || openCounts.isNotEmpty())) {
             filter.filter("")
         } else {
-            this.appFilteredList = list.toMutableList()
-            submitList(list.toList())
+            this.appFilteredList = decorate(list, searchBlank = true)
+            submitList(appFilteredList.toList()) {
+                if (filterState.commit("", generation)) onFilterCommitted("")
+            }
         }
     }
 
-    fun launchFirstInList() {
-        if (appFilteredList.size > 0)
-            appClickListener(appFilteredList[0])
+    /** Joins the raws with the gated list: hidden, locked and other users' apps drop out, renames apply. */
+    private fun rebuildShortcutEntries() {
+        val raws = shortcutRaws
+        if (raws.isEmpty() && shortcutEntries.isEmpty()) return
+        val parents = LinkedHashMap<String, AppModel>()
+        for (app in appsList) {
+            // A package with two launcher activities: the first row is the parent
+            if (app.url == null && app.appPackage.isNotEmpty())
+                parents.putIfAbsent(ShortcutMatcher.appKey(app.appPackage, app.user.toString()), app)
+        }
+        shortcutParents = parents
+        shortcutEntries = ShortcutMatcher.entries(raws, parents.mapValues { it.value.appLabel })
     }
 
-    fun removeApp(position: Int) {
-        if (position < 0 || position >= appFilteredList.size) return
-        val app = appFilteredList[position]
-        appFilteredList = appFilteredList.toMutableList().also { it.removeAt(position) }
-        appsList = appsList.toMutableList().also { it.remove(app) }
-        submitList(appFilteredList.toList())
+    /**
+     * Rows as submitted: regular apps, the private-space header, private apps,
+     * then the bottom-padding row. Header and padding only with a blank
+     * search, as the padding row never matched a search before.
+     */
+    private fun decorate(apps: List<AppModel>, searchBlank: Boolean): MutableList<AppModel> {
+        val header = if (searchBlank && flag == Constants.FLAG_LAUNCH_APP) privateSpaceHeader() else null
+        val padding = if (searchBlank) AppModel("", null, "", "", false, myUserHandle) else null
+        return DrawerRows.decorate(apps, { it.isPrivate }, header, padding) { it.shortcutId != null }.toMutableList()
+    }
+
+    // Header and padding rows have no package and are never launched
+    private fun firstApp(rows: List<AppModel>, includeShortcuts: Boolean = true): AppModel? =
+        rows.firstOrNull { it.appPackage.isNotEmpty() && (includeShortcuts || it.shortcutId == null) }
+
+    fun launchFirstInList() {
+        firstApp(currentList)?.let(appClickListener)
     }
 
     class ViewHolder(private val binding: AdapterAppDrawerBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        private var currentTextWatcher: TextWatcher? = null
-
         fun bind(
-            flag: Int,
             appLabelGravity: Int,
             myUserHandle: UserHandle,
             appModel: AppModel,
             clickListener: (AppModel) -> Unit,
-            appDeleteListener: (AppModel) -> Unit,
-            appInfoListener: (AppModel) -> Unit,
-            appHideListener: (AppModel, Int) -> Unit,
-            appRenameListener: (AppModel, String) -> Unit,
-            usageStats: Map<String, Long> = emptyMap(),
-            openCounts: Map<String, Int> = emptyMap(),
-            showIcons: Boolean = false,
-            iconPackPackage: String = "",
+            longPressListener: (AppModel) -> Unit,
+            usageStats: Map<String, Long>,
+            openCounts: Map<String, Int>,
+            showIcons: Boolean,
+            iconPackPackage: String,
         ) =
             with(binding) {
+                if (appModel.isPrivateHeader()) {
+                    appTitle.visibility = View.VISIBLE
+                    appTitle.text = root.context.getString(R.string.private_space)
+                    appTitle.gravity = appLabelGravity
+                    appTitle.setCompoundDrawablesRelative(null, null, null, null)
+                    appTitle.setOnClickListener { clickListener(appModel) }
+                    appTitle.setOnLongClickListener(null)
+                    otherProfileIndicator.isVisible = false
+                    appUsageTime.text = appModel.appLabel
+                    appUsageTime.visibility = View.VISIBLE
+                    return
+                }
                 if (appModel.appPackage.isEmpty()) {
                     appTitle.text = ""
                     appTitle.setOnClickListener(null)
@@ -224,12 +312,8 @@ class AppDrawerAdapter(
                     appUsageTime.visibility = View.GONE
                     appTitle.setCompoundDrawablesRelative(null, null, null, null)
                     otherProfileIndicator.isVisible = false
-                    appHideLayout.visibility = View.GONE
-                    renameLayout.visibility = View.GONE
                     return
                 }
-                appHideLayout.visibility = View.GONE
-                renameLayout.visibility = View.GONE
                 appTitle.visibility = View.VISIBLE
                 appTitle.text = appModel.appLabel + if (appModel.isNew == true) " ✦" else ""
                 appTitle.gravity = appLabelGravity
@@ -249,13 +333,23 @@ class AppDrawerAdapter(
                     appTitle.setCompoundDrawablesRelative(null, null, null, null)
                 }
 
+                // Hide, rename and uninstall would act on the parent app, so no menu
+                if (appModel.shortcutId != null) {
+                    appTitle.text = appModel.shortcutLabel
+                    appUsageTime.text = appModel.appLabel
+                    appUsageTime.visibility = View.VISIBLE
+                    appTitle.setOnClickListener { clickListener(appModel) }
+                    appTitle.setOnLongClickListener(null)
+                    return
+                }
+
                 val timeMs = usageStats[appModel.appPackage] ?: 0L
                 val opens = openCounts[appModel.appPackage] ?: 0
                 if ((timeMs > 0 || opens > 0) && appModel.appPackage.isNotEmpty()) {
                     val timeText = if (timeMs > 0) root.context.formattedTimeSpent(timeMs) else ""
                     appUsageTime.text = when {
-                        timeMs > 0 && opens > 0 -> "$timeText · ${opens}×"
-                        opens > 0 -> "${opens}×"
+                        timeMs > 0 && opens > 0 -> root.context.getString(R.string.usage_time_and_opens, timeText, opens)
+                        opens > 0 -> root.context.getString(R.string.usage_opens, opens)
                         else -> timeText
                     }
                     appUsageTime.visibility = View.VISIBLE
@@ -265,137 +359,12 @@ class AppDrawerAdapter(
 
                 appTitle.setOnClickListener { clickListener(appModel) }
                 appTitle.setOnLongClickListener {
-                    if (appModel.appPackage.isNotEmpty()) {
-                        appDelete.alpha = if (root.context.isSystemApp(appModel.appPackage)) 0.5f else 1.0f
-                        appHide.text = if (flag == Constants.FLAG_HIDDEN_APPS)
-                            root.context.getString(R.string.adapter_show)
-                        else
-                            root.context.getString(R.string.adapter_hide)
-                        appTitle.visibility = View.INVISIBLE
-                        appHideLayout.visibility = View.VISIBLE
-                        appRename.isVisible = flag != Constants.FLAG_HIDDEN_APPS
-                        appBadHabit.isVisible = flag != Constants.FLAG_HIDDEN_APPS
-                        if (appBadHabit.isVisible) {
-                            appBadHabit.text = if (AppLimitManager.hasLimit(root.context, appModel.appPackage))
-                                root.context.getString(R.string.remove_time_limit)
-                            else
-                                root.context.getString(R.string.set_time_limit)
-                        }
-                    }
+                    longPressListener(appModel)
                     true
                 }
-                appRename.setOnClickListener {
-                    if (appModel.appPackage.isNotEmpty()) {
-                        val appNameHint = getAppName(etAppRename.context, appModel.appPackage)
-                        etAppRename.hint = appNameHint
-                        etAppRename.setText(appModel.appLabel)
-                        etAppRename.setSelectAllOnFocus(true)
-                        renameLayout.visibility = View.VISIBLE
-                        appHideLayout.visibility = View.GONE
-                        etAppRename.showKeyboard()
-                        etAppRename.imeOptions = EditorInfo.IME_ACTION_DONE;
-
-                        currentTextWatcher?.let { etAppRename.removeTextChangedListener(it) }
-                        val watcher = object : TextWatcher {
-                            override fun afterTextChanged(s: Editable?) {
-                                etAppRename.hint = appNameHint
-                            }
-
-                            override fun beforeTextChanged(
-                                s: CharSequence?,
-                                start: Int,
-                                count: Int,
-                                after: Int,
-                            ) {
-                            }
-
-                            override fun onTextChanged(
-                                s: CharSequence?,
-                                start: Int,
-                                before: Int,
-                                count: Int,
-                            ) {
-                                etAppRename.hint = ""
-                            }
-                        }
-                        currentTextWatcher = watcher
-                        etAppRename.addTextChangedListener(watcher)
-                    }
-                }
-                etAppRename.onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
-                    if (hasFocus)
-                        appTitle.visibility = View.INVISIBLE
-                    else
-                        appTitle.visibility = View.VISIBLE
-                }
-                etAppRename.setOnEditorActionListener { _, actionCode, _ ->
-                    if (actionCode == EditorInfo.IME_ACTION_DONE) {
-                        val renameLabel = etAppRename.text.toString().trim()
-                        if (renameLabel.isNotBlank() && appModel.appPackage.isNotBlank()) {
-                            appRenameListener(appModel, renameLabel)
-                            renameLayout.visibility = View.GONE
-                        }
-                        true
-                    } else {
-                        false
-                    }
-                }
-                tvSaveRename.setOnClickListener {
-                    etAppRename.hideKeyboard()
-                    val renameLabel = etAppRename.text.toString().trim()
-                    if (renameLabel.isNotBlank() && appModel.appPackage.isNotBlank()) {
-                        appRenameListener(appModel, renameLabel)
-                        renameLayout.visibility = View.GONE
-                    } else {
-                        val fallbackLabel = try {
-                            val packageManager = etAppRename.context.packageManager
-                            packageManager.getApplicationLabel(
-                                packageManager.getApplicationInfo(appModel.appPackage, 0)
-                            ).toString()
-                        } catch (e: Exception) {
-                            appModel.appPackage
-                        }
-                        appRenameListener(appModel, fallbackLabel)
-                        renameLayout.visibility = View.GONE
-                    }
-                }
-                appInfo.setOnClickListener { appInfoListener(appModel) }
-                appBadHabit.setOnClickListener {
-                    if (appModel.appPackage.isNotEmpty()) {
-                        if (AppLimitManager.hasLimit(root.context, appModel.appPackage)) {
-                            AppLimitManager.removeLimit(root.context, appModel.appPackage)
-                            appHideLayout.visibility = View.GONE
-                            appTitle.visibility = View.VISIBLE
-                        } else {
-                            BadHabitDialogs.showTimeLimitPicker(root.context, appModel.appPackage) {
-                                appHideLayout.visibility = View.GONE
-                                appTitle.visibility = View.VISIBLE
-                            }
-                        }
-                    }
-                }
-                appDelete.setOnClickListener { appDeleteListener(appModel) }
-                appMenuClose.setOnClickListener {
-                    appHideLayout.visibility = View.GONE
-                    appTitle.visibility = View.VISIBLE
-                }
-                appRenameClose.setOnClickListener {
-                    renameLayout.visibility = View.GONE
-                    appTitle.visibility = View.VISIBLE
-                }
-                appHide.setOnClickListener { appHideListener(appModel, bindingAdapterPosition) }
             }
-
-        private fun getAppName(context: Context, appPackage: String): String {
-            return try {
-                val packageManager = context.packageManager
-                packageManager.getApplicationLabel(
-                    packageManager.getApplicationInfo(appPackage, 0)
-                ).toString()
-            } catch (e: Exception) {
-                appPackage
-            }
-        }
-
     }
 }
+
+/** The drawer's private-space header row (see [AppDrawerAdapter.privateSpaceHeader]). */
+fun AppModel.isPrivateHeader(): Boolean = isPrivate && appPackage.isEmpty()

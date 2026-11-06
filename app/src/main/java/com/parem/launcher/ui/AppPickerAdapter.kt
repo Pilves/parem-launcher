@@ -1,11 +1,22 @@
 package com.parem.launcher.ui
 
 import android.content.res.ColorStateList
+import android.graphics.Rect
+import android.text.InputType
+import android.util.TypedValue
 import android.view.ViewGroup
 import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.LinearLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.doAfterTextChanged
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.parem.launcher.R
 import com.parem.launcher.helper.SearchMatcher
 import com.parem.launcher.helper.dpToPx
+import com.parem.launcher.helper.getColorFromAttr
 
 /**
  * Checkbox rows for the app pickers (folder creation, focus-mode whitelist),
@@ -18,11 +29,12 @@ import com.parem.launcher.helper.dpToPx
  * by unchecking, matching the old inline pickers.
  */
 class AppPickerAdapter(
-    private val textColor: Int,
+    val textColor: Int,
     private val maxSelected: Int,
     entries: List<Entry>,
     initiallySelected: Collection<String> = emptyList(),
-) : RecyclerView.Adapter<AppPickerAdapter.Holder>() {
+    private val onSelectionChanged: () -> Unit = {},
+) :RecyclerView.Adapter<AppPickerAdapter.Holder>() {
 
     /** One checkable row. [id] keys the selection across filtering/recycling. */
     class Entry(val id: String, val label: String) {
@@ -54,6 +66,7 @@ class AppPickerAdapter(
             // the launcher's mono palette
             buttonTintList = ColorStateList.valueOf(textColor)
             setPadding(8.dpToPx(), 2.dpToPx(), 0, 2.dpToPx())
+            minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
             layoutParams = RecyclerView.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -73,11 +86,47 @@ class AppPickerAdapter(
             setOnCheckedChangeListener { _, checked ->
                 if (checked) {
                     if (selectedIds.size < maxSelected) selectedIds.add(entry.id)
-                    else isChecked = false // cap reached: reject, as the old pickers did
+                    else {
+                        isChecked = false // cap reached: reject, as the old pickers did
+                        announceForAccessibility(context.getString(R.string.a11y_picker_cap, maxSelected))
+                    }
                 } else {
                     selectedIds.remove(entry.id)
                 }
+                onSelectionChanged()
             }
         }
     }
+}
+
+/**
+ * The search field plus fixed-height list every app-picker sheet shows. The
+ * list height is fixed so rows recycle inside the sheet's scroller; the
+ * padding parameters keep each sheet's existing inset.
+ */
+fun LinearLayout.addAppPicker(adapter: AppPickerAdapter, searchPaddingLeft: Int = 8.dpToPx(), searchPaddingTop: Int = 4.dpToPx()) {
+    addView(EditText(context).apply {
+        hint = context.getString(R.string.search_apps)
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+        setTextColor(adapter.textColor)
+        setHintTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
+        background = null
+        inputType = InputType.TYPE_CLASS_TEXT
+        isSingleLine = true
+        setPadding(searchPaddingLeft, searchPaddingTop, 0, 8.dpToPx())
+        doAfterTextChanged { adapter.filter(it?.toString() ?: "") }
+        viewTreeObserver.addOnGlobalLayoutListener {
+            if (hasFocus() && ViewCompat.getRootWindowInsets(this)
+                    ?.isVisible(WindowInsetsCompat.Type.ime()) == true) {
+                // Resize keeps the field visible; also reveal the first result rows.
+                val rows = 2 * resources.getDimensionPixelSize(R.dimen.touch_target_min)
+                requestRectangleOnScreen(Rect(0, 0, width, height + rows), true)
+            }
+        }
+    })
+    addView(RecyclerView(context).apply {
+        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 300.dpToPx())
+        layoutManager = LinearLayoutManager(context)
+        this.adapter = adapter
+    })
 }

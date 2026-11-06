@@ -2,28 +2,61 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- WorkManager jobs do not request foreground execution. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
-    <uses-permission
-        android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
-    <!--Used only for downloading wallpapers-->
+    <!--Weather (Open-Meteo), currency rates (ECB), and the daily wallpaper list and images-->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!--Used only for opening alarm app-->
+    <!--Opens the clock app; sets alarms and timers typed in the omnibox (normal-level, no runtime prompt)-->
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
     <!--Opt-in only: requested at runtime when the user enables omnibox contact search-->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!--Lets the default launcher list Private Space apps (Android 15+)-->
+    <uses-permission android:name="android.permission.ACCESS_HIDDEN_PROFILES" />
+    <!--Grayscale: switches the system daltonizer. Granted once through adb (the WebUSB page
+        or the adb command; the full build also pairs in the app); never by Play-->
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
 
+    <!--Package visibility (Android 11+) in place of QUERY_ALL_PACKAGES: only the
+        packages these intents match are visible to PackageManager and LauncherApps-->
+    <queries>
+        <!--App list, labels, icons, usage-stat names, launch fallbacks-->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <!--Default-launcher check resolves MAIN/HOME, which may be a launcher without a LAUNCHER entry-->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
+        <!--Icon packs (IconPackManager)-->
+        <intent>
+            <action android:name="org.adw.launcher.THEMES" />
+        </intent>
+        <!--Widget providers, including apps whose only component is a widget-->
+        <intent>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent>
+    </queries>
+
     <application
+        android:name=".ParemApp"
         android:allowBackup="true"
+        android:backupAgent=".ParemBackupAgent"
+        android:fullBackupOnly="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -32,6 +65,20 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="UnusedAttribute">
+
+        <service android:name="androidx.work.impl.foreground.SystemForegroundService" tools:node="remove" />
+
+        <!-- WorkManager is initialised on demand by ParemApp (Configuration.Provider) -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
 
         <activity
             android:name=".MainActivity"
@@ -88,6 +135,22 @@
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
+        </service>
+
+        <!--Opt-in "Hide from shade, keep for later": disabled until the user turns it
+            on, so it is never bound and never listed in notification access before then-->
+        <service
+            android:name=".helper.notifications.QuietNotificationListener"
+            android:enabled="false"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.notification.default_filter_types"
+                android:value="conversations|alerting" />
         </service>
 
     </application>

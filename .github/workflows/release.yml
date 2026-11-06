@@ -24,26 +24,66 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Decode keystore
+      - name: Decode keystores
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        run: echo "$KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/release.keystore
+          UPLOAD_KEYSTORE_BASE64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/release.keystore
+          echo "$UPLOAD_KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/upload.keystore
 
-      - name: Build signed release APK
+      - name: Build signed full APK
         env:
           KEYSTORE_FILE: ${{ github.workspace }}/release.keystore
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleFullRelease
+
+      # A step of its own so the APK above stays what F-Droid rebuilds and compares.
+      # Signed with the upload key, never the GitHub release key: the key that signs
+      # the first bundle uploaded becomes Play's upload key. See "Play App Signing"
+      # in ARCHITECTURE.md.
+      - name: Build signed Play bundle
+        env:
+          KEYSTORE_FILE: ${{ github.workspace }}/upload.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
+        run: ./gradlew bundlePlayRelease
+
+      # The release key cannot be replaced, so both keys are gone before any later
+      # step runs, a third-party action above all. The daemons hold the passwords.
+      - name: Remove signing keys
+        if: always()
+        run: |
+          ./gradlew --stop || true
+          rm -f "$GITHUB_WORKSPACE/release.keystore" "$GITHUB_WORKSPACE/upload.keystore"
 
       - name: Rename APK
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
-          cp app/build/outputs/apk/release/*.apk ParemLauncher-${VERSION}.apk
+          cp app/build/outputs/apk/full/release/*.apk ParemLauncher-${VERSION}.apk
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      # Run artifact, not a release asset: only the Play upload wants these, and
+      # the public release stays the one APK users and IzzyOnDroid download.
+      # Before the release step, so a missing bundle stops the publish.
+      - name: Keep Play bundle and R8 mappings
+        uses: actions/upload-artifact@v4
         with:
-          generate_release_notes: true
+          name: play-${{ github.ref_name }}
+          path: |
+            app/build/outputs/bundle/playRelease/app-play-release.aab
+            app/build/outputs/mapping/playRelease/mapping.txt
+            app/build/outputs/mapping/fullRelease/mapping.txt
+          if-no-files-found: error
+          retention-days: 90
+
+      # Pinned to a commit: a tag can be moved. Tagging needs docs/releases/<tag>-notes.md.
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+        with:
+          body_path: docs/releases/${{ github.ref_name }}-notes.md
+          generate_release_notes: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
           files: ParemLauncher-*.apk

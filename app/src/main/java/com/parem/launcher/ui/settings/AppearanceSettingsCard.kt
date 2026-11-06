@@ -1,30 +1,34 @@
 package com.parem.launcher.ui.settings
 
 import android.app.TimePickerDialog
-import android.os.Build
 import android.view.View
-import android.view.WindowInsets
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.doOnAttach
 import com.parem.launcher.MainViewModel
+import com.parem.launcher.ui.Motion
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
+import com.parem.launcher.helper.TextScale
 import com.parem.launcher.helper.ThemeScheduleManager
 import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.isDarkThemeOn
 import com.parem.launcher.helper.isParemDefault
+import com.parem.launcher.helper.onOff
 import com.parem.launcher.helper.openUrl
 import com.parem.launcher.helper.setPlainWallpaper
+import com.parem.launcher.helper.setStatusBarVisible
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SettingsFragment
+import com.parem.launcher.ui.dismissOnDestroy
 import java.util.Locale
 
 /**
  * Card 3 ("Appearance"): theme mode (incl. scheduled/sunrise-sunset), text
- * size, daily wallpaper, notification bar, and weather (city picker).
+ * size, bold font, daily wallpaper, notification bar, and weather (city picker).
  *
  * Extracted from SettingsFragment; mirrors HomeWidgetController's shape.
  */
@@ -42,53 +46,59 @@ class AppearanceSettingsCard(
         populateWallpaperText()
         populateAppThemeText()
         populateTextSize()
+        populateBoldFont()
         populateStatusBar()
 
         initClickListeners()
     }
 
     private fun initClickListeners() {
-        binding.appThemeText.setOnClickListener(this)
-        binding.textSizeValue.setOnClickListener(this)
+        binding.appThemeRow.setOnClickListener(this)
+        binding.textSizeRow.setOnClickListener(this)
+        binding.boldFontRow.setOnClickListener(this)
         binding.dailyWallpaperUrl.setOnClickListener(this)
-        binding.dailyWallpaper.setOnClickListener(this)
-        binding.statusBar.setOnClickListener(this)
-        binding.weatherToggle?.setOnClickListener(this)
+        binding.dailyWallpaperRow.setOnClickListener(this)
+        binding.dimWallpaperRow.setOnClickListener(this)
+        binding.statusBarRow.setOnClickListener(this)
+        binding.weatherRow?.setOnClickListener(this)
 
         binding.textSize1.setOnClickListener(this)
         binding.textSize2.setOnClickListener(this)
         binding.textSize3.setOnClickListener(this)
         binding.textSize4.setOnClickListener(this)
-        binding.textSize5.setOnClickListener(this)
-        binding.textSize6.setOnClickListener(this)
-        binding.textSize7.setOnClickListener(this)
 
-        binding.dailyWallpaper.setOnLongClickListener(this)
-        binding.appThemeText.setOnLongClickListener(this)
+        binding.dailyWallpaperRow.setOnLongClickListener(this)
+        binding.appThemeRow.setOnLongClickListener(this)
     }
 
     override fun onClick(view: View) {
         fragment.resetOpenPickers(view.id)
         when (view.id) {
             R.id.dailyWallpaperUrl -> context.openUrl(prefs.dailyWallpaperUrl)
-            R.id.dailyWallpaper -> toggleDailyWallpaperUpdate()
-            R.id.statusBar -> toggleStatusBar()
-            R.id.appThemeText -> showThemePicker()
-            R.id.textSizeValue -> binding.textSizesLayout.visibility = View.VISIBLE
+            R.id.dailyWallpaperRow -> toggleDailyWallpaperUpdate()
+            R.id.dimWallpaperRow -> {
+                prefs.dimWallpaper = !prefs.dimWallpaper
+                populateWallpaperText()
+            }
+            R.id.statusBarRow -> toggleStatusBar()
+            R.id.appThemeRow -> showThemePicker()
+            R.id.textSizeRow -> binding.textSizesLayout.visibility = View.VISIBLE
+            R.id.boldFontRow -> toggleBoldFont()
 
-            R.id.textSize1 -> updateTextSizeScale(Constants.TextSize.ONE)
-            R.id.textSize2 -> updateTextSizeScale(Constants.TextSize.TWO)
-            R.id.textSize3 -> updateTextSizeScale(Constants.TextSize.THREE)
-            R.id.textSize4 -> updateTextSizeScale(Constants.TextSize.FOUR)
-            R.id.textSize5 -> updateTextSizeScale(Constants.TextSize.FIVE)
-            R.id.textSize6 -> updateTextSizeScale(Constants.TextSize.SIX)
-            R.id.textSize7 -> updateTextSizeScale(Constants.TextSize.SEVEN)
+            R.id.textSize1 -> updateTextSizeScale(TextScale.SMALLER)
+            R.id.textSize2 -> updateTextSizeScale(TextScale.DEFAULT)
+            R.id.textSize3 -> updateTextSizeScale(TextScale.LARGE)
+            R.id.textSize4 -> updateTextSizeScale(TextScale.LARGER)
 
-            R.id.weatherToggle -> {
+            R.id.weatherRow -> {
                 if (WeatherManager.isEnabled(context)) {
                     WeatherManager.setEnabled(context, false)
+                    WeatherManager.clearUnusedData(context)
                 } else {
-                    WeatherSettingsDialog(context, fragment.viewLifecycleOwner, onCityChosen = onWellbeingChanged).show()
+                    WeatherSettingsDialog(context, fragment.viewLifecycleOwner, onCityChosen = {
+                        viewModel.resetWeatherThrottle()
+                        onWellbeingChanged()
+                    }).dismissOnDestroy(fragment.viewLifecycleOwner).show()
                 }
                 onWellbeingChanged()
             }
@@ -97,8 +107,8 @@ class AppearanceSettingsCard(
 
     override fun onLongClick(view: View): Boolean {
         when (view.id) {
-            R.id.dailyWallpaper -> removeWallpaper()
-            R.id.appThemeText -> showThemePicker()
+            R.id.dailyWallpaperRow -> removeWallpaper()
+            R.id.appThemeRow -> showThemePicker()
         }
         return true
     }
@@ -109,35 +119,14 @@ class AppearanceSettingsCard(
     }
 
     private fun populateStatusBar() {
-        if (prefs.showStatusBar) {
-            showStatusBar()
-            binding.statusBar.text = context.getString(R.string.on)
-        } else {
-            hideStatusBar()
-            binding.statusBar.text = context.getString(R.string.off)
-        }
-    }
-
-    private fun showStatusBar() {
-        val activity = fragment.requireActivity()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            activity.window.insetsController?.show(WindowInsets.Type.statusBars())
-        else
-            @Suppress("DEPRECATION", "InlinedApi")
-            activity.window.decorView.apply {
-                systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            }
-    }
-
-    private fun hideStatusBar() {
-        val activity = fragment.requireActivity()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            activity.window.insetsController?.hide(WindowInsets.Type.statusBars())
-        else {
-            @Suppress("DEPRECATION")
-            activity.window.decorView.apply {
-                systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE or View.SYSTEM_UI_FLAG_FULLSCREEN
-            }
+        binding.statusBar.text = context.onOff(prefs.showStatusBar)
+        binding.statusBarRow.bindSwitchRow(prefs.showStatusBar)
+        // On a rotation restore this runs while MainActivity is still inflating its
+        // layout, before setContentView installs the decor, and window.insetsController
+        // throws. Once the view is attached the decor exists.
+        binding.root.doOnAttach {
+            if (!fragment.isAdded) return@doOnAttach
+            fragment.requireActivity().setStatusBarVisible(prefs.showStatusBar)
         }
     }
 
@@ -172,25 +161,40 @@ class AppearanceSettingsCard(
     private fun populateWallpaperText() {
         if (prefs.dailyWallpaper) binding.dailyWallpaper.text = context.getString(R.string.on)
         else binding.dailyWallpaper.text = context.getString(R.string.off)
+        binding.dailyWallpaperRow.bindSwitchRow(prefs.dailyWallpaper)
+        binding.dimWallpaper.text = context.onOff(prefs.dimWallpaper)
+        binding.dimWallpaperRow.bindSwitchRow(prefs.dimWallpaper)
     }
 
-    private fun updateTextSizeScale(sizeScale: Float) {
-        if (prefs.textSizeScale == sizeScale) return
-        prefs.textSizeScale = sizeScale
-        fragment.requireActivity().recreate()
+    private fun updateTextSizeScale(step: Float) {
+        if (TextScale.nearestStep(prefs.textSizeScale) == step) return
+        prefs.textSizeScale = step
+        fragment.activity?.recreate()
     }
 
     private fun populateTextSize() {
-        binding.textSizeValue.text = when (prefs.textSizeScale) {
-            Constants.TextSize.ONE -> 1
-            Constants.TextSize.TWO -> 2
-            Constants.TextSize.THREE -> 3
-            Constants.TextSize.FOUR -> 4
-            Constants.TextSize.FIVE -> 5
-            Constants.TextSize.SIX -> 6
-            Constants.TextSize.SEVEN -> 7
-            else -> "--"
-        }.toString()
+        // Pre-6.0 installs stored 0.6..1.3; show the step the activity actually applies
+        binding.textSizeValue.text = context.getString(
+            when (TextScale.nearestStep(prefs.textSizeScale)) {
+                TextScale.SMALLER -> R.string.text_size_smaller
+                TextScale.LARGE -> R.string.text_size_large
+                TextScale.LARGER -> R.string.text_size_larger
+                else -> R.string.text_size_default
+            }
+        )
+        binding.textSizeRow.bindValueRow(binding.textSizeValue.text)
+    }
+
+    private fun toggleBoldFont() {
+        prefs.boldFont = !prefs.boldFont
+        populateBoldFont()
+        // The font lives in a theme overlay applied in MainActivity.onCreate
+        fragment.activity?.recreate()
+    }
+
+    private fun populateBoldFont() {
+        binding.boldFont.text = context.onOff(prefs.boldFont)
+        binding.boldFontRow.bindSwitchRow(prefs.boldFont)
     }
 
     private fun updateTheme(appTheme: Int) {
@@ -206,7 +210,7 @@ class AppearanceSettingsCard(
             setPlainWallpaper(theme)
             viewModel.setWallpaperWorker()
         }
-        fragment.requireActivity().recreate()
+        fragment.activity?.recreate()
     }
 
     private fun setPlainWallpaper(appTheme: Int) {
@@ -230,6 +234,7 @@ class AppearanceSettingsCard(
             appTheme == AppCompatDelegate.MODE_NIGHT_NO -> context.getString(R.string.light)
             else -> context.getString(R.string.system_default)
         }
+        binding.appThemeRow.bindValueRow(binding.appThemeText.text)
     }
 
     private fun showThemePicker() {
@@ -241,11 +246,12 @@ class AppearanceSettingsCard(
             .option(context.getString(R.string.scheduled)) { setScheduledTheme(Constants.ThemeScheduleMode.SCHEDULED) }
             .option(context.getString(R.string.sunrise_sunset)) { setScheduledTheme(Constants.ThemeScheduleMode.SUNRISE_SUNSET) }
             .show()
+            .dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     private fun setManualTheme(mode: Int) {
         ThemeScheduleManager.setMode(context, Constants.ThemeScheduleMode.MANUAL)
-        viewModel.cancelThemeScheduleWorker()
+        ThemeScheduleManager.cancelWorker(context)
         updateTheme(mode)
     }
 
@@ -261,13 +267,13 @@ class AppearanceSettingsCard(
     private fun applyScheduledTheme(scheduleMode: Int) {
         val ctx = context
         ThemeScheduleManager.setMode(ctx, scheduleMode)
-        viewModel.startThemeScheduleWorker()
+        ThemeScheduleManager.startWorker(ctx)
         // Apply immediately instead of waiting for the periodic worker's next run
         val newTheme = if (ThemeScheduleManager.shouldBeDark(ctx))
             AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
         if (AppCompatDelegate.getDefaultNightMode() != newTheme) {
             prefs.appTheme = newTheme
-            fragment.requireActivity().recreate()
+            fragment.activity?.recreate()
         } else {
             populateAppThemeText()
         }
@@ -280,14 +286,18 @@ class AppearanceSettingsCard(
             return (parts.getOrNull(0)?.toIntOrNull() ?: defH) to (parts.getOrNull(1)?.toIntOrNull() ?: 0)
         }
 
+        // Taken up front: the dark picker opens later, from the light one's callback
+        val owner = fragment.viewLifecycleOwner
         val (lightH, lightM) = parse(ThemeScheduleManager.getLightTime(ctx), 7)
-        TimePickerDialog(ctx, { _, h, m ->
+        Motion.showPopup(TimePickerDialog(ctx, { _, h, m ->
             ThemeScheduleManager.setLightTime(ctx, String.format(Locale.ROOT, "%02d:%02d", h, m))
             val (darkH, darkM) = parse(ThemeScheduleManager.getDarkTime(ctx), 19)
-            TimePickerDialog(ctx, { _, h2, m2 ->
+            Motion.showPopup(TimePickerDialog(ctx, { _, h2, m2 ->
                 ThemeScheduleManager.setDarkTime(ctx, String.format(Locale.ROOT, "%02d:%02d", h2, m2))
                 onDone()
-            }, darkH, darkM, true).apply { setTitle(ctx.getString(R.string.dark_theme_from)) }.show()
-        }, lightH, lightM, true).apply { setTitle(ctx.getString(R.string.light_theme_from)) }.show()
+            }, darkH, darkM, true).apply { setTitle(ctx.getString(R.string.dark_theme_from)) }
+                .dismissOnDestroy(owner))
+        }, lightH, lightM, true).apply { setTitle(ctx.getString(R.string.light_theme_from)) }
+            .dismissOnDestroy(owner))
     }
 }

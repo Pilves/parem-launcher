@@ -4,7 +4,9 @@ data class FolderApp(
     val appName: String,
     val packageName: String,
     val activityClassName: String = "",
-    val userString: String
+    val userString: String,
+    // Non-empty for a website entry; packageName is then ""
+    val url: String = ""
 )
 
 data class FolderGroup(

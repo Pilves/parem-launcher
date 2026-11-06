@@ -1,25 +1,37 @@
 package com.parem.launcher.ui
 
+import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
+import android.content.Context
 import android.content.Intent
+import android.content.pm.LauncherApps
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
+import android.os.Process
+import android.os.UserManager
 import android.util.Log
+import android.util.SizeF
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.RemoteViews
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.MainActivity
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
+import com.parem.launcher.helper.WidgetIdBookkeeping
+import com.parem.launcher.helper.WidgetPickerLabels
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.showToast
@@ -68,10 +80,6 @@ class HomeWidgetController(
         released = true
         widgetGestureDetectors.clear()
         widgetRestoreQueue.clear()
-        mainActivity?.let {
-            it.onWidgetBindResult = null
-            it.onWidgetConfigureResult = null
-        }
         binding.widgetContainerAbove?.removeAllViews()
         binding.widgetContainerBelow?.removeAllViews()
     }
@@ -79,23 +87,83 @@ class HomeWidgetController(
     // No landscape branch needed here: layout-land/fragment_home.xml places both
     // above/below scroll views inside the single right-hand widget column, so
     // either placement pref value resolves to that column beside the apps.
-    private fun getActiveContainer(): android.widget.LinearLayout? {
-        return if (prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE)
-            binding.widgetContainerAbove
-        else
-            binding.widgetContainerBelow
-    }
+    private val above get() = prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE
 
-    private fun getActiveScrollView(): android.widget.ScrollView? {
-        return if (prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE)
-            binding.widgetScrollViewAbove
-        else
-            binding.widgetScrollViewBelow
-    }
+    private fun getActiveContainer() = if (above) binding.widgetContainerAbove else binding.widgetContainerBelow
+
+    private fun getActiveScrollView() = if (above) binding.widgetScrollViewAbove else binding.widgetScrollViewBelow
 
     // Queue of (oldWidgetId, providerComponentString) for widgets that need rebinding with permission
     private val widgetRestoreQueue = mutableListOf<Pair<Int, String>>()
     private var isRestoringWidgets = false
+
+    /**
+     * Keys of MainActivity.pendingWidgetOp: the system bind/configure dialog the
+     * controller is waiting on. It outlives this controller (rotation, process
+     * death) and the result comes back through [onPendingWidgetResult].
+     */
+    private object PendingOp {
+        const val STAGE = "stage"
+        const val WIDGET_ID = "widgetId"
+        const val OLD_ID = "oldId"
+        const val REPLACE_INDEX = "replaceIndex"
+
+        const val BIND = 1          // add/swap: ACTION_APPWIDGET_BIND for WIDGET_ID
+        const val CONFIGURE = 2     // add/swap: configure activity for the bound WIDGET_ID
+        const val RESTORE_BIND = 3  // rebind of invalidated OLD_ID as WIDGET_ID
+    }
+
+    private fun setPendingOp(stage: Int, widgetId: Int, replaceIndex: Int = -1, oldId: Int = -1) {
+        mainActivity?.pendingWidgetOp = Bundle().apply {
+            putInt(PendingOp.STAGE, stage)
+            putInt(PendingOp.WIDGET_ID, widgetId)
+            putInt(PendingOp.REPLACE_INDEX, replaceIndex)
+            putInt(PendingOp.OLD_ID, oldId)
+        }
+    }
+
+    /** Bind/configure dialog result for the saved pending op, from MainActivity. */
+    fun onPendingWidgetResult(success: Boolean) {
+        val mainActivity = mainActivity ?: return
+        if (!isActive() || isRestoringWidgets) {
+            // restoreWidgets() rewrites WIDGET_IDS when it lands; it takes this result afterwards
+            mainActivity.pendingWidgetResult = success
+            return
+        }
+        val op = mainActivity.pendingWidgetOp ?: return
+        mainActivity.pendingWidgetOp = null
+        val widgetId = op.getInt(PendingOp.WIDGET_ID)
+        val replaceIndex = op.getInt(PendingOp.REPLACE_INDEX, -1)
+        // Null once a refused bind or a cancelled configure released the ID
+        val info = mainActivity.appWidgetManager.getAppWidgetInfo(widgetId)
+        when (op.getInt(PendingOp.STAGE)) {
+            PendingOp.BIND -> {
+                if (success && info != null) {
+                    onWidgetBound(widgetId, info, replaceIndex)
+                } else {
+                    mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+                    context.showToast(context.getString(R.string.widget_bind_permission_denied))
+                }
+            }
+            PendingOp.CONFIGURE -> {
+                // A cancelled configure still leaves a usable widget when the provider kept it bound
+                if (info != null) finishWidgetSetup(widgetId, info, replaceIndex)
+                else mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+            }
+            PendingOp.RESTORE_BIND -> {
+                val oldId = op.getInt(PendingOp.OLD_ID)
+                // A restore after recreation queued this old ID again; this result settles it
+                widgetRestoreQueue.removeAll { it.first == oldId }
+                if (success && info != null) {
+                    completeWidgetRestore(oldId, widgetId)
+                } else {
+                    mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+                    dropRestorable(oldId)
+                }
+                processNextWidgetRestore()
+            }
+        }
+    }
 
     suspend fun restoreWidgets() {
         if (isRestoringWidgets) return
@@ -104,7 +172,7 @@ class HomeWidgetController(
             val mainActivity = mainActivity ?: return
             prefs.migrateWidgetIfNeeded(mainActivity.appWidgetManager)
             val ids = prefs.getWidgetIdList()
-            if (ids.isEmpty()) return
+            sweepOrphanIds(mainActivity, ids)
             val savedProviders = prefs.getAllWidgetProviders()
             widgetRestoreQueue.clear()
 
@@ -118,7 +186,7 @@ class HomeWidgetController(
                     val info = try {
                         mainActivity.appWidgetManager.getAppWidgetInfo(wid)
                     } catch (e: Exception) {
-                        Log.e("HomeWidgetController", "restoreWidget: failed to get info for id=$wid", e)
+                        CrashReporter.reportNonFatal("HomeWidgetController: restoreWidget: failed to get info for id=$wid", e)
                         null
                     }
                     WidgetRestoreInfo(wid, info, savedProviders[wid])
@@ -144,19 +212,42 @@ class HomeWidgetController(
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("HomeWidgetController", "restoreWidget failed for id=${restoreInfo.wid}", e)
+                    CrashReporter.reportNonFatal("HomeWidgetController: restoreWidget failed for id=${restoreInfo.wid}", e)
                 }
             }
-            prefs.setWidgetIdList(validIds)
+            // Invalidated IDs with a known provider stay in WIDGET_IDS until their rebind
+            // completes or is refused, so an interrupted rebind is asked again next time
+            val restorable = widgetRestoreQueue.map { it.first }.toSet()
+            prefs.setWidgetIdList(WidgetIdBookkeeping.idsToKeep(ids, validIds.toSet(), restorable))
             updateWidgetContainerVisibility()
 
-            // Process queued widgets that need permission-based rebinding
-            if (widgetRestoreQueue.isNotEmpty()) {
-                processNextWidgetRestore()
-            }
+            // A bind dialog is still up, or its result is on its way back after a recreation:
+            // that result continues the queue; a second rebind started here would race it
+            if (mainActivity.pendingWidgetOp == null) processNextWidgetRestore()
         } finally {
             isRestoringWidgets = false
         }
+        mainActivity?.let { activity ->
+            activity.pendingWidgetResult?.let {
+                activity.pendingWidgetResult = null
+                onPendingWidgetResult(it)
+            }
+        }
+    }
+
+    // Host IDs an interrupted add or rebind allocated but never put on the home screen
+    private fun sweepOrphanIds(mainActivity: MainActivity, ids: List<Int>) {
+        val pendingId = mainActivity.pendingWidgetOp?.getInt(PendingOp.WIDGET_ID) ?: -1
+        WidgetIdBookkeeping.orphanIds(mainActivity.appWidgetHost.appWidgetIds, ids, pendingId)
+            .forEach { mainActivity.appWidgetHost.deleteAppWidgetId(it) }
+    }
+
+    // Give up on rebinding an invalidated widget: forget it in all three stores
+    private fun dropRestorable(oldId: Int) {
+        prefs.removeWidgetProvider(oldId)
+        prefs.removeWidgetHeight(oldId)
+        prefs.setWidgetIdList(prefs.getWidgetIdList().also { it.remove(oldId) })
+        updateWidgetContainerVisibility()
     }
 
     private fun processNextWidgetRestore() {
@@ -164,7 +255,7 @@ class HomeWidgetController(
         val (oldId, providerStr) = widgetRestoreQueue.removeAt(0)
         val component = android.content.ComponentName.unflattenFromString(providerStr)
         if (component == null) {
-            prefs.removeWidgetProvider(oldId)
+            dropRestorable(oldId)
             processNextWidgetRestore()
             return
         }
@@ -174,22 +265,13 @@ class HomeWidgetController(
 
         // Try silent bind first (works if app has system permission)
         if (mainActivity.appWidgetManager.bindAppWidgetIdIfAllowed(newId, component)) {
-            completeWidgetRestore(oldId, newId, providerStr)
+            completeWidgetRestore(oldId, newId)
+            processNextWidgetRestore()
             return
         }
 
-        // Need user permission — launch bind dialog
-        mainActivity.pendingWidgetId = newId
-        mainActivity.onWidgetBindResult = result@{ success ->
-            if (!isActive()) return@result
-            if (success) {
-                completeWidgetRestore(oldId, newId, providerStr)
-            } else {
-                mainActivity.appWidgetHost.deleteAppWidgetId(newId)
-                prefs.removeWidgetProvider(oldId)
-                processNextWidgetRestore()
-            }
-        }
+        // Need user permission — launch bind dialog; the result arrives in onPendingWidgetResult
+        setPendingOp(PendingOp.RESTORE_BIND, newId, oldId = oldId)
         val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, newId)
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, component)
@@ -197,34 +279,22 @@ class HomeWidgetController(
         mainActivity.bindWidgetLauncher.launch(intent)
     }
 
-    private fun completeWidgetRestore(oldId: Int, newId: Int, providerStr: String) {
+    private fun completeWidgetRestore(oldId: Int, newId: Int) {
         val mainActivity = mainActivity ?: return
         val info = mainActivity.appWidgetManager.getAppWidgetInfo(newId)
         if (info == null) {
             mainActivity.appWidgetHost.deleteAppWidgetId(newId)
-            prefs.removeWidgetProvider(oldId)
-            processNextWidgetRestore()
+            dropRestorable(oldId)
             return
         }
 
-        // Migrate saved height and provider to new ID
-        val height = prefs.getWidgetHeight(oldId)
-        prefs.setWidgetHeight(newId, height)
-        prefs.setWidgetProvider(newId, providerStr)
+        // Migrate saved height and provider to the new ID, in the old ID's position
+        prefs.setWidgetHeight(newId, prefs.getWidgetHeight(oldId))
+        prefs.removeWidgetHeight(oldId)
+        prefs.setWidgetProvider(newId, info.provider.flattenToString())
         prefs.removeWidgetProvider(oldId)
-
-        // Add to container and update ID list
-        val hostView = mainActivity.appWidgetHost.createView(
-            context.applicationContext, newId, info
-        )
-        addWidgetToContainer(hostView, newId)
-        val ids = prefs.getWidgetIdList()
-        ids.add(newId)
-        prefs.setWidgetIdList(ids)
-        updateWidgetContainerVisibility()
-
-        // Process next queued widget
-        processNextWidgetRestore()
+        prefs.setWidgetIdList(WidgetIdBookkeeping.replaceId(prefs.getWidgetIdList(), oldId, newId))
+        rebuildWidgetContainer()
     }
 
     private fun addWidgetToContainer(hostView: android.appwidget.AppWidgetHostView, widgetId: Int) {
@@ -269,7 +339,7 @@ class HomeWidgetController(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
-            contentDescription = "Widget"
+            contentDescription = context.getString(R.string.a11y_widget)
             setOnTouchListener { _, event ->
                 when (event.actionMasked) {
                     MotionEvent.ACTION_DOWN -> longPressDetected = false
@@ -321,11 +391,7 @@ class HomeWidgetController(
                         initialY = event.rawY
                         initialHeight = wrapper.layoutParams.height
                         // Prevent ScrollView from stealing the drag
-                        var p = parent
-                        while (p != null) {
-                            p.requestDisallowInterceptTouchEvent(true)
-                            p = p.parent
-                        }
+                        parent?.requestDisallowInterceptTouchEvent(true)
                         handleBar.alpha = 1.0f
                         true
                     }
@@ -346,21 +412,12 @@ class HomeWidgetController(
                             if (!isActive()) return@post
                             val widthDp = (wrapper.width / density).toInt()
                             if (widthDp > 0 && finalHeightDp > 0) {
-                                val options = Bundle().apply {
-                                    putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, widthDp)
-                                    putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, widthDp)
-                                    putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, finalHeightDp)
-                                    putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, finalHeightDp)
-                                }
-                                hostView.updateAppWidgetSize(options, widthDp, finalHeightDp, widthDp, finalHeightDp)
+                                notifyWidgetSize(hostView, widthDp, finalHeightDp)
                             }
+                            onWidgetsChanged?.invoke()
                         }
                         // Re-allow scroll interception
-                        var p = parent
-                        while (p != null) {
-                            p.requestDisallowInterceptTouchEvent(false)
-                            p = p.parent
-                        }
+                        parent?.requestDisallowInterceptTouchEvent(false)
                         handleBar.alpha = 0.5f
                         true
                     }
@@ -377,14 +434,17 @@ class HomeWidgetController(
             val widthDp = (wrapper.width / context.resources.displayMetrics.density).toInt()
             val heightDp = (wrapper.height / context.resources.displayMetrics.density).toInt()
             if (widthDp > 0 && heightDp > 0) {
-                val options = Bundle().apply {
-                    putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, widthDp)
-                    putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, widthDp)
-                    putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, heightDp)
-                    putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, heightDp)
-                }
-                hostView.updateAppWidgetSize(options, widthDp, heightDp, widthDp, heightDp)
+                notifyWidgetSize(hostView, widthDp, heightDp)
             }
+        }
+    }
+
+    private fun notifyWidgetSize(hostView: AppWidgetHostView, widthDp: Int, heightDp: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // The framework subtracts host padding and supplies the provider's size list.
+            hostView.updateAppWidgetSize(Bundle(), listOf(SizeF(widthDp.toFloat(), heightDp.toFloat())))
+        } else {
+            hostView.updateAppWidgetSize(null, widthDp, heightDp, widthDp, heightDp)
         }
     }
 
@@ -426,13 +486,7 @@ class HomeWidgetController(
                     ?: return@post
                 val widthDp = (wrapper.width / density).toInt()
                 if (widthDp > 0 && heightDp > 0) {
-                    val options = Bundle().apply {
-                        putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, widthDp)
-                        putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, widthDp)
-                        putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, heightDp)
-                        putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, heightDp)
-                    }
-                    hostView.updateAppWidgetSize(options, widthDp, heightDp, widthDp, heightDp)
+                    notifyWidgetSize(hostView, widthDp, heightDp)
                 }
             }
         }
@@ -484,10 +538,14 @@ class HomeWidgetController(
                 addWidgetToContainer(hostView, wid)
                 validIds.add(wid)
             } catch (e: Exception) {
-                Log.e("HomeWidgetController", "rebuildWidget failed for id=$wid", e)
+                CrashReporter.reportNonFatal("HomeWidgetController: rebuildWidget failed for id=$wid", e)
             }
         }
-        prefs.setWidgetIdList(validIds)
+        // Invalidated widgets awaiting a rebind keep their place (see restoreWidgets)
+        val restorable = prefs.getAllWidgetProviders().keys
+        val kept = WidgetIdBookkeeping.idsToKeep(ids, validIds.toSet(), restorable)
+        prefs.setWidgetIdList(kept)
+        prefs.pruneWidgetHeights(kept.toSet())
         updateWidgetContainerVisibility()
     }
 
@@ -495,6 +553,7 @@ class HomeWidgetController(
         val mainActivity = mainActivity ?: return
         mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
         prefs.removeWidgetProvider(widgetId)
+        prefs.removeWidgetHeight(widgetId)
 
         val ids = prefs.getWidgetIdList()
         ids.remove(widgetId)
@@ -502,12 +561,7 @@ class HomeWidgetController(
 
         // Remove from container
         val container = getActiveContainer() ?: return
-        for (i in 0 until container.childCount) {
-            if (container.getChildAt(i).tag == widgetId) {
-                container.removeViewAt(i)
-                break
-            }
-        }
+        container.findViewWithTag<View>(widgetId)?.let(container::removeView)
         updateWidgetContainerVisibility()
     }
 
@@ -516,17 +570,49 @@ class HomeWidgetController(
         val pm = context.packageManager
 
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            data class WidgetEntry(val appName: String, val widgetLabel: String, val provider: AppWidgetProviderInfo)
+            data class WidgetEntry(
+                val appName: String,
+                val isOtherProfile: Boolean,
+                val header: String,
+                val widgetLabel: String,
+                val provider: AppWidgetProviderInfo,
+                val preview: RemoteViews?,
+            )
             val allEntries = withContext(Dispatchers.IO) {
-                val installedProviders = mainActivity.appWidgetManager.installedProviders
-                installedProviders.map { provider ->
-                    val appName = try {
-                        pm.getApplicationLabel(pm.getApplicationInfo(provider.provider.packageName, 0)).toString()
+                val myUser = Process.myUserHandle()
+                val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
+                val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+                // installedProviders covers only this user; work-profile providers must be asked for per profile
+                val installedProviders = userManager.userProfiles.flatMap { profile ->
+                    try {
+                        mainActivity.appWidgetManager.getInstalledProvidersForProfile(profile)
                     } catch (e: Exception) {
-                        provider.provider.packageName
+                        Log.w("HomeWidgetController", "providers for $profile unavailable", e)
+                        emptyList()
                     }
-                    WidgetEntry(appName, provider.loadLabel(pm), provider)
-                }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.appName })
+                }
+                installedProviders.map { provider ->
+                    val pkg = provider.provider.packageName
+                    val appName = try {
+                        // A work-only app has no ApplicationInfo in this user's PackageManager
+                        val appInfo = launcherApps.getApplicationInfo(pkg, 0, provider.profile)
+                        pm.getApplicationLabel(appInfo).toString()
+                    } catch (e: Exception) {
+                        pkg
+                    }
+                    val isOtherProfile = provider.profile != myUser
+                    val header = if (isOtherProfile) pm.getUserBadgedLabel(appName, provider.profile).toString()
+                    else appName
+                    WidgetEntry(appName, isOtherProfile, header, provider.loadLabel(pm), provider, loadGeneratedPreview(provider))
+                }.sortedWith(
+                    compareBy<WidgetEntry, String>(String.CASE_INSENSITIVE_ORDER) { it.appName }
+                        .thenBy { it.isOtherProfile }
+                ).let { entries ->
+                    val needsSize = WidgetPickerLabels.needsSize(entries.map { WidgetPickerLabels.Row(it.header, it.widgetLabel) })
+                    entries.mapIndexed { index, entry ->
+                        if (needsSize[index]) entry.copy(widgetLabel = sizedLabel(entry.widgetLabel, entry.provider)) else entry
+                    }
+                }
             }
 
             if (!isActive()) return@launch
@@ -536,36 +622,25 @@ class HomeWidgetController(
                 return@launch
             }
 
-            fun buildItems(query: String): MutableList<Pair<String, AppWidgetProviderInfo?>> {
-                val items = mutableListOf<Pair<String, AppWidgetProviderInfo?>>()
+            fun buildItems(query: String): MutableList<Pair<String, WidgetEntry?>> {
+                val items = mutableListOf<Pair<String, WidgetEntry?>>()
                 val filtered = if (query.isBlank()) allEntries
                 else allEntries.filter {
-                    it.appName.contains(query, true) || it.widgetLabel.contains(query, true)
+                    it.header.contains(query, true) || it.widgetLabel.contains(query, true)
                 }
                 var lastApp = ""
                 for (entry in filtered) {
-                    if (entry.appName != lastApp) {
-                        items.add(Pair(entry.appName, null))
-                        lastApp = entry.appName
+                    if (entry.header != lastApp) {
+                        items.add(Pair(entry.header, null))
+                        lastApp = entry.header
                     }
-                    items.add(Pair(entry.widgetLabel, entry.provider))
+                    items.add(Pair(entry.widgetLabel, entry))
                 }
                 return items
             }
 
-            val dialog = BottomSheetDialog(context)
-            val container = android.widget.LinearLayout(context).apply {
-                orientation = android.widget.LinearLayout.VERTICAL
-                setBackgroundResource(R.drawable.bg_bottom_sheet)
-                setPadding(0, 12.dpToPx(), 0, 0)
-            }
-            container.addView(View(context).apply {
-                layoutParams = android.widget.LinearLayout.LayoutParams(40.dpToPx(), 4.dpToPx()).apply {
-                    gravity = Gravity.CENTER_HORIZONTAL
-                    bottomMargin = 12.dpToPx()
-                }
-                setBackgroundColor(context.getColorFromAttr(R.attr.primaryColorTrans50))
-            })
+            lateinit var dialog: BottomSheetDialog
+            val menu = BottomSheetMenu(context)
             val searchField = android.widget.EditText(context).apply {
                 hint = context.getString(R.string.search_widgets)
                 setPadding(16.dpToPx(), 12.dpToPx(), 16.dpToPx(), 12.dpToPx())
@@ -581,6 +656,8 @@ class HomeWidgetController(
             val textColor = context.getColorFromAttr(R.attr.primaryColor)
             val headerColor = textColor
             var currentItems = buildItems("")
+            // RemoteViews inflation is not free; keep each applied preview for the dialog's lifetime
+            val previewViews = HashMap<AppWidgetProviderInfo, View?>()
 
             val adapter = object : android.widget.BaseAdapter() {
                 override fun getCount() = currentItems.size
@@ -592,58 +669,110 @@ class HomeWidgetController(
 
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                     val item = currentItems[position]
-                    val isHeader = item.second == null
-                    val textView = (convertView as? TextView) ?: TextView(context)
-
-                    if (isHeader) {
+                    val entry = item.second
+                    if (entry == null) {
+                        val textView = (convertView as? TextView) ?: TextView(context)
                         textView.text = item.first
                         textView.textSize = 14f
                         textView.setTypeface(null, android.graphics.Typeface.BOLD)
                         textView.setTextColor(headerColor)
                         textView.alpha = 0.6f
                         textView.setPadding(16.dpToPx(), 12.dpToPx(), 16.dpToPx(), 4.dpToPx())
-                    } else {
-                        textView.text = item.first
-                        textView.textSize = 16f
-                        textView.setTypeface(null, android.graphics.Typeface.NORMAL)
-                        textView.setTextColor(textColor)
-                        textView.alpha = 1.0f
-                        textView.setPadding(24.dpToPx(), 8.dpToPx(), 16.dpToPx(), 8.dpToPx())
+                        return textView
                     }
-                    return textView
+
+                    val row = (convertView as? android.widget.LinearLayout)
+                        ?: android.widget.LinearLayout(context).apply {
+                            orientation = android.widget.LinearLayout.VERTICAL
+                            // A preview Button is explicitly focusable, and AbsListView skips the item
+                            // click for rows with explicit focusables; touch interception can't fix that
+                            descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+                            addView(TextView(context))
+                            // Swallow touches so a preview's own click intents never fire; the row click still lands
+                            addView(object : FrameLayout(context) {
+                                override fun onInterceptTouchEvent(ev: MotionEvent?) = true
+                            }.apply {
+                                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+                                setPadding(24.dpToPx(), 0, 16.dpToPx(), 8.dpToPx())
+                            })
+                        }
+                    val textView = row.getChildAt(0) as TextView
+                    textView.text = item.first
+                    textView.textSize = 16f
+                    textView.setTextColor(textColor)
+                    textView.setPadding(24.dpToPx(), 8.dpToPx(), 16.dpToPx(), 8.dpToPx())
+
+                    val previewFrame = row.getChildAt(1) as FrameLayout
+                    previewFrame.removeAllViews()
+                    val previewView = entry.preview?.let { preview ->
+                        previewViews.getOrPut(entry.provider) {
+                            try {
+                                preview.apply(context, previewFrame)
+                            } catch (e: Exception) {
+                                Log.w("HomeWidgetController", "preview apply failed", e)
+                                null
+                            }
+                        }
+                    }
+                    if (previewView != null) {
+                        (previewView.parent as? ViewGroup)?.removeView(previewView)
+                        // minHeight is the provider's px size; clamp so one tall widget can't flood the list
+                        val height = entry.provider.minHeight.coerceIn(48.dpToPx(), 160.dpToPx())
+                        previewFrame.addView(previewView, FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT, height
+                        ))
+                        previewFrame.visibility = View.VISIBLE
+                    } else {
+                        previewFrame.visibility = View.GONE
+                    }
+                    return row
                 }
             }
             listView.adapter = adapter
 
-            searchField.addTextChangedListener(object : android.text.TextWatcher {
-                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-                override fun afterTextChanged(s: android.text.Editable?) {
-                    currentItems = buildItems(s?.toString() ?: "")
-                    adapter.notifyDataSetChanged()
-                }
-            })
-
-            listView.setOnItemClickListener { _, _, position, _ ->
-                val providerInfo = currentItems[position].second ?: return@setOnItemClickListener
-                dialog.dismiss()
-                onSelected(providerInfo)
+            searchField.doAfterTextChanged { s ->
+                currentItems = buildItems(s?.toString() ?: "")
+                adapter.notifyDataSetChanged()
             }
 
-            container.addView(searchField)
-            container.addView(listView, android.widget.LinearLayout.LayoutParams(
-                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                1f
-            ))
-            dialog.setContentView(container)
-            dialog.transparentSheetFrame()
-            dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-            dialog.show()
+            listView.setOnItemClickListener { _, _, position, _ ->
+                val entry = currentItems[position].second ?: return@setOnItemClickListener
+                dialog.dismiss()
+                onSelected(entry.provider)
+            }
 
-            // Expand to full height so search + list stay visible above keyboard
-            dialog.behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
-            dialog.behavior.skipCollapsed = true
+            menu.customView(searchField)
+            listView.layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                1f,
+            )
+            dialog = menu.customView(listView).show(resizeForKeyboard = true, scrollContent = false)
+        }
+    }
+
+    private fun sizedLabel(label: String, provider: AppWidgetProviderInfo): String {
+        val density = context.resources.displayMetrics.density
+        fun cells(target: Int, minPx: Int) = target.takeIf { it > 0 } ?: WidgetPickerLabels.cells((minPx / density).toInt())
+        // Target cells arrived in Android 12; reading them earlier throws
+        val targetCells = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        return context.getString(
+            R.string.widget_label_with_size, label,
+            cells(if (targetCells) provider.targetCellWidth else 0, provider.minWidth),
+            cells(if (targetCells) provider.targetCellHeight else 0, provider.minHeight),
+        )
+    }
+
+    /** Android 15+ generated preview for the home-screen category, or null when the provider has none. */
+    private fun loadGeneratedPreview(provider: AppWidgetProviderInfo): RemoteViews? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return null
+        val category = AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN
+        if (provider.generatedPreviewCategories and category == 0) return null
+        return try {
+            mainActivity?.appWidgetManager?.getWidgetPreview(provider.provider, provider.profile, category)
+        } catch (e: Exception) {
+            Log.w("HomeWidgetController", "generated preview unavailable for ${provider.provider}", e)
+            null
         }
     }
 
@@ -652,41 +781,48 @@ class HomeWidgetController(
             context.showToast(context.getString(R.string.max_widgets_reached), Toast.LENGTH_SHORT)
             return
         }
+        if (replaceIndex == -1 && !newWidgetFits()) {
+            context.showToast(context.getString(R.string.widget_doesnt_fit, prefs.homeAppsNum))
+            return
+        }
         try {
             val mainActivity = mainActivity ?: return
             val widgetId = mainActivity.appWidgetHost.allocateAppWidgetId()
-            mainActivity.pendingWidgetId = widgetId
-            mainActivity.pendingWidgetInfo = providerInfo
 
             val allowed = mainActivity.appWidgetManager.bindAppWidgetIdIfAllowed(
-                widgetId, providerInfo.provider
+                widgetId, providerInfo.profile, providerInfo.provider, null
             )
 
             if (allowed) {
                 onWidgetBound(widgetId, providerInfo, replaceIndex)
             } else {
-                val capturedReplaceIndex = replaceIndex
-                mainActivity.onWidgetBindResult = result@{ success ->
-                    if (!isActive()) return@result
-                    if (success) {
-                        mainActivity.pendingWidgetInfo?.let { widgetInfo ->
-                            onWidgetBound(mainActivity.pendingWidgetId, widgetInfo, capturedReplaceIndex)
-                        }
-                    } else {
-                        mainActivity.appWidgetHost.deleteAppWidgetId(mainActivity.pendingWidgetId)
-                        context.showToast(context.getString(R.string.widget_bind_permission_denied))
-                    }
-                }
+                setPendingOp(PendingOp.BIND, widgetId, replaceIndex = replaceIndex)
                 val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
                     putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
                     putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, providerInfo.provider)
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER_PROFILE, providerInfo.profile)
                 }
                 mainActivity.bindWidgetLauncher.launch(intent)
             }
         } catch (e: Exception) {
-            Log.e("HomeWidgetController", "bindWidget failed", e)
-            context.showToast(context.getString(R.string.couldnt_bind_widget, e.message))
+            CrashReporter.reportNonFatal("HomeWidgetController: bindWidget failed", e)
+            context.showToast(context.getString(R.string.widget_add_failed))
         }
+    }
+
+    /**
+     * Like the apps-count picker refuses counts the widgets leave no room for,
+     * adding a widget refuses when its default height would push a home app
+     * off screen. Only portrait shares the column; null means not measured yet.
+     */
+    private fun newWidgetFits(): Boolean {
+        val slots = fragment.slotsController ?: return true
+        if (!slots.widgetsShareColumn) return true
+        val density = context.resources.displayMetrics.density
+        // Prefs.getWidgetHeight default (200dp) plus the scroll view's 8dp margin the first widget brings in
+        val firstWidget = prefs.getWidgetIdList().isEmpty()
+        val widgetPx = (200 * density).toInt() + if (firstWidget) (8 * density).toInt() else 0
+        return com.parem.launcher.helper.HomeCapacity.canAddWidget(slots.widgetRoomPx, widgetPx)
     }
 
     private fun onWidgetBound(widgetId: Int, providerInfo: AppWidgetProviderInfo, replaceIndex: Int) {
@@ -694,19 +830,14 @@ class HomeWidgetController(
             val mainActivity = mainActivity ?: return
 
             if (providerInfo.configure != null) {
-                val capturedReplaceIndex = replaceIndex
-                mainActivity.onWidgetConfigureResult = result@{ success ->
-                    if (!isActive()) return@result
-                    if (success) {
-                        finishWidgetSetup(widgetId, providerInfo, capturedReplaceIndex)
-                    } else {
-                        val stillValid = mainActivity.appWidgetManager.getAppWidgetInfo(widgetId)
-                        if (stillValid != null) {
-                            finishWidgetSetup(widgetId, providerInfo, capturedReplaceIndex)
-                        } else {
-                            mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
-                        }
-                    }
+                setPendingOp(PendingOp.CONFIGURE, widgetId, replaceIndex = replaceIndex)
+                if (providerInfo.profile != Process.myUserHandle()) {
+                    // A configure activity in another profile can't be started by component from this
+                    // user; the host routes it and the result comes back through onActivityResult
+                    mainActivity.appWidgetHost.startAppWidgetConfigureActivityForResult(
+                        mainActivity, widgetId, 0, MainActivity.REQUEST_CONFIGURE_PROFILE_WIDGET, null
+                    )
+                    return
                 }
                 val configIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE).apply {
                     component = providerInfo.configure
@@ -717,8 +848,8 @@ class HomeWidgetController(
                 finishWidgetSetup(widgetId, providerInfo, replaceIndex)
             }
         } catch (e: Exception) {
-            Log.e("HomeWidgetController", "onWidgetBound failed", e)
-            context.showToast(context.getString(R.string.widget_setup_failed, e.message))
+            CrashReporter.reportNonFatal("HomeWidgetController: onWidgetBound failed", e)
+            context.showToast(context.getString(R.string.widget_add_failed))
         }
     }
 
@@ -732,6 +863,7 @@ class HomeWidgetController(
                 val oldId = ids[replaceIndex]
                 mainActivity.appWidgetHost.deleteAppWidgetId(oldId)
                 prefs.removeWidgetProvider(oldId)
+                prefs.removeWidgetHeight(oldId)
                 ids[replaceIndex] = widgetId
             } else {
                 // Add new
@@ -742,8 +874,8 @@ class HomeWidgetController(
 
             rebuildWidgetContainer()
         } catch (e: Exception) {
-            Log.e("HomeWidgetController", "finishWidgetSetup failed", e)
-            context.showToast(context.getString(R.string.couldnt_add_widget, e.message))
+            CrashReporter.reportNonFatal("HomeWidgetController: finishWidgetSetup failed", e)
+            context.showToast(context.getString(R.string.widget_add_failed))
         }
     }
 }

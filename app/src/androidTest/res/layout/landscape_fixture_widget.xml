@@ -1,0 +1,4 @@
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#557766" android:textColor="#ffffff" android:gravity="center"
+    android:text="WP28 fixture widget" android:textSize="20sp" />

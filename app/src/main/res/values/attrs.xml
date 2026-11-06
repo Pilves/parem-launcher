@@ -4,11 +4,25 @@
     <attr name="primaryInverseColor" format="color" />
     <attr name="primaryTextShadowColor" format="color" />
     <attr name="primaryColorTrans50" format="color" />
+    <!-- Secondary text: 60% is the lightest tint that keeps 4.5:1 on the sheet background -->
+    <attr name="primaryColorTrans60" format="color" />
     <attr name="primaryColorTrans80" format="color" />
-    <attr name="primaryColorInverseTrans90" format="color" />
     <attr name="primaryColorInverseTrans80" format="color" />
-    <attr name="primaryColorInverseTrans50" format="color" />
     <attr name="primaryShadeColor" format="color" />
-    <attr name="dialogShadeColor" format="color" />
     <attr name="primaryShadeDarkColor" format="color" />
+    <!-- Drawer and settings root over the wallpaper: 85% surface (DESIGN 5) -->
+    <attr name="surfaceScrimColor" format="color" />
+    <!-- End colour of the opt-in home gradient behind the text (DESIGN 5) -->
+    <attr name="wallpaperDimColor" format="color" />
+    <attr name="mainFontFamily" format="string" />
+    <attr name="textColor" format="color" />
+    <attr name="textSecondaryColor" format="color" />
+    <attr name="surfaceColor" format="color" />
+    <attr name="surfaceVariantColor" format="color" />
+    <attr name="outlineColor" format="color" />
+    <attr name="accentColor" format="color" />
+    <attr name="onAccentColor" format="color" />
+    <attr name="accentContainerColor" format="color" />
+    <attr name="onAccentContainerColor" format="color" />
+    <attr name="destructiveColor" format="color" />
 </resources>

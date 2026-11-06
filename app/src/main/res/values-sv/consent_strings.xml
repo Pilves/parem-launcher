@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Machine-translated draft; native review required before publication. -->
+    <string name="lock_consent_body">Dubbeltryck för att låsa använder Androids tillgänglighetstjänst. Android berättar för Parems tjänst när du trycker inuti Parem. Tjänsten ignorerar varje tryck utom den på sitt eget osynliga låsområde, och när det trycket kommer ber den Android att låsa skärmen. Den får inga händelser från andra appar och kan inte läsa din skärm. Inget den ser lagras eller skickas någonstans. Du kan stänga av den när som helst i tillgänglighetsinställningarna.</string>
+    <string name="lock_consent_accept">Godkänn och öppna inställningar</string>
+    <string name="lock_consent_decline">Inte nu</string>
+    <string name="quiet_disclosure_title">Vill du dölja aviseringar från andra appar?</string>
+    <string name="quiet_disclosure_body">Aviseringar från appar som du inte tillät flyttas från meddelandepanelen till en tyst lista. Öppna listan på startskärmen med hjälp av gesten som valts i Inställningar › Gester.\n\nSamtal, larm, media, navigering, nödlarm och systemvarningar döljs aldrig.\n\nDu kan fortfarande höra ett kort ljud eller känna en vibration när ett meddelande kommer. Använd Gör tyst för att stoppa detta för en app.\n\nFör att sortera aviseringar på den här telefonen läser Parem vilken app som skickat varje avisering och vilken kategori aviseringen tillhör. Parem visar varje titel i den tysta listan. För dolda aviseringar lagrar Parem endast en identifierare. Parem lagrar aldrig meddelandetext eller skickar någon data.\n\nFör att ångra detta, stäng av det här eller ta bort Parem under Android-inställningar › Aviseringsåtkomst. Dolda aviseringar kommer tillbaka inom 8 timmar.</string>
+    <string name="contact_search_disclosure">Kontaktsökning läser namn och telefonnummer från dina kontakter, bara på den här telefonen, för att matcha det du skriver. Parem sparar eller skickar dem aldrig.</string>
+</resources>

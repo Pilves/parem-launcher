@@ -1,1 +1,48 @@
-<p><b>Are you using your phone, or is your phone using you?</b></p><p><i>Parem Launcher</i> is a text-only Android launcher: minimal on the surface, hyperfunctional underneath. No icons, no ads, no data collection.</p><p><b>THE OMNIBOX</b></p><p>The app drawer search bar is a single point of truth:</p><ul><li>Type — apps filter instantly, a single match auto-launches</li><li>Fuzzy match — "gm" finds Google Maps, "s ki" finds Shaurmas Kitchen</li><li>"2+2" — inline calculator, enter copies the result</li><li>Type a phone number — enter opens the dialer</li><li>Start with a space — enter searches Google; "!bang" queries go to DuckDuckGo</li></ul><p><b>DIGITAL WELLBEING</b></p><ul><li>Focus Mode: timed sessions that block all but 5 chosen apps (never your phone app)</li><li>Screen time on the home screen, 7-day usage graph, soft per-app time limits</li><li>Bad-habit apps ask "Open anyway?" once their daily limit is reached</li><li>Daily open counts next to each app — how often is more telling than how long</li></ul><p><b>EVERYTHING ELSE</b></p><ul><li>Up to 8 pinned apps, folders, swipe-up companion apps</li><li>Multiple widgets with drag-to-resize</li><li>Gesture letters: draw a letter to launch an app</li><li>Dark/light themes on a schedule or by sunrise/sunset</li><li>Icon packs, weather (Open-Meteo, no account), daily wallpapers</li><li>Settings export/import as JSON</li></ul><p><b>Accessibility Service:</b> used exclusively for double-tap to lock the screen. Optional, disabled by default, collects nothing.</p><p>Free and open source under GPLv3. Based on Olauncher by tanujnotes.</p>
+I got fed up with my phone. Every icon wanted a tap and every app wanted my attention. Parem is the minimal Android launcher I wanted instead: a short list of app names, notifications that can wait, and a speed bump before the apps that eat your day. It is for less screen time or a proper digital detox, without swapping your smartphone for a dumbphone.
+
+No ads. No accounts. No catch. No analytics or purchases either: every feature is free.
+
+Parem replaces your home screen, so setup asks you to make it your home app. Your apps stay installed and you can switch back any time. Needs Android 10 or newer.
+
+<b>A minimalist home screen made of words</b>
+• Up to 8 apps as plain text under your clock and date. Icons and icon packs are optional.
+• Folders, website shortcuts and resizable widgets
+• Swipes and double tap do what you tell them; optional gesture letters open apps
+
+<b>One search field, no hunting</b>
+Swipe up and type. Initials and partial names work, and a single match opens by itself unless you turn that off. The same field also does:
+• Sums, units and currency: 2+2, 5 km to mi, 100 eur in usd
+• Clock and calendar: alarm 7:30, timer 10m, event friday 3pm dentist
+• Phone numbers, app shortcuts and Parem's own settings
+• Web search
+
+<b>Calm phone tools</b>
+All off until you turn them on, and each says what it needs first.
+• Screen time: today's total on home, a 7-day graph and a weekly review.
+• App limits: a daily allowance per app, then a warning you can override.
+• Mindful pause: choose any app for a question and a five-second wait before it opens. All three need usage access.
+• Focus mode: timed sessions or weekly schedules. Up to 5 allowed apps; your phone app is never blocked.
+• Quiet notifications: apps you haven't allowed move out of the shade into a quiet list. Calls, alarms, media, navigation and emergency alerts stay visible; hidden items return within 8 hours. A short sound or vibration may still play unless you choose Make silent. Needs notification access.
+• Grayscale: now, during focus, after a limit, or per app. Needs a one-time developer-tools permission, granted from a computer.
+
+Straight talk: limits, pause and focus only cover apps opened through Parem. They are speed bumps, not a lock. You can always get past them.
+
+<b>What goes online, and what doesn't</b>
+Parem has no account, no server of its own, and no analytics, ad or tracking code. The source is public, so don't take my word for it. Contacts, notifications and app search are handled on your phone, and Parem never asks for your location.
+
+It does go online for these:
+• Weather, off by default: the city you search for and pick goes to Open-Meteo.
+• Daily wallpaper, off by default: a list from GitHub, then images from third-party hosts.
+• Currency, when you type a conversion: a fixed download of European Central Bank rates, at most daily. Your query isn't in it.
+
+Those services see your IP address, like any connection. Web searches open in your browser (Google after a leading space, DuckDuckGo for !bangs). Parem's crash reports are off by default and sent only by you. Android cloud backup leaves Parem out; Export settings moves your setup.
+
+Double tap to lock is optional. After you agree, it uses Android's accessibility service only to lock the screen; the service sees only taps inside Parem and cannot read your screen. A device-admin alternative needs your PIN after each lock. Turn it off in Parem's gesture settings before uninstalling. Contact search is opt-in too.
+
+<b>Also included</b>
+Tablets and foldables, TalkBack, hardware keyboards, Android font sizes up to 200%, work profiles, and Private Space on Android 15 and later.
+
+<b>Free and open source</b>
+GNU GPLv3. Source and credits, including the earlier open-source launcher by tanujnotes that Parem grew from: github.com/Pilves/parem-launcher
+
+Parem is Estonian for "better". As in: better things to do than stare at a phone.

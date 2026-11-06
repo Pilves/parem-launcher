@@ -1,0 +1,1 @@
+A home screen with search, app limits, mindful pause and optional quiet notifications. Weather shares the chosen place with Open-Meteo. The Play build grants grayscale from a computer; the full build also offers on-phone pairing. Cloud backup excludes Parem settings; use Export settings to move supported preferences.

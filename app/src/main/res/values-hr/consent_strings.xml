@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Machine-translated draft; native review required before publication. -->
+    <string name="lock_consent_body">Dvaput dodirnite za zaključavanje koristi Androidovu uslugu pristupačnosti. Android javlja Paremovoj usluzi kada dodirnete unutar Parema. Usluga ignorira svaki dodir osim onog na vlastitom nevidljivom području zaključavanja, a kada dođe do tog dodira, traži od Androida da zaključa zaslon. Ne dobiva događaje iz drugih aplikacija i ne može čitati vaš zaslon. Ništa što vidi nije pohranjeno niti bilo gdje poslano. Možete ga isključiti bilo kada u postavkama pristupačnosti.</string>
+    <string name="lock_consent_accept">Složite se i otvorite postavke</string>
+    <string name="lock_consent_decline">Ne sad</string>
+    <string name="quiet_disclosure_title">Sakriti obavijesti drugih aplikacija?</string>
+    <string name="quiet_disclosure_body">Obavijesti iz aplikacija koje niste dopustili premještaju se s ploče s obavijestima na tihi popis. Otvorite popis na početnom zaslonu pomoću pokreta odabranog u Postavkama › Pokreti.\n\nPozivi, alarmi, mediji, navigacija, hitna upozorenja i upozorenja sustava nikada nisu skriveni.\n\nJoš uvijek možete čuti kratki zvuk ili osjetiti vibraciju kada stigne obavijest. Koristite Utišaj da biste zaustavili ovo za aplikaciju.\n\nZa sortiranje obavijesti na ovom telefonu, Parem čita koja je aplikacija poslala svaku obavijest i kojoj kategoriji obavijest pripada. Parem prikazuje svaki naslov na tihom popisu. Za skrivene obavijesti, Parem pohranjuje samo identifikator. Parem nikada ne pohranjuje tekst obavijesti niti šalje bilo kakve podatke.\n\nDa biste to poništili, isključite ga ovdje ili uklonite Parem pod postavkama Androida › Pristup obavijestima. Skrivene obavijesti vraćaju se unutar 8 sati.</string>
+    <string name="contact_search_disclosure">Pretraživanje kontakata čita imena i telefonske brojeve iz vaših kontakata, samo na ovom telefonu, kako bi odgovarali onome što upisujete. Parem ih nikad ne sprema niti šalje.</string>
+</resources>

@@ -1,37 +1,43 @@
 package com.parem.launcher.ui
 
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
 import androidx.core.os.bundleOf
+import androidx.core.view.AccessibilityDelegateCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
+import androidx.core.view.doOnLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
 import com.parem.launcher.helper.FocusModeManager
+import com.parem.launcher.helper.GrayscaleController
+import com.parem.launcher.helper.isEinkDisplay
+import com.parem.launcher.helper.padForSystemBars
+import com.parem.launcher.helper.setStatusBarVisible
 import com.parem.launcher.helper.showToast
 import com.parem.launcher.ui.home.HomeClockController
 import com.parem.launcher.ui.home.HomeGesturesController
 import com.parem.launcher.ui.home.HomeSlotsController
 import kotlinx.coroutines.launch
 
-class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener {
+class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListener {
 
     private lateinit var prefs: Prefs
     private lateinit var viewModel: MainViewModel
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
+    private var landscapeWidgetBottomPadding = 0
 
     internal var widgetController: HomeWidgetController? = null
         private set
@@ -53,6 +59,8 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         viewModel = activity?.run {
             ViewModelProvider(this)[MainViewModel::class.java]
         } ?: throw Exception("Invalid Activity")
+        binding.mainLayout.padForSystemBars()
+        landscapeWidgetBottomPadding = (binding.widgetScrollViewAbove?.parent as? ViewGroup)?.paddingBottom ?: 0
 
         slotsController = HomeSlotsController(this, binding, prefs, viewModel)
         gesturesController = HomeGesturesController(this, binding, prefs, viewModel)
@@ -71,13 +79,14 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         slotsController?.setHomeAlignment(prefs.homeAlignment)
         gesturesController?.initSwipeTouchListener()
         initClickListeners()
+        gesturesController?.initAllAppsRow()
         gesturesController?.initGestureLetterOverlay()
         viewLifecycleOwner.lifecycleScope.launch {
             widgetController?.restoreWidgets()
         }
 
+        // OnboardingFragment marks it seen when finished or skipped, not here
         if (prefs.onboardingVersionSeen < Constants.ONBOARDING_VERSION) {
-            prefs.onboardingVersionSeen = Constants.ONBOARDING_VERSION
             findNavController().navigate(R.id.action_mainFragment_to_onboardingFragment)
         }
     }
@@ -86,11 +95,14 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         super.onResume()
         // Cancel any pending long-press timers from before the app was backgrounded
         widgetController?.cancelPendingLongPresses()
+        // Before populating: the "All apps" row's visibility feeds slot fitting
+        gesturesController?.refreshAccessibilityRoutes()
         slotsController?.populateHomeScreen(false)
         viewModel.isParemDefault()
-        if (prefs.showStatusBar) showStatusBar()
-        else hideStatusBar()
+        requireActivity().setStatusBarVisible(prefs.showStatusBar)
+        binding.wallpaperDim.isVisible = prefs.dimWallpaper && !requireContext().isEinkDisplay()
         FocusModeManager.checkAndExpire(requireContext())
+        GrayscaleController.reconcile(requireContext())
         viewModel.getWeather()
         gesturesController?.updateGestureLetterOverlay()
     }
@@ -111,7 +123,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                     val appLocation = view.tag.toString().toInt()
                     slotsController?.homeAppClicked(appLocation)
                 } catch (e: Exception) {
-                    Log.e("HomeFragment", "Failed to launch app", e)
+                    CrashReporter.reportNonFatal("HomeFragment: Failed to launch app", e)
                 }
             }
         }
@@ -134,6 +146,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             R.id.setDefaultLauncher -> {
                 prefs.hideSetDefaultLauncher = true
                 binding.setDefaultLauncher.visibility = View.GONE
+                updateFirstRunTips()
                 if (viewModel.isParemDefault.value != true) {
                     requireContext().showToast(R.string.set_as_default_launcher)
                     findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
@@ -143,6 +156,29 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         return true
     }
 
+    private fun updateFirstRunTips() {
+        val current = _binding ?: return
+        val tips = current.firstRunTips ?: return // Only the landscape layout has tips.
+        tips.isVisible = viewModel.firstOpen.value == true && !current.setDefaultLauncher.isVisible
+        val column = current.widgetScrollViewAbove?.parent as? ViewGroup ?: return
+        val prompt = when {
+            current.setDefaultLauncher.isVisible -> current.setDefaultLauncher
+            tips.isVisible -> tips
+            else -> null
+        }
+        if (prompt == null) {
+            column.setPadding(column.paddingLeft, column.paddingTop, column.paddingRight, landscapeWidgetBottomPadding)
+            return
+        }
+        prompt.doOnLayout {
+            if (_binding !== current || !prompt.isVisible) return@doOnLayout
+            val margin = (prompt.layoutParams as? ViewGroup.MarginLayoutParams)?.bottomMargin ?: 0
+            val gap = (8 * resources.displayMetrics.density).toInt()
+            val reserved = maxOf(landscapeWidgetBottomPadding, prompt.height + margin + gap)
+            column.setPadding(column.paddingLeft, column.paddingTop, column.paddingRight, reserved)
+        }
+    }
+
     private fun initObservers() {
         viewModel.refreshHome.observe(viewLifecycleOwner) {
             slotsController?.populateHomeScreen(it)
@@ -150,6 +186,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 viewLifecycleOwner.lifecycleScope.launch { widgetController?.restoreWidgets() }
             }
         }
+        viewModel.firstOpen.observe(viewLifecycleOwner) { updateFirstRunTips() }
         viewModel.isParemDefault.observe(viewLifecycleOwner) {
             if (it != true) {
                 if (prefs.dailyWallpaper) {
@@ -160,6 +197,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 slotsController?.setHomeAlignment()
             }
             binding.setDefaultLauncher.isVisible = it.not() && prefs.hideSetDefaultLauncher.not()
+            updateFirstRunTips()
         }
         viewModel.homeAppAlignment.observe(viewLifecycleOwner) {
             slotsController?.setHomeAlignment(it)
@@ -168,7 +206,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             clockController?.populateDateTime()
         }
         viewModel.screenTimeValue.observe(viewLifecycleOwner) {
-            it?.let { binding.tvScreenTime.text = it }
+            it?.let { clockController?.showScreenTime(it) }
         }
         viewModel.weatherValue.observe(viewLifecycleOwner) {
             clockController?.populateDateTime()
@@ -177,6 +215,17 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
     private fun initClickListeners() {
         binding.lock.setOnClickListener(this)
+        // Trap #1: keep the view, its description and its click events, but take it out
+        // of the node tree so TalkBack never lands on it or offers it a double-tap.
+        // Not importantForAccessibility="no": that would also stop the click event
+        // reaching MyAccessibilityService, which lacks flagIncludeNotImportantViews.
+        ViewCompat.setAccessibilityDelegate(binding.lock, object : AccessibilityDelegateCompat() {
+            override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                super.onInitializeAccessibilityNodeInfo(host, info)
+                info.isVisibleToUser = false
+                info.removeAction(AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_CLICK)
+            }
+        })
         binding.clock.setOnClickListener(this)
         binding.date.setOnClickListener(this)
         binding.clock.setOnLongClickListener(this)
@@ -184,48 +233,32 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         binding.setDefaultLauncher.setOnClickListener(this)
         binding.setDefaultLauncher.setOnLongClickListener(this)
         binding.tvScreenTime.setOnClickListener(this)
-    }
-
-    internal fun showAppList(flag: Int, rename: Boolean = false, includeHiddenApps: Boolean = false) {
-        viewModel.getAppList(includeHiddenApps)
-        try {
-            findNavController().navigate(
-                R.id.action_mainFragment_to_appListFragment,
-                bundleOf(
-                    Constants.Key.FLAG to flag,
-                    Constants.Key.RENAME to rename
-                )
-            )
-        } catch (e: Exception) {
-            findNavController().navigate(
-                R.id.appListFragment,
-                bundleOf(
-                    Constants.Key.FLAG to flag,
-                    Constants.Key.RENAME to rename
-                )
-            )
-            Log.e("HomeFragment", "Navigation to app list failed, using fallback", e)
+        // Slot taps and long-presses arrive through OnSwipeTouchListener, which
+        // consumes touch; these fire only for d-pad/keyboard (and accessibility) clicks
+        slotsController?.homeAppViews?.forEach {
+            it.setOnClickListener(this)
+            it.setOnLongClickListener(this)
         }
     }
 
-    private fun showStatusBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            requireActivity().window.insetsController?.show(WindowInsets.Type.statusBars())
-        else
-            @Suppress("DEPRECATION", "InlinedApi")
-            requireActivity().window.decorView.apply {
-                systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            }
-    }
-
-    private fun hideStatusBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            requireActivity().window.insetsController?.hide(WindowInsets.Type.statusBars())
-        else {
-            @Suppress("DEPRECATION")
-            requireActivity().window.decorView.apply {
-                systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE or View.SYSTEM_UI_FLAG_FULLSCREEN
-            }
+    internal fun showAppList(
+        flag: Int,
+        rename: Boolean = false,
+        includeHiddenApps: Boolean = false,
+        query: String? = null,
+    ) {
+        viewModel.getAppList(includeHiddenApps)
+        val args = bundleOf(
+            Constants.Key.FLAG to flag,
+            Constants.Key.RENAME to rename,
+            Constants.Key.QUERY to query
+        )
+        try {
+            findNavController().navigate(R.id.action_mainFragment_to_appListFragment, args)
+        } catch (e: Exception) {
+            android.util.Log.w("ParemGesture", "drawer navigation failed", e)
+            CrashReporter.reportNonFatal("HomeFragment: Navigation to app list failed, using fallback", e)
+            findNavController().navigate(R.id.appListFragment, args)
         }
     }
 

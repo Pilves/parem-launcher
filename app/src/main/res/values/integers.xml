@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DESIGN 7 motion durations in ms; defined here, wired by M4-WP55 -->
+    <integer name="motion_short">150</integer>
+    <integer name="motion_medium">200</integer>
+    <integer name="motion_max">300</integer>
+    <integer name="motion_exit">160</integer>
+    <integer name="motion_press">90</integer>
+    <integer name="motion_stagger">30</integer>
+    <style name="ParemSheetWindowAnimation" parent="@android:style/Animation.Dialog">
+        <item name="android:windowEnterAnimation">@anim/sheet_enter</item>
+        <item name="android:windowExitAnimation">@anim/sheet_exit</item>
+    </style>
+    <style name="ParemPopupWindowAnimation" parent="@android:style/Animation.Dialog">
+        <item name="android:windowEnterAnimation">@anim/popup_enter</item>
+        <item name="android:windowExitAnimation">@anim/popup_exit</item>
+    </style>
+</resources>

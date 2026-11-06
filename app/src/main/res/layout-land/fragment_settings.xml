@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    android:background="?attr/primaryShadeDarkColor">
+    android:background="?attr/surfaceScrimColor">
 
     <ScrollView
         android:id="@+id/scrollView"
@@ -16,7 +16,7 @@
         android:clipToPadding="false"
         android:fadingEdgeLength="24dp"
         android:overScrollMode="never"
-        android:paddingHorizontal="100dp"
+        android:paddingHorizontal="@dimen/content_side_padding"
         android:requiresFadingEdge="vertical"
         android:scrollbars="none">
 
@@ -27,24 +27,24 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:orientation="vertical"
-            android:paddingVertical="56dp">
+            android:paddingVertical="24dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp"
-                android:background="@drawable/rounded_rect_shade_color"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="0dp">
 
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <TextView
+                    <com.parem.launcher.ui.MotionTextView
                         android:id="@+id/paremHiddenApps"
                         style="@style/TextLarge"
+                        android:accessibilityHeading="true"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
@@ -52,15 +52,18 @@
 
                     <ImageView
                         android:id="@+id/appInfo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/a11y_app_info"
+                        android:layout_width="@dimen/touch_target_min"
+                        android:layout_height="@dimen/touch_target_min"
                         android:layout_gravity="end|center_vertical"
-                        android:padding="4dp"
+                        android:padding="12dp"
                         android:src="@drawable/ic_info" />
                 </FrameLayout>
 
-                <TextView
+                <com.parem.launcher.ui.MotionTextView
                     android:id="@+id/setLauncher"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:gravity="center_vertical"
                     style="@style/TextSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -69,8 +72,9 @@
                     android:layout_marginBottom="8dp"
                     android:text="@string/set_as_default_launcher" />
 
-                <TextView
+                <com.parem.launcher.ui.MotionTextView
                     android:id="@+id/aboutParem"
+                    android:minHeight="@dimen/touch_target_min"
                     style="@style/TextSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -81,28 +85,107 @@
                     android:gravity="center"
                     android:text="@string/about_parem" />
 
+                <!-- Explicit route to the hidden list; the title tap above stays as the legacy shortcut -->
+                <FrameLayout
+                    android:id="@+id/hiddenAppsRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/hidden_apps"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp">
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        style="@style/TextSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:paddingVertical="8dp"
+                        android:text="@string/hidden_apps"
+                        android:textColor="?attr/textColor" />
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        android:id="@+id/hiddenAppsCount"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|bottom"
+                        android:layout_marginEnd="4dp"
+                        android:padding="8dp"
+                        tools:text="2" />
+
+                </FrameLayout>
+
+                <!-- Crash reports (opt-in; saved on the phone, sent only by the user) -->
+                <FrameLayout
+                    android:id="@+id/crashReportsRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/crash_reports"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp">
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        style="@style/TextSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:paddingVertical="8dp"
+                        android:text="@string/crash_reports"
+                        android:textColor="?attr/textColor" />
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        android:id="@+id/crashReportsToggle"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|bottom"
+                        android:layout_marginEnd="4dp"
+                        android:padding="8dp"
+                        android:text="@string/off" />
+
+                </FrameLayout>
+
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="12dp"
-                android:background="@drawable/rounded_rect_shade_color"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="0dp">
 
                 <TextView
                     style="@style/TextLarge"
+                    android:accessibilityHeading="true"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginBottom="8dp"
                     android:text="@string/home_screen"
-                    android:textColor="?attr/primaryColor" />
+                    android:textColor="?attr/textColor" />
 
                 <FrameLayout
+                    android:id="@+id/homeAppsNumRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/apps_on_home_screen"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -111,15 +194,17 @@
                     android:clipToPadding="false">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/apps_on_home_screen"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/homeAppsNum"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -134,7 +219,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:animateLayoutChanges="true"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -144,6 +229,7 @@
 
                         <TextView
                             android:id="@+id/maxApps0"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -154,6 +240,7 @@
 
                         <TextView
                             android:id="@+id/maxApps1"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -164,6 +251,7 @@
 
                         <TextView
                             android:id="@+id/maxApps2"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -174,6 +262,7 @@
 
                         <TextView
                             android:id="@+id/maxApps3"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -184,6 +273,7 @@
 
                         <TextView
                             android:id="@+id/maxApps4"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -194,6 +284,7 @@
 
                         <TextView
                             android:id="@+id/maxApps5"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -204,6 +295,7 @@
 
                         <TextView
                             android:id="@+id/maxApps6"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -214,6 +306,7 @@
 
                         <TextView
                             android:id="@+id/maxApps7"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -224,6 +317,7 @@
 
                         <TextView
                             android:id="@+id/maxApps8"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -237,21 +331,30 @@
                 </FrameLayout>
 
                 <FrameLayout
+                    android:id="@+id/dateTimeRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/show_date_time"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:animateLayoutChanges="true">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/show_date_time"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/dateTime"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -267,7 +370,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:animateLayoutChanges="true"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -282,8 +385,9 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/dateTimeOn"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -292,8 +396,9 @@
                             android:paddingVertical="6dp"
                             android:text="@string/on" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/dateTimeOff"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -303,8 +408,9 @@
                             android:paddingVertical="6dp"
                             android:text="@string/off" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/dateOnly"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -317,6 +423,13 @@
                 </FrameLayout>
 
                 <FrameLayout
+                    android:id="@+id/alignmentRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/home_layout_alignment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
@@ -325,15 +438,17 @@
                     android:clipToPadding="false">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/home_layout_alignment"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/alignment"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -349,7 +464,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:animateLayoutChanges="true"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -364,8 +479,10 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/alignmentBottom"
+                            android:minHeight="@dimen/touch_target_min"
+                            android:gravity="center_vertical"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -378,10 +495,11 @@
                             android:layout_height="match_parent"
                             android:layout_marginVertical="4dp"
                             android:layout_marginEnd="24dp"
-                            android:background="?attr/primaryColorTrans50" />
+                            android:background="?attr/textSecondaryColor" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/alignmentLeft"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -390,8 +508,9 @@
                             android:paddingVertical="6dp"
                             android:text="@string/left" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/alignmentCenter"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -401,8 +520,9 @@
                             android:paddingVertical="6dp"
                             android:text="@string/center" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/alignmentRight"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -414,7 +534,88 @@
 
                 </FrameLayout>
 
+                <!-- Lock home layout: long-press on a home slot no longer edits it -->
                 <FrameLayout
+                    android:id="@+id/homeLayoutLockRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/lock_home_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp">
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        style="@style/TextSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:paddingVertical="8dp"
+                        android:text="@string/lock_home_layout"
+                        android:textColor="?attr/textColor" />
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        android:id="@+id/homeLayoutLockToggle"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|bottom"
+                        android:layout_marginEnd="4dp"
+                        android:padding="8dp"
+                        android:text="@string/off" />
+
+                </FrameLayout>
+
+                <!-- Single-match auto-launch (UX-4): whole row is the target, row carries the state -->
+                <LinearLayout
+                    android:id="@+id/autoLaunchRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:minHeight="48dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:contentDescription="@string/auto_launch_single_match">
+
+                    <TextView
+                        style="@style/TextSmall"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:paddingVertical="8dp"
+                        android:importantForAccessibility="no"
+                        android:text="@string/auto_launch_single_match"
+                        android:textColor="?attr/textColor" />
+
+                    <TextView
+                        android:id="@+id/autoLaunchToggle"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|bottom"
+                        android:layout_marginEnd="4dp"
+                        android:padding="8dp"
+                        android:importantForAccessibility="no"
+                        android:text="@string/on" />
+
+                </LinearLayout>
+
+                <FrameLayout
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/usage_access"
                     android:id="@+id/screenTimeLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -424,15 +625,17 @@
                     android:clipToPadding="false">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
-                        android:text="@string/screen_time"
-                        android:textColor="?attr/primaryColor" />
+                        android:text="@string/usage_access"
+                        android:textColor="?attr/textColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/screenTimeOnOff"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -450,37 +653,46 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="12dp"
-                android:background="@drawable/rounded_rect_shade_color"
                 android:clipChildren="false"
                 android:clipToPadding="false"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="0dp">
 
                 <TextView
                     style="@style/TextLarge"
+                    android:accessibilityHeading="true"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginBottom="8dp"
                     android:text="@string/appearance"
-                    android:textColor="?attr/primaryColor" />
+                    android:textColor="?attr/textColor" />
 
                 <FrameLayout
+                    android:id="@+id/autoShowKeyboardRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/auto_show_keyboard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:animateLayoutChanges="true">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/auto_show_keyboard"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/autoShowKeyboard"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -492,13 +704,25 @@
                 </FrameLayout>
 
                 <FrameLayout
+                    android:id="@+id/dailyWallpaperRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/daily_wallpaper_update"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:animateLayoutChanges="true">
 
-                    <TextView
+                    <!-- Its own node: the label is a link to the wallpaper source, the row is the switch -->
+                    <com.parem.launcher.ui.MotionTextView
                         android:id="@+id/dailyWallpaperUrl"
+                        android:contentDescription="@string/a11y_wallpaper_source"
+                        android:focusable="true"
+                        android:minHeight="@dimen/touch_target_min"
+                        android:gravity="center_vertical"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -507,6 +731,7 @@
                         android:text="@string/daily_wallpaper_update" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/dailyWallpaper"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -517,22 +742,65 @@
                         android:text="@string/off" />
                 </FrameLayout>
 
+                <!-- Dim wallpaper: defaults to the daily-wallpaper state until set -->
                 <FrameLayout
+                    android:id="@+id/dimWallpaperRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/dim_wallpaper"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp">
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        style="@style/TextSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:paddingVertical="8dp"
+                        android:text="@string/dim_wallpaper" />
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        android:id="@+id/dimWallpaper"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|bottom"
+                        android:layout_marginEnd="4dp"
+                        android:padding="8dp"
+                        android:text="@string/off" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/statusBarRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/status_bar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:animateLayoutChanges="true">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/status_bar"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/statusBar"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -544,21 +812,30 @@
                 </FrameLayout>
 
                 <FrameLayout
+                    android:id="@+id/appThemeRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/theme_mode"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:animateLayoutChanges="true">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/theme_mode"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/appThemeText"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -569,78 +846,36 @@
                         android:text="@string/dark" />
 
                     <!-- theme color select layout-->
-                    <LinearLayout
-                        android:id="@+id/appThemeSelectLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:animateLayoutChanges="true"
-                        android:background="@drawable/rounded_primary_gradient"
-                        android:elevation="8dp"
-                        android:orientation="horizontal"
-                        android:outlineAmbientShadowColor="@color/colorPrimaryDark"
-                        android:outlineSpotShadowColor="@color/colorPrimaryDark"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="2dp"
-                        android:visibility="gone"
-                        tools:ignore="UnusedAttribute">
-
-                        <Space
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1" />
-
-                        <TextView
-                            android:id="@+id/themeSystem"
-                            style="@style/TextSmallBold"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="24dp"
-                            android:gravity="center"
-                            android:paddingVertical="6dp"
-                            android:text="@string/system_default" />
-
-                        <TextView
-                            android:id="@+id/themeLight"
-                            style="@style/TextSmallBold"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="24dp"
-                            android:gravity="center"
-                            android:paddingVertical="6dp"
-                            android:text="@string/light" />
-
-                        <TextView
-                            android:id="@+id/themeDark"
-                            style="@style/TextSmallBold"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:paddingVertical="6dp"
-                            android:text="@string/dark" />
-
-                    </LinearLayout>
 
                 </FrameLayout>
 
                 <FrameLayout
+                    android:id="@+id/textSizeRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/text_size"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:layout_marginBottom="4dp"
                     android:animateLayoutChanges="true"
                     android:clipChildren="false"
                     android:clipToPadding="false">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:paddingVertical="8dp"
                         android:text="@string/text_size"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/textSizeValue"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -658,7 +893,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:animateLayoutChanges="true"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -667,78 +902,89 @@
                         tools:ignore="UnusedAttribute"
                         tools:visibility="gone">
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/textSize1"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
                             android:paddingVertical="8dp"
-                            android:text="@string/_1" />
+                            android:text="@string/text_size_smaller" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/textSize2"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
                             android:paddingVertical="8dp"
-                            android:text="@string/_2" />
+                            android:text="@string/text_size_default" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/textSize3"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
                             android:paddingVertical="8dp"
-                            android:text="@string/_3" />
+                            android:text="@string/text_size_large" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/textSize4"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmall"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:gravity="center"
                             android:paddingVertical="8dp"
-                            android:text="@string/_4" />
+                            android:text="@string/text_size_larger" />
 
-                        <TextView
-                            android:id="@+id/textSize5"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/_5" />
-
-                        <TextView
-                            android:id="@+id/textSize6"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/_6" />
-
-                        <TextView
-                            android:id="@+id/textSize7"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/_7" />
 
                     </LinearLayout>
 
+                </FrameLayout>
+
+                <!-- Bold font -->
+                <FrameLayout
+                    android:id="@+id/boldFontRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/bold_font"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="4dp">
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        style="@style/TextSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:paddingVertical="8dp"
+                        android:text="@string/bold_font"
+                        android:textColor="?attr/textColor" />
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        android:id="@+id/boldFont"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|bottom"
+                        android:layout_marginEnd="4dp"
+                        android:padding="8dp"
+                        android:text="@string/off" />
                 </FrameLayout>
 
             </LinearLayout>
@@ -748,26 +994,34 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:layout_marginEnd="12dp"
-                android:background="@drawable/rounded_rect_shade_color"
                 android:orientation="vertical"
-                android:padding="12dp">
+                android:padding="0dp">
 
-                <TextView
+                <com.parem.launcher.ui.MotionTextView
                     android:id="@+id/tvGestures"
                     style="@style/TextLarge"
+                    android:accessibilityHeading="true"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:text="@string/gestures"
-                    android:textColor="?attr/primaryColor" />
+                    android:textColor="?attr/textColor" />
 
                 <LinearLayout
+                    android:id="@+id/swipeLeftRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/swipe_left_app"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:orientation="horizontal">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -777,9 +1031,10 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/swipe_left_app"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/swipeLeftApp"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -791,12 +1046,20 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/swipeRightRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/swipe_right_app"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:orientation="horizontal">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -806,9 +1069,10 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/swipe_right_app"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/swipeRightApp"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -820,6 +1084,12 @@
                 </LinearLayout>
 
                 <FrameLayout
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/swipe_down_for"
                     android:id="@+id/flSwipeDown"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -828,6 +1098,7 @@
                     android:visibility="gone">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -836,9 +1107,10 @@
                         android:lines="1"
                         android:paddingVertical="8dp"
                         android:text="@string/swipe_down_for"
-                        android:textColor="?attr/primaryColor" />
+                        android:textColor="?attr/textColor" />
 
                     <TextView
+                        android:importantForAccessibility="no"
                         android:id="@+id/swipeDownAction"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
@@ -854,7 +1126,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:animateLayoutChanges="true"
-                        android:background="@drawable/rounded_primary_gradient"
+                        android:background="@drawable/bg_picker_selection"
                         android:elevation="8dp"
                         android:orientation="horizontal"
                         android:outlineAmbientShadowColor="@color/colorPrimaryDark"
@@ -869,8 +1141,9 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/notifications"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -879,8 +1152,9 @@
                             android:paddingVertical="6dp"
                             android:text="@string/notifications" />
 
-                        <TextView
+                        <com.parem.launcher.ui.MotionTextView
                             android:id="@+id/search"
+                            android:minHeight="@dimen/touch_target_min"
                             style="@style/TextSmallBold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -892,30 +1166,305 @@
 
                 </FrameLayout>
 
-                <FrameLayout
+
+                <!-- Device-admin lock fallback (M4-WP18); shown by GesturesSettingsCard -->
+                <com.parem.launcher.ui.MotionTextView
+                    android:id="@+id/lockMethod"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:gravity="center_vertical"
+                    style="@style/TextSmall"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="12dp"
-                    android:visibility="visible">
+                    android:paddingVertical="8dp"
+                    android:textColor="?attr/textColor"
+                    android:visibility="gone"
+                    tools:text="@string/lock_admin_off_row" />
+            </LinearLayout>
+
+            <!-- Card 5: Digital Wellbeing -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:layout_marginTop="@dimen/section_gap"
+                android:orientation="vertical"
+                android:padding="0dp">
+
+                <TextView
+                    style="@style/TextLarge"
+                    android:accessibilityHeading="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/wellbeing"
+                    android:textColor="?attr/textColor" />
+
+                <!-- App limits -->
+                <LinearLayout
+                    android:id="@+id/screenTimeLimitsRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/app_limits"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
 
                     <TextView
+                        android:importantForAccessibility="no"
                         style="@style/TextSmall"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="24dp"
+                        android:layout_weight="1"
+                        android:lines="1"
                         android:paddingVertical="8dp"
-                        android:text="@string/double_tap_to_lock_screen"
-                        android:textColor="?attr/primaryColor" />
+                        android:text="@string/app_limits"
+                        android:textColor="?attr/textColor" />
 
                     <TextView
-                        android:id="@+id/toggleLock"
+                        android:importantForAccessibility="no"
+                        android:id="@+id/screenTimeLimitsToggle"
                         style="@style/TextSmallBold"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:padding="10dp"
+                        android:layout_gravity="end|center_vertical"
+                        android:layout_marginEnd="4dp"
+                        android:lines="1"
+                        android:padding="8dp"
+                        android:text="@string/configure" />
+                </LinearLayout>
+
+                <!-- Focus mode -->
+                <LinearLayout
+                    android:id="@+id/focusModeRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/focus_mode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        style="@style/TextSmall"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="24dp"
+                        android:layout_weight="1"
+                        android:lines="1"
+                        android:paddingVertical="8dp"
+                        android:text="@string/focus_mode"
+                        android:textColor="?attr/textColor" />
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        android:id="@+id/focusModeToggle"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|center_vertical"
+                        android:layout_marginEnd="4dp"
+                        android:lines="1"
+                        android:padding="8dp"
                         android:text="@string/off" />
-                </FrameLayout>
+                </LinearLayout>
+
+                <!-- Grayscale -->
+                <LinearLayout
+                    android:id="@+id/grayscaleRow"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:screenReaderFocusable="true"
+                    android:contentDescription="@string/grayscale"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        style="@style/TextSmall"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="24dp"
+                        android:layout_weight="1"
+                        android:lines="1"
+                        android:paddingVertical="8dp"
+                        android:text="@string/grayscale"
+                        android:textColor="?attr/textColor" />
+
+                    <TextView
+                        android:importantForAccessibility="no"
+                        android:id="@+id/grayscaleToggle"
+                        style="@style/TextSmallBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|center_vertical"
+                        android:layout_marginEnd="4dp"
+                        android:lines="1"
+                        android:padding="8dp"
+                        android:text="@string/off" />
+                </LinearLayout>
+
+                <!-- Hide from shade, keep for later (the card hides it below API 26) -->
+                <LinearLayout
+                    android:id="@+id/quietNotifLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/quietNotifRow"
+                        android:minHeight="@dimen/touch_target_min"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:screenReaderFocusable="true"
+                        android:contentDescription="@string/quiet_notif"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:importantForAccessibility="no"
+                            style="@style/TextSmall"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="24dp"
+                            android:layout_weight="1"
+                            android:paddingVertical="8dp"
+                            android:text="@string/quiet_notif"
+                            android:textColor="?attr/textColor" />
+
+                        <TextView
+                            android:importantForAccessibility="no"
+                            android:id="@+id/quietNotifToggle"
+                            style="@style/TextSmallBold"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end|center_vertical"
+                            android:layout_marginEnd="4dp"
+                            android:lines="1"
+                            android:padding="8dp"
+                            android:text="@string/off" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/quietNotifRows"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:id="@+id/quietNotifAllowedRow"
+                            android:minHeight="@dimen/touch_target_min"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:screenReaderFocusable="true"
+                            android:contentDescription="@string/quiet_allowed_apps"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:importantForAccessibility="no"
+                                style="@style/TextSmall"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginEnd="24dp"
+                                android:layout_weight="1"
+                                android:paddingVertical="8dp"
+                                android:text="@string/quiet_allowed_apps"
+                                android:textColor="?attr/textColor" />
+
+                            <TextView
+                                android:importantForAccessibility="no"
+                                android:id="@+id/quietNotifAllowed"
+                                style="@style/TextSmallBold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end|center_vertical"
+                                android:layout_marginEnd="4dp"
+                                android:lines="1"
+                                android:padding="8dp"
+                                android:text="@string/configure" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/quietNotifSilentRow"
+                            android:minHeight="@dimen/touch_target_min"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:screenReaderFocusable="true"
+                            android:contentDescription="@string/quiet_make_silent"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:importantForAccessibility="no"
+                                style="@style/TextSmall"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginEnd="24dp"
+                                android:layout_weight="1"
+                                android:paddingVertical="8dp"
+                                android:text="@string/quiet_make_silent"
+                                android:textColor="?attr/textColor" />
+
+                            <TextView
+                                android:importantForAccessibility="no"
+                                android:id="@+id/quietNotifSilent"
+                                style="@style/TextSmallBold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end|center_vertical"
+                                android:layout_marginEnd="4dp"
+                                android:lines="1"
+                                android:padding="8dp"
+                                android:text="@string/configure" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/quietNotifHint"
+                        style="@style/TextSmall"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="24dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="?attr/textSecondaryColor"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+
+
             </LinearLayout>
 
             <LinearLayout
@@ -925,8 +1474,10 @@
                 android:gravity="center_horizontal"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.parem.launcher.ui.MotionTextView
                     android:id="@+id/github"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:gravity="center_vertical"
                     style="@style/TextSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -934,8 +1485,10 @@
                     android:padding="10dp"
                     android:text="@string/github" />
 
-                <TextView
+                <com.parem.launcher.ui.MotionTextView
                     android:id="@+id/privacy"
+                    android:minHeight="@dimen/touch_target_min"
+                    android:gravity="center_vertical"
                     style="@style/TextSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -948,89 +1501,5 @@
         </LinearLayout>
 
     </ScrollView>
-
-    <FrameLayout
-        android:id="@+id/accessibilityLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="?attr/dialogShadeColor"
-        android:clickable="true"
-        android:clipToPadding="false"
-        android:focusable="true"
-        android:padding="20dp"
-        android:visibility="gone"
-        tools:visibility="gone">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="@drawable/rounded_rectangle_dark"
-            android:elevation="8dp"
-            android:orientation="vertical"
-            android:outlineAmbientShadowColor="@color/colorPrimaryDark"
-            android:outlineSpotShadowColor="@color/colorPrimaryDark"
-            android:padding="20dp"
-            tools:targetApi="p">
-
-            <TextView
-                style="@style/TextLarge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/double_tap_lock" />
-
-            <TextView
-                style="@style/TextSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:clickable="false"
-                android:text="@string/accessibility_disclosure"
-                android:textColor="?attr/primaryColor" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/notWorking"
-                    style="@style/TextSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingVertical="4dp"
-                    android:text="@string/not_working"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
-
-                <Space
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:id="@+id/closeAccessibility"
-                    style="@style/TextSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="28dp"
-                    android:paddingVertical="4dp"
-                    android:text="@string/close" />
-
-                <TextView
-                    android:id="@+id/actionAccessibility"
-                    style="@style/TextSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:paddingVertical="4dp"
-                    android:text="@string/enable" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </FrameLayout>
 
 </FrameLayout>

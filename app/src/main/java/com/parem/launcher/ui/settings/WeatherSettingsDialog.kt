@@ -2,8 +2,6 @@ package com.parem.launcher.ui.settings
 
 import android.content.Context
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -12,6 +10,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.TextView
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -20,6 +19,7 @@ import com.parem.launcher.helper.CityResult
 import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.ui.disableAnimationsOnEink
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -43,6 +43,7 @@ class WeatherSettingsDialog(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        disableAnimationsOnEink()
         val view = layoutInflater.inflate(R.layout.dialog_weather_settings, null)
         val searchInput = view.findViewById<EditText>(R.id.citySearchInput)
         val statusText = view.findViewById<TextView>(R.id.searchStatus)
@@ -57,8 +58,8 @@ class WeatherSettingsDialog(
         }
 
         val cities = mutableListOf<CityResult>()
-        val textColor = context.getColorFromAttr(R.attr.primaryColor)
-        val subtextColor = context.getColorFromAttr(R.attr.primaryColorTrans50)
+        val textColor = context.getColorFromAttr(R.attr.textColor)
+        val subtextColor = context.getColorFromAttr(R.attr.textSecondaryColor)
 
         val adapter = object : BaseAdapter() {
             override fun getCount() = cities.size
@@ -81,13 +82,11 @@ class WeatherSettingsDialog(
                 }
                 container.addView(nameTv)
 
-                val detailParts = mutableListOf<String>()
-                if (city.admin1.isNotEmpty()) detailParts.add(city.admin1)
-                if (city.country.isNotEmpty()) detailParts.add(city.country)
-                if (detailParts.isNotEmpty()) {
+                val detail = city.displayName.removePrefix(city.name).removePrefix(", ")
+                if (detail.isNotEmpty()) {
                     val detailTv = TextView(context).apply {
-                        text = detailParts.joinToString(", ")
-                        textSize = 13f
+                        text = detail
+                        textSize = 14f
                         setTextColor(subtextColor)
                     }
                     container.addView(detailTv)
@@ -109,38 +108,34 @@ class WeatherSettingsDialog(
 
         // Debounced search
         var searchJob: Job? = null
-        searchInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                searchJob?.cancel()
-                val query = s?.toString() ?: ""
-                if (query.length < 2) {
-                    cities.clear()
-                    adapter.notifyDataSetChanged()
+        searchInput.doAfterTextChanged { s ->
+            searchJob?.cancel()
+            val query = s?.toString() ?: ""
+            if (query.length < 2) {
+                cities.clear()
+                adapter.notifyDataSetChanged()
+                statusText.visibility = View.GONE
+                return@doAfterTextChanged
+            }
+            statusText.text = context.getString(R.string.searching)
+            statusText.visibility = View.VISIBLE
+            searchJob = lifecycleOwner.lifecycleScope.launch {
+                delay(300)
+                val results = WeatherManager.searchCities(query)
+                // The dialog can outlive the fragment's view; guard against
+                // touching a dismissed dialog's views.
+                if (!isShowing) return@launch
+                cities.clear()
+                cities.addAll(results.orEmpty())
+                adapter.notifyDataSetChanged()
+                if (results.isNullOrEmpty()) {
+                    statusText.text = context.getString(if (results == null) R.string.weather_search_failed else R.string.no_results)
+                    statusText.visibility = View.VISIBLE
+                } else {
                     statusText.visibility = View.GONE
-                    return
-                }
-                statusText.text = context.getString(R.string.searching)
-                statusText.visibility = View.VISIBLE
-                searchJob = lifecycleOwner.lifecycleScope.launch {
-                    delay(300)
-                    val results = WeatherManager.searchCities(query)
-                    // The dialog can outlive the fragment's view; guard against
-                    // touching a dismissed dialog's views.
-                    if (!isShowing) return@launch
-                    cities.clear()
-                    cities.addAll(results)
-                    adapter.notifyDataSetChanged()
-                    if (results.isEmpty()) {
-                        statusText.text = context.getString(R.string.no_results)
-                        statusText.visibility = View.VISIBLE
-                    } else {
-                        statusText.visibility = View.GONE
-                    }
                 }
             }
-        })
+        }
 
         setContentView(view)
         window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)

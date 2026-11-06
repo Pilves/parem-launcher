@@ -1,0 +1,134 @@
+package com.parem.launcher.helper
+
+import java.time.LocalDateTime
+
+/**
+ * The omnibox can be in exactly one mode at a time. [None] is ordinary app
+ * search; the others each drive the tip line and the submit action.
+ */
+sealed interface OmniboxMode {
+    object None : OmniboxMode
+    data class Calc(val result: String) : OmniboxMode
+    data class Conversion(val result: String) : OmniboxMode
+    data class Currency(val result: String, val date: String) : OmniboxMode
+    // A currency query typed before any rates are cached.
+    object CurrencyNoRates : OmniboxMode
+    data class Dial(val number: String) : OmniboxMode
+    object WebSearch : OmniboxMode
+    data class QuickAction(val action: com.parem.launcher.helper.QuickAction) : OmniboxMode
+    data class Contact(val name: String, val number: String) : OmniboxMode
+    data class Setting(val title: String, val anchor: Int) : OmniboxMode
+}
+
+/**
+ * Decides which omnibox mode a drawer query puts the search field in. Pure, no
+ * Android deps. Precedence: calc → conversion → currency → dial → web →
+ * quick action → contact → setting → none.
+ * The first mode that both recognises *and* resolves the query wins, so a
+ * query that looks like an expression but fails to evaluate falls through.
+ */
+object OmniboxResolver {
+
+    // Digits with optional leading + and spaces, at least 4 digits total.
+    // Hyphenated numbers lose to the calculator (they parse as subtraction).
+    private val DIAL_REGEX = Regex("^\\+?[0-9][0-9 ]{2,}[0-9]$")
+
+    // A digit-led query made of digits, spaces and operator characters only:
+    // a number or sum still being typed ("5", "+372 5", "2+2"). Letters make
+    // it an app query again ("1p" for 1Password).
+    private val NUMERIC_QUERY = Regex("^\\+?[0-9][0-9 +\\-*/.,%^()]*$")
+
+    /**
+     * Arabic-Indic and Persian digits and the Arabic decimal separator, as ASCII.
+     * Every matcher below is ASCII, so without this a Persian keyboard's "٥+٥"
+     * is not a sum and "+٣٧٢ ٥٥٥ ١٢٣٤" is not a phone number.
+     */
+    fun normalizeDigits(query: String): String = buildString(query.length) {
+        for (c in query) append(
+            when (c) {
+                in '\u0660'..'\u0669' -> '0' + (c - '\u0660')
+                in '\u06F0'..'\u06F9' -> '0' + (c - '\u06F0')
+                '\u066B' -> '.'
+                else -> c
+            }
+        )
+    }
+
+    /**
+     * True when a drawer query reads as maths, a conversion, currency or a
+     * phone number, so a single matching app must not auto-launch (M4-WP27):
+     * the user is typing a value, not an app name.
+     */
+    fun blocksAutoLaunch(query: String): Boolean {
+        val trimmed = normalizeDigits(query).trim()
+        if (trimmed.isEmpty()) return false
+        return NUMERIC_QUERY.matches(trimmed)
+            || ExpressionEvaluator.looksLikeExpression(trimmed)
+            || UnitConverter.looksLikeConversion(trimmed)
+            || CurrencyConverter.looksLikeCurrency(trimmed)
+    }
+
+    /**
+     * The single-match auto-launch decision (M4-WP46): the setting must be on,
+     * no screen reader may be active (touch exploration or spoken feedback),
+     * and the query must not be a value (see [blocksAutoLaunch]).
+     */
+    fun autoLaunchAllowed(query: String, enabled: Boolean, screenReaderOn: Boolean): Boolean =
+        enabled && !screenReaderOn && !blocksAutoLaunch(query)
+
+    fun resolve(
+        rawQuery: String,
+        contacts: List<ContactMatcher.Contact>,
+        rates: CurrencyConverter.Rates? = null,
+        settings: List<SettingsSearch.Row> = emptyList(),
+        now: LocalDateTime = LocalDateTime.now(),
+    ): OmniboxMode {
+        val query = normalizeDigits(rawQuery)
+        val trimmed = query.trim()
+
+        if (ExpressionEvaluator.looksLikeExpression(trimmed)) {
+            ExpressionEvaluator.evaluate(trimmed)?.let { value ->
+                return OmniboxMode.Calc(ExpressionEvaluator.format(value))
+            }
+        }
+        // Letters-only unit tokens keep this disjoint from both the calculator
+        // (digits/operators only) and the dial matcher below (digits/spaces
+        // only), so there's no ordering conflict between the three.
+        if (UnitConverter.looksLikeConversion(trimmed)) {
+            UnitConverter.convert(trimmed)?.let { result ->
+                return OmniboxMode.Conversion(result.format())
+            }
+        }
+        // After units so a unit alias always wins; ECB codes are letters too,
+        // so this is just as disjoint from calc and dial.
+        if (CurrencyConverter.looksLikeCurrency(trimmed)) {
+            if (rates == null) return OmniboxMode.CurrencyNoRates
+            CurrencyConverter.convert(trimmed, rates)?.let { result ->
+                return OmniboxMode.Currency(result.format(), result.date)
+            }
+        }
+        if (DIAL_REGEX.matches(trimmed) && trimmed.count { it.isDigit() } >= 4) {
+            return OmniboxMode.Dial(trimmed)
+        }
+        // Checked on the raw query: the leading space is the trigger.
+        if (query.startsWith(" ") && trimmed.isNotEmpty()) {
+            return OmniboxMode.WebSearch
+        }
+        // Keyword first, so disjoint from the modes above; above contacts so a
+        // contact named "Timer" can't take "timer 10m"
+        QuickActionParser.parse(query, now)?.let { return OmniboxMode.QuickAction(it) }
+        // Contacts rank below every other mode and below the app list (which the
+        // filter still populates): the matching contact only fills the tip line.
+        if (contacts.isNotEmpty() && ContactMatcher.looksLikeContactQuery(trimmed)) {
+            ContactMatcher.match(trimmed, contacts).firstOrNull()?.let { top ->
+                return OmniboxMode.Contact(top.name, top.number)
+            }
+        }
+        // Lowest of all: like a contact it only fills the tip line, so app
+        // results and auto-launch are untouched.
+        SettingsSearch.match(trimmed, settings)?.let { row ->
+            return OmniboxMode.Setting(row.title, row.anchor)
+        }
+        return OmniboxMode.None
+    }
+}
