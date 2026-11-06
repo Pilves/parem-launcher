@@ -170,6 +170,39 @@ class SmokeTest {
     }
 
     @Test
+    fun drawerSearchHasEqualGuttersAndRoomForRename() {
+        openDrawer()
+        device.waitForIdle()
+        device.executeShellCommand("mkdir -p $DIAG_DIR")
+        device.executeShellCommand("screencap -p $DIAG_DIR/drawer-search.png")
+        assertTrue(device.executeShellCommand("ls $DIAG_DIR/drawer-search.png").contains("drawer-search.png"))
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            val search = activity.findViewById<SearchView>(R.id.search)
+            val params = search.layoutParams as android.view.ViewGroup.MarginLayoutParams
+            if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                val gutter = (20 * context.resources.displayMetrics.density + .5f).toInt()
+                assertEquals(gutter, params.marginStart)
+                assertEquals(gutter, params.marginEnd)
+            } else {
+                assertEquals(0, params.marginStart)
+                assertEquals(0, params.marginEnd)
+            }
+            activity.findViewById<View>(R.id.appRename).visibility = View.VISIBLE
+        }
+        device.waitForIdle()
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            val search = activity.findViewById<View>(R.id.search)
+            val rename = activity.findViewById<View>(R.id.appRename)
+            assertTrue("search overlaps rename", search.right <= rename.left || rename.right <= search.left)
+            assertTrue("search has no width in rename mode", search.width > 0)
+        }
+    }
+
+    @Test
     fun wallpaperWorkRunsAndPeriodicJobIsScheduledWithoutForegroundService() {
         val prefs = Prefs(context)
         prefs.dailyWallpaper = false // Exercise the real worker without an HTTP dependency.

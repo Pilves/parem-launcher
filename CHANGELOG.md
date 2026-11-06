@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Show one translated add-app hint for empty home slots and hide empty slots when the home layout is locked.
+- Align the portrait drawer search bar with the app list.
 
 - Keep drawer Enter responsive while results load and keep hidden-app search tips consistent.
 
