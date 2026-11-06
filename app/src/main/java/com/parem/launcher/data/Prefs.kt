@@ -21,7 +21,8 @@ class Prefs(context: Context) {
         // Registered types keep small JSON numbers from changing SharedPreferences types.
         private val LONG_PREF_KEYS = setOf(
             "FIRST_OPEN_TIME", "SCREEN_TIME_LAST_UPDATED", KEY_LAUNCHER_RECREATE_TIMESTAMP,
-            "WEATHER_LAST_FETCHED", "WEATHER_LAST_SUCCESS_MS", "CURRENCY_LAST_SUCCESS_MS", "CURRENCY_LAST_ATTEMPT_MS"
+            "WEATHER_LAST_FETCHED", "WEATHER_LAST_SUCCESS_MS", "CURRENCY_LAST_SUCCESS_MS", "CURRENCY_LAST_ATTEMPT_MS",
+            "FOCUS_MODE_END_TIME", "FOCUS_SCHEDULE_SKIP_UNTIL", "OPEN_COUNTS_DAY"
         )
         private val FLOAT_PREF_KEYS = setOf("TEXT_SIZE_SCALE")
     }
@@ -561,7 +562,7 @@ class Prefs(context: Context) {
         require(json.get("__parem_export_version") == 1) { "Unsupported settings version" }
         val values = mutableMapOf<String, Any>()
         for (key in json.keys()) {
-            if (key in exportExcludeKeys || key == "__parem_export_version") continue
+            if (key == "__parem_export_version") continue
             val value = json.get(key)
             values[key] = if (value is org.json.JSONArray) {
                 (0 until value.length()).map { value.get(it) }
@@ -593,6 +594,7 @@ class Prefs(context: Context) {
                 }
             }
             for ((key, value) in validated) {
+                if (key in exportExcludeKeys) continue
                 when (value) {
                     is Boolean -> putBoolean(key, value)
                     is String -> putString(key, value)
