@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Exclude Android screensaver activity from screen-time totals and app limits.
 - Keep drawer Enter responsive while results load and keep hidden-app search tips consistent.
 
 - Wait for the current drawer search results before handling Enter.

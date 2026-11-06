@@ -3,6 +3,7 @@ package com.parem.launcher.helper.usageStats
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.util.Log
+import com.parem.launcher.helper.UsageEventFilter
 
 /**
  * "…a diminutive Guardian who traveled backward through time…"
@@ -34,6 +35,7 @@ class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManag
 
         while (usageEvents.hasNextEvent()) {
             usageEvents.getNextEvent(e)
+            if (UsageEventFilter.isDream(e.className)) continue
             result.add(Triple(e.eventType, e.packageName, e.timeStamp))
         }
 
@@ -49,6 +51,7 @@ class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManag
     // separate viewModelScope IO coroutines; the two cache fields must move together.
     @Synchronized
     fun test(event: UsageEvents.Event, queryStart: Long): Boolean {
+        if (UsageEventFilter.isDream(event.className)) return false
         val events = if (queryStart == cachedQueryStart && cachedEvents != null) {
             cachedEvents!!
         } else {

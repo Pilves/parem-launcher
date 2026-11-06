@@ -7,6 +7,7 @@ import android.content.Context
 import android.icu.util.Calendar
 import android.util.Log
 import com.parem.launcher.helper.convertEpochToMidnight
+import com.parem.launcher.helper.UsageEventFilter
 import kotlin.math.min
 
 class EventLogWrapper(context: Context) {
@@ -69,6 +70,7 @@ class EventLogWrapper(context: Context) {
         // Map components to the last moveToForeground event. Null value means it was closed.
         val moveToForegroundMap = mutableMapOf<AppClass, Long?>()
         val componentForegroundStats = mutableListOf<ComponentForegroundStat>()
+        val dreamPackages = mutableSetOf<String>()
 
         // Iterate over events
         val event = UsageEvents.Event()
@@ -76,6 +78,10 @@ class EventLogWrapper(context: Context) {
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
             if (context.packageName == event.packageName) continue
+            if (UsageEventFilter.isDream(event.className)) {
+                dreamPackages.add(event.packageName)
+                continue
+            }
 
             val appClass = AppClass(event.packageName, event.className)
 
@@ -205,7 +211,8 @@ class EventLogWrapper(context: Context) {
         if (moveToForegroundMap.isEmpty()) {
             val packageManager = context.packageManager
             foregroundProcesses.forEach { foregroundProcess ->
-                if (packageManager.getLaunchIntentForPackage(foregroundProcess) != null) {
+                if (UsageEventFilter.mayInferForeground(foregroundProcess, dreamPackages) &&
+                    packageManager.getLaunchIntentForPackage(foregroundProcess) != null) {
                     componentForegroundStats.add(
                         ComponentForegroundStat(
                             queryStart,
