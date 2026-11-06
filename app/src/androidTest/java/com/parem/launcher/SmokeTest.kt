@@ -23,6 +23,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
+import com.parem.launcher.ui.AppDrawerAdapter
 import com.parem.launcher.ui.FocusModeDialog
 import com.parem.launcher.ui.dismissOnDestroy
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -49,6 +50,9 @@ import org.junit.Test
 import org.junit.rules.TestName
 import java.io.ByteArrayOutputStream
 import java.util.Locale
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
@@ -168,6 +172,34 @@ class SmokeTest {
         while (Prefs(context).getHomeAppPackage(1) != "com.android.settings" && SystemClock.elapsedRealtime() < deadline)
             SystemClock.sleep(100)
         assertEquals("immediate Enter was lost", "com.android.settings", Prefs(context).getHomeAppPackage(1))
+    }
+
+    @Test
+    fun enterCancelsAutoLaunchAlreadyPostedForTheSameResult() {
+        val clicks = AtomicInteger()
+        val done = CountDownLatch(1)
+        val alpha = AppModel("Alpha Fixture", null, "fixture.alpha", null, false, android.os.Process.myUserHandle())
+        val beta = AppModel("Beta Fixture", null, "fixture.beta", null, false, android.os.Process.myUserHandle())
+        lateinit var adapter: AppDrawerAdapter
+        instrumentation.runOnMainSync {
+            adapter = AppDrawerAdapter(Constants.FLAG_LAUNCH_APP, android.view.Gravity.START,
+                appClickListener = { clicks.incrementAndGet() }, appLongPressListener = {})
+            adapter.onFilterCommitted = { query ->
+                if (query == "Alpha Fixture") {
+                    // Queue Enter first. The adapter posts its auto-launch after this callback.
+                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                        adapter.suppressAutoLaunchForQuery(query)
+                        adapter.launchFirstInList()
+                        // This runs after the already-posted auto-launch.
+                        android.os.Handler(android.os.Looper.getMainLooper()).post { done.countDown() }
+                    }
+                }
+            }
+            adapter.setAppList(mutableListOf(alpha, beta))
+            adapter.filter.filter("Alpha Fixture")
+        }
+        assertTrue("controlled launch sequence did not finish", done.await(10, TimeUnit.SECONDS))
+        assertEquals("posted auto-launch was not cancelled", 1, clicks.get())
     }
 
     @Test

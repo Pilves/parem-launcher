@@ -236,6 +236,8 @@ class AppDrawerFragment : BaseFragment() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 val ctx = context ?: return true
                 val q = query ?: ""
+                // Explicit Enter owns this query, including any auto-launch already posted.
+                adapter.suppressAutoLaunchForQuery(q)
                 // Filtering and list diffs finish asynchronously; old rows must never handle Enter.
                 if ((omniboxMode == OmniboxMode.None || omniboxMode is OmniboxMode.Setting) &&
                     !adapter.isQueryReady(q)) {
@@ -408,7 +410,6 @@ class AppDrawerFragment : BaseFragment() {
         val query = pendingSubmit ?: return
         if (!isAdded || b.search.query.toString() != query || !adapter.isQueryReady(query)) return
         pendingSubmit = null
-        adapter.suppressAutoLaunchForQuery(query)
         b.search.setQuery(query, true)
     }
 

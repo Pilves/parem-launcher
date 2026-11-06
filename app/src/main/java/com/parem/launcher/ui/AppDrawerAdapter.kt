@@ -48,6 +48,7 @@ class AppDrawerAdapter(
     // Main thread only. The same query can publish twice (a re-filter for
     // late usage stats or shortcuts); only the first may auto-launch.
     private var autoLaunchedQuery: String? = null
+    private var autoLaunchVersion = 0L
 
     /**
      * Builds the private-space header row (empty package, isPrivate, label =
@@ -62,7 +63,10 @@ class AppDrawerAdapter(
     var onFilterCommitted: (String) -> Unit = { }
     private val filterState = DrawerFilterState()
     fun isQueryReady(query: String): Boolean = filterState.isReady(query)
-    fun suppressAutoLaunchForQuery(query: String) { autoLaunchedQuery = query }
+    fun suppressAutoLaunchForQuery(query: String) {
+        autoLaunchedQuery = query
+        autoLaunchVersion++
+    }
     private val appListLock = Any()
     private data class FilteredApps(val generation: Long, val apps: List<AppModel>)
     private data class FilterSnapshot(
@@ -174,7 +178,10 @@ class AppDrawerAdapter(
                     appFilteredList = decorate(result.apps, constraint.isNullOrBlank())
                     val currentFiltered = appFilteredList.toList()
                     val query = constraint?.toString().orEmpty()
-                    if (query != autoLaunchedQuery) autoLaunchedQuery = null
+                    if (query != autoLaunchedQuery) {
+                        autoLaunchedQuery = null
+                        autoLaunchVersion++
+                    }
                     submitList(currentFiltered) {
                         if (filterState.commit(query, result.generation)) {
                             onFilterCommitted(query)
@@ -199,9 +206,11 @@ class AppDrawerAdapter(
                 && autoLaunchGuard(query)
             ) {
                 autoLaunchedQuery = query
+                val token = ++autoLaunchVersion
                 Handler(Looper.getMainLooper()).post {
                     try {
-                        if (filterState.isCurrent(generation) && isQueryReady(query) && autoLaunchGuard(query))
+                        if (token == autoLaunchVersion && filterState.isCurrent(generation) &&
+                            isQueryReady(query) && autoLaunchGuard(query))
                             firstApp(filteredSnapshot, includeShortcuts = false)?.let(appClickListener)
                     } catch (e: Exception) {
                         CrashReporter.reportNonFatal("AppDrawerAdapter.autoLaunch", e)
