@@ -51,10 +51,10 @@ class ReleaseSmokeTest {
         export.click()
         val deadline = SystemClock.elapsedRealtime() + 15_000
         while (SystemClock.elapsedRealtime() < deadline &&
-            device.executeShellCommand("test -s /sdcard/Download/parem_settings.json && echo ready").trim() != "ready") {
+            device.executeShellCommand("ls /sdcard/Download/parem_settings.json").trim() != "/sdcard/Download/parem_settings.json") {
             SystemClock.sleep(200)
         }
-        assertEquals("settings export missing", "ready", device.executeShellCommand("test -s /sdcard/Download/parem_settings.json && echo ready").trim())
+        assertEquals("settings export missing", "/sdcard/Download/parem_settings.json", device.executeShellCommand("ls /sdcard/Download/parem_settings.json").trim())
         setWallpaper(device, pkg, false)
         device.findObject(By.res(pkg, "importSettings")).click()
         val confirm = device.wait(Until.findObject(By.text("Confirm")), 10_000)
