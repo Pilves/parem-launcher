@@ -3,6 +3,10 @@ set -uo pipefail
 flavour=$1
 out=app/build/reports/minified-release
 mkdir -p "$out"
+# This Google emulator process is not needed for the test and can SIGILL on
+# the hosted x86 emulator. Still fail on every crash after the test starts.
+adb shell pm disable-user --user 0 com.google.android.googlequicksearchbox || exit 1
+adb shell am force-stop com.google.android.googlequicksearchbox || exit 1
 adb logcat -c
 status=0
 adb install -r "app/build/outputs/apk/$flavour/release/app-$flavour-release.apk" || status=1

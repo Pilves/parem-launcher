@@ -37,8 +37,8 @@ class ReleaseSmokeTest {
         assertNotNull("drawer search missing", search)
         search.text = "2+2"
         assertTrue("drawer calculation missing", device.wait(Until.hasObject(By.textContains("4")), 10_000))
-        device.pressBack()
-        device.pressBack()
+        // Home resets Parem's navigation without racing a still-opening IME.
+        device.pressHome()
         assertTrue("home not restored", device.wait(Until.hasObject(By.res(pkg, "homeAppsLayout")), 10_000))
         device.swipe(device.displayWidth / 2, device.displayHeight / 2,
             device.displayWidth / 2, device.displayHeight / 2, 100)
