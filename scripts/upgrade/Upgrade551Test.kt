@@ -41,7 +41,7 @@ class Upgrade551Test {
         }
         assertTrue("Parem did not become the foreground home", foreground)
         // 6.0 offers new onboarding to upgraded users. Finish it through the UI.
-        if (version() == 105L) {
+        if (version() == 106L) {
             val notNow = device.wait(Until.findObject(By.res(context.packageName, "btnNotNow")), 3_000)
             notNow?.click()
             val done = UiSelector().resourceIdMatches(".*:id/btnDone")
@@ -91,7 +91,7 @@ class Upgrade551Test {
     }
 
     @Test fun verify600() {
-        assertEquals("Expected v6.0.0", 105L, version())
+        assertEquals("Expected v6.0.1", 106L, version())
         assertEquals(1, prefs.getInt("APP_THEME", -99))
         assertEquals("Upgrade settings", prefs.getString("APP_NAME_1", null))
         assertEquals("com.android.settings", prefs.getString("APP_PACKAGE_1", null))

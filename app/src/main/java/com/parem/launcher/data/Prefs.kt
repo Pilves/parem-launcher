@@ -35,6 +35,7 @@ class Prefs(context: Context) {
     private val CRASH_REPORTS_ENABLED = "CRASH_REPORTS_ENABLED"
     private val OMNIBOX_HISTORY_ENABLED = "OMNIBOX_HISTORY_ENABLED"
     private val OMNIBOX_HISTORY = "OMNIBOX_HISTORY"
+    private val SEARCH_HINT_OPENS = "SEARCH_HINT_OPENS"
     private val AUTO_LAUNCH_SINGLE_MATCH = "AUTO_LAUNCH_SINGLE_MATCH"
     private val HOME_APPS_NUM = "HOME_APPS_NUM"
     private val AUTO_SHOW_KEYBOARD = "AUTO_SHOW_KEYBOARD"
@@ -123,6 +124,10 @@ class Prefs(context: Context) {
     var crashReportsEnabled: Boolean
         get() = prefs.getBoolean(CRASH_REPORTS_ENABLED, false)
         set(value) = prefs.edit { putBoolean(CRASH_REPORTS_ENABLED, value) }
+
+    var searchHintOpens: Int
+        get() = prefs.getInt(SEARCH_HINT_OPENS, 0)
+        set(value) = prefs.edit { putInt(SEARCH_HINT_OPENS, value) }
 
     // Turning history off also wipes it: off means nothing is kept.
     var omniboxHistoryEnabled: Boolean

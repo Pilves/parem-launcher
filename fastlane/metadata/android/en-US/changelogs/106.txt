@@ -1,0 +1,1 @@
+The search examples in the app drawer now stop after 20 opens, so the empty search box stays quiet once you know what it does.
