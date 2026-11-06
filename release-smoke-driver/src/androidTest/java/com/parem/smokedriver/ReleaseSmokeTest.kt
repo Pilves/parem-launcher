@@ -1,7 +1,5 @@
-package com.parem.launcher
+package com.parem.smokedriver
 
-import android.content.Context
-import android.database.sqlite.SQLiteDatabase
 import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -13,7 +11,6 @@ import androidx.test.uiautomator.Until
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
-import org.junit.Assume.assumeFalse
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -22,15 +19,16 @@ import org.junit.runner.RunWith
 class ReleaseSmokeTest {
     @Test
     fun releaseLauncherAndSettingsRoundTrip() {
-        assumeFalse("release-only check", BuildConfig.DEBUG)
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-        val pkg = context.packageName
-        val prefs = context.getSharedPreferences("com.parem.launcher", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("FIRST_OPEN", false).putInt("ONBOARDING_VERSION_SEEN", 999)
-            .putInt("HOME_APPS_NUM", 4).commit()
+        val pkg = "com.parem.launcher"
         device.executeShellCommand("cmd package set-home-activity $pkg/com.parem.launcher.MainActivity")
         device.pressHome()
+        assertTrue("onboarding missing", device.wait(Until.hasObject(By.res(pkg, "calmScreen")), 15_000))
+        UiScrollable(UiSelector().resourceId("$pkg:id/calmScreen"))
+            .scrollIntoView(UiSelector().resourceId("$pkg:id/btnDone"))
+        val done = device.wait(Until.findObject(By.res(pkg, "btnDone")), 10_000)
+        assertNotNull("onboarding Done missing", done)
+        done.click()
         assertTrue("release home not visible", device.wait(Until.hasObject(By.res(pkg, "homeAppsLayout")), 15_000))
         device.waitForIdle()
         device.swipe(device.displayWidth / 2, device.displayHeight * 3 / 4,
@@ -47,6 +45,7 @@ class ReleaseSmokeTest {
         val settings = device.wait(Until.findObject(By.text("Settings")), 10_000)
         assertNotNull("home Settings action missing", settings)
         settings.click()
+        setWallpaper(device, pkg, true)
         val export = device.wait(Until.findObject(By.res(pkg, "exportSettings")), 10_000)
         assertNotNull("settings did not open", export)
         export.click()
@@ -55,8 +54,8 @@ class ReleaseSmokeTest {
             device.executeShellCommand("test -s /sdcard/Download/parem_settings.json && echo ready").trim() != "ready") {
             SystemClock.sleep(200)
         }
-        assertTrue("settings export missing", device.executeShellCommand("test -s /sdcard/Download/parem_settings.json && echo ready").trim() == "ready")
-        prefs.edit().putInt("HOME_APPS_NUM", 3).commit()
+        assertEquals("settings export missing", "ready", device.executeShellCommand("test -s /sdcard/Download/parem_settings.json && echo ready").trim())
+        setWallpaper(device, pkg, false)
         device.findObject(By.res(pkg, "importSettings")).click()
         val confirm = device.wait(Until.findObject(By.text("Confirm")), 10_000)
         assertNotNull("import confirmation missing", confirm)
@@ -70,37 +69,35 @@ class ReleaseSmokeTest {
         }
         assertNotNull("export absent from document picker", file)
         file.click()
-        val importedBy = SystemClock.elapsedRealtime() + 15_000
-        while (prefs.getInt("HOME_APPS_NUM", -1) != 4 && SystemClock.elapsedRealtime() < importedBy) SystemClock.sleep(100)
-        assertEquals("import did not restore preference", 4, prefs.getInt("HOME_APPS_NUM", -1))
+        assertTrue("settings did not return after import", device.wait(Until.hasObject(By.res(pkg, "scrollView")), 15_000))
+        val scroll = UiScrollable(UiSelector().resourceId("$pkg:id/scrollView"))
+        assertTrue(scroll.scrollIntoView(UiSelector().resourceId("$pkg:id/dailyWallpaperRow")))
+        assertTrue("import did not restore wallpaper preference", device.wait(
+            Until.hasObject(By.res(pkg, "dailyWallpaperRow").checked(true)), 15_000))
+    }
 
-        // The import recreates the activity. Reopen settings if it returned home.
-        if (!device.wait(Until.hasObject(By.res(pkg, "scrollView")), 10_000)) {
-            assertTrue("home missing after import", device.wait(Until.hasObject(By.res(pkg, "homeAppsLayout")), 10_000))
-            device.swipe(device.displayWidth / 2, device.displayHeight / 2,
-                device.displayWidth / 2, device.displayHeight / 2, 100)
-            device.wait(Until.findObject(By.text("Settings")), 10_000).click()
-        }
+    private fun setWallpaper(device: UiDevice, pkg: String, enabled: Boolean) {
         val scroll = UiScrollable(UiSelector().resourceId("$pkg:id/scrollView"))
         assertTrue("daily wallpaper row missing", scroll.scrollIntoView(UiSelector().resourceId("$pkg:id/dailyWallpaperRow")))
         val row = device.wait(Until.findObject(By.res(pkg, "dailyWallpaperRow")), 10_000)
         assertNotNull("daily wallpaper switch missing", row)
-        // Tap the switch side, not the source link on the left.
+        val before = device.executeShellCommand("dumpsys jobscheduler")
         val bounds = row.visibleBounds
         device.click(bounds.right - 20, bounds.centerY())
-        val scheduledBy = SystemClock.elapsedRealtime() + 15_000
-        var scheduled = false
-        while (!scheduled && SystemClock.elapsedRealtime() < scheduledBy) {
-            val database = context.getDatabasePath("androidx.work.workdb")
-            if (database.exists()) {
-                SQLiteDatabase.openDatabase(database.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
-                    db.rawQuery("SELECT COUNT(*) FROM WorkName JOIN WorkSpec ON WorkName.work_spec_id = WorkSpec.id WHERE WorkName.name = ? AND WorkSpec.state IN (0, 1)", arrayOf("WALLPAPER_WORKER_NAME")).use { cursor ->
-                        scheduled = cursor.moveToFirst() && cursor.getInt(0) > 0
-                    }
-                }
+        assertTrue("wallpaper switch did not change", device.wait(
+            Until.hasObject(By.res(pkg, "dailyWallpaperRow").checked(enabled)), 10_000))
+        if (enabled) {
+            val deadline = SystemClock.elapsedRealtime() + 15_000
+            var jobSeen = false
+            while (!jobSeen && SystemClock.elapsedRealtime() < deadline) {
+                val after = device.executeShellCommand("dumpsys jobscheduler")
+                val service = "$pkg/androidx.work.impl.background.systemjob.SystemJobService"
+                jobSeen = after.lines().filter { service in it }.toSet()
+                    .minus(before.lines().filter { service in it }.toSet()).isNotEmpty()
+                if (!jobSeen) SystemClock.sleep(200)
             }
-            if (!scheduled) SystemClock.sleep(200)
+            assertTrue("WorkManager job not enqueued", jobSeen)
         }
-        assertTrue("daily wallpaper job not enqueued", scheduled)
+        scroll.scrollToBeginning(20)
     }
 }

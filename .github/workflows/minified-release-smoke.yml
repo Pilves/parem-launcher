@@ -36,7 +36,7 @@ jobs:
       - name: Create disposable debug signing key
         run: keytool -genkeypair -keystore "$KEYSTORE_FILE" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 30 -dname 'CN=Android Debug,O=Android,C=US'
       - name: Build minified release and its test APK
-        run: ./gradlew -PtestRelease assemble${{ matrix.task }}Release assemble${{ matrix.task }}ReleaseAndroidTest
+        run: ./gradlew -PreleaseSmoke :app:assemble${{ matrix.task }}Release :release-smoke-driver:assembleDebug :release-smoke-driver:assembleDebugAndroidTest
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules

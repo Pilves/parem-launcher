@@ -6,9 +6,10 @@ mkdir -p "$out"
 adb logcat -c
 status=0
 adb install -r "app/build/outputs/apk/$flavour/release/app-$flavour-release.apk" || status=1
-adb install -r "app/build/outputs/apk/androidTest/$flavour/release/app-$flavour-release-androidTest.apk" || status=1
+adb install -r "release-smoke-driver/build/outputs/apk/debug/release-smoke-driver-debug.apk" || status=1
+adb install -r "release-smoke-driver/build/outputs/apk/androidTest/debug/release-smoke-driver-debug-androidTest.apk" || status=1
 if [ "$status" = 0 ]; then
-  adb shell am instrument -w -e class com.parem.launcher.ReleaseSmokeTest com.parem.launcher.test/androidx.test.runner.AndroidJUnitRunner >"$out/instrumentation.txt" 2>&1 || status=1
+  adb shell am instrument -w -e class com.parem.smokedriver.ReleaseSmokeTest com.parem.smokedriver.test/androidx.test.runner.AndroidJUnitRunner >"$out/instrumentation.txt" 2>&1 || status=1
   cat "$out/instrumentation.txt"
   grep -Eq '^OK \(1 test\)' "$out/instrumentation.txt" || status=1
 fi
