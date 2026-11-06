@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Run only on a disposable emulator: the test changes HOME and binds a widget.
-set -euo pipefail
+set -Eeuo pipefail
+trap 'adb shell uiautomator dump /sdcard/upgrade-window.xml >/dev/null 2>&1 && adb shell cat /sdcard/upgrade-window.xml || true' ERR
 package=com.parem.launcher.debug
 runner="$package.test/androidx.test.runner.AndroidJUnitRunner"
 old_apk=../parem-551/app/build/outputs/apk/debug/app-debug.apk

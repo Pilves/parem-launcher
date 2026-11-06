@@ -34,10 +34,15 @@ class Upgrade551Test {
         device.pressHome()
         // 6.0 offers new onboarding to upgraded users. Finish it through the UI.
         if (version() == 105L) {
-            device.wait(Until.hasObject(By.res(context.packageName, "calmScreen")), 5_000)
+            val notNow = device.wait(Until.findObject(By.res(context.packageName, "btnNotNow")), 3_000)
+            notNow?.click()
             val done = UiSelector().resourceIdMatches(".*:id/btnDone")
-            UiScrollable(UiSelector().scrollable(true)).scrollIntoView(done)
-            device.findObject(done).click()
+            val calm = device.wait(Until.hasObject(By.res(context.packageName, "calmScreen")), 5_000)
+            if (calm) {
+                if (!device.findObject(done).exists()) UiScrollable(UiSelector().scrollable(true)).scrollIntoView(done)
+                assertTrue("onboarding Done not available", device.findObject(done).waitForExists(5_000))
+                device.findObject(done).click()
+            }
         }
         assertTrue("home did not open", device.wait(Until.hasObject(By.res(context.packageName, "homeAppsLayout")), 20_000))
         assertTrue("fixture widget not visible", device.wait(Until.hasObject(By.text("WP28 fixture widget")), 20_000))
