@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Run only on a disposable emulator: the test changes HOME and binds a widget.
+set -euo pipefail
+package=com.parem.launcher.debug
+runner="$package.test/androidx.test.runner.AndroidJUnitRunner"
+old_apk=../parem-551/app/build/outputs/apk/debug/app-debug.apk
+new_apk=app/build/outputs/apk/full/debug/app-full-debug.apk
+test_apk=app/build/outputs/apk/androidTest/full/debug/app-full-debug-androidTest.apk
+adb install "$old_apk"
+adb install "$test_apk"
+adb shell cmd appwidget grantbind --package "$package" --user 0
+run_test() {
+  local result
+  result=$(adb shell am instrument -w -e class "com.parem.launcher.Upgrade551Test#$1" "$runner" 2>&1)
+  printf '%s\n' "$result"
+  grep -q 'OK (1 test)' <<<"$result"
+}
+run_test seed551
+adb install -r "$new_apk"
+run_test verify600
