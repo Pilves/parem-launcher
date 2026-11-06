@@ -6,7 +6,7 @@ set -uo pipefail
 runs=${1:-0}
 pkg=com.parem.launcher.debug
 tests=(swipeUpOpensDrawer omniboxLaunchesApp)
-diag_out=app/build/reports/androidTests/parem-diag
+diag_out=app/build/smoke-diagnostics
 mkdir -p "$diag_out"
 adb logcat -v threadtime >"$diag_out/continuous-logcat.txt" 2>&1 &
 logcat_pid=$!
@@ -42,6 +42,12 @@ if [ "${runs:-0}" -le 0 ]; then
   if ! ./gradlew connectedFullDebugAndroidTest; then
     status=1
     capture_failure full
+  fi
+  if [ "${2:-false}" = true ]; then
+    if ! bash scripts/perf-compare.sh; then
+      status=1
+      capture_failure perf
+    fi
   fi
   collect_diagnostics
   exit "$status"
