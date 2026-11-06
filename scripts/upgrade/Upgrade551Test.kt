@@ -30,8 +30,16 @@ class Upgrade551Test {
 
     private fun version(): Long = context.packageManager.getPackageInfo(context.packageName, 0).longVersionCode
     private fun home() {
-        device.executeShellCommand("cmd package set-home-activity ${context.packageName}/com.parem.launcher.MainActivity")
-        device.pressHome()
+        var foreground = false
+        repeat(3) {
+            if (!foreground) {
+                val result = device.executeShellCommand("cmd package set-home-activity ${context.packageName}/com.parem.launcher.MainActivity")
+                android.util.Log.i("Upgrade551", "set-home-activity: $result")
+                device.pressHome()
+                foreground = device.wait(Until.hasObject(By.pkg(context.packageName)), 10_000)
+            }
+        }
+        assertTrue("Parem did not become the foreground home", foreground)
         // 6.0 offers new onboarding to upgraded users. Finish it through the UI.
         if (version() == 105L) {
             val notNow = device.wait(Until.findObject(By.res(context.packageName, "btnNotNow")), 3_000)
