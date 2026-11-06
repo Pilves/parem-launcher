@@ -36,6 +36,7 @@ import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.formattedTimeSpent
+import com.parem.launcher.helper.AppOpenCounter
 import com.parem.launcher.helper.WallpaperWorker
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -167,6 +168,37 @@ class SmokeTest {
         while (Prefs(context).getHomeAppPackage(1) != "com.android.settings" && SystemClock.elapsedRealtime() < deadline)
             SystemClock.sleep(100)
         assertEquals("immediate Enter was lost", "com.android.settings", Prefs(context).getHomeAppPackage(1))
+    }
+
+    @Test
+    fun immediateEnterLaunchesSingleResultOnlyOnceWithAutoLaunchEnabled() {
+        Prefs(context).autoLaunchSingleMatch = true
+        val launcherApps = context.getSystemService(android.content.pm.LauncherApps::class.java)
+        val settings = launcherApps.getActivityList("com.android.settings", android.os.Process.myUserHandle()).first()
+        val alpha = AppModel("Alpha Fixture", null, "com.android.settings", settings.name, false, android.os.Process.myUserHandle())
+        val beta = AppModel("Beta Fixture", null, "fixture.beta", null, false, android.os.Process.myUserHandle())
+        val before = AppOpenCounter.getCounts(context)["com.android.settings"] ?: 0
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            val model = ViewModelProvider(activity)[MainViewModel::class.java]
+            activity.findNavController(R.id.nav_host_fragment).navigate(
+                R.id.appListFragment, bundleOf(Constants.Key.FLAG to Constants.FLAG_LAUNCH_APP))
+            model.appList.value = listOf(alpha, beta)
+        }
+        assertTrue("drawer fixtures missing", device.wait(Until.hasObject(By.text("Alpha Fixture")), TIMEOUT))
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            activity.findViewById<SearchView>(R.id.search).setQuery("Alpha Fixture", true)
+        }
+        val deadline = SystemClock.elapsedRealtime() + TIMEOUT
+        while ((AppOpenCounter.getCounts(context)["com.android.settings"] ?: 0) == before &&
+            SystemClock.elapsedRealtime() < deadline) SystemClock.sleep(100)
+        // Let a wrongly posted second auto-launch run before checking the count.
+        SystemClock.sleep(1_000)
+        assertEquals("immediate Enter launched Settings more than once", before + 1,
+            AppOpenCounter.getCounts(context)["com.android.settings"] ?: 0)
     }
 
     @Test

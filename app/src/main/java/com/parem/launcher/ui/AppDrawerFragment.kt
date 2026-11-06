@@ -408,6 +408,7 @@ class AppDrawerFragment : BaseFragment() {
         val query = pendingSubmit ?: return
         if (!isAdded || b.search.query.toString() != query || !adapter.isQueryReady(query)) return
         pendingSubmit = null
+        adapter.suppressAutoLaunchForQuery(query)
         b.search.setQuery(query, true)
     }
 
