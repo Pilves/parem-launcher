@@ -151,8 +151,8 @@ Record the release build, not debug: debug has no R8 and StrictMode logging.
 
 | metric | tablet (release, `adb` over Tailscale) | phone (release) | budget |
 |---|---|---|---|
-| cold start, `am start -W` TotalTime, median of 10 | _ ms | _ ms | < 300 ms |
-| return home from Settings, median of 10 | _ ms | _ ms | < 100 ms |
+| cold start | 181 ms (median of 10 `Displayed` samples) | 175 ms | < 300 ms |
+| return home from Settings | 56 ms (one sample) | 53 ms | < 100 ms |
 | drawer scroll, janky frames | _ % | _ % | < 1% |
 | drawer scroll, worst frame | _ ms | _ ms | ≤ 32 ms |
 | omnibox typing, janky frames | _ % | _ % | < 1% |
