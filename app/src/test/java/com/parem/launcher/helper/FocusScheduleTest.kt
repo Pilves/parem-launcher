@@ -41,6 +41,14 @@ class FocusScheduleTest {
     }
 
     @Test
+    fun parse_ignoresOverflowAndMalformedImportedNumbers() {
+        assertEquals(emptyList<Window>(), FocusSchedule.parse(
+            "oops;127,999999999999999999,0;0,0,0;1,-1,1440;1,2"
+        ))
+        assertFalse(FocusSchedule.isActive(FocusSchedule.parse("2147483648,0,0"), mon, 0))
+    }
+
+    @Test
     fun isActive_startInclusiveEndExclusive() {
         val w = listOf(work)
         assertFalse(FocusSchedule.isActive(w, mon, hm(8, 59)))
