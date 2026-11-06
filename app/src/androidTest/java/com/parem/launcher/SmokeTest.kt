@@ -190,17 +190,32 @@ class SmokeTest {
                 assertEquals(0, params.marginStart)
                 assertEquals(0, params.marginEnd)
             }
-            activity.findViewById<View>(R.id.appRename).visibility = View.VISIBLE
+            activity.findNavController(R.id.nav_host_fragment).popBackStack()
         }
-        device.waitForIdle()
+        assertTrue("home did not return", device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
         instrumentation.runOnMainSync {
             val activity = ActivityLifecycleMonitorRegistry.getInstance()
                 .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
-            val search = activity.findViewById<View>(R.id.search)
-            val rename = activity.findViewById<View>(R.id.appRename)
-            assertTrue("search overlaps rename", search.right <= rename.left || rename.right <= search.left)
-            assertTrue("search has no width in rename mode", search.width > 0)
+            activity.findNavController(R.id.nav_host_fragment).navigate(R.id.appListFragment,
+                bundleOf(Constants.Key.FLAG to Constants.FLAG_SET_HOME_APP_1,
+                    Constants.Key.RENAME to true, Constants.Key.QUERY to "New name"))
         }
+        val renameId = context.resources.getResourceName(R.id.appRename)
+        assertTrue("rename action did not appear", device.wait(Until.hasObject(By.res(renameId)), TIMEOUT))
+        val deadline = SystemClock.elapsedRealtime() + TIMEOUT
+        var separated = false
+        while (!separated && SystemClock.elapsedRealtime() < deadline) {
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                val search = activity.findViewById<View>(R.id.search)
+                val rename = activity.findViewById<View>(R.id.appRename)
+                separated = search.width > 0 && rename.width > 0 &&
+                    (search.right <= rename.left || rename.right <= search.left)
+            }
+            if (!separated) SystemClock.sleep(100)
+        }
+        if (!separated) fail("search overlaps rename\n${screenDiagnostics()}")
     }
 
     @Test
