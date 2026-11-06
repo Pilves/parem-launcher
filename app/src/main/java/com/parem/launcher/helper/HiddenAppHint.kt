@@ -35,6 +35,8 @@ class HiddenLabelLoad {
         return ++generation
     }
 
+    fun isCurrent(token: Long): Boolean = token == generation
+
     fun complete(token: Long, currentKeys: Set<String>, result: List<String>?) {
         if (token == generation && currentKeys == keys) labels = result
     }

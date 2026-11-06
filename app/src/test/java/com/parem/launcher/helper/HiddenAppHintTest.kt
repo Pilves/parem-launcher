@@ -21,6 +21,8 @@ class HiddenAppHintTest {
         val load = HiddenLabelLoad()
         val older = load.begin(setOf("old"))
         val newer = load.begin(setOf("old", "new"))
+        assertFalse(load.isCurrent(older))
+        assertTrue(load.isCurrent(newer))
         load.complete(older, setOf("old", "new"), listOf("Old"))
         assertFalse(HiddenAppHint.canSearchWeb("New", load.labels))
         load.complete(newer, setOf("old", "new"), null) // Failed or partial query.

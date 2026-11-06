@@ -347,7 +347,11 @@ class AppDrawerFragment : BaseFragment() {
         val appContext = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
             val apps = getHiddenAppsForSearch(appContext, prefs)
-            if (!isAdded || _binding == null) return@launch
+            if (!isAdded || _binding == null || !hiddenLabels.isCurrent(generation)) return@launch
+            if (prefs.hiddenApps != hiddenKeys) {
+                loadHiddenLabels()
+                return@launch
+            }
             hiddenLabels.complete(generation, prefs.hiddenApps, apps?.map { it.appLabel })
             if (binding.search.query.isNotBlank()) refreshEmptyResultTip()
         }
