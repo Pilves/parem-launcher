@@ -14,7 +14,10 @@ logcat_pid=$!
 capture_failure() {
   local label=$1
   adb logcat -d -v threadtime >"$diag_out/$label-logcat.txt" 2>&1 || true
-  adb shell dumpsys dropbox --print data_app_crash data_app_anr data_app_native_crash system_app_crash >"$diag_out/$label-dropbox.txt" 2>&1 || true
+  # DropBoxManagerService ANDs search arguments, so query tags separately.
+  for tag in data_app_crash data_app_anr data_app_native_crash system_app_crash; do
+    adb shell dumpsys dropbox --print "$tag" >"$diag_out/$label-dropbox-$tag.txt" 2>&1 || true
+  done
   adb shell ls -la /data/tombstones >"$diag_out/$label-tombstones.txt" 2>&1 || true
 }
 
