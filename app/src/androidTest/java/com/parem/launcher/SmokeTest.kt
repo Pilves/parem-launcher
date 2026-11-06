@@ -16,6 +16,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import androidx.lifecycle.ViewModelProvider
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import com.parem.launcher.ui.FocusModeDialog
@@ -30,6 +33,7 @@ import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.formattedTimeSpent
+import com.parem.launcher.helper.WallpaperWorker
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -76,6 +80,42 @@ class SmokeTest {
             "home layout not shown",
             device.wait(Until.hasObject(By.res(homeId)), TIMEOUT)
         )
+    }
+
+    @Test
+    fun wallpaperWorkRunsAndPeriodicJobIsScheduledWithoutForegroundService() {
+        val prefs = Prefs(context)
+        prefs.dailyWallpaper = false // Exercise the real worker without an HTTP dependency.
+        val manager = WorkManager.getInstance(context)
+        val request = OneTimeWorkRequestBuilder<WallpaperWorker>().build()
+        try {
+            manager.enqueue(request).result.get()
+            val deadline = SystemClock.elapsedRealtime() + 30_000
+            var state: WorkInfo.State? = null
+            while (SystemClock.elapsedRealtime() < deadline) {
+                state = manager.getWorkInfoById(request.id).get()?.state
+                if (state?.isFinished == true) break
+                SystemClock.sleep(100)
+            }
+            assertEquals("WallpaperWorker did not complete", WorkInfo.State.SUCCEEDED, state)
+
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                ViewModelProvider(activity)[MainViewModel::class.java].setWallpaperWorker()
+            }
+            val scheduleDeadline = SystemClock.elapsedRealtime() + 10_000
+            var scheduled = false
+            while (!scheduled && SystemClock.elapsedRealtime() < scheduleDeadline) {
+                scheduled = manager.getWorkInfosForUniqueWork(Constants.WALLPAPER_WORKER_NAME).get()
+                    .any { !it.state.isFinished }
+                if (!scheduled) SystemClock.sleep(100)
+            }
+            assertTrue("periodic wallpaper job not scheduled", scheduled)
+        } finally {
+            manager.cancelWorkById(request.id).result.get()
+            manager.cancelUniqueWork(Constants.WALLPAPER_WORKER_NAME).result.get()
+        }
     }
 
     @Test

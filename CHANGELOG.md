@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Keep picker and hidden-app searches off the web, and limit weather latitude to 84 degrees before rounding.
+
 ## v6.0.0 — 2026-11-05
 
 - Keep first-use and default-home prompts clear of landscape widgets.

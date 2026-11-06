@@ -170,7 +170,7 @@ object WeatherManager {
 
         var connection: HttpURLConnection? = null
         try {
-            val latParam = WeatherPrivacy.roundForRequest(latD)
+            val latParam = WeatherPrivacy.latitudeForRequest(latD)
             val lngParam = WeatherPrivacy.roundForRequest(lngD)
             val url = URL("https://api.open-meteo.com/v1/forecast?latitude=$latParam&longitude=$lngParam&current_weather=true")
             connection = url.openConnection() as HttpURLConnection

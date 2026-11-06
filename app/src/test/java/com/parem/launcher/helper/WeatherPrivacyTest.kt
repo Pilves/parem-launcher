@@ -31,6 +31,14 @@ class WeatherPrivacyTest {
     }
 
     @Test
+    fun latitudeForRequest_clampsBeforeRoundingWithoutClampingLongitude() {
+        assertEquals("84.00", WeatherPrivacy.latitudeForRequest(90.0))
+        assertEquals("-84.00", WeatherPrivacy.latitudeForRequest(-90.0))
+        assertEquals("83.95", WeatherPrivacy.latitudeForRequest(83.96))
+        assertEquals("179.95", WeatherPrivacy.roundForRequest(179.96))
+    }
+
+    @Test
     fun roundForRequest_ignoresCommaDecimalLocales() {
         val original = Locale.getDefault()
         try {

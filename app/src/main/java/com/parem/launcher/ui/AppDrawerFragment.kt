@@ -253,9 +253,9 @@ class AppDrawerFragment : BaseFragment() {
                     is OmniboxMode.Setting ->
                         if (adapter.itemCount == 0) openSetting(mode.anchor) else adapter.launchFirstInList()
                     OmniboxMode.None -> when {
-                        q.startsWith("!") ->
+                        flag == Constants.FLAG_LAUNCH_APP && !hiddenHintShown && q.startsWith("!") ->
                             launchUrl(ctx, Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(q, "UTF-8"))
-                        adapter.itemCount == 0 -> BadHabitDialogs.gateWebOpen(
+                        flag == Constants.FLAG_LAUNCH_APP && !hiddenHintShown && adapter.itemCount == 0 -> BadHabitDialogs.gateWebOpen(
                             ctx, viewLifecycleOwner.lifecycleScope, { isAdded },
                             Intent(Intent.ACTION_WEB_SEARCH), open = { browser -> ctx.openSearch(q.trim(), browser) },
                         )
