@@ -61,6 +61,8 @@ android {
         full { dimension "channel" }
         play { dimension "channel" }
     }
+    // CI can exercise the actual R8/resource-shrunk application with a throwaway key.
+    if (project.hasProperty('testRelease')) testBuildType 'release'
     testOptions {
         execution 'ANDROIDX_TEST_ORCHESTRATOR'
         animationsDisabled true
