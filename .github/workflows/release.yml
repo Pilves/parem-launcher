@@ -24,10 +24,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Decode keystore
+      - name: Decode keystores
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        run: echo "$KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/release.keystore
+          UPLOAD_KEYSTORE_BASE64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/release.keystore
+          echo "$UPLOAD_KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/upload.keystore
 
       - name: Build signed full APK
         env:
@@ -38,23 +41,24 @@ jobs:
         run: ./gradlew assembleFullRelease
 
       # A step of its own so the APK above stays what F-Droid rebuilds and compares.
-      # The key that signs the first bundle uploaded becomes Play's upload key: read
-      # "Play App Signing" in ARCHITECTURE.md before that upload.
+      # Signed with the upload key, never the GitHub release key: the key that signs
+      # the first bundle uploaded becomes Play's upload key. See "Play App Signing"
+      # in ARCHITECTURE.md.
       - name: Build signed Play bundle
         env:
-          KEYSTORE_FILE: ${{ github.workspace }}/release.keystore
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_FILE: ${{ github.workspace }}/upload.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
         run: ./gradlew bundlePlayRelease
 
-      # The key cannot be replaced, so it is gone before any later step runs, a
-      # third-party action above all. The daemons hold the signing passwords.
-      - name: Remove signing key
+      # The release key cannot be replaced, so both keys are gone before any later
+      # step runs, a third-party action above all. The daemons hold the passwords.
+      - name: Remove signing keys
         if: always()
         run: |
           ./gradlew --stop || true
-          rm -f "$GITHUB_WORKSPACE/release.keystore"
+          rm -f "$GITHUB_WORKSPACE/release.keystore" "$GITHUB_WORKSPACE/upload.keystore"
 
       - name: Rename APK
         run: |
