@@ -113,6 +113,8 @@ dependencies {
 
     testImplementation libs.junit
 
+    // AndroidX Test references this adapter when its own release test APK is shrunk.
+    androidTestImplementation 'androidx.concurrent:concurrent-futures-ktx:1.2.0'
     androidTestImplementation libs.androidx.test.runner
     androidTestImplementation libs.androidx.test.ext.junit
     androidTestImplementation libs.uiautomator
