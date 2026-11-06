@@ -160,10 +160,11 @@ class SmokeTest {
         val remove = device.wait(Until.findObject(By.text(context.getString(R.string.app_menu_remove_home))), TIMEOUT)
         assertNotNull("Remove from home missing", remove)
         remove.click()
+        val undoId = context.resources.getResourceName(com.google.android.material.R.id.snackbar_action)
+        val undo = device.wait(Until.findObject(By.res(undoId)), TIMEOUT)
+        if (undo == null) fail("Undo missing\n${screenDiagnostics()}")
         assertTrue("empty hint missing after removal", device.wait(Until.hasObject(
             By.desc(context.getString(R.string.long_press_to_select_app))), TIMEOUT))
-        val undo = device.wait(Until.findObject(By.text(context.getString(R.string.app_menu_undo))), TIMEOUT)
-        assertNotNull("Undo missing", undo)
         undo.click()
         assertTrue("app not restored", device.wait(Until.hasObject(By.text("Settings")), TIMEOUT))
         assertEquals("com.android.settings", prefs.getHomeAppPackage(1))
