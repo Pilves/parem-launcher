@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; style-src 'self' 'sha256-CTHEmjgL2YDWY0RBCeGAfAfgKQ8w5cmOPSpCq7niMAA='; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Parem Launcher: privacy policy</title>
+  <link rel="stylesheet" href="grant/style.css">
+  <style>
+    h2 { font-size: 1.15rem; font-weight: 600; margin: 2.25rem 0 .5rem; }
+    h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 .25rem; }
+    ul { padding-left: 1.25rem; }
+    a { color: inherit; }
+    .privacy h2 { margin-top: 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Parem Launcher privacy policy</h1>
+    <p class="small">Last updated 5 November 2026. This policy covers Parem Launcher 6.0.0 for Android (package <code>com.parem.launcher</code>).</p>
+
+    <p>Parem Launcher is a home screen app. It has no accounts, no ads, no analytics and no tracking code, and no server of ours receives anything from it. We only get data from you if you choose to send it to us.</p>
+    <p>That does not mean nothing ever leaves your phone. Some features you can use connect to outside services. This page describes all of it, feature by feature.</p>
+
+    <section class="privacy" id="delete">
+      <h2>How to delete your data</h2>
+      <p>Parem has no account. What it stores is on your phone, so you can delete it yourself at any time.</p>
+      <ul>
+        <li><b>On your phone:</b> in Android, open Settings &gt; Apps &gt; Parem Launcher &gt; Storage and tap <b>Clear storage</b>, or uninstall Parem. Either one deletes everything in Parem's own storage. If you turned on device admin locking, turn it off first in Parem's Settings &gt; Gestures, or Android will not let you uninstall.</li>
+        <li><b>Older backups:</b> Parem 6.0.0 stays out of Android cloud backup, but versions before it did not. If you used one, a copy can remain until Android replaces it. Remove it through Android's backup settings or the Backups area of your Google account (see <a href="#backup">section 5</a>).</li>
+        <li><b>Computer and phone debugging keys:</b> if you used the browser setup page, its adb key remains in that browser after uninstalling Parem. Clear site data for the setup page in the browser to delete it. The phone also retains an authorized debugging key named “Parem”; in Android Developer options, use <b>Revoke USB debugging authorizations</b> to remove authorized debugging keys. This revokes other USB debugging authorizations too.</li>
+        <li><b>Exported files:</b> uninstalling does not touch files you exported. Delete <code>parem_settings.json</code> from your Downloads folder yourself.</li>
+        <li><b>Anything you sent us:</b> write to info@chaidla.ee and we will delete it.</li>
+        <li><b>Data held by outside services:</b> we have no way to reach it, and Parem gives them no account or ID to find it by. Ask the service directly (see <a href="#services">section 4</a>).</li>
+      </ul>
+      <p class="small">Menu names vary between phones.</p>
+    </section>
+
+    <h2 id="who">1. Who is responsible</h2>
+    <p>Parem Launcher is published from Estonia by Patrick, under the developer name CHAIDLA ("we"). We are the controller under the EU General Data Protection Regulation (GDPR). We decide what the app does, so this policy covers all of it, including data we never see. Send questions to info@chaidla.ee.</p>
+    <p>Parem is open source, so anyone can check this policy against the code: <a href="https://github.com/Pilves/parem-launcher">github.com/Pilves/parem-launcher</a>.</p>
+
+    <h2 id="phone">2. What Parem handles on your phone</h2>
+    <p>Parem does most of its work on the phone itself, and we cannot see any of this data. Items marked optional stay off until you turn them on, or until you transfer or import settings in which they were on (see <a href="#backup">section 5</a>).</p>
+    <ul>
+      <li><b>Your apps.</b> App names and package names, including work-profile apps and Private Space apps while the space is unlocked, so Parem can list and open them. Parem also reads the shortcuts that apps publish, so you can search for them. Those apps choose the labels, which can include things like a contact or chat name. The labels stay in memory and are not saved. Your own choices are saved as settings: pinned apps, folders, hidden and renamed apps, website shortcuts, gestures, limits and focus lists.</li>
+      <li><b>App open counts.</b> Parem counts how many times each app was opened through it today. The count starts over each day.</li>
+      <li><b>Screen time (optional).</b> With usage access, which you grant in Android, Parem reads which apps were in use and for how long. This powers the home screen total, app limits, sorting by use, the weekly graph and per-app grayscale. Parem saves today's per-app totals. It keeps no longer history of its own: the graph reads Android's usage log, which Android clears after about ten days.</li>
+      <li><b>Contacts (optional).</b> Only if you turn on Contact search and allow access, Parem reads names and phone numbers (up to 2,000 contacts) into memory to match what you type. They are never saved. Choosing a match opens your phone app with the number filled in, and you decide whether to call.</li>
+      <li><b>Notifications (optional).</b> Only if you turn on "Hide from shade, keep for later" and allow notification access, Android passes notifications to Parem. Parem uses the sending app and the notification type to decide whether to hide one, and shows its title in the quiet list. Parem does not save titles or text. Android holds a hidden notification and brings it back within 8 hours. Parem saves only a technical key so it can find that notification again. The key includes the sending app's package name and can include a label chosen by that app. The list of apps you allow is saved as a setting.</li>
+      <li><b>Search box.</b> What you type in the app drawer is matched on the phone against your apps, their shortcuts, your settings and, if enabled, your contacts. It is not saved unless you turn on Search history (optional), which keeps your last 5 searches and app launches. Searches that lead to a call stay out of it. Turning it off erases it.</li>
+      <li><b>Lock gesture (optional).</b> Parem's accessibility service only receives taps inside Parem and ignores all of them except its own invisible lock area. It cannot read your screen or see other apps. The optional device admin fallback uses only the power to lock the screen. Neither collects anything.</li>
+      <li><b>Grayscale (optional).</b> Parem can switch Android's color filter after you give it a one-time permission from a computer, through our setup page or an adb command. That is the only route in the Google Play version. Versions from GitHub, F-Droid and IzzyOnDroid can also do this on the phone: you type a pairing code into a notification. Parem uses the code once to talk to the phone's own debugging service and does not save it. To find that service, those versions send a standard discovery request on your local Wi-Fi. The request contains no personal data, and Parem connects only to the phone itself.</li>
+      <li><b>Alarms, timers and events.</b> When you type something like "alarm 7:30", Parem passes the details to your Clock or Calendar app on the phone.</li>
+      <li><b>Technical logs.</b> Like most apps, Parem writes errors to Android's log on the phone, and these can name an app involved. Parem does not send this log anywhere.</li>
+    </ul>
+
+    <h2 id="never">3. What never leaves your phone</h2>
+    <p>Parem only connects to the internet for the features in <a href="#services">section 4</a>. None of those connections carry:</p>
+    <ul>
+      <li>your contacts</li>
+      <li>your list of apps, which apps you use, or your screen time</li>
+      <li>notification titles or text</li>
+      <li>what you type in the search box, unless you start a web search</li>
+      <li>your search history</li>
+      <li>your actual location: Parem has no location permission and never asks Android where you are</li>
+      <li>an advertising ID, or any account or ID for you or your phone</li>
+    </ul>
+    <p>Android's cloud backup does not copy any of this either: Parem stays out of it (see <a href="#backup">section 5</a>).</p>
+
+    <h2 id="services">4. Outside services Parem contacts, and why</h2>
+    <p>Parem connects to the internet only for the features below, always over HTTPS. Every connection shows the service your IP address and the time. Android's standard connection header also shows your Android version and phone model. Parem adds nothing beyond what is listed here. Each service decides how to handle this data under its own privacy statement.</p>
+
+    <h3>Weather: Open-Meteo (off by default)</h3>
+    <p>You turn weather on in Settings &gt; Appearance &gt; Weather by searching for a city. To show the temperature, Parem needs a forecast for that place.</p>
+    <ul>
+      <li><b>While you search:</b> the text you type, from two letters on, goes to <code>geocoding-api.open-meteo.com</code>.</li>
+      <li><b>While weather is on:</b> the coordinates of the place you picked go to <code>api.open-meteo.com</code> about once an hour, when you return to the home screen, and sooner if a request fails. Before sending, Parem limits latitude to between −84 and 84 degrees and rounds both coordinates to the nearest 0.05 degrees (for example 59.45, 24.75 for Tallinn). For a place beyond 84 degrees north or south, the forecast uses the limited latitude instead of the place’s actual latitude. In Estonia that is an area of about 16 km² around the place you picked, which can be a large city or a small village. They do not come from your phone's location.</li>
+      <li><b>Who receives it:</b> OpenMeteo GmbH, Switzerland, which acts as an independent controller. Its terms say it may collect IP addresses for technical reasons, keeps web server logs that may contain coordinates, and deletes those logs after 90 days. See <a href="https://open-meteo.com/en/terms">Open-Meteo's terms and privacy</a>.</li>
+    </ul>
+    <p>Turning weather off stops these requests and erases the saved temperature. It also erases the place from the phone, unless your theme follows sunrise and sunset (see <a href="#retention">section 7</a>).</p>
+
+    <h3>Currency rates: European Central Bank</h3>
+    <p>This has no on/off switch. It happens only when you type a currency conversion in the app drawer, such as <code>10 eur in usd</code>, and Parem's saved rates are more than a day old. Parem then downloads the public daily rates file from <code>www.ecb.europa.eu</code> and does the calculation on the phone. The address is the same for everyone and contains nothing you typed, so the ECB receives only the connection details described above. If you never type a conversion, this never happens.</p>
+    <p>The ECB's <a href="https://www.ecb.europa.eu/services/data-protection/privacy-statements/html/ecb.privacy_statement_website.en.html">privacy statement</a> says its server logs can include IP addresses and that a security provider, Myra Security GmbH, also handles IP addresses.</p>
+
+    <h3>Daily wallpaper: GitHub and image hosts (off by default)</h3>
+    <p>If you turn on Settings &gt; Appearance &gt; Daily new wallpaper, Parem checks about every 8 hours, as long as it is your default home app, the phone is online and the battery is not low. It downloads a public list of pictures from <code>pilves.github.io</code> (<a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Pages</a>), then downloads today's picture from the address in that list. The list address is fixed. Which picture is fetched depends on your light or dark theme and, for the first 10 days, how long Parem has been installed; after that it depends on the date. An image host could infer the install age during those first 10 days.</p>
+    <p>We publish this list ourselves in Parem's public repository, so it changes only when we change it. On 5 November 2026 nearly all pictures came from <code>images.unsplash.com</code> (<a href="https://unsplash.com/privacy">Unsplash</a>), and a few from <code>images.pexels.com</code> (<a href="https://www.pexels.com/privacy-policy/">Pexels</a>), <code>i.redd.it</code> (<a href="https://www.reddit.com/policies/privacy-policy">Reddit</a>) and <code>images2.imgbox.com</code> (imgbox). If the list cannot be loaded, Parem uses a fixed Unsplash picture.</p>
+
+    <h3>Web searches and links: your browser or search app</h3>
+    <p>Parem does not contact these itself. When you press Enter or tap a link, it hands the request to another app on your phone, and that app connects under its own terms.</p>
+    <ul>
+      <li>A search starting with a space: your text goes to <a href="https://policies.google.com/privacy">Google</a> through your browser.</li>
+      <li>A search starting with <code>!</code>: your text goes to <a href="https://duckduckgo.com/privacy">DuckDuckGo</a> through your browser.</li>
+      <li>Enter with no matching app: your text goes to whichever app handles web search on your phone.</li>
+      <li>Website shortcuts, the link to Parem's GitHub project and the wallpaper source link open in your browser.</li>
+    </ul>
+
+    <h3>Crash reports: only if you send one (off by default)</h3>
+    <p>If you turn on Settings &gt; Parem Launcher &gt; Crash reports, Parem saves a report on the phone when something goes wrong. A report holds the error details, Parem's version, the Android version, the phone's maker and model, the name of the app's internal process thread and the time. The error text can sometimes name an app or web address involved. It does not include your settings, contacts or app list.</p>
+    <p>The next time Parem starts, it offers the report with three choices: Send, Copy or Discard. Send opens Android's share menu, where you pick the app and the recipient, so you can read the report first. All three remove the saved report, and so does turning the setting off. Parem never sends a report by itself. If you send one to us, we use it only to fix the problem.</p>
+
+    <h3>This website: GitHub Pages</h3>
+    <p>This page and Parem's grayscale setup page are hosted on GitHub Pages, so <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub</a> receives your IP address and browser details when you open them. We add no cookies or analytics. The setup page runs in your browser and sends nothing to us.</p>
+
+    <h3>Services outside the EU</h3>
+    <p>Some of these services are based or process data outside the EU and EEA, for example Open-Meteo in Switzerland and GitHub in the United States. Your phone connects to them directly, and we send them nothing ourselves. Their privacy statements explain how they protect data.</p>
+
+    <h2 id="backup">5. Android backup, Google Play and exported files</h2>
+    <h3>Android backup and device transfer</h3>
+    <p>Parem stays out of Android's cloud backup, so its settings, screen time and open counts are not copied to your Google account. To keep your setup, use Export settings below. Parem can't control other backup tools on your phone, which may work differently.</p>
+    <p>On Android 12 and later, a phone-to-phone transfer that you start can move Parem's settings file directly to your new phone. We cannot see that transfer. On Android 10 and 11 Parem stays out of it.</p>
+    <p>That file includes your home screen, hidden and renamed apps, folders, website shortcuts, gestures, limits, focus lists and allowed notification apps, the weather place and its coordinates, today's per-app screen time and today's open counts.</p>
+    <p>Parem keeps search history and hidden-notification keys out of device transfers. Crash reports are stored where neither reaches. Contacts and notification text are never saved, so they cannot be included.</p>
+    <p>If you transfer to a new phone or import an exported file, your on/off choices come back too, including weather, daily wallpaper, crash reports and search history. Weather requests can therefore start again on that phone without you turning them on. Contact search still needs Android's contacts permission, and the notification filter is not restored.</p>
+
+    <h3>Google Play</h3>
+    <p>If you install Parem from Google Play, Google handles the download and updates under its own <a href="https://policies.google.com/privacy">privacy policy</a>. If you allow your phone to share usage and diagnostics data with Google, Android can also report Parem's crashes and freezes to Google. This is separate from Parem's Crash reports setting, and that setting does not control it. We see these as technical reports in Google Play Console and use them only to find and fix bugs. If you install Parem from another source, this part does not apply.</p>
+
+    <h3>Exported settings</h3>
+    <p>Export settings saves <code>parem_settings.json</code> to your Downloads folder. It stays on your phone unless you move it. It is plain text and contains most of your settings, including the weather place. It leaves out widgets, screen time, open counts, cached weather and currency data, and search history. Anyone or any app with access to your Downloads folder can read it.</p>
+
+    <h2 id="legal">6. Legal basis</h2>
+    <p>We rely on two legal bases in Article 6 of the GDPR.</p>
+    <ul>
+      <li><b>Your consent (Article 6(1)(a))</b> for the optional features you turn on yourself: weather, daily wallpaper, screen time, contact search, notification hiding, search history and crash reports. You can withdraw consent at any time by turning the feature off or removing its permission in Android. That stops the processing from then on, and does not affect what already happened.</li>
+      <li><b>Legitimate interests (Article 6(1)(f))</b> for the rest: listing your apps and counting opens so the launcher works, the connection details in a currency-rate download, passing searches and links to your browser when you ask, letting a phone-to-phone transfer you start carry your settings, hosting this website, and using crash data and messages to fix bugs and answer you. Our interest is making the app work and supporting it with as little data as possible. You can object at any time (see <a href="#rights">section 9</a>).</li>
+    </ul>
+    <p>You never have to give us any data. If you skip an optional feature, the rest of Parem still works. We do not sell data, use it for advertising, build profiles, or make automated decisions about you.</p>
+
+    <h2 id="retention">7. How long data is kept</h2>
+    <ul>
+      <li><b>Settings on your phone,</b> including today's screen time and open counts: until replaced, or until you clear Parem's storage or uninstall.</li>
+      <li><b>Weather place:</b> kept while weather is on or while the sunrise and sunset theme uses it, which is calculated on the phone. Otherwise Parem erases it when you turn weather off.</li>
+      <li><b>Contacts:</b> in memory only, while the app drawer is in use.</li>
+      <li><b>Hidden-notification keys:</b> removed when you open the notification or dismiss the quiet list, or otherwise the next time Parem checks the list and finds the notification gone. If you turn the filter off and keep waiting notifications, the keys stay until you turn it on again or clear Parem's storage.</li>
+      <li><b>Search history:</b> the last 5 entries, until you clear it or turn it off.</li>
+      <li><b>Crash report:</b> until you choose Send, Copy or Discard the next time Parem starts, or turn the setting off.</li>
+      <li><b>Emails and reports you send us:</b> only as long as we need them to deal with your message, then we delete them.</li>
+      <li><b>Outside services:</b> Open-Meteo says it deletes log files after 90 days. The ECB says it deletes server logs after ten months at most, and gives 14 months as its overall limit for personal data. Other services set their own periods.</li>
+    </ul>
+
+    <h2 id="security">8. Security</h2>
+    <p>All of Parem's connections use HTTPS, and Android blocks unencrypted ones. Parem's data sits in its private app storage, which Android keeps away from other apps. Parem does not add its own encryption on top, so your screen lock is what protects the phone. The exported settings file is not encrypted. Parem handles no passwords or payment details.</p>
+
+    <h2 id="rights">9. Your rights</h2>
+    <p>Under the GDPR you can ask to access your personal data, correct it, delete it, restrict how it is used, object to how it is used and receive it in a portable form. You can also withdraw consent at any time.</p>
+    <p>Data on your phone is already in your hands: you can view, change, export and delete it in Parem and in Android. Because Parem has no accounts and sends us nothing, the only data we can link to you is what you have sent us, such as an email or a crash report. To use your rights for that data, write to info@chaidla.ee. We reply within one month. For data held by an outside service, contact that service.</p>
+    <p>You can complain to a data protection authority at any time. In Estonia that is the <b>Andmekaitse Inspektsioon</b> (Estonian Data Protection Inspectorate), Tatari 39, 10134 Tallinn, Estonia, <a href="mailto:info@aki.ee">info@aki.ee</a>, <a href="https://www.aki.ee/en">www.aki.ee</a>. It takes complaints in Estonian. If you live or work in another EU or EEA country, you can also go to <a href="https://www.edpb.europa.eu/about-edpb/our-members_en">your local authority</a>.</p>
+
+    <h2 id="children">10. Children</h2>
+    <p>Parem is a general-purpose tool and is not aimed at children under 13. We do not knowingly receive data from children. The optional features in <a href="#services">section 4</a> rely on consent, so anyone under 13 should ask a parent or guardian before turning them on. If you think a child has sent us personal data, write to us and we will delete it.</p>
+
+    <h2 id="changes">11. Changes to this policy</h2>
+    <p>If a new version of Parem changes what data it handles, we update this page and the date at the top before that version is released, and mention significant changes in the release notes. Earlier versions of this page are in the project's <a href="https://github.com/Pilves/parem-launcher/commits/master/web/privacy.html">public history</a>.</p>
+
+    <h2 id="contact">12. Contact</h2>
+    <p>Patrick<br>Estonia<br><a href="mailto:info@chaidla.ee">info@chaidla.ee</a></p>
+  </main>
+</body>
+</html>
