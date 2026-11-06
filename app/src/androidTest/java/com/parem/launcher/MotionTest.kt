@@ -72,10 +72,14 @@ class MotionTest {
                 Thread.sleep(250)
                 scenario.onActivity { assertEquals(.97f, content.scaleX, .01f); assertEquals(1f, row.scaleX, 0f) }
                 device.executeShellCommand("settings put global animator_duration_scale 0")
-                Thread.sleep(300)
-                scenario.onActivity { row.isPressed = false; row.isPressed = true }
-                Thread.sleep(250)
-                scenario.onActivity { assertEquals(1f, content.scaleX, .001f); assertEquals(1f, row.scaleX, 0f) }
+                val deadline = System.currentTimeMillis() + 5_000
+                var scale = 0f
+                while (System.currentTimeMillis() < deadline && scale != 1f) {
+                    scenario.onActivity { scale = content.scaleX }
+                    if (scale != 1f) Thread.sleep(50)
+                }
+                assertEquals(1f, scale, 0f)
+                scenario.onActivity { assertEquals(1f, row.scaleX, 0f) }
             }
         } finally {
             originals.forEach { (name, value) ->

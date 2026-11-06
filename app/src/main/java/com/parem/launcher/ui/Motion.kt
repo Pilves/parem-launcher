@@ -86,6 +86,32 @@ internal object Motion {
                 addState(intArrayOf(android.R.attr.state_enabled, android.R.attr.state_pressed), scale(.97f))
                 addState(intArrayOf(), scale(1f))
             }
+            val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+                override fun onChange(selfChange: Boolean) {
+                    if (content.context.skipAnimations()) {
+                        content.stateListAnimator?.jumpToCurrentState()
+                        content.scaleX = 1f
+                        content.scaleY = 1f
+                    }
+                }
+            }
+            var observing = false
+            fun register() {
+                if (observing) return
+                listOf(Settings.Global.WINDOW_ANIMATION_SCALE, Settings.Global.TRANSITION_ANIMATION_SCALE,
+                    Settings.Global.ANIMATOR_DURATION_SCALE).forEach {
+                    content.context.contentResolver.registerContentObserver(Settings.Global.getUriFor(it), false, observer)
+                }
+                observing = true
+            }
+            content.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) = register()
+                override fun onViewDetachedFromWindow(v: View) {
+                    if (observing) content.context.contentResolver.unregisterContentObserver(observer)
+                    observing = false
+                }
+            })
+            if (content.isAttachedToWindow) register()
         }
     }
 
