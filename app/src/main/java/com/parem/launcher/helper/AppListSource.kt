@@ -121,11 +121,7 @@ private fun queryRawApps(context: Context): Pair<List<AppListRebuilder.RawApp<Us
                 complete = false
                 continue
             }
-            if (userManager.isQuietModeEnabled(profile)) {
-                if (isPrivate) continue
-                // Quiet work profiles may omit their apps; do not trust this as a complete search guard.
-                complete = false
-            }
+            if (AppListRebuilder.skipQuietProfile(isPrivate, userManager.isQuietModeEnabled(profile))) continue
             for (app in launcherApps.getActivityList(null, profile)) {
                 val label = app.label.toString()
                 // RuleBasedCollator is not thread-safe, and two callers (e.g. the

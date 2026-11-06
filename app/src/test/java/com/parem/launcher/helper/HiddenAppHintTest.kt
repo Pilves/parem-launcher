@@ -1,5 +1,6 @@
 package com.parem.launcher.helper
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -36,6 +37,27 @@ class HiddenAppHintTest {
         val changed = load.begin(setOf("old", "new"))
         load.complete(changed, setOf("old", "new", "other"), listOf("Old", "New"))
         assertFalse(HiddenAppHint.canSearchWeb("Other", load.labels))
+    }
+
+    @Test
+    fun lockedPrivateSpaceUsesNeutralTipForBlockedHiddenMatch() {
+        assertEquals(HiddenAppHint.EmptyTip.NO_APPS,
+            HiddenAppHint.emptyTip("Tinder", privateSpaceLocked = true, hiddenLabels = hidden))
+        assertFalse(HiddenAppHint.canSearchWeb("Tinder", hidden))
+        assertEquals(HiddenAppHint.EmptyTip.HIDDEN_APPS,
+            HiddenAppHint.emptyTip("Tinder", privateSpaceLocked = false, hiddenLabels = hidden))
+        assertEquals(HiddenAppHint.EmptyTip.SEARCH,
+            HiddenAppHint.emptyTip("weather", privateSpaceLocked = true, hiddenLabels = hidden))
+    }
+
+    @Test
+    fun emptyHiddenKeysStaySearchableAcrossPackageChanges() {
+        val load = HiddenLabelLoad()
+        load.begin(emptySet(), 10)
+        assertEquals(emptyList<String>(), load.labelsFor(emptySet(), 11))
+        assertTrue(HiddenAppHint.canSearchWeb("weather", load.labelsFor(emptySet(), 11)))
+        load.begin(setOf("hidden.package"), 11)
+        assertEquals(emptyList<String>(), load.labelsFor(emptySet(), 12))
     }
 
     @Test

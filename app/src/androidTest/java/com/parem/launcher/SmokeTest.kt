@@ -11,6 +11,8 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.widget.EditText
 import android.widget.ScrollView
+import androidx.core.os.bundleOf
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -30,6 +32,7 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
+import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.formattedTimeSpent
@@ -116,6 +119,54 @@ class SmokeTest {
             manager.cancelWorkById(request.id).result.get()
             manager.cancelUniqueWork(Constants.WALLPAPER_WORKER_NAME).result.get()
         }
+    }
+
+    @Test
+    fun hiddenDrawerKeepsQueryWhenItsAppListReloads() {
+        val alpha = AppModel("Alpha Fixture", null, "fixture.alpha", null, false, android.os.Process.myUserHandle())
+        val beta = AppModel("Beta Fixture", null, "fixture.beta", null, false, android.os.Process.myUserHandle())
+        lateinit var model: MainViewModel
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            model = ViewModelProvider(activity)[MainViewModel::class.java]
+            model.hiddenApps.value = listOf(alpha, beta)
+            activity.findNavController(R.id.nav_host_fragment).navigate(
+                R.id.appListFragment, bundleOf(Constants.Key.FLAG to Constants.FLAG_HIDDEN_APPS))
+        }
+        val field = device.wait(Until.findObject(By.res(
+            context.resources.getResourceName(androidx.appcompat.R.id.search_src_text))), TIMEOUT)
+        assertNotNull("hidden drawer search missing", field)
+        field.text = "Alpha Fixture"
+        assertTrue("filtered hidden app missing", device.wait(Until.hasObject(By.text("Alpha Fixture")), TIMEOUT))
+        instrumentation.runOnMainSync { model.hiddenApps.value = listOf(beta) }
+        assertTrue("reloaded hidden drawer did not reapply query", device.wait(
+            Until.hasObject(By.text(context.getString(R.string.no_apps_found))), TIMEOUT))
+        assertFalse("unrelated app shown after reload", device.hasObject(By.text("Beta Fixture")))
+    }
+
+    @Test
+    fun pickerEnterWaitsForTheMatchingResults() {
+        val fixture = AppModel("Alpha Fixture", null, "com.android.settings", null, false, android.os.Process.myUserHandle())
+        lateinit var model: MainViewModel
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            model = ViewModelProvider(activity)[MainViewModel::class.java]
+            activity.findNavController(R.id.nav_host_fragment).navigate(
+                R.id.appListFragment, bundleOf(Constants.Key.FLAG to Constants.FLAG_SET_HOME_APP_1))
+            model.appList.value = listOf(fixture)
+        }
+        assertTrue("picker fixture missing", device.wait(Until.hasObject(By.text("Alpha Fixture")), TIMEOUT))
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            activity.findViewById<SearchView>(R.id.search).setQuery("Alpha Fixture", true)
+        }
+        val deadline = SystemClock.elapsedRealtime() + TIMEOUT
+        while (Prefs(context).getHomeAppPackage(1) != "com.android.settings" && SystemClock.elapsedRealtime() < deadline)
+            SystemClock.sleep(100)
+        assertEquals("immediate Enter was lost", "com.android.settings", Prefs(context).getHomeAppPackage(1))
     }
 
     @Test

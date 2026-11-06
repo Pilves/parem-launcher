@@ -8,6 +8,13 @@ import java.text.Collator
 
 class AppListRebuilderTest {
 
+    @Test
+    fun quietWorkProfileRemainsQueryableWhileQuietPrivateProfileIsSkipped() {
+        assertFalse(AppListRebuilder.skipQuietProfile(isPrivate = false, isQuiet = true))
+        assertTrue(AppListRebuilder.skipQuietProfile(isPrivate = true, isQuiet = true))
+        assertFalse(AppListRebuilder.skipQuietProfile(isPrivate = true, isQuiet = false))
+    }
+
     private val collator = Collator.getInstance()
 
     private fun raw(

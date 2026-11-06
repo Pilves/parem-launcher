@@ -15,6 +15,9 @@ import java.text.CollationKey
  */
 object AppListRebuilder {
 
+    /** A quiet private profile is skipped; a quiet work profile may return no apps. */
+    fun skipQuietProfile(isPrivate: Boolean, isQuiet: Boolean): Boolean = isPrivate && isQuiet
+
     /** The hidden-apps set entry for one app in one profile: `package|userString`. */
     fun hiddenKey(packageName: String, userString: String): String = "$packageName|$userString"
 

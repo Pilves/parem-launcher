@@ -169,6 +169,8 @@
     <string name="import_settings_confirm">This will overwrite your current settings. Continue?</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
+    <string name="checking_hidden_apps" translatable="false">Checking hidden apps…</string>
+    <string name="hidden_apps_check_failed" translatable="false">Couldn’t check hidden apps. Try again.</string>
     <string name="no_apps_found">No apps found</string>
 
     <!-- Folders -->

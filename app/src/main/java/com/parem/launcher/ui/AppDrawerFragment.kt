@@ -96,6 +96,7 @@ class AppDrawerFragment : BaseFragment() {
     private val hiddenLabels = HiddenLabelLoad()
     private var hiddenLabelsLoading = false
     private var hiddenHintShown = false
+    private var pendingSubmit: String? = null
 
     // At most one ECB rates fetch per drawer session, started by the first
     // currency query; the in-flight flag picks the CurrencyNoRates tip.
@@ -237,11 +238,16 @@ class AppDrawerFragment : BaseFragment() {
                 val q = query ?: ""
                 // Filtering and list diffs finish asynchronously; old rows must never handle Enter.
                 if ((omniboxMode == OmniboxMode.None || omniboxMode is OmniboxMode.Setting) &&
-                    !adapter.isQueryReady(q)) return true
+                    !adapter.isQueryReady(q)) {
+                    pendingSubmit = q
+                    return true
+                }
                 if (flag == Constants.FLAG_LAUNCH_APP && omniboxMode == OmniboxMode.None &&
                     (q.startsWith("!") || adapter.itemCount == 0) && currentHiddenLabels() == null) {
                     // A failed, incomplete or stale lookup stays closed; Enter retries it.
+                    pendingSubmit = q
                     if (!hiddenLabelsLoading || hiddenLabels.isStale(prefs.hiddenApps, PackageChangeTracker.stamp())) loadHiddenLabels()
+                    if (pendingSubmit != null) ctx.showToast(getString(R.string.checking_hidden_apps))
                     return true
                 }
                 // Calls stay out of history (a number or contact name is not a
@@ -281,6 +287,7 @@ class AppDrawerFragment : BaseFragment() {
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
+                if (pendingSubmit != newText) pendingSubmit = null
                 _binding?.appRename?.visibility = if (canRename && newText.isNotBlank()) View.VISIBLE else View.GONE
                 updateOmniboxState(newText)
                 refreshRecent()
@@ -333,14 +340,18 @@ class AppDrawerFragment : BaseFragment() {
         val b = _binding ?: return
         if (omniboxMode != OmniboxMode.None) return
         val query = b.search.query.toString()
-        hiddenHintShown = flag == Constants.FLAG_LAUNCH_APP &&
-            HiddenAppHint.show(query, adapter.itemCount, isPrivateSpaceLocked(), currentHiddenLabels().orEmpty())
+        val emptyTip = if (flag == Constants.FLAG_LAUNCH_APP)
+            HiddenAppHint.emptyTip(query, isPrivateSpaceLocked(), currentHiddenLabels())
+        else HiddenAppHint.EmptyTip.NO_APPS
+        hiddenHintShown = flag == Constants.FLAG_LAUNCH_APP && adapter.itemCount == 0 &&
+            emptyTip == HiddenAppHint.EmptyTip.HIDDEN_APPS
         // Picker drawers only pick an app, so a tip there must not promise a search
         val searches = flag == Constants.FLAG_LAUNCH_APP
         val bang = searches && query.startsWith("!") && query.length > 1
         if (bang || (adapter.itemCount == 0 && query.isNotBlank())) {
             b.appDrawerTip.text = when {
                 hiddenHintShown -> getString(R.string.hidden_apps_hint)
+                searches && !HiddenAppHint.canSearchWeb(query, currentHiddenLabels()) -> getString(R.string.no_apps_found)
                 bang -> getString(R.string.duck_search_hint, query)
                 searches -> getString(R.string.web_search_hint, query.trim())
                 else -> getString(R.string.no_apps_found)
@@ -367,7 +378,10 @@ class AppDrawerFragment : BaseFragment() {
         val packageStamp = PackageChangeTracker.stamp()
         val generation = hiddenLabels.begin(hiddenKeys, packageStamp)
         hiddenLabelsLoading = hiddenKeys.isNotEmpty()
-        if (hiddenKeys.isEmpty()) return
+        if (hiddenKeys.isEmpty()) {
+            resumePendingSubmit()
+            return
+        }
         val appContext = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
             val apps = getHiddenAppsForSearch(appContext, prefs)
@@ -379,7 +393,19 @@ class AppDrawerFragment : BaseFragment() {
             hiddenLabels.complete(generation, prefs.hiddenApps, apps?.map { it.appLabel }, PackageChangeTracker.stamp())
             hiddenLabelsLoading = false
             if (binding.search.query.isNotBlank()) refreshEmptyResultTip()
+            if (pendingSubmit != null && apps == null) {
+                pendingSubmit = null
+                requireContext().showToast(getString(R.string.hidden_apps_check_failed))
+            } else resumePendingSubmit()
         }
+    }
+
+    private fun resumePendingSubmit() {
+        val b = _binding ?: return
+        val query = pendingSubmit ?: return
+        if (!isAdded || b.search.query.toString() != query || !adapter.isQueryReady(query)) return
+        pendingSubmit = null
+        b.search.setQuery(query, true)
     }
 
     /** Locked means a private profile exists and is in quiet mode; no profile is not locked. */
@@ -490,7 +516,10 @@ class AppDrawerFragment : BaseFragment() {
             }
         )
         adapter.onFilterCommitted = { query ->
-            if (_binding?.search?.query?.toString() == query) refreshEmptyResultTip()
+            if (_binding?.search?.query?.toString() == query) {
+                refreshEmptyResultTip()
+                resumePendingSubmit()
+            }
         }
         adapter.showIcons = prefs.showIcons
         adapter.iconPackPackage = prefs.iconPackPackage
@@ -572,6 +601,7 @@ class AppDrawerFragment : BaseFragment() {
             viewModel.hiddenApps.observe(viewLifecycleOwner) {
                 it?.let {
                     adapter.setAppList(it.toMutableList())
+                    if (binding.search.query.isNotBlank()) adapter.filter.filter(binding.search.query)
                 }
             }
         } else {
@@ -607,7 +637,8 @@ class AppDrawerFragment : BaseFragment() {
 
     private fun tipRepeatsEnter(): Boolean = when (omniboxMode) {
         is OmniboxMode.Dial, OmniboxMode.WebSearch -> true
-        OmniboxMode.None -> !hiddenHintShown && flag == Constants.FLAG_LAUNCH_APP && binding.search.query.isNotBlank()
+        OmniboxMode.None -> !hiddenHintShown && flag == Constants.FLAG_LAUNCH_APP &&
+            binding.search.query.isNotBlank() && HiddenAppHint.canSearchWeb(binding.search.query.toString(), currentHiddenLabels())
         else -> false
     }
 
@@ -801,6 +832,7 @@ class AppDrawerFragment : BaseFragment() {
     override fun onDestroyView() {
         scrollListener?.let { binding.recyclerView.removeOnScrollListener(it) }
         scrollListener = null
+        pendingSubmit = null
         searchTextView = null
         super.onDestroyView()
         _binding = null

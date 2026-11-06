@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Keep drawer Enter responsive while results load and keep hidden-app search tips consistent.
+
 - Wait for the current drawer search results before handling Enter.
 
 - Keep picker and hidden-app searches off the web, and limit weather latitude to 84 degrees before rounding.

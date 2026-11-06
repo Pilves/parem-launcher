@@ -6,6 +6,14 @@ package com.parem.launcher.helper
  */
 object HiddenAppHint {
 
+    enum class EmptyTip { HIDDEN_APPS, SEARCH, NO_APPS }
+
+    fun emptyTip(query: String, privateSpaceLocked: Boolean, hiddenLabels: List<String>?): EmptyTip = when {
+        show(query, 0, privateSpaceLocked, hiddenLabels.orEmpty()) -> EmptyTip.HIDDEN_APPS
+        canSearchWeb(query, hiddenLabels) -> EmptyTip.SEARCH
+        else -> EmptyTip.NO_APPS
+    }
+
     /** Fail closed until hidden labels are loaded; never rely on an asynchronous tip for privacy. */
     fun canSearchWeb(query: String, hiddenLabels: List<String>?): Boolean =
         hiddenLabels != null && !show(query, 0, privateSpaceLocked = false, hiddenLabels = hiddenLabels)
@@ -43,7 +51,7 @@ class HiddenLabelLoad {
         currentKeys != keys || packageStamp != stamp
 
     fun labelsFor(currentKeys: Set<String>, packageStamp: Long): List<String>? =
-        if (isStale(currentKeys, packageStamp)) null else labels
+        if (currentKeys.isEmpty()) emptyList() else if (isStale(currentKeys, packageStamp)) null else labels
 
     fun complete(token: Long, currentKeys: Set<String>, result: List<String>?, packageStamp: Long = 0L) {
         if (isCurrent(token) && !isStale(currentKeys, packageStamp)) labels = result
