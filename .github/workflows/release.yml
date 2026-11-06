@@ -48,6 +48,14 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew bundlePlayRelease
 
+      # The key cannot be replaced, so it is gone before any later step runs, a
+      # third-party action above all. The daemons hold the signing passwords.
+      - name: Remove signing key
+        if: always()
+        run: |
+          ./gradlew --stop || true
+          rm -f "$GITHUB_WORKSPACE/release.keystore"
+
       - name: Rename APK
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
@@ -67,10 +75,11 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      # Pinned to a commit: a tag can be moved. Tagging needs docs/releases/<tag>-notes.md.
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
-          body_path: docs/releases/v6.0.0-beta.2-notes.md
+          body_path: docs/releases/${{ github.ref_name }}-notes.md
           generate_release_notes: false
           prerelease: ${{ contains(github.ref_name, '-') }}
           files: ParemLauncher-*.apk
