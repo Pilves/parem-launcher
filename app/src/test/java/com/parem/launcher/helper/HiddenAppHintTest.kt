@@ -9,6 +9,14 @@ class HiddenAppHintTest {
     private val hidden = listOf("Spotify", "Tinder")
 
     @Test
+    fun searchWaitsForHiddenLabelsAndBlocksMatchesBeforeHintIsUpdated() {
+        assertFalse(HiddenAppHint.canSearchWeb("Tinder", null))
+        assertFalse(HiddenAppHint.canSearchWeb("tind", hidden))
+        assertTrue(HiddenAppHint.canSearchWeb("weather forecast", hidden))
+        assertTrue(HiddenAppHint.canSearchWeb("anything", emptyList()))
+    }
+
+    @Test
     fun hiddenMatchWithNoVisibleRows_shows() {
         assertTrue(HiddenAppHint.show("spot", 0, privateSpaceLocked = false, hiddenLabels = hidden))
         assertTrue(HiddenAppHint.show("Tinder", 0, privateSpaceLocked = false, hiddenLabels = hidden))

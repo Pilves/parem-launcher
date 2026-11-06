@@ -6,6 +6,10 @@ package com.parem.launcher.helper
  */
 object HiddenAppHint {
 
+    /** Fail closed until hidden labels are loaded; never rely on an asynchronous tip for privacy. */
+    fun canSearchWeb(query: String, hiddenLabels: List<String>?): Boolean =
+        hiddenLabels != null && !show(query, 0, privateSpaceLocked = false, hiddenLabels = hiddenLabels)
+
     /**
      * True when [query] found no visible row but would match a hidden app's
      * label. The hint never says which app, and while Private Space is locked

@@ -89,8 +89,8 @@ class AppDrawerFragment : BaseFragment() {
     // Built on the first query; only the launch drawer resolves omnibox modes.
     private var settingsRows: List<SettingsSearch.Row>? = null
 
-    // Labels of installed hidden apps, for the empty-result hint only; never shown
-    private var hiddenLabels: List<String> = emptyList()
+    // Labels protect web searches and drive the empty-result hint; never shown.
+    private var hiddenLabels: List<String>? = null
     private var hiddenHintShown = false
 
     // At most one ECB rates fetch per drawer session, started by the first
@@ -253,9 +253,9 @@ class AppDrawerFragment : BaseFragment() {
                     is OmniboxMode.Setting ->
                         if (adapter.itemCount == 0) openSetting(mode.anchor) else adapter.launchFirstInList()
                     OmniboxMode.None -> when {
-                        flag == Constants.FLAG_LAUNCH_APP && !hiddenHintShown && q.startsWith("!") ->
+                        flag == Constants.FLAG_LAUNCH_APP && !hiddenHintShown && HiddenAppHint.canSearchWeb(q, hiddenLabels) && q.startsWith("!") ->
                             launchUrl(ctx, Constants.URL_DUCK_SEARCH + java.net.URLEncoder.encode(q, "UTF-8"))
-                        flag == Constants.FLAG_LAUNCH_APP && !hiddenHintShown && adapter.itemCount == 0 -> BadHabitDialogs.gateWebOpen(
+                        flag == Constants.FLAG_LAUNCH_APP && !hiddenHintShown && HiddenAppHint.canSearchWeb(q, hiddenLabels) && adapter.itemCount == 0 -> BadHabitDialogs.gateWebOpen(
                             ctx, viewLifecycleOwner.lifecycleScope, { isAdded },
                             Intent(Intent.ACTION_WEB_SEARCH), open = { browser -> ctx.openSearch(q.trim(), browser) },
                         )
@@ -321,7 +321,7 @@ class AppDrawerFragment : BaseFragment() {
         if (omniboxMode != OmniboxMode.None) return
         val query = b.search.query.toString()
         hiddenHintShown = flag == Constants.FLAG_LAUNCH_APP &&
-            HiddenAppHint.show(query, adapter.itemCount, isPrivateSpaceLocked(), hiddenLabels)
+            HiddenAppHint.show(query, adapter.itemCount, isPrivateSpaceLocked(), hiddenLabels.orEmpty())
         // Picker drawers only pick an app, so a tip there must not promise a search
         val searches = flag == Constants.FLAG_LAUNCH_APP
         val bang = searches && query.startsWith("!") && query.length > 1
@@ -438,6 +438,7 @@ class AppDrawerFragment : BaseFragment() {
                         if (isAdded && _binding != null) {
                             reapplyQueryOnReload = false
                             viewModel.getAppList()
+                            if (flag == Constants.FLAG_LAUNCH_APP) hiddenLabels = null
                             viewModel.getHiddenApps()
                         }
                     }
@@ -528,12 +529,16 @@ class AppDrawerFragment : BaseFragment() {
             }
         } else {
             if (flag == Constants.FLAG_LAUNCH_APP) {
+                // Do not use a stale cached list while a fresh hidden-app query is pending.
+                val hasHiddenApps = prefs.hiddenApps.isNotEmpty()
+                hiddenLabels = if (hasHiddenApps) null else emptyList()
+                if (hasHiddenApps) viewModel.hiddenApps.value = null
                 viewModel.hiddenApps.observe(viewLifecycleOwner) { apps ->
-                    hiddenLabels = apps?.map { it.appLabel }.orEmpty()
+                    if (apps != null) hiddenLabels = apps.map { it.appLabel }
                     // Labels may arrive after the user's filter finished.
                     if (_binding?.search?.query?.isNotBlank() == true) refreshEmptyResultTip()
                 }
-                if (prefs.hiddenApps.isNotEmpty()) viewModel.getHiddenApps()
+                if (hasHiddenApps) viewModel.getHiddenApps()
             }
             viewModel.appList.observe(viewLifecycleOwner) {
                 it?.let { appModels ->
