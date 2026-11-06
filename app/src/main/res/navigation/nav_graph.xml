@@ -14,8 +14,8 @@
             android:id="@+id/action_mainFragment_to_appListFragment"
             app:destination="@id/appListFragment"
             app:enterAnim="@anim/fade_enter"
-            app:exitAnim="@anim/slide_out_top"
-            app:popEnterAnim="@anim/slide_in_top"
+            app:exitAnim="@anim/fade_exit"
+            app:popEnterAnim="@anim/fade_enter"
             app:popExitAnim="@anim/fade_exit" />
         <action
             android:id="@+id/action_mainFragment_to_settingsFragment"

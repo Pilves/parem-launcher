@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.doOnAttach
 import com.parem.launcher.MainViewModel
+import com.parem.launcher.ui.Motion
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
@@ -288,15 +289,15 @@ class AppearanceSettingsCard(
         // Taken up front: the dark picker opens later, from the light one's callback
         val owner = fragment.viewLifecycleOwner
         val (lightH, lightM) = parse(ThemeScheduleManager.getLightTime(ctx), 7)
-        TimePickerDialog(ctx, { _, h, m ->
+        Motion.showPopup(TimePickerDialog(ctx, { _, h, m ->
             ThemeScheduleManager.setLightTime(ctx, String.format(Locale.ROOT, "%02d:%02d", h, m))
             val (darkH, darkM) = parse(ThemeScheduleManager.getDarkTime(ctx), 19)
-            TimePickerDialog(ctx, { _, h2, m2 ->
+            Motion.showPopup(TimePickerDialog(ctx, { _, h2, m2 ->
                 ThemeScheduleManager.setDarkTime(ctx, String.format(Locale.ROOT, "%02d:%02d", h2, m2))
                 onDone()
             }, darkH, darkM, true).apply { setTitle(ctx.getString(R.string.dark_theme_from)) }
-                .dismissOnDestroy(owner).show()
+                .dismissOnDestroy(owner))
         }, lightH, lightM, true).apply { setTitle(ctx.getString(R.string.light_theme_from)) }
-            .dismissOnDestroy(owner).show()
+            .dismissOnDestroy(owner))
     }
 }

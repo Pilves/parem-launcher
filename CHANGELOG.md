@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Add quieter transitions and press feedback throughout onboarding, settings and sheets.
+
 - Keep drawer Enter responsive while results load and keep hidden-app search tips consistent.
 
 - Wait for the current drawer search results before handling Enter.

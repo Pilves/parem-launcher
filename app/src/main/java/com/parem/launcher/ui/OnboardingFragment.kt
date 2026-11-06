@@ -55,6 +55,8 @@ class OnboardingFragment : BaseFragment() {
     }
 
     private var showingCalm = false
+    private var calmAnimated = false
+    private var guideAnimated = false
     // The role dialog may stay suppressed after one denial, so the second tap goes to settings
     private var askedForHome = false
     private val rows = mutableListOf<Row>()
@@ -75,6 +77,8 @@ class OnboardingFragment : BaseFragment() {
         prefs = Prefs(requireContext())
         viewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
         askedForHome = savedInstanceState?.getBoolean(KEY_ASKED) ?: false
+        calmAnimated = savedInstanceState?.getBoolean(KEY_CALM_MOTION) ?: false
+        guideAnimated = savedInstanceState?.getBoolean(KEY_GUIDE_MOTION) ?: false
         binding.root.padForSystemBars()
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPress)
@@ -83,6 +87,7 @@ class OnboardingFragment : BaseFragment() {
         binding.btnDone.setOnClickListener { finish() }
         addCalmRows()
         addFeatureGuide()
+        Motion.pressChildren(binding.root)
         setGuideExpanded(savedInstanceState?.getBoolean(KEY_GUIDE) == true)
         binding.featureGuideToggle.setOnClickListener {
             setGuideExpanded(binding.featureGuideRows.visibility != View.VISIBLE)
@@ -102,6 +107,8 @@ class OnboardingFragment : BaseFragment() {
         outState.putBoolean(KEY_CALM, showingCalm)
         outState.putBoolean(KEY_ASKED, askedForHome)
         outState.putBoolean(KEY_GUIDE, binding.featureGuideRows.visibility == View.VISIBLE)
+        outState.putBoolean(KEY_CALM_MOTION, calmAnimated)
+        outState.putBoolean(KEY_GUIDE_MOTION, guideAnimated)
     }
 
     override fun onDestroyView() {
@@ -121,6 +128,10 @@ class OnboardingFragment : BaseFragment() {
         showingCalm = true
         binding.homeScreen.visibility = View.GONE
         binding.calmScreen.visibility = View.VISIBLE
+        if (!calmAnimated) {
+            calmAnimated = true
+            Motion.stagger(rows.map { it.view })
+        }
         refreshRows()
     }
 
@@ -190,6 +201,10 @@ class OnboardingFragment : BaseFragment() {
 
     private fun setGuideExpanded(expanded: Boolean) {
         binding.featureGuideRows.visibility = if (expanded) View.VISIBLE else View.GONE
+        if (expanded && !guideAnimated) {
+            guideAnimated = true
+            Motion.stagger((0 until binding.featureGuideRows.childCount).map { binding.featureGuideRows.getChildAt(it) })
+        }
         ViewCompat.setStateDescription(binding.featureGuideToggle, getString(
             if (expanded) R.string.onboarding_guide_expanded else R.string.onboarding_guide_collapsed
         ))
@@ -308,6 +323,8 @@ class OnboardingFragment : BaseFragment() {
 
     private companion object {
         const val KEY_GUIDE = "onboarding_guide"
+        const val KEY_CALM_MOTION = "onboarding_calm_motion"
+        const val KEY_GUIDE_MOTION = "onboarding_guide_motion"
         const val KEY_CALM = "onboarding_calm"
         const val KEY_ASKED = "onboarding_asked_home"
     }
