@@ -212,6 +212,7 @@ class EventLogWrapper(context: Context) {
             val packageManager = context.packageManager
             foregroundProcesses.forEach { foregroundProcess ->
                 if (UsageEventFilter.mayInferForeground(foregroundProcess, dreamPackages) &&
+                    !guardian.dreamActiveAt(foregroundProcess, queryStart) &&
                     packageManager.getLaunchIntentForPackage(foregroundProcess) != null) {
                     componentForegroundStats.add(
                         ComponentForegroundStat(

@@ -24,4 +24,18 @@ class UsageEventFilterTest {
         assertTrue(UsageEventFilter.mayInferForeground("other.clock", dreamPackages))
         assertTrue(UsageEventFilter.mayInferForeground("com.google.android.deskclock", emptySet()))
     }
+
+    @Test
+    fun lastActivityClassDistinguishesDreamFromNormalClockUse() {
+        val dream = "android.service.dreams.DreamActivity"
+        val clock = "com.android.deskclock.DeskClock"
+        var active = UsageEventFilter.dreamActiveAfter(false, dream, opening = true)
+        assertTrue(active) // dream started before an otherwise event-free query
+        active = UsageEventFilter.dreamActiveAfter(active, clock, opening = true)
+        assertFalse(active) // normal Clock resumed after the dream
+        active = UsageEventFilter.dreamActiveAfter(active, dream, opening = true)
+        assertTrue(active)
+        active = UsageEventFilter.dreamActiveAfter(active, dream, opening = false)
+        assertFalse(active)
+    }
 }

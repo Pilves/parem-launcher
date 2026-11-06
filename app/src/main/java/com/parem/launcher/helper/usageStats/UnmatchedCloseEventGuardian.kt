@@ -22,21 +22,20 @@ class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManag
     // Multiple test() calls within the same getForegroundStatsByTimestamps invocation
     // share the same queryStart, so this eliminates 3-10x redundant queries.
     private var cachedQueryStart: Long = -1L
-    private var cachedEvents: List<Triple<Int, String, Long>>? = null
+    private data class Event(val type: Int, val packageName: String?, val className: String?, val timestamp: Long)
+    private var cachedEvents: List<Event>? = null
 
     /**
-     * Query events from the system and parse them into a lightweight list of triples
-     * (eventType, packageName, timestamp) that can be replayed per-package.
+     * Parse the lookback once for unmatched closes and event-free fallback checks.
      */
-    private fun queryAndParseEvents(queryStart: Long): List<Triple<Int, String, Long>> {
-        val usageEvents = usageStatsManager.queryEvents(queryStart - SCAN_INTERVAL, queryStart)
-        val result = mutableListOf<Triple<Int, String, Long>>()
+    private fun queryAndParseEvents(queryStart: Long): List<Event>? {
+        val usageEvents = usageStatsManager.queryEvents(queryStart - SCAN_INTERVAL, queryStart) ?: return null
+        val result = mutableListOf<Event>()
         val e = UsageEvents.Event()
 
         while (usageEvents.hasNextEvent()) {
             usageEvents.getNextEvent(e)
-            if (UsageEventFilter.isDream(e.className)) continue
-            result.add(Triple(e.eventType, e.packageName, e.timeStamp))
+            result.add(Event(e.eventType, e.packageName, e.className, e.timeStamp))
         }
 
         return result
@@ -52,19 +51,13 @@ class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManag
     @Synchronized
     fun test(event: UsageEvents.Event, queryStart: Long): Boolean {
         if (UsageEventFilter.isDream(event.className)) return false
-        val events = if (queryStart == cachedQueryStart && cachedEvents != null) {
-            cachedEvents!!
-        } else {
-            val queried = queryAndParseEvents(queryStart)
-            cachedQueryStart = queryStart
-            cachedEvents = queried
-            queried
-        }
+        val events = eventsBefore(queryStart) ?: return false
 
         // Track whether the package is currently in foreground or background
         var open = false // Not open until opened
 
-        for ((eventType, packageName, timestamp) in events) {
+        for ((eventType, packageName, className, timestamp) in events) {
+            if (UsageEventFilter.isDream(className)) continue
             if (eventType == UsageEvents.Event.DEVICE_STARTUP) {
                 // Consider all apps closed after startup according to docs
                 open = false
@@ -73,26 +66,42 @@ class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManag
             // Only consider events concerning our package otherwise
             if (event.packageName == packageName) {
                 when (eventType) {
-                    // see EventLogWrapper
-                    UsageEvents.Event.ACTIVITY_RESUMED, 4 -> {
-                        open = true
-                    }
+                    UsageEvents.Event.ACTIVITY_RESUMED, 4 -> open = true
                     UsageEvents.Event.ACTIVITY_PAUSED,
                     UsageEvents.Event.ACTIVITY_STOPPED,
-                    3 -> {
-                        if (timestamp != event.timeStamp) {
-                            // Don't flip to 'false' if we're looking at the original event itself
-                            open = false
-                        }
-                    }
+                    3 -> if (timestamp != event.timeStamp) open = false
                 }
             }
         }
 
         val result = if (open) "True" else "Faulty"
         Log.d("Guardian", "Scanned for package ${event.packageName} and determined event to be $result")
-
-        // Event is valid if it was previously opened (within SCAN_INTERVAL)
         return open
     }
+
+    /** Exclude an already-running dream from the event-free foreground fallback. */
+    @Synchronized
+    fun dreamActiveAt(packageName: String, queryStart: Long): Boolean {
+        var dream = false
+        for ((type, pkg, className) in eventsBefore(queryStart) ?: return true) {
+            if (type == UsageEvents.Event.DEVICE_STARTUP) dream = false
+            if (pkg != packageName) continue
+            when (type) {
+                UsageEvents.Event.ACTIVITY_RESUMED, 4 -> dream = UsageEventFilter.dreamActiveAfter(dream, className, true)
+                UsageEvents.Event.ACTIVITY_PAUSED, UsageEvents.Event.ACTIVITY_STOPPED, 3 ->
+                    dream = UsageEventFilter.dreamActiveAfter(dream, className, false)
+            }
+        }
+        return dream
+    }
+
+    private fun eventsBefore(queryStart: Long): List<Event>? =
+        if (queryStart == cachedQueryStart && cachedEvents != null) {
+            cachedEvents!!
+        } else {
+            val queried = queryAndParseEvents(queryStart)
+            cachedQueryStart = queryStart
+            cachedEvents = queried
+            queried
+        }
 }
