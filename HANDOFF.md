@@ -4,7 +4,7 @@ Current state only. History is `git log`, `CHANGELOG.md` and
 `docs/archive/TODO-pre-roadmap.md`. Work queue: `docs/ROADMAP.md`.
 Rules: `AGENTS.md`. Code map and traps: `ARCHITECTURE.md`.
 
-**Last updated:** 2026-11-06 — latest handoff date
+**Last updated:** 2026-11-07 — latest handoff date
 
 ## 6.0.0 launch preparation
 
@@ -339,5 +339,9 @@ per package; the rest of each of those fragments is still in
   Not verified: full final-release device matrix and battery soak; owner cancelled the overnight collector in favour of ordinary-use beta testing. Tablet typing misses the absolute 1% jank target (21.74%, worst 18 ms); startup and scrolling meet their budgets.
   Easy to get wrong: QA accessibility tests need the QA package in an external XML filter override; production lock XML remains unchanged. Historical perf timings use a different workload; CI measures pinned 996ef0c on the same warmed emulator instead of weakening thresholds.
   Release: evidence and limitations are in docs/releases/v6.0.0-beta.2-validation.md; release notes include the accepted no-default-browser gap. The owner tags after accepting beta limitations; the agent has not tagged or published.
+- **M6-WP15 (PR #10):** Stale saved launcher entries recover through LauncherApps.getActivityList without duplicate non-fatal reports.
+  Contract: every launch attempt stays in the requested profile; recovery uses the returned componentName, and final start failures remain reportable.
+  Not verified: Vivaldi on the affected Nothing phone or work/private-profile launches on hardware.
+  Easy to get wrong: retrying a rejected component under Process.myUserHandle can open the wrong profile and cannot repair a missing launcher category.
 
 <!-- handoff:end -->

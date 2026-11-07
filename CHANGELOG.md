@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Recover stale app launcher entries in their original profile without duplicate crash reports.
+
 ## v6.0.1 — 2026-11-06
 
 - Stop showing search examples in the empty drawer after 20 opens.
