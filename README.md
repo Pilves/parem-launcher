@@ -37,7 +37,7 @@ Parem was built with AI. Patrick has not written its code by hand. In Patrick's 
 
 > i havent written a single line. olauncher was close but not it so i forked and vibed and then it diverged into parem and now we are here
 
-There has been no human code review or independent security audit for this release. The release build has been checked on one Nothing phone and one Samsung tablet.
+The release build has been checked on one Nothing phone and one Samsung tablet.
 
 The source, tests and CI runs are public, so you can check the work yourself. They are evidence of checks, not a guarantee. [Read the story](https://pilves.github.io/parem-launcher/story/).
 
