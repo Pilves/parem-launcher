@@ -19,6 +19,44 @@ class DrawerRowsTest {
         DrawerRows.decorate(apps, { it.isPrivate }, header, padding) { it.isShortcut }
 
     @Test
+    fun privateEntrySearchFindsContainerInBothLockStates() {
+        for (locked in listOf(false, true)) {
+            for (query in listOf("", "private", "PRIVATE SPACE", "private sp")) {
+                assertTrue(query, DrawerRows.showPrivateEntry(query, "Private space", locked, false))
+            }
+            for (query in listOf("camera", "unlock", " private", "!private", "s", "p", "pri", "-", " ")) {
+                assertFalse(query, DrawerRows.showPrivateEntry(query, "Private space", locked, false))
+            }
+        }
+    }
+
+    @Test
+    fun hiddenLockedEntryNeverAppearsEvenForItsExactName() {
+        for (query in listOf("", "private", "Private space")) {
+            assertFalse(DrawerRows.showPrivateEntry(query, "Private space", true, true))
+            assertTrue(DrawerRows.showPrivateEntry(query, "Private space", false, true))
+        }
+    }
+
+    @Test
+    fun searchedEntryDoesNotCreatePrivateAppRows() {
+        assertEquals(listOf(header), decorate(emptyList(), padding = null))
+        assertEquals(listOf(regularB, header), decorate(listOf(regularB), padding = null))
+    }
+
+    @Test
+    fun searchedEntryPrecedesMatchingAppsForExplicitEnter() {
+        assertEquals(listOf(header, regularB, privateA),
+            DrawerRows.decorate(listOf(regularB, privateA), { it.isPrivate }, header, null, headerFirst = true))
+    }
+
+    @Test
+    fun privateEntryMatchesItsLocalizedLabel() {
+        assertTrue(DrawerRows.showPrivateEntry("Privater", "Privater Bereich", true, false))
+        assertFalse(DrawerRows.showPrivateEntry("camera", "Privater Bereich", true, false))
+    }
+
+    @Test
     fun enterWaitsForTheCommittedQueryAndReload() {
         val state = DrawerFilterState()
         val generation = state.generation()
