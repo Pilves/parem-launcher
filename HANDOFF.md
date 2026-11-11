@@ -4,7 +4,7 @@ Current state only. History is `git log`, `CHANGELOG.md` and
 `docs/archive/TODO-pre-roadmap.md`. Work queue: `docs/ROADMAP.md`.
 Rules: `AGENTS.md`. Code map and traps: `ARCHITECTURE.md`.
 
-**Last updated:** 2026-11-07 — latest handoff date
+**Last updated:** 2026-11-11 — latest handoff date
 
 ## 6.0.0 launch preparation
 
@@ -343,5 +343,10 @@ per package; the rest of each of those fragments is still in
   Contract: every launch attempt stays in the requested profile; recovery uses the returned componentName, and final start failures remain reportable.
   Not verified: Vivaldi on the affected Nothing phone or work/private-profile launches on hardware.
   Easy to get wrong: retrying a rejected component under Process.myUserHandle can open the wrong profile and cannot repair a missing launcher category.
+- **M6-WP16 (PR #14):** An uninstall started from the drawer menu now reloads the drawer from a live query when it completes, without waiting for the LauncherApps callback.
+  Contract: `uninstallIntent(pkg)` is ACTION_UNINSTALL_PACKAGE with EXTRA_RETURN_RESULT, launched through AppDrawerFragment's ActivityResult launcher passed as `AppMenu.show(uninstall = …)`; on RESULT_OK the drawer calls `PackageChangeTracker.invalidate()` and then the same reload as the app-menu callback.
+  RESULT_OK is set by the installer only after PackageManager's deletePackageX has returned (AOSP main, PIA v1 and v2); cancel is RESULT_CANCELED (v1) or RESULT_FIRST_USER (v2), failure is RESULT_FIRST_USER, and neither reloads.
+  Not verified: on any device, the Nothing Phone 4a / Android 17 repro, or OEM installers; changes made outside Parem still depend on the callback, and a result for a drawer closed meanwhile is dropped.
+  Easy to get wrong: reloading when Parem regains focus can run before removal and cache the old list under the new stamp; the for-result route also swaps the installer's toast and notification for its own progress dialog.
 
 <!-- handoff:end -->
