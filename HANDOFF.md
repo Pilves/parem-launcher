@@ -349,5 +349,9 @@ per package; the rest of each of those fragments is still in
   RESULT_OK is set by the installer only after PackageManager's deletePackageX has returned (AOSP main, PIA v1 and v2); cancel is RESULT_CANCELED (v1) or RESULT_FIRST_USER (v2), failure is RESULT_FIRST_USER, and neither reloads.
   Not verified: on any device, the Nothing Phone 4a / Android 17 repro, or OEM installers; changes made outside Parem still depend on the callback, and a result for a drawer closed meanwhile is dropped.
   Easy to get wrong: reloading when Parem regains focus can run before removal and cache the old list under the new stamp; the for-result route also swaps the installer's toast and notification for its own progress dialog.
+- **M6-WP17 (PR #15):** A downward drag that starts in an app-picker list (folder, focus mode, quiet list, app limits) scrolls the list back up and no longer closes the sheet.
+  Contract: addAppPicker's RecyclerView withholds nested pre-scroll for dy < 0 and disallows ancestor intercept on ACTION_DOWN; leftover scroll still reaches the outer NestedScrollView in both directions.
+  Not verified: any physical device (the reporter's Nothing Phone 4a on Android 17 included), landscape on a phone, or the three pickers other than the folder sheet on screen; SmokeTest covers the folder sheet on emulators.
+  Easy to get wrong: BottomSheetBehavior tracks only the first nested-scrolling view it finds, the sheet's outer NestedScrollView, so an inner scroller that offers pre-scroll upward lets the sheet take the drag before the inner list scrolls.
 
 <!-- handoff:end -->
