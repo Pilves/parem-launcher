@@ -4,7 +4,7 @@ Current state only. History is `git log`, `CHANGELOG.md` and
 `docs/archive/TODO-pre-roadmap.md`. Work queue: `docs/ROADMAP.md`.
 Rules: `AGENTS.md`. Code map and traps: `ARCHITECTURE.md`.
 
-**Last updated:** 2026-11-07 — latest handoff date
+**Last updated:** 2026-11-11 — latest handoff date
 
 ## 6.0.0 launch preparation
 
@@ -343,5 +343,9 @@ per package; the rest of each of those fragments is still in
   Contract: every launch attempt stays in the requested profile; recovery uses the returned componentName, and final start failures remain reportable.
   Not verified: Vivaldi on the affected Nothing phone or work/private-profile launches on hardware.
   Easy to get wrong: retrying a rejected component under Process.myUserHandle can open the wrong profile and cannot repair a missing launcher category.
+- **M6-WP17 (PR #15):** A downward drag that starts in an app-picker list (folder, focus mode, quiet list, app limits) scrolls the list back up and no longer closes the sheet.
+  Contract: addAppPicker's RecyclerView withholds nested pre-scroll for dy < 0 and disallows ancestor intercept on ACTION_DOWN; leftover scroll still reaches the outer NestedScrollView in both directions.
+  Not verified: any physical device (the reporter's Nothing Phone 4a on Android 17 included), landscape on a phone, or the three pickers other than the folder sheet on screen; SmokeTest covers the folder sheet on emulators.
+  Easy to get wrong: BottomSheetBehavior tracks only the first nested-scrolling view it finds, the sheet's outer NestedScrollView, so an inner scroller that offers pre-scroll upward lets the sheet take the drag before the inner list scrolls.
 
 <!-- handoff:end -->
