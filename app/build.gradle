@@ -17,8 +17,8 @@ android {
         applicationId "com.parem.launcher"
         minSdkVersion 29
         targetSdkVersion 36
-        versionCode 106
-        versionName "v6.0.1"
+        versionCode 107
+        versionName "v6.0.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments clearPackageData: 'true'

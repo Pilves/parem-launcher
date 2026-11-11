@@ -1,0 +1,1 @@
+Uninstalled apps now leave the app list as soon as the uninstall finishes. Dragging down in an app picker scrolls the list back up instead of closing the sheet. Private Space can be found by searching its name. Apps on home whose launcher entry changed open again in the right profile.
