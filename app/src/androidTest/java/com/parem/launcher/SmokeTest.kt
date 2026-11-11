@@ -484,6 +484,9 @@ class SmokeTest {
         }
         try {
             device.waitForIdle(TIMEOUT)
+            // Outside touch mode the sheet would focus its name field and could raise
+            // the keyboard mid-test, resizing the list under the swipes
+            instrumentation.setInTouchMode(true)
             instrumentation.runOnMainSync {
                 val activity = ActivityLifecycleMonitorRegistry.getInstance()
                     .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
@@ -501,7 +504,7 @@ class SmokeTest {
                         (0 until group.childCount).firstNotNullOfOrNull { find(group.getChildAt(it)) }
                     }
                 list = find(sheet!!.window!!.decorView)
-                // Visible part only, in screen coordinates: a keyboard may have resized the sheet
+                // Visible part only, in screen coordinates: the swipes must start on the list
                 list!!.getGlobalVisibleRect(bounds)
                 val window = IntArray(2).also { list!!.rootView.getLocationOnScreen(it) }
                 bounds.offset(window[0], window[1])
