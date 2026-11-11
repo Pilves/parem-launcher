@@ -1,5 +1,6 @@
 package com.parem.launcher.ui
 
+import android.content.Intent
 import android.os.Process
 import android.text.InputType
 import android.view.View
@@ -7,6 +8,7 @@ import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.core.text.BidiFormatter
 import androidx.core.widget.TextViewCompat
@@ -28,7 +30,7 @@ import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isSystemApp
 import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.showToast
-import com.parem.launcher.helper.uninstall
+import com.parem.launcher.helper.uninstallIntent
 import com.parem.launcher.ui.isAlive
 import java.lang.ref.WeakReference
 
@@ -44,6 +46,8 @@ object AppMenu {
         homeSlot: Int? = null,
         hidden: Boolean = false,
         homeActions: ((BottomSheetMenu) -> Unit)? = null,
+        // Owned by the caller so the installer's result reaches it; only the drawer offers Uninstall
+        uninstall: ActivityResultLauncher<Intent>? = null,
         onChanged: () -> Unit,
     ) {
         val context = fragment.context ?: return
@@ -106,7 +110,7 @@ object AppMenu {
                 }
             }
             Action.UNINSTALL -> menu.gap().option(context.getString(R.string.app_menu_uninstall), destructive = true) {
-                if (fragment.isAlive) context.uninstall(app.appPackage)
+                if (fragment.isAlive) uninstall?.launch(uninstallIntent(app.appPackage))
             }
         }
         homeActions?.invoke(menu)

@@ -182,8 +182,12 @@ fun isAccessServiceBound(context: Context): Boolean = try {
     true
 }
 
-fun Context.uninstall(packageName: String) {
-    val intent = Intent(Intent.ACTION_DELETE)
-    intent.data = Uri.parse("package:$packageName")
-    startActivity(intent)
-}
+/**
+ * Start it for a result: the system installer sets RESULT_OK only after
+ * PackageManager has removed the package; cancel and failure come back as
+ * RESULT_CANCELED or RESULT_FIRST_USER.
+ */
+@Suppress("DEPRECATION") // EXTRA_RETURN_RESULT is documented for this action only
+fun uninstallIntent(packageName: String): Intent =
+    Intent(Intent.ACTION_UNINSTALL_PACKAGE, Uri.parse("package:$packageName"))
+        .putExtra(Intent.EXTRA_RETURN_RESULT, true)

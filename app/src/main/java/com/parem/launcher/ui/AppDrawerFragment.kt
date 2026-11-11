@@ -1,5 +1,6 @@
 package com.parem.launcher.ui
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -8,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -73,7 +75,7 @@ class AppDrawerFragment : BaseFragment() {
     private var typedQuery = ""
     // Opening the drawer also reloads the list, and setAppList shows it whole,
     // so a seeded query is re-applied when the fresh list lands. Cleared on
-    // hide/rename: their reload could narrow to one match and auto-launch it.
+    // hide/rename/uninstall: their reload could narrow to one match and auto-launch it.
     private var reapplyQueryOnReload = false
     private var scrollListener: RecyclerView.OnScrollListener? = null
     private var searchTextView: TextView? = null
@@ -103,6 +105,18 @@ class AppDrawerFragment : BaseFragment() {
     private var currencyFetchInFlight = false
 
     private val viewModel: MainViewModel by activityViewModels()
+
+    // The installer sets RESULT_OK only after PackageManager has removed the app,
+    // so this live reload can't re-cache the old list the way a reload on
+    // regaining focus could, and it doesn't wait for the LauncherApps callback,
+    // which one phone missed until a reboot (M6-WP16).
+    private val uninstallLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            PackageChangeTracker.invalidate()
+            reloadAfterMenuChange()
+        }
+    }
+
     private var _binding: FragmentAppDrawerBinding? = null
     private val binding get() = _binding!!
 
@@ -501,6 +515,14 @@ class AppDrawerFragment : BaseFragment() {
         })
     }
 
+    private fun reloadAfterMenuChange() {
+        if (!isAdded || _binding == null) return
+        reapplyQueryOnReload = false
+        viewModel.getAppList()
+        if (flag == Constants.FLAG_LAUNCH_APP) loadHiddenLabels()
+        viewModel.getHiddenApps()
+    }
+
     private fun initAdapter() {
         adapter = AppDrawerAdapter(
             flag,
@@ -509,14 +531,8 @@ class AppDrawerFragment : BaseFragment() {
             appLongPressListener = { app ->
                 if (isAdded && _binding != null) {
                     _binding?.search?.hideKeyboard()
-                    AppMenu.show(this, app, prefs, viewModel, hidden = flag == Constants.FLAG_HIDDEN_APPS) {
-                        if (isAdded && _binding != null) {
-                            reapplyQueryOnReload = false
-                            viewModel.getAppList()
-                            if (flag == Constants.FLAG_LAUNCH_APP) loadHiddenLabels()
-                            viewModel.getHiddenApps()
-                        }
-                    }
+                    AppMenu.show(this, app, prefs, viewModel, hidden = flag == Constants.FLAG_HIDDEN_APPS,
+                        uninstall = uninstallLauncher) { reloadAfterMenuChange() }
                 }
             }
         )
