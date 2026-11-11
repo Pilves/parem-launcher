@@ -9,6 +9,7 @@ import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ScrollView
 import androidx.core.os.bundleOf
@@ -23,9 +24,12 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
+import androidx.recyclerview.widget.RecyclerView
 import com.parem.launcher.ui.AppDrawerAdapter
+import com.parem.launcher.ui.CreateFolderDialog
 import com.parem.launcher.ui.FocusModeDialog
 import com.parem.launcher.ui.dismissOnDestroy
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -464,6 +468,64 @@ class SmokeTest {
                 if (!visible) android.os.SystemClock.sleep(100)
             }
             assertTrue("Focus results hidden below keyboard: $bounds", visible)
+        } finally {
+            instrumentation.runOnMainSync { sheet?.dismiss() }
+        }
+    }
+
+    @Test
+    fun folderPickerDragDownScrollsListInsteadOfClosingSheet() {
+        var sheet: BottomSheetDialog? = null
+        var list: RecyclerView? = null
+        fun listOffset(): Int {
+            var offset = 0
+            instrumentation.runOnMainSync { offset = list!!.computeVerticalScrollOffset() }
+            return offset
+        }
+        try {
+            device.waitForIdle(TIMEOUT)
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                val apps = (1..40).map {
+                    AppModel("Example $it", null, "example.$it", "Main", user = android.os.Process.myUserHandle())
+                }
+                sheet = CreateFolderDialog(activity, apps) { _, _ -> }.show().dismissOnDestroy(activity)
+            }
+            assertNotNull("Folder picker missing", device.wait(Until.findObject(By.text("Example 1")), TIMEOUT))
+            device.waitForIdle(TIMEOUT)
+            val bounds = Rect()
+            instrumentation.runOnMainSync {
+                fun find(view: View): RecyclerView? = view as? RecyclerView
+                    ?: (view as? ViewGroup)?.let { group ->
+                        (0 until group.childCount).firstNotNullOfOrNull { find(group.getChildAt(it)) }
+                    }
+                list = find(sheet!!.window!!.decorView)
+                // Visible part only, in screen coordinates: a keyboard may have resized the sheet
+                list!!.getGlobalVisibleRect(bounds)
+                val window = IntArray(2).also { list!!.rootView.getLocationOnScreen(it) }
+                bounds.offset(window[0], window[1])
+            }
+            val x = bounds.centerX()
+            val upper = bounds.top + bounds.height() / 5
+            val lower = bounds.bottom - bounds.height() / 5
+            device.swipe(x, lower, x, upper, 100)
+            device.waitForIdle(TIMEOUT)
+            val scrolled = listOffset()
+            assertTrue("List did not scroll down; bounds=$bounds", scrolled > 0)
+
+            device.swipe(x, upper, x, lower, 100)
+            device.waitForIdle(TIMEOUT)
+            var showing = false
+            var state = -1
+            instrumentation.runOnMainSync {
+                showing = sheet!!.isShowing
+                state = sheet!!.behavior.state
+            }
+            assertTrue("Dragging the list down closed the sheet", showing)
+            assertEquals("Dragging the list down moved the sheet", BottomSheetBehavior.STATE_EXPANDED, state)
+            val after = listOffset()
+            assertTrue("List did not scroll back up: $scrolled -> $after", after < scrolled)
         } finally {
             instrumentation.runOnMainSync { sheet?.dismiss() }
         }

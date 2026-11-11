@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Recover stale app launcher entries in their original profile without duplicate crash reports.
+- Scroll app pickers back up when dragging down in the list, instead of closing the folder, focus mode, quiet list or app limit sheet.
 
 ## v6.0.1 — 2026-11-06
 

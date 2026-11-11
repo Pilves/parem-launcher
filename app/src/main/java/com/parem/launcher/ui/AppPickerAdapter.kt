@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.graphics.Rect
 import android.text.InputType
 import android.util.TypedValue
+import android.view.MotionEvent
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.EditText
@@ -124,7 +125,24 @@ fun LinearLayout.addAppPicker(adapter: AppPickerAdapter, searchPaddingLeft: Int 
             }
         }
     })
-    addView(RecyclerView(context).apply {
+    // BottomSheetBehavior asks only the sheet's outer scroller whether a
+    // downward drag may pull the sheet, and that scroller sits at its top
+    // whenever the sheet fits: a drag in a scrolled list closed the sheet
+    // instead of scrolling the list back up.
+    addView(object : RecyclerView(context) {
+        // Pre-scroll reaches the sheet before the list scrolls. Withheld for a
+        // downward drag (dy < 0), the list scrolls first and only the rest goes
+        // on to the outer scroller; the sheet ignores what is left after that.
+        override fun dispatchNestedPreScroll(dx: Int, dy: Int, consumed: IntArray?, offsetInWindow: IntArray?, type: Int) =
+            dy >= 0 && super.dispatchNestedPreScroll(dx, dy, consumed, offsetInWindow, type)
+
+        // Keeps the sheet from taking the drag itself, for example when the
+        // finger leaves the side of a width-capped sheet.
+        override fun onInterceptTouchEvent(e: MotionEvent): Boolean {
+            if (e.actionMasked == MotionEvent.ACTION_DOWN) parent.requestDisallowInterceptTouchEvent(true)
+            return super.onInterceptTouchEvent(e)
+        }
+    }.apply {
         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 300.dpToPx())
         layoutManager = LinearLayoutManager(context)
         this.adapter = adapter
