@@ -256,18 +256,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // Fast path: the activity is known for every home slot and drawer row —
         // launch synchronously instead of paying two dispatcher hops per tap
         if (!activityClassName.isNullOrBlank()) {
-            if (startApp(ComponentName(packageName, activityClassName), userHandle, packageName, isPrivate)) return
+            if (startApp(ComponentName(packageName, activityClassName), userHandle, packageName, isPrivate, reportFailure = false)) return
             // Stale component (app updated and renamed its activity) — fall through to resolve
         }
         viewModelScope.launch {
             val component = withContext(Dispatchers.IO) {
                 try {
                     val activityInfo = launcherApps.getActivityList(packageName, userHandle)
-                    when (activityInfo.size) {
-                        0 -> null
-                        1 -> ComponentName(packageName, activityInfo[0].name)
-                        else -> ComponentName(packageName, activityInfo[activityInfo.size - 1].name)
-                    }
+                    activityInfo.lastOrNull()?.componentName
                 } catch (e: Exception) {
                     Log.e("MainViewModel", "Failed to resolve activity for $packageName", e)
                     null
@@ -298,24 +294,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /** Returns true if the app was started. */
-    private fun startApp(component: ComponentName, userHandle: UserHandle, packageName: String, isPrivate: Boolean): Boolean {
+    private fun startApp(
+        component: ComponentName,
+        userHandle: UserHandle,
+        packageName: String,
+        isPrivate: Boolean,
+        reportFailure: Boolean = true
+    ): Boolean {
         val started = try {
             launcherApps.startMainActivity(component, userHandle, null, null)
             // Open counts are exported; a private package name must never land there
             if (!isPrivate) AppOpenCounter.increment(appContext, packageName)
             true
-        } catch (e: SecurityException) {
-            CrashReporter.reportNonFatal("MainViewModel", e)
-            try {
-                launcherApps.startMainActivity(component, android.os.Process.myUserHandle(), null, null)
-                if (!isPrivate) AppOpenCounter.increment(appContext, packageName)
-                true
-            } catch (e: Exception) {
-                CrashReporter.reportNonFatal("MainViewModel", e)
-                false
-            }
         } catch (e: Exception) {
-            CrashReporter.reportNonFatal("MainViewModel", e)
+            // A saved component may stop being a launcher entry after an update.
+            // Let launchApp resolve a fresh entry in the SAME profile; retrying
+            // under the current user can open the wrong copy of a work/private app.
+            if (reportFailure) CrashReporter.reportNonFatal("MainViewModel", e)
+            else Log.w("MainViewModel", "Saved launcher activity failed; resolving again", e)
             false
         }
         // Grey before the app draws, so there is no colour flash; only after a
