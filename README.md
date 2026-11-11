@@ -1,59 +1,42 @@
-<p align="center">
-  <img src="docs/images/icon.png" width="96" height="96" alt="Parem icon: a pale command prompt on a green tile">
-</p>
-
-<h1 align="center">Parem Launcher</h1>
-
-<h3 align="center">You go first.</h3>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/hero-dark.png">
+  <img src="docs/images/hero-light.png" width="100%" alt="Parem. You go first. A home screen that waits for you to start. Beside the headline: a home screen of plain app names, a pause sheet asking why you are opening Feed, and a search converting 100 euros to dollars.">
+</picture>
 
 <p align="center">
-  A home screen that waits for you to start. Parem is a minimal, text-based Android launcher: a short list of app names, one search field that answers and stops, notifications that can wait, and a speed bump before the apps that eat your day.
-</p>
-
-<p align="center">
-  <a href="https://github.com/Pilves/parem-launcher/releases/latest"><strong>Download the latest release</strong></a><br>
-  <a href="#help-test-on-google-play"><strong>Join the Google Play test</strong></a>
+  <a href="https://github.com/Pilves/parem-launcher/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/Pilves/parem-launcher?style=flat-square&label=release&color=1E6B59"></a>
+  <img alt="Android 10 or newer" src="https://img.shields.io/badge/Android-10%2B-1E6B59?style=flat-square">
+  <a href="LICENSE"><img alt="Licence: GPLv3" src="https://img.shields.io/badge/licence-GPLv3-1E6B59?style=flat-square"></a>
+  <a href="https://github.com/Pilves/parem-launcher/actions/workflows/debug-build.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Pilves/parem-launcher/debug-build.yml?branch=master&style=flat-square&label=build"></a>
 </p>
 
 <p align="center">
-  <sub>Android 10 or newer &middot; Open source under GNU GPLv3</sub><br>
-  <sub>No ads, no accounts, no purchases</sub><br>
-  <sub>Built with AI, and <a href="#built-with-ai">open about it</a></sub>
+  Parem is a text-based Android launcher: a short list of apps, one search field that answers and stops, and a speed bump before the apps that eat your day.
 </p>
+
+<p align="center"><strong>No ads. No accounts. No catch.</strong></p>
 
 <p align="center">
-  <img src="docs/images/dark-01-home.png" width="250" alt="Home screen in the dark theme: the time, the date and six app names as plain text. Caption: You go first.">
-  <img src="docs/images/dark-02-search.png" width="250" alt="Search field showing 100 eur in usd with the converted amount below it. Caption: It answers. Then it stops.">
-  <img src="docs/images/dark-04-pause.png" width="250" alt="Mindful pause sheet asking why you are opening Feed, with Go back above a countdown to open. Caption: Five seconds to change your mind.">
+  <a href="https://github.com/Pilves/parem-launcher/releases/latest"><strong>Download the APK</strong></a>
+  &nbsp;&middot;&nbsp;
+  <a href="#google-play"><strong>Join the Google Play test</strong></a>
+  &nbsp;&middot;&nbsp;
+  <a href="https://pilves.github.io/parem-launcher/">Website</a>
 </p>
 
-<p align="center">
-  <sub>Play debug build on an emulator, with sample apps and notifications. The currency rate is a recorded test result, not a live quote.</sub>
-</p>
+## A home screen made of words
 
-## Built with AI
+![Three Parem home screens on a green background: dark, light, and light with a calendar widget above the app list. Each shows the time, the date and app names as plain text.](docs/images/home.png)
 
-Parem was built with AI. Patrick has not written its code by hand. In Patrick's words:
+Your clock, your date and up to 8 apps, as plain text. No feed asking for your attention.
 
-> i havent written a single line. olauncher was close but not it so i forked and vibed and then it diverged into parem and now we are here
+- **Your layout.** Folders, website shortcuts and resizable widgets, when a list isn't enough.
+- **Your gestures.** Swipes and double tap do what you tell them. Optional gesture letters open apps.
+- **Your look.** Dark, light or system theme, switched on a schedule or with sunrise and sunset. Icons and icon packs are optional.
 
-The release build has been checked on one Nothing phone and one Samsung tablet.
+## It answers. Then it stops.
 
-The source, tests and CI runs are public, so you can check the work yourself. They are evidence of checks, not a guarantee. [Read the story](https://pilves.github.io/parem-launcher/story/).
-
-[![Debug APK build status on master](https://github.com/Pilves/parem-launcher/actions/workflows/debug-build.yml/badge.svg?branch=master)](https://github.com/Pilves/parem-launcher/actions/workflows/debug-build.yml)
-
-## What it does
-
-**Minimal but hyperfunctional.** Parem strips your home screen to what matters, then packs real utility behind a single search bar. It is for less screen time or a proper digital detox, without swapping your smartphone for a dumbphone.
-
-### A home screen made of words
-
-- Up to 8 apps as plain text under your clock and date. Icons and icon packs are optional.
-- Folders, website shortcuts and resizable widgets.
-- Swipes and double tap do what you tell them. Optional gesture letters open apps.
-
-### One search field, no hunting
+![Two Parem search screens. One converts 100 eur in usd using European Central Bank rates. The other shows 2+2 equals 4.](docs/images/search.png)
 
 Swipe up and type. Initials and partial names work, and a single match opens by itself unless you turn that off. The same field does the rest:
 
@@ -72,82 +55,24 @@ Swipe up and type. Initials and partial names work, and a single match opens by 
 
 It also finds app shortcuts and Parem's own settings, and your contacts if you opt in.
 
-### Calm phone tools
+## Everything starts off. You decide.
 
-All off until you turn them on, and each says what it needs first.
+![Four dark Parem screens on a paper background: a pause sheet asking why you are opening Feed, a quiet list of held notifications, Focus mode with a duration and allowed apps, and a seven-day screen time chart labelled Demo data.](docs/images/calm.png)
 
+Every calm tool is optional, and each says what it needs first.
+
+- **Mindful pause:** choose any app for a question and a five-second wait before it opens.
+- **Quiet notifications:** apps you haven't allowed move out of the shade into a quiet list. Calls, alarms, media, navigation and emergency alerts stay visible, and hidden items return within 8 hours. A short sound or vibration may still play unless you choose Make silent.
+- **Focus mode:** timed sessions or weekly schedules. Up to 5 allowed apps, and your phone app is never blocked.
 - **Screen time:** today's total on home, a 7-day graph and a weekly review.
 - **App limits:** a daily allowance per app, then a warning you can override.
-- **Mindful pause:** choose any app for a question and a five-second wait before it opens.
-- **Focus mode:** timed sessions or weekly schedules. Up to 5 allowed apps, and your phone app is never blocked.
-- **Quiet notifications:** apps you haven't allowed move out of the shade into a quiet list. Calls, alarms, media, navigation and emergency alerts stay visible, and hidden items return within 8 hours. A short sound or vibration may still play unless you choose Make silent.
 - **Grayscale:** now, during focus, after a limit, or per app. Needs a one-time developer-tools permission, granted from a computer. The GitHub APK can also do this on the phone.
 
 Screen time, app limits and mindful pause need usage access. Quiet notifications need notification access.
 
-**Straight talk:** limits, pause and focus only cover apps opened through Parem. They are speed bumps, not a lock. You can always get past them.
+Limits, pause and focus cover apps opened through Parem. They are speed bumps, not a lock, and you can always get past them.
 
-<p align="center">
-  <img src="docs/images/dark-03-calm-tools.png" width="250" alt="Setup screen listing screen time, slow down an app, quiet notifications, double tap to lock and grayscale, each with a Set up button. Caption: Everything starts off. You decide.">
-  <img src="docs/images/dark-05-quiet.png" width="250" alt="Quiet list sheet holding notifications from Feed, News and Clips, with Dismiss all below them. Caption: Notifications wait their turn.">
-  <img src="docs/images/dark-06-focus.png" width="250" alt="Focus mode sheet with a choice of duration and a list of allowed apps, at most five. Caption: Pick the time. Pick the apps.">
-</p>
-
-### Light or dark
-
-Dark, light or system theme, switched on a schedule or with sunrise and sunset if you like.
-
-<p align="center">
-  <img src="docs/images/light-01-home.png" width="150" alt="Home screen in the light theme">
-  <img src="docs/images/light-02-search.png" width="150" alt="Currency search in the light theme">
-  <img src="docs/images/light-04-pause.png" width="150" alt="Mindful pause in the light theme">
-  <img src="docs/images/light-05-quiet.png" width="150" alt="Quiet list in the light theme">
-  <img src="docs/images/light-06-focus.png" width="150" alt="Focus mode in the light theme">
-</p>
-
-### What goes online, and what doesn't
-
-Parem has no account, no server of its own, and no analytics, ad or tracking code. Contacts, notifications and app search are handled on your phone, and Parem never asks for your location.
-
-It does go online for these:
-
-- **Weather, off by default:** the city you search for and pick, then its rounded coordinates, go to Open-Meteo.
-- **Daily wallpaper, off by default:** a list from GitHub, then images from third-party hosts.
-- **Currency, when you type a conversion:** a fixed download of European Central Bank rates, at most daily. Your query isn't in it.
-
-Those services see your IP address, like any connection. Web searches open in your browser (Google after a leading space, DuckDuckGo for `!bangs`). Parem's crash reports are off by default and sent only by you. On the Play build, Android can also report crashes to Google if your phone shares diagnostics.
-
-Android cloud backup leaves Parem out, and Export settings moves your setup. A phone-to-phone transfer you start on Android 12 or later can still carry your settings.
-
-Double tap to lock is optional. After you agree, it uses Android's accessibility service only to lock the screen. The service sees only taps inside Parem and cannot read your screen.
-
-The [privacy policy](https://pilves.github.io/parem-launcher/privacy.html) goes through all of it, feature by feature.
-
-## Get Parem
-
-Parem needs Android 10 or newer. It replaces your home screen, so setup asks you to make it your home app. Your apps stay installed and you can switch back any time.
-
-**From GitHub:** download the APK from the [latest release](https://github.com/Pilves/parem-launcher/releases/latest) and install it. To update, install the new APK over your existing one, without uninstalling or clearing data. Exporting settings first gives you a backup.
-
-**From Google Play:** Parem is in a closed test, so getting it takes [a few steps](#help-test-on-google-play).
-
-The GitHub APK can also grant grayscale by pairing over wireless debugging on the phone. The Play build grants it from a computer only. The two are signed differently, so moving between them means uninstalling, which erases Parem's data. Use Export settings first.
-
-## Help test on Google Play
-
-Parem is in a closed test on Google Play. Real phones and real habits are what it needs most.
-
-**Join the group first, then open the test link. The order matters.**
-
-1. **Join the group.** Open the [tester group](https://groups.google.com/g/parem-testers) and join with the Google account you use for Play on your phone.
-2. **Then open the test.** On your Android phone, open the [Play test link](https://play.google.com/apps/testing/com.parem.launcher) with that same account and tap Become a tester.
-3. **Install Parem** from Google Play.
-
-Already using the GitHub APK? Export your settings and uninstall it before step 3.
-
-Send bugs and rough edges to [info@chaidla.ee](mailto:info@chaidla.ee). To include a crash report, turn on Settings > Parem Launcher > Crash reports. After a crash, Parem offers the report the next time it starts, and you choose whether to send it.
-
-## More detail
+<sub>Screens show sample apps and notifications. The screen time chart uses demo data.</sub>
 
 <details>
 <summary><strong>Full feature list</strong></summary>
@@ -201,32 +126,81 @@ Tablets and foldables, TalkBack, hardware keyboards, Android font sizes up to 20
 
 </details>
 
-<details>
-<summary><strong>Build from source</strong></summary>
+## What goes online
 
-```
+Parem has no account, no server of its own, and no analytics, ad or tracking code. Contacts, notifications and app search are handled on your phone, and Parem never asks for your location.
+
+| Feature | When | What happens |
+|---|---|---|
+| Weather | Off by default | The place name you type, then the rounded coordinates of the one you pick, go to Open-Meteo |
+| Daily wallpaper | Off by default | A list from GitHub, then images from third-party hosts |
+| Currency | When you type a conversion | A fixed download of European Central Bank rates, at most daily. Your query isn't in it |
+
+Like any connection, these show the service your IP address and the time, and Android's standard header adds your Android version and phone model. Web searches open in your browser (Google after a leading space, DuckDuckGo for `!bangs`).
+
+Parem's crash reports are off by default and sent only by you. On the Play build, Android can also report crashes to Google if your phone shares diagnostics.
+
+From 6.0.0, Android cloud backup leaves Parem out, and Export settings moves your setup. A phone-to-phone transfer you start on Android 12 or later can still carry your settings.
+
+Double tap to lock is optional. After you agree, it uses Android's accessibility service only to lock the screen. The service sees only taps inside Parem and cannot read your screen. An optional device admin fallback also only locks the screen.
+
+The [privacy policy](https://pilves.github.io/parem-launcher/privacy.html) goes through all of it, feature by feature.
+
+## How Parem is made
+
+Parem is directed by Patrick and written by AI coding agents, building on [Olauncher](https://github.com/tanujnotes/Olauncher) by [tanujnotes](https://github.com/tanujnotes) and its contributors. The source, tests and CI runs are public, so you can check the work yourself. [Read the story](https://pilves.github.io/parem-launcher/story/).
+
+| Check | What runs |
+|---|---|
+| Unit tests | 400+ JVM tests on every push to `master`, for both build flavours |
+| Device tests | A smoke suite on every pull request, on phone, foldable and tablet emulators running Android 14, plus a tablet on Android 16 |
+| Upgrades | Every pull request builds v5.5.1, seeds it, upgrades in place and verifies the result |
+| Performance | A pull request fails if cold start, return to home, drawer scrolling or typing gets more than 20% worse than a pinned reference build, beyond a noise floor |
+| Release builds | Minified APKs of both flavours are installed and smoke tested on release branches |
+| Real hardware | The release build has been checked on a Nothing phone and a Samsung tablet |
+
+Runtime dependencies are Kotlin, AndroidX and Material Components. There are no Google Play Services, Firebase or analytics SDKs.
+
+## Get Parem
+
+Parem needs Android 10 or newer. It replaces your home screen, so setup asks you to make it your home app. Your apps stay installed and you can switch back any time.
+
+### GitHub
+
+Download the APK from the [latest release](https://github.com/Pilves/parem-launcher/releases/latest) and install it. To update, install the new APK over your existing one, without uninstalling or clearing data. Exporting settings first gives you a backup.
+
+### Google Play
+
+Parem is in closed testing on Google Play. **Join the group first, then open the test link. The order matters.**
+
+1. **Join the group.** Open the [tester group](https://groups.google.com/g/parem-testers) and join with the Google account you use for Play on your phone.
+2. **Then open the test.** On your Android phone, open the [Play test link](https://play.google.com/apps/testing/com.parem.launcher) with that same account and tap Become a tester.
+3. **Install Parem** from Google Play.
+
+Already using the GitHub APK? Export your settings and uninstall it before step 3. If you turned on device admin locking, turn it off first in Parem's Settings > Gestures, or Android won't let you uninstall. The two builds are signed differently, so moving between them means uninstalling, which erases Parem's data.
+
+The GitHub APK can also grant grayscale by pairing over wireless debugging on the phone. The Play build grants it from a computer only.
+
+### Feedback
+
+Send bugs and rough edges to [info@chaidla.ee](mailto:info@chaidla.ee) or open an [issue](https://github.com/Pilves/parem-launcher/issues). To include a crash report, turn on Settings > Parem Launcher > Crash reports. After a crash, Parem offers the report the next time it starts, and you choose whether to send it.
+
+## Development
+
+```sh
 # Requires Android SDK (min SDK 29, target 36), JDK 17+
 ./gradlew assembleFullDebug
 ```
 
 The debug APK lands at `app/build/outputs/apk/full/debug/app-full-debug.apk`.
 
-</details>
-
-<details>
-<summary><strong>Project docs</strong></summary>
-
 - [ARCHITECTURE.md](ARCHITECTURE.md): code map, release process, and notes on building on ARM64 hosts (e.g. a Raspberry Pi)
 - [ONBOARDING.md](ONBOARDING.md): how to find your way around the code and ship a first change
 - [CHANGELOG.md](CHANGELOG.md): what changed in each release
 
-</details>
+## Credits and licence
 
-## Origins
-
-Originally forked from [Olauncher](https://github.com/tanujnotes/Olauncher) by [tanujnotes](https://github.com/tanujnotes). This project has since diverged significantly with a full digital wellbeing suite, multi-widget system, omnibox search, gesture shortcuts and many other features. The original launcher and its contributors remain part of its story.
-
-## Licence
+Parem began as a fork of [Olauncher](https://github.com/tanujnotes/Olauncher) by [tanujnotes](https://github.com/tanujnotes). The original launcher and its contributors remain part of its story.
 
 Free and open source under the [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html). See [LICENSE](LICENSE).
 
