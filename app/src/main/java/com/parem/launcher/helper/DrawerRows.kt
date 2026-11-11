@@ -6,6 +6,17 @@ package com.parem.launcher.helper
  */
 object DrawerRows {
 
+    /** Only the launch drawer may expose the entry; hidden locked spaces stay undiscoverable. */
+    fun showPrivateEntry(query: String, label: String, locked: Boolean, hiddenWhenLocked: Boolean): Boolean {
+        if (locked && hiddenWhenLocked) return false
+        if (query.isEmpty()) return true
+        if (query.startsWith(" ") || query.startsWith("!")) return false
+        val term = query.trim()
+        // Require the first complete word: ordinary single-letter app searches
+        // must not gain a container row or lose their automatic app launch.
+        return term.length >= label.substringBefore(' ').length && label.startsWith(term, ignoreCase = true)
+    }
+
     /**
      * Private apps reach the launch drawer only. Every picker shares the same
      * retained app list, and LiveData replays it to a new observer, so this
@@ -26,13 +37,15 @@ object DrawerRows {
         isPrivate: (T) -> Boolean,
         header: T?,
         padding: T?,
+        headerFirst: Boolean = false,
         isShortcut: (T) -> Boolean = { false },
     ): List<T> {
         val (shortcutRows, appRows) = apps.partition(isShortcut)
         val (privateRows, regular) = appRows.partition(isPrivate)
         return buildList {
+            if (headerFirst) header?.let { add(it) }
             addAll(regular)
-            header?.let { add(it) }
+            if (!headerFirst) header?.let { add(it) }
             addAll(privateRows)
             addAll(shortcutRows)
             padding?.let { add(it) }

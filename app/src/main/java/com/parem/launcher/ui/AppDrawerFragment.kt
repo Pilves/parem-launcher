@@ -49,6 +49,8 @@ import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.isEinkDisplay
 import com.parem.launcher.helper.openSearch
 import com.parem.launcher.helper.privateProfile
+import com.parem.launcher.helper.privateSpaceEntryHidden
+import com.parem.launcher.helper.DrawerRows
 import com.parem.launcher.helper.padForSystemBars
 import com.parem.launcher.helper.showKeyboard
 import com.parem.launcher.helper.showToast
@@ -73,6 +75,7 @@ class AppDrawerFragment : BaseFragment() {
     // Key typed on a hardware keyboard at home; seeds the search once the app
     // list is in (filtering an empty list would flash "no apps found")
     private var typedQuery = ""
+    private var revealPrivateSpace = false
     // Opening the drawer also reloads the list, and setAppList shows it whole,
     // so a seeded query is re-applied when the fresh list lands. Cleared on
     // hide/rename/uninstall: their reload could narrow to one match and auto-launch it.
@@ -303,6 +306,7 @@ class AppDrawerFragment : BaseFragment() {
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
+                if (newText.isNotBlank()) revealPrivateSpace = false
                 if (pendingSubmit != newText) pendingSubmit = null
                 _binding?.appRename?.visibility = if (canRename && newText.isNotBlank()) View.VISIBLE else View.GONE
                 updateOmniboxState(newText)
@@ -460,7 +464,16 @@ class AppDrawerFragment : BaseFragment() {
     private fun onAppClick(app: AppModel) {
         if (!isAdded) return
         if (app.isPrivateHeader()) {
-            viewModel.setPrivateLocked(!isQuietMode(app.user))
+            val locked = isQuietMode(app.user)
+            if (_binding?.search?.query?.isNotBlank() == true) {
+                if (locked) viewModel.setPrivateLocked(false)
+                else {
+                    revealPrivateSpace = true
+                    binding.search.setQuery("", false)
+                }
+            } else {
+                viewModel.setPrivateLocked(!locked)
+            }
             return
         }
         if (app.appPackage.isEmpty())
@@ -536,8 +549,23 @@ class AppDrawerFragment : BaseFragment() {
                 }
             }
         )
-        adapter.onFilterCommitted = { query ->
+        adapter.onFilterCommitted = onFilterCommitted@{ query ->
             if (_binding?.search?.query?.toString() == query) {
+                if (revealPrivateSpace) {
+                    val profile = context?.let { privateProfile(it) }
+                    if (profile != null && !isQuietMode(profile)) {
+                        if (query.isNotBlank()) {
+                            binding.search.setQuery("", false)
+                            return@onFilterCommitted
+                        }
+                        val index = adapter.currentList.indexOfFirst { it.isPrivateHeader() }
+                        if (index >= 0) {
+                            revealPrivateSpace = false
+                            binding.search.hideKeyboard()
+                            linearLayoutManager.scrollToPositionWithOffset(recentAdapter.itemCount + index, 0)
+                        }
+                    }
+                }
                 refreshEmptyResultTip()
                 resumePendingSubmit()
             }
@@ -552,13 +580,19 @@ class AppDrawerFragment : BaseFragment() {
                 OmniboxResolver.autoLaunchAllowed(text, prefs.autoLaunchSingleMatch, isScreenReaderOn())
         }
         if (flag == Constants.FLAG_LAUNCH_APP) {
-            // Looked up once per drawer; the lock state is re-read on every rebuild
-            val profile = privateProfile(requireContext())
-            if (profile != null) adapter.privateSpaceHeader = header@{
-                if (!isAdded) return@header null
+            // Re-read profile and system visibility on every rebuild, including search.
+            adapter.privateSpaceHeader = header@{ query ->
+                if (!isAdded || _binding == null) return@header null
+                val profile = privateProfile(requireContext()) ?: return@header null
                 val locked = isQuietMode(profile)
+                if (!DrawerRows.showPrivateEntry(query, getString(R.string.private_space), locked,
+                        privateSpaceEntryHidden(requireContext(), profile))) return@header null
                 AppModel(
-                    getString(if (locked) R.string.private_space_unlock else R.string.private_space_lock),
+                    getString(when {
+                        locked -> R.string.private_space_unlock
+                        query.isNotBlank() -> R.string.private_space_open
+                        else -> R.string.private_space_lock
+                    }),
                     null, "", null, false, profile, isPrivate = true
                 )
             }
@@ -849,6 +883,7 @@ class AppDrawerFragment : BaseFragment() {
     }
 
     override fun onDestroyView() {
+        revealPrivateSpace = false
         scrollListener?.let { binding.recyclerView.removeOnScrollListener(it) }
         scrollListener = null
         pendingSubmit = null
