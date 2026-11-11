@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 - Recover stale app launcher entries in their original profile without duplicate crash reports.
+- Find Private Space by searching its name, then tap or press Enter to unlock or open it; respect Android’s hide-when-locked preference.
+- Remove an app from the drawer as soon as its uninstall from the drawer finishes, instead of keeping it listed on some phones until a restart.
 - Scroll app pickers back up when dragging down in the list, instead of closing the folder, focus mode, quiet list or app limit sheet.
 
 ## v6.0.1 — 2026-11-06

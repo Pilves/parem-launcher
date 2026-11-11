@@ -56,7 +56,7 @@ class AppDrawerAdapter(
      * drawer sets it; it is read on every rebuild so the label tracks the
      * current lock state.
      */
-    var privateSpaceHeader: () -> AppModel? = { null }
+    var privateSpaceHeader: (String) -> AppModel? = { null }
 
     /** Extra veto for auto-launch, checked on the main thread right before firing. */
     var autoLaunchGuard: (String) -> Boolean = { true }
@@ -175,7 +175,7 @@ class AppDrawerAdapter(
             override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
                 (results?.values as? FilteredApps)?.let { result ->
                     if (!filterState.isCurrent(result.generation)) return
-                    appFilteredList = decorate(result.apps, constraint.isNullOrBlank())
+                    appFilteredList = decorate(result.apps, constraint?.toString().orEmpty())
                     val currentFiltered = appFilteredList.toList()
                     val query = constraint?.toString().orEmpty()
                     if (query != autoLaunchedQuery) {
@@ -196,7 +196,8 @@ class AppDrawerAdapter(
     private fun autoLaunch(filteredSnapshot: List<AppModel>, query: String, generation: Long) {
         try {
             // App rows only: a shortcut row never starts or stops auto-launch
-            if (filteredSnapshot.count { it.shortcutId == null } == 1
+            if (filteredSnapshot.none { it.isPrivateHeader() }
+                && filteredSnapshot.count { it.shortcutId == null } == 1
                 && query != autoLaunchedQuery
                 && !query.startsWith(" ")
                 && !query.startsWith("!")
@@ -239,7 +240,7 @@ class AppDrawerAdapter(
         if (sortByUsage && (usageStats.isNotEmpty() || openCounts.isNotEmpty())) {
             filter.filter("")
         } else {
-            this.appFilteredList = decorate(list, searchBlank = true)
+            this.appFilteredList = decorate(list, query = "")
             submitList(appFilteredList.toList()) {
                 if (filterState.commit("", generation)) onFilterCommitted("")
             }
@@ -262,13 +263,13 @@ class AppDrawerAdapter(
 
     /**
      * Rows as submitted: regular apps, the private-space header, private apps,
-     * then the bottom-padding row. Header and padding only with a blank
-     * search, as the padding row never matched a search before.
+     * then the bottom-padding row. The entry can also match a search; padding
+     * remains exclusive to the unfiltered drawer.
      */
-    private fun decorate(apps: List<AppModel>, searchBlank: Boolean): MutableList<AppModel> {
-        val header = if (searchBlank && flag == Constants.FLAG_LAUNCH_APP) privateSpaceHeader() else null
-        val padding = if (searchBlank) AppModel("", null, "", "", false, myUserHandle) else null
-        return DrawerRows.decorate(apps, { it.isPrivate }, header, padding) { it.shortcutId != null }.toMutableList()
+    private fun decorate(apps: List<AppModel>, query: String): MutableList<AppModel> {
+        val header = if (flag == Constants.FLAG_LAUNCH_APP) privateSpaceHeader(query) else null
+        val padding = if (query.isBlank()) AppModel("", null, "", "", false, myUserHandle) else null
+        return DrawerRows.decorate(apps, { it.isPrivate }, header, padding, headerFirst = query.isNotBlank()) { it.shortcutId != null }.toMutableList()
     }
 
     // Header and padding rows have no package and are never launched
@@ -276,7 +277,8 @@ class AppDrawerAdapter(
         rows.firstOrNull { it.appPackage.isNotEmpty() && (includeShortcuts || it.shortcutId == null) }
 
     fun launchFirstInList() {
-        firstApp(currentList)?.let(appClickListener)
+        // Enter is explicit: unlike auto-launch it may activate the Private Space entry.
+        currentList.firstOrNull { it.appPackage.isNotEmpty() || it.isPrivateHeader() }?.let(appClickListener)
     }
 
     class ViewHolder(private val binding: AdapterAppDrawerBinding) : RecyclerView.ViewHolder(binding.root) {
