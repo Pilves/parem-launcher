@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Recover stale app launcher entries in their original profile without duplicate crash reports.
+- Find Private Space by searching its name, then tap or press Enter to unlock or open it; respect Android’s hide-when-locked preference.
 
 ## v6.0.1 — 2026-11-06
 

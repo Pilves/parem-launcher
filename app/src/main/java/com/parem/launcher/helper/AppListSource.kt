@@ -2,6 +2,7 @@ package com.parem.launcher.helper
 
 import android.content.Context
 import android.content.pm.LauncherApps
+import android.content.pm.LauncherUserInfo
 import android.os.Build
 import android.os.UserHandle
 import android.os.UserManager
@@ -286,5 +287,18 @@ private fun isPrivateProfile(launcherApps: LauncherApps, profile: UserHandle): B
     } catch (e: Exception) {
         Log.e("Utils", "Failed to read the profile type of $profile", e)
         null
+    }
+}
+
+/** API 36's system preference; unreadable config must not expose a hidden entry. */
+fun privateSpaceEntryHidden(context: Context, profile: UserHandle): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA) return false
+    return try {
+        val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+        val info = launcherApps.getLauncherUserInfo(profile) ?: return true
+        info.userConfig.getBoolean(LauncherUserInfo.PRIVATE_SPACE_ENTRYPOINT_HIDDEN, false)
+    } catch (e: Exception) {
+        Log.e("Utils", "Failed to read private space entry visibility", e)
+        true
     }
 }
