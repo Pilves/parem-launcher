@@ -312,9 +312,6 @@
     <string name="quiet_starting" translatable="false">Notification filter is starting. Try again in a moment.</string>
     <string name="quiet_open_settings" translatable="false">Open settings</string>
     <string name="quiet_turn_off" translatable="false">Turn off filter</string>
-    <string name="quiet_turn_off_title" translatable="false">Dismiss waiting notifications?</string>
-    <string name="quiet_dismiss" translatable="false">Dismiss</string>
-    <string name="quiet_keep" translatable="false">Keep</string>
     <string name="quiet_keep_info" translatable="false">Hidden notifications will come back to the shade within 8 h.</string>
     <string name="grayscale">Grayscale</string>
     <string name="grayscale_set_up" translatable="false">Set up</string>

@@ -59,3 +59,12 @@ Recorded 2026-10-03 after the design/manager review round. These override the
 - **Restricted-settings line (2026-11-05).** Reverses the M2-WP5 decision above for
   the Play channel: `play` drops the line, because Play installs don't need it and
   it tells a reviewer how to lift a platform control. `full` still shows it.
+- **Quiet notifications release, never cancel (2026-11-12, M6-WP18).** Overrides
+  the M4-WP1 turn-off question. A listener's cancel is a no-op on a snoozed key,
+  and the key swallows every later post from that conversation until it ends.
+  Turning the filter off releases every hidden notification to the shade at once
+  (a 1 ms re-snooze), so the Keep/Dismiss sheet is gone; only when no listener is
+  connected does the "within 8 h" toast remain. Opening a quiet-list item or
+  "Dismiss all" no longer cancels or forgets the key: Parem records the item's
+  `Notification.when`, hides it until the app posts a newer one under that key,
+  and cancels the unchanged item when it comes back at expiry.
