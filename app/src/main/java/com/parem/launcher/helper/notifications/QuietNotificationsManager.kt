@@ -65,19 +65,19 @@ object QuietNotificationsManager {
 
     /**
      * Turns the filter off. Our hidden notifications come back to the shade
-     * first, while the listener can still reach them. False when not all of them
-     * could be (not connected): the rest come back only when their snooze ends.
+     * first, while the listener can still reach them; released keys are
+     * forgotten, so any key still tracked afterwards comes back only when its
+     * snooze ends.
      */
-    fun turnOff(context: Context): Boolean {
+    fun turnOff(context: Context) {
         val listener = QuietNotificationListener.instance
-        val released = listener?.release() == true
+        listener?.release()
         try {
             listener?.requestUnbind()
         } catch (e: Exception) {
             Log.e("QuietNotifications", "requestUnbind failed", e)
         }
         setEnabled(context, false)
-        return released
     }
 
     fun getAllowed(context: Context): Set<String> {

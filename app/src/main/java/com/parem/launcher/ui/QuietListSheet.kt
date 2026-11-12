@@ -151,10 +151,11 @@ object QuietListSheet {
 
     /** Turning off from settings or the sheet above: hidden notifications come back to the shade now. */
     fun turnOff(context: Context, onChanged: () -> Unit) {
-        // Not everything was released (no connected listener), so any stored key means items may come back later
-        if (!QuietNotificationsManager.turnOff(context) &&
-            QuietNotificationsManager.tracked(context).snoozedAt.isNotEmpty()
-        ) context.showToast(R.string.quiet_keep_info)
+        QuietNotificationsManager.turnOff(context)
+        // Released keys are forgotten. One left was not released (no connected listener,
+        // or since a restart its app has not posted it again), so it comes back later
+        if (QuietNotificationsManager.tracked(context).snoozedAt.isNotEmpty())
+            context.showToast(R.string.quiet_keep_info)
         onChanged()
     }
 

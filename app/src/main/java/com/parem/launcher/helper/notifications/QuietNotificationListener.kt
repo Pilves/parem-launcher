@@ -49,6 +49,8 @@ class QuietNotificationListener : NotificationListenerService() {
         snoozedKeys()?.let {
             QuietNotificationsManager.prune(this, it)
         }
+        // An app allowed while we were unbound could not be released then
+        release(QuietNotificationsManager.getAllowed(this))
     }
 
     override fun onListenerDisconnected() {
@@ -166,10 +168,11 @@ class QuietNotificationListener : NotificationListenerService() {
             n.contentIntent?.send(context, 0, null, null, null, null, backgroundStartOptions())
             // Open counts are exported, so only the personal profile's package name lands there
             if (sbn.user == android.os.Process.myUserHandle()) AppOpenCounter.increment(this, sbn.packageName)
+            // Only after the send: an item that failed to open stays in the list
+            QuietNotificationsManager.markDismissed(this, mapOf(key to n.`when`))
         } catch (e: Exception) {
             Log.e(TAG, "Failed to open notification", e)
         }
-        QuietNotificationsManager.markDismissed(this, mapOf(key to n.`when`))
     }
 
     /**
@@ -183,11 +186,12 @@ class QuietNotificationListener : NotificationListenerService() {
     /**
      * Brings our hidden notifications back to the shade now, alerting like new
      * arrivals: snoozing a snoozed key again reschedules its repost. [packages]
-     * limits this to those apps; null releases all. False when something could
-     * not be released: the snoozed set was unreadable or a snooze was refused.
+     * limits this to those apps; null releases all. Items the user opened or
+     * dismissed come back too: left snoozed, their keys would swallow the app's
+     * new posts. A key that could not be released stays tracked.
      */
-    fun release(packages: Set<String>? = null): Boolean {
-        val snoozed = snoozed() ?: return false
+    fun release(packages: Set<String>? = null) {
+        val snoozed = snoozed() ?: return
         val keys = QuietKeys.releasable(
             snoozed.associate { it.key to it.packageName },
             QuietNotificationsManager.tracked(this).snoozedAt.keys,
@@ -208,7 +212,6 @@ class QuietNotificationListener : NotificationListenerService() {
             }
         }
         QuietNotificationsManager.forget(this, released)
-        return released.size == keys.size
     }
 
     /**
