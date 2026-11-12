@@ -22,8 +22,9 @@ import com.parem.launcher.helper.MindfulPause
  * the system's notification-access list, so a restored or transferred device can
  * never show the feature as on while the component is off.
  *
- * The allowlist is an exported CSV in the launcher prefs. The keys we snoozed live
- * in a second prefs file ([KEYS_PREFS_NAME]) that export never reads and backup
+ * The allowlist is an exported CSV in the launcher prefs. The keys we snoozed, when
+ * we snoozed them and the `when` of any the user opened or dismissed ([QuietKeys])
+ * live in a second prefs file ([KEYS_PREFS_NAME]) that export never reads and backup
  * rules exclude, because an app-chosen notification tag can carry an identifier.
  * No notification content is stored anywhere.
  */
@@ -35,7 +36,6 @@ object QuietNotificationsManager {
 
     // Excluded from backup in data_extraction_rules.xml / backup_rules.xml by file name
     private const val KEYS_PREFS_NAME = "com.parem.launcher.quiet_keys"
-    private const val KEY_SNOOZED = "SNOOZED_KEYS"
 
     private fun component(context: Context) =
         ComponentName(context, QuietNotificationListener::class.java)
@@ -64,27 +64,35 @@ object QuietNotificationsManager {
     }
 
     /**
-     * Turns the filter off. With [dismissWaiting] our hidden notifications are
-     * cancelled first; otherwise they come back when their snooze ends.
+     * Turns the filter off. Our hidden notifications come back to the shade
+     * first, while the listener can still reach them. False when not all of them
+     * could be (not connected): the rest come back only when their snooze ends.
      */
-    fun turnOff(context: Context, dismissWaiting: Boolean) {
+    fun turnOff(context: Context): Boolean {
         val listener = QuietNotificationListener.instance
-        if (dismissWaiting) listener?.dismissAll()
+        val released = listener?.release() == true
         try {
             listener?.requestUnbind()
         } catch (e: Exception) {
             Log.e("QuietNotifications", "requestUnbind failed", e)
         }
         setEnabled(context, false)
+        return released
     }
 
     fun getAllowed(context: Context): Set<String> {
         return MindfulPause.parse(context.paremPrefs().getString(KEY_ALLOWED, ""))
     }
 
+    /**
+     * Apps that just became allowed get their hidden notifications back in the
+     * shade now: a snoozed key would swallow their new posts until it ends.
+     */
     fun setAllowed(context: Context, packages: Set<String>) {
+        val added = packages - getAllowed(context)
         context.paremPrefs()
             .edit { putString(KEY_ALLOWED, packages.joinToString(",")) }
+        if (added.isNotEmpty()) QuietNotificationListener.instance?.release(added)
     }
 
     fun defaultDialer(context: Context): String? = try {
@@ -101,30 +109,63 @@ object QuietNotificationsManager {
 
     private fun keysPrefs(context: Context) = context.getSharedPreferences(KEYS_PREFS_NAME, 0)
 
-    fun getOurKeys(context: Context): Set<String> =
-        keysPrefs(context).getStringSet(KEY_SNOOZED, null)?.toSet() ?: emptySet()
-
-    // The set returned by getStringSet must not be mutated, so writes always copy
-    fun setOurKeys(context: Context, keys: Set<String>) {
-        keysPrefs(context).edit { putStringSet(KEY_SNOOZED, HashSet(keys)) }
+    /** Our keys and marks. The first read moves the old key-only set over. */
+    fun tracked(context: Context): QuietKeys.Tracked {
+        val prefs = keysPrefs(context)
+        val all = prefs.all
+        val tracked = QuietKeys.decode(all, System.currentTimeMillis())
+        if (QuietKeys.LEGACY_NAME in all) prefs.edit {
+            remove(QuietKeys.LEGACY_NAME)
+            for ((key, at) in tracked.snoozedAt) putLong(QuietKeys.snoozedName(key), at)
+        }
+        return tracked
     }
 
-    fun addKey(context: Context, key: String) {
-        val keys = getOurKeys(context)
-        if (key !in keys) setOurKeys(context, keys + key)
+    /** Called on every snooze, so a key the filter keeps hiding never ages out. */
+    fun markSnoozed(context: Context, key: String) {
+        keysPrefs(context).edit { putLong(QuietKeys.snoozedName(key), System.currentTimeMillis()) }
     }
 
-    fun removeKey(context: Context, key: String) {
-        val keys = getOurKeys(context)
-        if (key in keys) setOurKeys(context, keys - key)
+    /** [marks]: key to the `when` of the item the user opened or dismissed. */
+    fun markDismissed(context: Context, marks: Map<String, Long>) {
+        if (marks.isEmpty()) return
+        keysPrefs(context).edit { for ((key, w) in marks) putLong(QuietKeys.dismissedName(key), w) }
     }
 
-    /** Drops keys the system no longer holds as snoozed; returns what is left. */
-    fun pruneKeys(context: Context, stillSnoozed: Set<String>): Set<String> {
-        val keys = getOurKeys(context)
-        val pruned = keys intersect stillSnoozed
-        if (pruned.size != keys.size) setOurKeys(context, pruned)
-        return pruned
+    // Every post asks, few keys have a mark, and getAll copies the whole file: contains() first
+    fun dismissedWhen(context: Context, key: String): Long? {
+        val prefs = keysPrefs(context)
+        val name = QuietKeys.dismissedName(key)
+        if (!prefs.contains(name)) return null
+        val all = prefs.all
+        return QuietKeys.liveMark(
+            all[name] as? Long, all[QuietKeys.snoozedName(key)] as? Long, System.currentTimeMillis()
+        )
+    }
+
+    fun clearDismissed(context: Context, key: String) {
+        val prefs = keysPrefs(context)
+        val name = QuietKeys.dismissedName(key)
+        // Called for every post that the filter decides, so no write without a mark
+        if (prefs.contains(name)) prefs.edit { remove(name) }
+    }
+
+    fun forget(context: Context, keys: Collection<String>) {
+        if (keys.isEmpty()) return
+        keysPrefs(context).edit {
+            for (key in keys) {
+                remove(QuietKeys.snoozedName(key))
+                remove(QuietKeys.dismissedName(key))
+            }
+        }
+    }
+
+    /** Forgets keys whose snooze has surely ended ([QuietKeys.prune]); returns what is left. */
+    fun prune(context: Context, listed: Set<String>): QuietKeys.Tracked {
+        val tracked = tracked(context)
+        val kept = QuietKeys.prune(tracked, listed, System.currentTimeMillis())
+        forget(context, (tracked.snoozedAt.keys + tracked.dismissed.keys) - kept.snoozedAt.keys)
+        return kept
     }
 
     /** The system's notification-access screen for our listener (detail page on API 30+). */

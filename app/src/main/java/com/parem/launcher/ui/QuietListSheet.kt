@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 /**
  * Sheets for "Hide from shade, keep for later": the turn-on flow (allowed apps,
  * then the disclosure, then the system access screen), the "needs access" sheet,
- * the turn-off question, and the quiet list itself.
+ * turning off, and the quiet list itself.
  *
  * Callers pass [isAlive] for their own binding guard; it is checked before any
  * sheet shows after async work.
@@ -144,38 +144,18 @@ object QuietListSheet {
                 QuietNotificationsManager.openAccessSettings(context)
             }
             .option(context.getString(R.string.quiet_turn_off), dimmed = true) {
-                turnOff(context, dismissWaiting = false)
-                onChanged()
+                turnOff(context, onChanged)
             }
             .show()
     }
 
-    /** Turning off from settings: asks what to do with notifications still hidden. */
-    fun confirmTurnOff(context: Context, onChanged: () -> Unit) {
-        val waiting = QuietNotificationListener.instance?.waiting().orEmpty()
-        if (waiting.isEmpty()) {
-            turnOff(context, dismissWaiting = false)
-            onChanged()
-            return
-        }
-        BottomSheetMenu(context)
-            .title(context.getString(R.string.quiet_turn_off_title))
-            .option(context.getString(R.string.quiet_dismiss)) {
-                turnOff(context, dismissWaiting = true)
-                onChanged()
-            }
-            .option(context.getString(R.string.quiet_keep)) {
-                turnOff(context, dismissWaiting = false)
-                onChanged()
-            }
-            .show()
-    }
-
-    private fun turnOff(context: Context, dismissWaiting: Boolean) {
-        QuietNotificationsManager.turnOff(context, dismissWaiting)
-        // Without access we cannot see what is snoozed, so any stored key means items may come back
-        if (!dismissWaiting && QuietNotificationsManager.getOurKeys(context).isNotEmpty())
-            context.showToast(R.string.quiet_keep_info)
+    /** Turning off from settings or the sheet above: hidden notifications come back to the shade now. */
+    fun turnOff(context: Context, onChanged: () -> Unit) {
+        // Not everything was released (no connected listener), so any stored key means items may come back later
+        if (!QuietNotificationsManager.turnOff(context) &&
+            QuietNotificationsManager.tracked(context).snoozedAt.isNotEmpty()
+        ) context.showToast(R.string.quiet_keep_info)
+        onChanged()
     }
 
     /** Opening an entry is a Parem launch route: same focus check and limit gate as a home slot. */

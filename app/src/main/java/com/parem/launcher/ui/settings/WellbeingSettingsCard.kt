@@ -100,7 +100,7 @@ class WellbeingSettingsCard(
         when (QuietNotificationsManager.state(context)) {
             State.OFF -> QuietListSheet.startTurnOn(fragment, prefs, fragment::isBindingAlive, onChanged)
             State.NEEDS_ACCESS -> QuietListSheet.showNeedsAccess(context, starting = false, onChanged = onChanged)
-            State.ON -> QuietListSheet.confirmTurnOff(context, onChanged)
+            State.ON -> QuietListSheet.turnOff(context, onChanged)
         }
     }
 
