@@ -45,9 +45,11 @@ ui/
                            WeatherSettingsDialog, GestureLetterConfigDialog.
   BottomSheetMenu.kt       THE way to build bottom sheets (handle + title + rows).
   BadHabitDialogs.kt       Launch gate for limited apps (mindful pause, "limit
-                           reached" warning) + time-limit picker; every launch
-                           route calls gateLaunch (home via
-                           HomeSlotsController.launchApp, drawer/omnibox).
+                           reached" warning) + time-limit picker. Home app launches
+                           use HomeSlotsController.launchApp; drawer app launches
+                           check the gate when the app has a limit or pause. Web
+                           opens use gateWebOpen to select and gate the handler.
+                           Omnibox quick actions and dial intents bypass this gate.
   FocusModeDialog.kt, ScreenTimeGraphDialog.kt, ScreenTimeLimitDialog.kt,
   GestureLetterOverlayView.kt, ScreenTimeGraphView.kt, Onboarding*.kt
 
@@ -91,7 +93,7 @@ listener/
 - **Bottom sheets**: build them with `ui/BottomSheetMenu`. Don't hand-assemble LinearLayouts.
   A sheet built outside `BottomSheetMenu` (a direct `BottomSheetDialog`) must call `disableAnimationsOnEink()` before it shows, or it slides on e-ink.
   A sheet opened from a fragment must be tied to it with `dismissOnDestroy(viewLifecycleOwner)`: dialogs belong to the activity's window, so Home would otherwise pop the fragment and leave the sheet up with callbacks into a dead fragment.
-- **App launching**: goes through `MainViewModel.selectedApp(appModel, flag)`; the `flag` constants in `Constants` say what the selection means (launch, set home slot N, set swipe app, …). The app drawer is reused for every "pick an app" flow via these flags.
+- **App launching and selection**: use `MainViewModel.selectedApp(appModel, flag)`; the `flag` constants in `Constants` say what the selection means (launch, set home slot N, set swipe app, …). The app drawer is reused for "pick an app" flows via these flags. Gate limited apps before dispatch; `selectedApp` alone does not supply the mindful-pause or limit gate. Web-search gestures use `gateWebOpen` followed by a search intent, and omnibox quick actions and dial intents have separate dispatch paths.
 - **Fragments** hold `_binding` nullable + `binding` accessor; async callbacks must check `isAdded` / `_binding != null` (or `isActive()` in HomeWidgetController) before touching views.
 - **Home app slots** are 1-8, stored per-slot via `prefs.getHomeApp*(slot)` / `setHomeApp*(slot, …)`.
 
