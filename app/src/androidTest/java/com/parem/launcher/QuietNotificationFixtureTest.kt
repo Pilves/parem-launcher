@@ -22,7 +22,8 @@ class QuietNotificationFixtureTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
     private val device = UiDevice.getInstance(instrumentation)
-    private val component = ComponentName(context, QuietNotificationListener::class.java).flattenToString()
+    private val componentName = ComponentName(context, QuietNotificationListener::class.java)
+    private val component = componentName.flattenToString()
     private val tag = "parem-quiet-ci-fixture"
 
     private fun waitUntil(message: String, condition: () -> Boolean) {
@@ -48,7 +49,10 @@ class QuietNotificationFixtureTest {
         try {
             QuietNotificationsManager.setEnabled(context, true)
             device.executeShellCommand("cmd notification allow_listener $component")
-            waitUntil("listener did not connect") { QuietNotificationsManager.hasAccess(context) && listener() != null }
+            waitUntil("listener access was not granted") { QuietNotificationsManager.hasAccess(context) }
+            // Prior fixture runs on this emulator may have requested unbind.
+            NotificationListenerService.requestRebind(componentName)
+            waitUntil("listener did not connect") { listener() != null }
             device.executeShellCommand("cmd notification post -t ParemFixture $tag synthetic")
             waitUntil("synthetic shell notification did not appear") {
                 listener()?.activeNotifications?.any { it.packageName == "com.android.shell" && it.tag == tag } == true
@@ -71,7 +75,9 @@ class QuietNotificationFixtureTest {
 
             QuietNotificationsManager.setAllowed(context, emptySet())
             seedSnooze()
+            val previousListener = listener()!!
             QuietNotificationsManager.turnOff(context)
+            waitUntil("old listener did not disconnect") { listener() == null }
             assertFalse("turnOff left component enabled", QuietNotificationsManager.isEnabled(context))
             assertFalse("turnOff did not forget the released key", fixtureKey in QuietNotificationsManager.tracked(context).snoozedAt)
             // Observe the system independently: turnOff deliberately unbinds our listener.
@@ -80,8 +86,9 @@ class QuietNotificationFixtureTest {
             }
             // Rebind only to remove our synthetic notification during cleanup.
             QuietNotificationsManager.setEnabled(context, true)
-            NotificationListenerService.requestRebind(ComponentName(context, QuietNotificationListener::class.java))
-            waitUntil("listener did not rebind for cleanup") { listener() != null }
+            NotificationListenerService.requestRebind(componentName)
+            waitUntil("fresh listener did not rebind for cleanup") { listener()?.let { it !== previousListener } == true }
+            waitUntil("fresh listener did not see reposted fixture") { active(fixtureKey) }
         } finally {
             // Disposable CI emulator only; touch our synthetic tag and listener, never other keys.
             try {
@@ -94,9 +101,13 @@ class QuietNotificationFixtureTest {
                     QuietNotificationsManager.forget(context, listOf(fixtureKey))
                 }
             } finally {
-                QuietNotificationsManager.setAllowed(context, emptySet())
-                QuietNotificationsManager.turnOff(context)
-                device.executeShellCommand("cmd notification disallow_listener $component")
+                try {
+                    QuietNotificationsManager.setAllowed(context, emptySet())
+                    QuietNotificationsManager.turnOff(context)
+                    waitUntil("listener did not disconnect during cleanup") { listener() == null }
+                } finally {
+                    device.executeShellCommand("cmd notification disallow_listener $component")
+                }
             }
         }
     }

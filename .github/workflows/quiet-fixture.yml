@@ -3,6 +3,12 @@ name: Quiet notification fixture
 on:
   pull_request:
     branches: [master]
+    paths:
+      - app/src/main/java/com/parem/launcher/helper/notifications/**
+      - app/src/main/AndroidManifest.xml
+      - app/src/androidTest/java/com/parem/launcher/QuietNotificationFixtureTest.kt
+      - scripts/run-quiet-fixture.sh
+      - .github/workflows/quiet-fixture.yml
   workflow_dispatch:
 permissions:
   contents: read
@@ -31,11 +37,7 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-          script: |
-            set -e
-            trap 'adb logcat -d -v threadtime > app/build/quiet-fixture-logcat.txt || true' EXIT
-            ./gradlew connectedPlayDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.QuietNotificationFixtureTest -Pandroid.testInstrumentationRunnerArguments.quiet_fixture=true
-            ./gradlew connectedFullDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.QuietNotificationFixtureTest -Pandroid.testInstrumentationRunnerArguments.quiet_fixture=true
+          script: bash scripts/run-quiet-fixture.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
