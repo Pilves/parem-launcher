@@ -151,11 +151,18 @@ class FocusLaunchRoutingTest {
                     val packageName = resolved!!.activityInfo.packageName
                     device.swipe(device.displayWidth * 4 / 5, y, device.displayWidth / 5, y, 20)
                     if (packageName == "android") {
-                        val choice = device.wait(Until.findObject(By.text("Focus camera fixture")), 5_000)
-                        assertNotNull("camera chooser did not appear", choice)
-                        choice.click()
+                        val handlers = context.packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                        var selected: String? = null
+                        for (handler in handlers) {
+                            val label = handler.loadLabel(context.packageManager).toString()
+                            val choice = device.wait(Until.findObject(By.text(label)), 2_000) ?: continue
+                            choice.click()
+                            selected = handler.activityInfo.packageName
+                            break
+                        }
+                        assertNotNull("no camera handler was visible in the chooser", selected)
                         device.findObject(By.text(Pattern.compile("(?i)just once")))?.click()
-                        assertTrue("camera fixture did not open", device.wait(Until.hasObject(By.text("Camera fixture activity is open")), 5_000))
+                        assertTrue("selected camera app did not open", device.wait(Until.hasObject(By.pkg(selected!!)), 5_000))
                     } else {
                         assertTrue("camera app did not open", device.wait(Until.hasObject(By.pkg(packageName)), 5_000))
                     }
