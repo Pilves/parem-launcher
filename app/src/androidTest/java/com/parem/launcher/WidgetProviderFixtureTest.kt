@@ -3,6 +3,7 @@ package com.parem.launcher
 import android.content.ComponentName
 import android.os.Build
 import android.os.SystemClock
+import android.util.Log
 import androidx.navigation.fragment.NavHostFragment
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -19,6 +20,8 @@ import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.ByteArrayOutputStream
+import java.io.File
 
 /** Runs only in the dedicated disposable-emulator workflow with a synthetic companion APK. */
 @RunWith(AndroidJUnit4::class)
@@ -89,13 +92,23 @@ class WidgetProviderFixtureTest {
             while (!clicked && SystemClock.elapsedRealtime() < clickDeadline) {
                 val firstPlaceholder = device.findObjects(unavailable).firstOrNull()
                 if (firstPlaceholder != null) try {
+                    Log.i("WidgetFixture", "placeholder bounds=${firstPlaceholder.visibleBounds} enabled=${firstPlaceholder.isEnabled} clickable=${firstPlaceholder.isClickable}")
                     firstPlaceholder.click()
                     clicked = true
                 } catch (_: StaleObjectException) { }
                 if (!clicked) SystemClock.sleep(100)
             }
             assertTrue("first unavailable widget could not be opened after reinstall", clicked)
-            checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.swap_widget))), 10_000)).click()
+            val swap = device.wait(Until.findObject(By.desc(context.getString(R.string.swap_widget))), 10_000)
+            if (swap == null) {
+                try {
+                    val hierarchy = ByteArrayOutputStream()
+                    device.dumpWindowHierarchy(hierarchy)
+                    hierarchy.toString(Charsets.UTF_8.name()).chunked(3000).forEach { Log.e("WidgetFixture", "hierarchy: $it") }
+                    context.getExternalFilesDir(null)?.let { device.takeScreenshot(File(it, "widget-fixture-failure.png")) }
+                } catch (e: Exception) { Log.e("WidgetFixture", "could not capture diagnostics", e) }
+            }
+            checkNotNull(swap).click()
             checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.EditText")), 20_000)).text = "configurable"
             checkNotNull(device.wait(Until.findObject(By.text("Parem configurable fixture")), 20_000)).click()
             assertTrue("actual configure activity did not launch", device.wait(Until.hasObject(By.text("Parem fixture configuration")), 15_000))
