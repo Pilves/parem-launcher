@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -17,6 +18,7 @@ import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.padForSystemBars
+import com.parem.launcher.helper.isParemDefault
 import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.WellbeingRowState
 import com.parem.launcher.helper.appUsagePermissionGranted
@@ -28,6 +30,9 @@ import com.parem.launcher.ui.settings.HomeScreenSettingsCard
 import com.parem.launcher.ui.settings.WellbeingSettingsCard
 import com.parem.launcher.ui.settings.bindSwitchRow
 import com.parem.launcher.ui.settings.bindValueRow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Settings screen. Split into per-card helper classes under ui/settings/
@@ -122,7 +127,18 @@ class SettingsFragment : BaseFragment() {
         // the view, and that must not jump back to the searched row.
         arguments?.getInt(Constants.Key.SETTING)?.takeIf { it != 0 }?.let { anchor ->
             arguments?.remove(Constants.Key.SETTING)
-            binding.scrollView.post { scrollToSetting(anchor) }
+            if (anchor == R.id.setLauncher) {
+                // The cached LiveData may be stale when returning from Android's home settings.
+                // Resolve this particular search target before choosing either conditional row.
+                val appContext = requireContext().applicationContext
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val isDefault = withContext(Dispatchers.IO) { isParemDefault(appContext) }
+                    val b = _binding ?: return@launch
+                    b.setLauncherTop.visibility = if (isDefault) View.GONE else View.VISIBLE
+                    b.setLauncher.visibility = if (isDefault) View.VISIBLE else View.GONE
+                    b.scrollView.post { if (_binding === b) scrollToSetting(anchor) }
+                }
+            } else binding.scrollView.post { if (_binding != null) scrollToSetting(anchor) }
         }
 
         // Focus mode / screen-time dialogs rank apps by today's usage; without this

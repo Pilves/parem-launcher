@@ -833,6 +833,23 @@ class SmokeTest {
     }
 
     @Test
+    fun defaultHomeSearchResolvesFreshRoleBeforeScrolling() {
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            // setUp made Parem the default; simulate a stale observation from before that change.
+            ViewModelProvider(activity)[MainViewModel::class.java].isParemDefault.value = false
+            activity.findNavController(R.id.nav_host_fragment).navigate(
+                R.id.action_mainFragment_to_settingsFragment,
+                bundleOf(Constants.Key.SETTING to R.id.setLauncher)
+            )
+        }
+        val target = By.res(context.resources.getResourceName(R.id.setLauncher))
+        assertTrue("search did not reach the current default-home row", device.wait(Until.hasObject(target), TIMEOUT))
+        assertFalse("non-default prompt remained visible", device.hasObject(By.res(context.resources.getResourceName(R.id.setLauncherTop))))
+    }
+
+    @Test
     fun swipeDownRowStaysWhileItsPickerIsOpen() {
         device.waitForIdle(TIMEOUT)
         instrumentation.runOnMainSync {
