@@ -17,6 +17,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import androidx.test.uiautomator.By
+import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
@@ -97,7 +98,14 @@ class LockConsentLifecycleTest {
             openSettingsThen { fragment -> QuietListSheet.startTurnOn(fragment, Prefs(context), { fragment.view != null }, {}) }
             val continueButton = checkNotNull(device.wait(Until.findObject(quietContinue), 15_000)) { "quiet app picker missing" }
             continueButton.click()
-            check(device.wait(Until.hasObject(quietNotNow), 10_000)) { "quiet disclosure missing" }
+            val disclosureTitle = By.text(context.getString(R.string.quiet_disclosure_title))
+            check(device.wait(Until.hasObject(disclosureTitle), 10_000)) { "quiet disclosure title missing after Continue" }
+            // The disclosure is long; the final action can begin below the viewport.
+            val scroller = checkNotNull(device.findObject(By.scrollable(true))) { "quiet disclosure scroller missing" }
+            repeat(5) {
+                if (!device.hasObject(quietNotNow)) scroller.scroll(Direction.DOWN, 0.8f)
+            }
+            check(device.wait(Until.hasObject(quietNotNow), 10_000)) { "quiet disclosure action missing after scrolling" }
             pressHomeAndCheckDismissed(quietNotNow)
         } finally {
             if (!grantedBefore) device.executeShellCommand("pm revoke ${context.packageName} android.permission.WRITE_SECURE_SETTINGS")
