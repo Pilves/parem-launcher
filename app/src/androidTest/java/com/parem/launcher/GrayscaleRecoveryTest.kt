@@ -51,6 +51,11 @@ class GrayscaleRecoveryTest {
                 scenario.onActivity { activity ->
                     GrayscaleController.setManual(activity, false)
                     assertTrue(GrayscaleController.restorationPendingWithoutAccess(activity))
+                }
+                scenario.recreate()
+                scenario.onActivity { activity ->
+                    assertFalse(prefs.getBoolean(GrayscaleController.KEY_MANUAL, true))
+                    assertTrue(GrayscaleController.restorationPendingWithoutAccess(activity))
                     val nav = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
                     val fragment = checkNotNull(nav.childFragmentManager.primaryNavigationFragment)
                     GrayscaleSheet.open(fragment, onPair = {}, onChanged = {})
