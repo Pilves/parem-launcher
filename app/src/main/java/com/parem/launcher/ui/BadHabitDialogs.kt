@@ -6,8 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
 import android.os.SystemClock
-import android.os.Handler
-import android.os.Looper
 import android.widget.TextView
 import androidx.core.text.BidiFormatter
 import androidx.core.view.ViewCompat
@@ -28,7 +26,9 @@ import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.showToast
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -216,14 +216,18 @@ object BadHabitDialogs {
      */
     /** Dismiss a launch-owned sheet when the originating screen's scope ends. */
     private fun BottomSheetDialog.dismissWithScope(scope: CoroutineScope) {
-        val handle = scope.coroutineContext[Job]?.invokeOnCompletion {
-            Handler(Looper.getMainLooper()).post { if (isShowing) dismiss() }
+        var detached = false
+        val watcher = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+            try { awaitCancellation() } finally {
+                withContext(NonCancellable + Dispatchers.Main.immediate) { if (!detached && isShowing) dismiss() }
+            }
         }
         // Do not replace the caller's onDismiss listener (which delivers cancellation).
         window?.decorView?.addOnAttachStateChangeListener(object : android.view.View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: android.view.View) = Unit
             override fun onViewDetachedFromWindow(v: android.view.View) {
-                handle?.dispose()
+                detached = true
+                watcher.cancel()
                 v.removeOnAttachStateChangeListener(this)
             }
         })
