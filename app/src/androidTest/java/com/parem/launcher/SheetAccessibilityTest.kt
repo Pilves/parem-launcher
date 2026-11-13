@@ -6,8 +6,14 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.core.view.AccessibilityDelegateCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerViewAccessibilityDelegate
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.UiDevice
+import com.parem.launcher.ui.AppPickerAdapter
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SheetCheckRow
 import org.junit.Assert.assertEquals
@@ -59,7 +65,7 @@ class SheetAccessibilityTest {
                 root.addView(row)
                 try {
                     var events = 0
-                    val delegate = requireNotNull(ViewCompat.getAccessibilityDelegate(row))
+                    val delegate = ViewCompat.getAccessibilityDelegate(row) ?: AccessibilityDelegateCompat()
                     ViewCompat.setAccessibilityDelegate(row, object : AccessibilityDelegateCompat() {
                         override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
                             delegate.onInitializeAccessibilityNodeInfo(host, info)
@@ -83,6 +89,88 @@ class SheetAccessibilityTest {
                 } finally {
                     root.removeView(row)
                 }
+            }
+        }
+    }
+
+    @Test
+    fun filteredPickerRowsKeepCheckboxSemanticsThroughRebinding() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val device = UiDevice.getInstance(instrumentation)
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            lateinit var list: RecyclerView
+            lateinit var adapter: AppPickerAdapter
+            scenario.onActivity { activity ->
+                adapter = AppPickerAdapter(
+                    textColor = android.graphics.Color.BLACK,
+                    maxSelected = 5,
+                    entries = listOf(
+                        AppPickerAdapter.Entry("a", "Alpha selected"),
+                        AppPickerAdapter.Entry("b", "Alpha other"),
+                        AppPickerAdapter.Entry("c", "Beta selected"),
+                    ) + (0 until 30).map { AppPickerAdapter.Entry("other$it", "Other $it") },
+                    initiallySelected = listOf("a", "c"),
+                )
+                list = RecyclerView(activity).apply {
+                    layoutManager = LinearLayoutManager(activity)
+                    this.adapter = adapter
+                }
+                activity.findViewById<ViewGroup>(android.R.id.content).addView(
+                    list, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 400),
+                )
+            }
+            try {
+                device.waitForIdle()
+                scenario.onActivity {
+                    val first = requireNotNull(list.findViewHolderForAdapterPosition(0)).itemView
+                    assertTrue(
+                        "test requires RecyclerView's item accessibility delegate",
+                        ViewCompat.getAccessibilityDelegate(first) is RecyclerViewAccessibilityDelegate.ItemDelegate,
+                    )
+                    adapter.filter("Alpha")
+                    assertTrue("filter must leave an adapter update pending", list.hasPendingAdapterUpdates())
+                    val pending = AccessibilityNodeInfoCompat.wrap(first.createAccessibilityNodeInfo())
+                    assertEquals("android.widget.CheckBox", pending.className)
+                    assertTrue(pending.isCheckable)
+                    assertTrue(pending.isChecked)
+                }
+                device.waitForIdle()
+                scenario.onActivity {
+                    fun checkRow(position: Int, expected: Boolean) {
+                        val row = requireNotNull(list.findViewHolderForAdapterPosition(position)).itemView
+                        val info = AccessibilityNodeInfoCompat.wrap(row.createAccessibilityNodeInfo())
+                        assertEquals("android.widget.CheckBox", info.className)
+                        assertTrue(info.isCheckable)
+                        assertEquals(expected, info.isChecked)
+                    }
+                    assertEquals(2, adapter.itemCount)
+                    checkRow(0, true)
+                    checkRow(1, false)
+                    requireNotNull(list.findViewHolderForAdapterPosition(1)).itemView.performClick()
+                    checkRow(1, true)
+                    adapter.filter("Beta")
+                }
+                device.waitForIdle()
+                scenario.onActivity {
+                    val row = requireNotNull(list.findViewHolderForAdapterPosition(0)).itemView
+                    val info = AccessibilityNodeInfoCompat.wrap(row.createAccessibilityNodeInfo())
+                    assertEquals("Beta selected", row.contentDescription)
+                    assertEquals("android.widget.CheckBox", info.className)
+                    assertTrue(info.isCheckable)
+                    assertTrue(info.isChecked)
+                    adapter.filter("Alpha")
+                }
+                device.waitForIdle()
+                scenario.onActivity {
+                    val row = requireNotNull(list.findViewHolderForAdapterPosition(1)).itemView
+                    val info = AccessibilityNodeInfoCompat.wrap(row.createAccessibilityNodeInfo())
+                    assertEquals("Alpha other", row.contentDescription)
+                    assertEquals("android.widget.CheckBox", info.className)
+                    assertTrue(info.isCheckable)
+                    assertTrue(info.isChecked)
+                }
+            } finally {
+                scenario.onActivity { (list.parent as ViewGroup).removeView(list) }
             }
         }
     }

@@ -10,6 +10,7 @@ import android.content.res.ColorStateList
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.LinearLayout
 import android.widget.ImageView
 import androidx.core.view.AccessibilityDelegateCompat
@@ -116,6 +117,15 @@ class SheetCheckRow(context: Context) : LinearLayout(context) {
         get() = label.text
         set(value) { label.text = value; contentDescription = value }
 
+    override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
+        super.onInitializeAccessibilityNodeInfo(info)
+        // RecyclerView may replace or bypass an item delegate during a filter/rebind.
+        info.className = if (singleChoice) "android.widget.RadioButton" else "android.widget.CheckBox"
+        info.isCheckable = true
+        info.isChecked = checked
+        if (!singleChoice) AccessibilityNodeInfoCompat.wrap(info).stateDescription = context.onOff(checked)
+    }
+
     init {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
@@ -125,15 +135,6 @@ class SheetCheckRow(context: Context) : LinearLayout(context) {
         setBackgroundResource(if (context.isEinkDisplay()) R.drawable.bg_eink_control else context.selectableBackgroundRes())
         isFocusable = true
         ViewCompat.setScreenReaderFocusable(this, true)
-        ViewCompat.setAccessibilityDelegate(this, object : AccessibilityDelegateCompat() {
-            override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
-                super.onInitializeAccessibilityNodeInfo(host, info)
-                info.className = if (singleChoice) "android.widget.RadioButton" else "android.widget.CheckBox"
-                info.isCheckable = true
-                info.isChecked = checked
-                if (!singleChoice) info.stateDescription = context.onOff(checked)
-            }
-        })
         addView(label, LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f))
         addView(check, LayoutParams(24.dpToPx(), 24.dpToPx()).apply { marginStart = 8.dpToPx() })
         checked = false
