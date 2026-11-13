@@ -26,7 +26,7 @@ internal fun LinearLayout.makePickerScroller() {
         } else if (afterContent) footer.addView(child) else header.addView(child)
     }
     list.adapter = ConcatAdapter(FixedPickerViewAdapter(header), choices, FixedPickerViewAdapter(footer))
-    addView(list, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+    addView(list, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 }
 
 /** The fixed views retain their state when their single item is detached. */
