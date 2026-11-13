@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Show the correct default-home settings row after checking the current role.
+
 - Announce single-choice sheet rows as checked radio buttons without misleading On/Off states.
 - Dismiss first-run tips when the drawer or Settings is opened by any route.
 - Remove unused settings views and drawer animation resources.

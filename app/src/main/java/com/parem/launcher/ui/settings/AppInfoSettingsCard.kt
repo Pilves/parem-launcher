@@ -78,11 +78,6 @@ class AppInfoSettingsCard(
     }
 
     private fun initObservers() {
-        viewModel.isParemDefault.observe(fragment.viewLifecycleOwner) {
-            binding.setLauncherTop.isVisible = !it
-            binding.setLauncher.isVisible = it
-            binding.setLauncher.text = context.getString(R.string.settings_default_home)
-        }
         // Installed hidden apps, so the count agrees with the list it opens
         viewModel.hiddenApps.observe(fragment.viewLifecycleOwner) { it?.let { populateHiddenApps(it.size) } }
         viewModel.getHiddenApps()

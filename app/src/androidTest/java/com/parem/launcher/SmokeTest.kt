@@ -973,8 +973,18 @@ class SmokeTest {
             )
         }
         val target = By.res(context.resources.getResourceName(R.id.setLauncher))
+        val prompt = By.res(context.resources.getResourceName(R.id.setLauncherTop))
         assertTrue("search did not reach the current default-home row", device.wait(Until.hasObject(target), TIMEOUT))
-        assertFalse("non-default prompt remained visible", device.hasObject(By.res(context.resources.getResourceName(R.id.setLauncherTop))))
+        assertTrue("non-default prompt remained visible", device.wait(Until.gone(prompt), TIMEOUT))
+        assertTrue("default-home target disappeared", device.hasObject(target))
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            ViewModelProvider(activity)[MainViewModel::class.java].isParemDefault.value = false
+        }
+        device.waitForIdle(TIMEOUT)
+        assertTrue("stale shared role hid the resolved target", device.hasObject(target))
+        assertFalse("stale shared role showed the non-default prompt", device.hasObject(prompt))
     }
 
     @Test
