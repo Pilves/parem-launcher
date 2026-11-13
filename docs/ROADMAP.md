@@ -297,7 +297,7 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP52 | **Done** (PR #57). **Todo**. Refresh screen time after a clock rollback | Screen-time freshness checks, tests, changelog and handoff | Future timestamps refresh both the home tile and shared usage cache while normal one-minute throttles remain |
 
-| M6-WP51 | **Done** (PR #0). **Todo**. Dismiss grayscale and quiet sheets with their owning screen | Grayscale and quiet sheet lifecycle, callers, tests, changelog and handoff | Settings, onboarding and gesture sheets do not outlive their fragment view |
+| M6-WP51 | **Done** (PR #56). **Todo**. Dismiss grayscale and quiet sheets with their owning screen | Grayscale and quiet sheet lifecycle, callers, tests, changelog and handoff | Settings, onboarding and gesture sheets do not outlive their fragment view |
 
 ## Recurring (no id)
 
