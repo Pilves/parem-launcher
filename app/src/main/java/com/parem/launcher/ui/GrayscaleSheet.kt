@@ -37,7 +37,7 @@ object GrayscaleSheet {
         when {
             GrayscaleController.isGranted(context) -> showToggles(fragment, onPair, onChanged)
             GrayscaleController.restorationPendingWithoutAccess(context) -> showRestoreWarning(fragment, onPair, onChanged)
-            else -> showGrant(fragment, onPair, onChanged, recovery = false)
+            else -> showGrant(fragment, onPair, onChanged, recovery = GrayscaleController.hasExistingGrayscaleState(context))
         }
     }
 
@@ -51,7 +51,7 @@ object GrayscaleSheet {
         val context = fragment.context ?: return
         when {
             GrayscaleController.isAppMarked(context, pkg) -> GrayscaleController.toggleAppMark(context, pkg)
-            !GrayscaleController.isGranted(context) -> showGrant(fragment, onPair = { startPairing(fragment) }, onChanged = {}, recovery = GrayscaleController.restorationPendingWithoutAccess(context))
+            !GrayscaleController.isGranted(context) -> showGrant(fragment, onPair = { startPairing(fragment) }, onChanged = {}, recovery = GrayscaleController.hasExistingGrayscaleState(context))
             !context.appUsagePermissionGranted() -> showDialog(Constants.Dialog.GRAYSCALE_USAGE_ACCESS)
             !isParemDefault(context) -> showDialog(Constants.Dialog.GRAYSCALE_DEFAULT_HOME)
             else -> GrayscaleController.toggleAppMark(context, pkg)
@@ -129,7 +129,7 @@ object GrayscaleSheet {
                 return@Runnable
             }
             dialog.dismiss()
-            val restoring = recovery || GrayscaleController.restorationPending(context)
+            val restoring = recovery || GrayscaleController.hasExistingGrayscaleState(context) || GrayscaleController.restorationPending(context)
             if (restoring) GrayscaleController.reconcile(context)
             else GrayscaleController.setManual(context, true)
             if (!restoring) context.showToast(R.string.grayscale_ready)
