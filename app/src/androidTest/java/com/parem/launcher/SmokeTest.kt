@@ -41,6 +41,7 @@ import androidx.test.uiautomator.Until
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
+import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.AppOpenCounter
 import com.parem.launcher.helper.WallpaperWorker
@@ -907,6 +908,26 @@ class SmokeTest {
         assertTrue("swipe-down sheet did not open", device.wait(Until.hasObject(option), TIMEOUT))
         device.findObject(option).click()
         assertTrue("swipe-down row vanished after picking", device.hasObject(row))
+    }
+
+    @Test
+    fun swipeLockRowsShowMissingAccess() {
+        val admin = context.getSystemService(android.content.Context.DEVICE_POLICY_SERVICE) as android.app.admin.DevicePolicyManager
+        org.junit.Assume.assumeFalse("accessibility lock is enabled", isAccessServiceEnabled(context))
+        org.junit.Assume.assumeFalse("device admin is enabled", admin.isAdminActive(ComponentName(context, com.parem.launcher.listener.DeviceAdmin::class.java)))
+        val prefs = Prefs(context)
+        prefs.swipeLeftEnabled = true
+        prefs.swipeRightEnabled = true
+        prefs.swipeLeftAction = Constants.GestureAction.LOCK_SCREEN
+        prefs.swipeRightAction = Constants.GestureAction.LOCK_SCREEN
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            activity.findNavController(R.id.nav_host_fragment).navigate(R.id.action_mainFragment_to_settingsFragment)
+            val expected = context.getString(R.string.lock_needs_access)
+            assertEquals(expected, activity.findViewById<android.widget.TextView>(R.id.swipeLeftApp).text.toString())
+            assertEquals(expected, activity.findViewById<android.widget.TextView>(R.id.swipeRightApp).text.toString())
+        }
     }
 
     @Test

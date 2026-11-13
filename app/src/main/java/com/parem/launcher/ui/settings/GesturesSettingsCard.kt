@@ -59,6 +59,7 @@ class GesturesSettingsCard(
         initObservers()
         fragment.viewLifecycleOwner.lifecycle.addObserver(androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME && fragment.isBindingAlive()) {
+                populateSwipeApps()
                 populateDoubleTapAction()
                 populateLockMethod()
             }
@@ -172,9 +173,15 @@ class GesturesSettingsCard(
         else -> null
     }
 
-    private fun gestureActionLabel(action: Int, appName: String): String =
-        if (action == Constants.GestureAction.OPEN_APP) appName
-        else actionLabelRes(action)?.let(context::getString) ?: appName
+    private fun lockNeedsAccess(action: Int): Boolean =
+        action == Constants.GestureAction.LOCK_SCREEN &&
+            !isAccessServiceEnabled(context) && !deviceManager.isAdminActive(componentName)
+
+    private fun gestureActionLabel(action: Int, appName: String): String = when {
+        lockNeedsAccess(action) -> context.getString(R.string.lock_needs_access)
+        action == Constants.GestureAction.OPEN_APP -> appName
+        else -> actionLabelRes(action)?.let(context::getString) ?: appName
+    }
 
     private fun showSwipeActionPicker(isLeft: Boolean) {
         val menu = BottomSheetMenu(context)
@@ -240,8 +247,7 @@ class GesturesSettingsCard(
     }
 
     private fun populateDoubleTapAction() {
-        val needsAccess = DoubleTapActionManager.getAction(context) == Constants.GestureAction.LOCK_SCREEN &&
-            !isAccessServiceEnabled(context) && !deviceManager.isAdminActive(componentName)
+        val needsAccess = lockNeedsAccess(DoubleTapActionManager.getAction(context))
         binding.doubleTapAction?.text = if (needsAccess) context.getString(R.string.lock_needs_access) else getDoubleTapLabel()
         binding.doubleTapRow?.bindValueRow(binding.doubleTapAction?.text)
     }
