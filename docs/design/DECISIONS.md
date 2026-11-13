@@ -23,9 +23,9 @@ Recorded 2026-10-03 after the design/manager review round. These override the
 - **M4-WP7 website shortcuts.** Originally chose the first whitelisted browser
   without a chooser and no globe icon. M4-WP36 later changed the routing: use
   the default handler when present; with no default, use the system chooser
-  when focus is off, or the first allowed candidate when focus is active. If
-  the candidate lookup is empty, current code leaves the intent unpinned even
-  under focus; M6-WP23 tracks a fail-closed change.
+  when focus is off, or the first allowed candidate when focus is active.
+  M6-WP23 blocks under focus when no allowed candidate is known, including an
+  empty or failed candidate lookup.
 - **M3-WP4 currency.** The M3-WP4 implementer adds ECB to the privacy-policy
   destinations in the M2-WP3 row.
 - **minSdk 29** (Patric, 2026-10-03): drop Android 7–9 in 6.0 without waiting for
