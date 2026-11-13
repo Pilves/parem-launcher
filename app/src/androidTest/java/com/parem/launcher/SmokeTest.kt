@@ -684,8 +684,23 @@ class SmokeTest {
             device.findObject(By.desc("Visible app")).click()
             device.findObject(By.text(context.getString(android.R.string.ok))).click()
             assertTrue("parent did not reflect selection", device.wait(Until.hasObject(By.text(count(1))), TIMEOUT))
-            device.findObject(By.text(context.getString(R.string.save))).click()
-            assertEquals(setOf("example.hidden"), FocusModeManager.getWhitelist(context))
+            val save = device.wait(Until.findObject(By.clazz("android.widget.Button")
+                .desc(context.getString(R.string.save))), TIMEOUT)
+                ?: throw AssertionError("Focus Save action missing\n${screenDiagnostics()}")
+            save.click()
+            val expected = setOf("example.hidden")
+            val deadline = SystemClock.elapsedRealtime() + TIMEOUT
+            var dismissed = false
+            while (SystemClock.elapsedRealtime() < deadline) {
+                instrumentation.runOnMainSync { dismissed = sheet?.isShowing == false }
+                if (dismissed && FocusModeManager.getWhitelist(context) == expected) break
+                SystemClock.sleep(50)
+            }
+            val actual = FocusModeManager.getWhitelist(context)
+            if (!dismissed || actual != expected) {
+                fail("Focus Save did not complete: dismissed=$dismissed whitelist=$actual\n${screenDiagnostics()}")
+            }
+            assertEquals(expected, actual)
         } finally {
             instrumentation.runOnMainSync { sheet?.dismiss() }
             FocusModeManager.setWhitelist(context, previous)
