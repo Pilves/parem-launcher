@@ -128,7 +128,7 @@ Tablets and foldables, TalkBack, hardware keyboards, Android font sizes up to 20
 
 ## What goes online
 
-Parem has no account, no server of its own, and no analytics, ad or tracking code. Contacts, notifications and app search are handled on your phone, and Parem never asks for your location.
+Parem has no account, no server of its own, and no analytics, ad or tracking code. Contacts, notifications and app search are handled on your phone, and Parem never requests your device's location permission.
 
 | Feature | When | What happens |
 |---|---|---|
