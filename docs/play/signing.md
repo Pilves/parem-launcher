@@ -20,11 +20,13 @@ the existing GitHub key and permits an upload-key reset if needed. Keep a secure
 offline backup of both self-managed keys and their credentials. Never commit
 keystores or secrets.
 
-**Before the first upload:** check the current Play Console choices against the
-[Android signing documentation](https://developer.android.com/studio/publish/app-signing).
-In Play App Signing choose the Google-generated key. `release.yml` signs the Play
-bundle with the `UPLOAD_KEYSTORE_*` secrets and the GitHub APK with `KEYSTORE_*`.
-Confirm the bundle's certificate matches the fingerprint above before uploading.
-The manual debug CI bundle uses an ephemeral debug key and is not an upload
-candidate. Confirm certificate fingerprints and Android developer-verification
-requirements for both distribution channels before launch.
+**Historical pre-upload plan:** check Play Console choices against the
+[Android signing documentation](https://developer.android.com/studio/publish/app-signing)
+and choose a Google-generated key for Play App Signing. Parem is now in Play
+closed testing; check the current Console signing configuration and certificate
+fingerprints before any further upload rather than assuming that plan was applied.
+`release.yml` signs the Play bundle with the `UPLOAD_KEYSTORE_*` secrets and the
+GitHub APK with `KEYSTORE_*`. Confirm the bundle's certificate matches the upload
+certificate before uploading. The manual debug CI bundle uses an ephemeral debug
+key and is not an upload candidate. Verify Android developer-verification
+requirements for both distribution channels as well.

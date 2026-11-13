@@ -1,5 +1,9 @@
 # v7 planning — two-agent protocol
 
+> Historical planning protocol from October 2026. Its pane assignments and
+> sequencing are not the current work queue; see [HANDOFF](../../../HANDOFF.md)
+> and [ROADMAP](../../ROADMAP.md).
+
 Goal: map and project Parem **v7 = everything after v6.0.0 (roadmap M4)** and
 turn it into `docs/ROADMAP.md` milestones (M5, M6, …) in the existing WP-row
 format. Patric is the product owner and decides; Claude (tmux pane 2:1.1) and

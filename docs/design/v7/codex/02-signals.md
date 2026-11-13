@@ -1,5 +1,9 @@
 # v7 upstream and market signals — Codex, step 1
 
+> Historical planning snapshot from October 2026; statements below describe
+> that baseline or proposal, not the current queue. See [HANDOFF](../../../../HANDOFF.md)
+> and [ROADMAP](../../../ROADMAP.md) for current state.
+
 Researched 2026-10-23. Source claims below are linked; recommendations are judgments, not measured Parem demand. Local baseline is `6404d9686ab165f38f431800bef680558be90abb`. `J/` means `app/src/main/java/com/parem/launcher/`. No competitor was installed or benchmarked.
 
 ## Upstream window and method

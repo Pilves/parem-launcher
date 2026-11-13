@@ -1,5 +1,9 @@
 # M4-WP7: Website shortcuts on home (design proposal)
 
+> Historical design record: status and instructions below describe the proposal
+> at the time. See [HANDOFF](../../HANDOFF.md), [ROADMAP](../ROADMAP.md) and
+> the current source for what was implemented and what remains.
+
 Status: proposal, waiting for Patric's sign-off. Base: `origin/chore/agent-harness`. No code was changed and gradle was not run.
 
 ## Problem

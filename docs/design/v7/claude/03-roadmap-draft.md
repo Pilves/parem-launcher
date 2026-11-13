@@ -1,5 +1,9 @@
 # v7 roadmap draft v2 (Claude, step 3, revised after Codex's feasibility review)
 
+> Historical planning snapshot from October 2026; statements below describe
+> that baseline or proposal, not the current queue. See [HANDOFF](../../../../HANDOFF.md)
+> and [ROADMAP](../../../ROADMAP.md) for current state.
+
 Built from `claude/01-gaps.md`, `claude/02-themes.md`, `codex/01-codebase-audit.md`,
 `codex/02-signals.md` and the step-2/3 entries in `LOG.md`. Format follows
 `docs/ROADMAP.md`. Evidence labels: `defect` (seen in today's source),

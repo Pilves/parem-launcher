@@ -1,5 +1,9 @@
 # M2-WP5 — Accessibility disclosure + consent (design)
 
+> Historical design record: status and instructions below describe the proposal
+> at the time. See [HANDOFF](../../HANDOFF.md), [ROADMAP](../ROADMAP.md) and
+> the current source for what was implemented and what remains.
+
 Status: proposal, awaiting Patric's sign-off. Branch base: `origin/chore/agent-harness`.
 
 ## Problem

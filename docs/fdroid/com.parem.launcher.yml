@@ -15,7 +15,7 @@ AntiFeatures:
   NonFreeNet:
     en-US: |-
       Daily wallpapers are picked from a list on the project's GitHub Pages
-      site and downloaded from Unsplash, Pexels, Reddit and imgbox, and omnibox currency
+      site and downloaded from third-party image hosts, and omnibox currency
       conversion fetches daily rates from the European Central Bank. Both only
       run once you turn on daily wallpapers or type a currency conversion.
       Weather uses Open-Meteo, which is open source.

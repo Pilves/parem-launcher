@@ -30,11 +30,14 @@ the current policy before submission. This is separate from F-Droid’s policy.
 
 ## Anti-features
 
-`NonFreeNet`: daily wallpapers come from Unsplash, Pexels, Reddit and imgbox
-(picked from `web/wallpapers.json` on the project's GitHub Pages site) and currency rates from the ECB, none a free-software service. Both run only after the user opts in
-(daily wallpapers toggle, typing a currency conversion). Weather uses
-Open-Meteo, which is AGPL open source, so it does not count. Nothing else
-goes online: web search and the GitHub link open in the browser.
+`NonFreeNet`: daily wallpapers are downloaded from third-party hosts picked
+from the project's GitHub Pages list, and currency rates come from the ECB.
+The tracked wallpaper list at 2026-11-13 names Unsplash and Pexels; the live list
+was not checked and can change. Both run only after the user opts in (daily
+wallpapers toggle, typing a currency conversion). Weather also uses Open-Meteo.
+This is a proposed classification, not a determination by F-Droid; review its
+current guidance and all network flows before submission. Web search and the
+GitHub link open in the browser.
 
 ## Reproducibility check
 
@@ -54,9 +57,10 @@ signature onto its build with `apksigcopier` and runs `apksigner verify`,
 which also needs the ZIP layout to match. The release workflow builds with
 `assembleFullRelease` and lets AGP sign, so the layout is the plain AGP output on
 both sides. If a tag ever fails F-Droid's check while this script passes, the
-JDK is the first suspect: CI builds with Temurin 17. Pin the same major
-version in the recipe (`sudo:` installing `openjdk-17-jdk-headless`), and if
-that still differs, compare with `diffoscope` on the kept build directories.
+JDK is one possible cause: CI builds with Temurin 17. The draft recipe does not
+currently pin a JDK; verify the F-Droid build environment and, if needed, add
+a compatible JDK 17 setup to the recipe. If builds still differ, compare them
+with `diffoscope` on the kept build directories.
 
 ## Submitting (Patric)
 
@@ -82,9 +86,12 @@ that still differs, compare with `diffoscope` on the kept build directories.
 > Fork of Olauncher (already in F-Droid), GPL-3.0-only.
 >
 > - Source: https://github.com/Pilves/parem-launcher
-> - Reproducible: our signed release APK is listed under `Binaries` and
->   `AllowedAPKSigningKeys`; the build was verified identical with
->   `scripts/check-reproducible.sh` on the tag.
+> - Reproducibility candidate: `Binaries` names the signed release APK and
+>   `AllowedAPKSigningKeys` names its certificate. **Replace this sentence with
+>   the actual tag, APK and local check results before submitting.** The local
+>   check compares two unsigned builds and, when supplied the signed APK,
+>   their entries excluding signature files. F-Droid's full signature/layout
+>   verification is separate.
 > - Anti-features: `NonFreeNet` (opt-in wallpapers from Unsplash and other hosts, ECB currency
 >   rates). No trackers, no proprietary dependencies.
 > - Permissions worth explaining: the accessibility service is used only for
@@ -98,3 +105,6 @@ that still differs, compare with `diffoscope` on the kept build directories.
 > - Fastlane metadata, screenshots and changelogs are in the repo.
 >
 > I am the developer and agree to the app being published in F-Droid.
+
+Use the draft text only after verifying each statement against the submitted
+tag, APK and actual check results; amend it if a check did not pass.

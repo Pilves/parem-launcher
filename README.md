@@ -38,7 +38,7 @@ Your clock, your date and up to 8 apps, as plain text. No feed asking for your a
 
 ![Two Parem search screens. One converts 100 eur in usd using European Central Bank rates. The other shows 2+2 equals 4.](docs/images/search.png)
 
-Swipe up and type. Initials and partial names work, and a single match opens by itself unless you turn that off. The same field does the rest:
+Swipe up and type. Initials and partial names work. A single app match can open by itself; you can turn this off, and it is suppressed for screen readers and value queries. The same field does the rest:
 
 | Type | You get |
 |---|---|
@@ -61,14 +61,14 @@ It also finds app shortcuts and Parem's own settings, and your contacts if you o
 
 Every calm tool is optional, and each says what it needs first.
 
-- **Mindful pause:** choose any app for a question and a five-second wait before it opens.
-- **Quiet notifications:** apps you haven't allowed move out of the shade into a quiet list. Calls, alarms, media, navigation and emergency alerts stay visible. Hidden items are snoozed for 8 hours and may be hidden again while the filter remains on. A short sound or vibration may still play unless you choose Make silent.
-- **Focus mode:** timed sessions or weekly schedules. Up to 5 allowed apps, and your phone app is never blocked.
+- **Mindful pause:** add a question and a five-second wait before opening a configured app.
+- **Quiet notifications:** eligible notifications from apps you haven't allowed move out of the shade into a quiet list. Parem excludes some system apps and categories, including notifications identified as calls, alarms, media, navigation or system alerts; apps can label notifications differently. Eligible items are snoozed for 8 hours and may be hidden again while the filter remains on. A sound or vibration may still occur. Make silent opens Android notification settings; notifications made silent may remain in the shade.
+- **Focus mode:** timed sessions or weekly schedules. Up to 5 allowed apps; the default phone app is allowed when Android identifies it.
 - **Screen time:** today's total on home, a 7-day graph and a weekly review.
 - **App limits:** a daily allowance per app, then a warning you can override.
 - **Grayscale:** now, during focus, after a limit, or per app. Needs a one-time developer-tools permission, granted from a computer. The GitHub APK can also do this on the phone.
 
-Screen time and app limits need usage access. Mindful pause can be enabled without it. Quiet notifications need notification access.
+Screen time, app limits and initial pause-only setup need usage access. A configured pause can run without it. Quiet notifications need notification access.
 
 Limits, pause and focus cover apps opened through Parem. They are speed bumps, not a lock, and you can always get past them.
 
@@ -97,7 +97,7 @@ Limits, pause and focus cover apps opened through Parem. They are speed bumps, n
 - **Focus mode:** timed sessions (25 minutes, 1 hour, 2 hours, or until you disable it) or weekly schedules that block all but up to 5 allowed apps
 - **Screen time graph:** 7-day usage bar chart. Tap the home screen time display to view it
 - **Screen time limits:** soft per-app time limits with warnings when exceeded
-- **Mindful pause:** choose any app for a five-second pause before opening it through Parem. A time limit is optional
+- **Mindful pause:** add a five-second pause before opening a configured app through Parem. A time limit is optional
 - **Configurable double tap:** lock screen, open app, notifications, search, camera, flashlight or nothing
 
 ### App drawer
@@ -128,7 +128,7 @@ Tablets and foldables, TalkBack, hardware keyboards, Android font sizes up to 20
 
 ## What goes online
 
-Parem has no account, no server of its own, and no analytics, ad or tracking code. Contacts, notifications and app search are handled on your phone, and Parem never asks for your location.
+Parem has no account, no server of its own, and no analytics, ad or tracking code. Contacts, notifications and app search are handled on your phone, and Parem never requests your device's location permission.
 
 | Feature | When | What happens |
 |---|---|---|

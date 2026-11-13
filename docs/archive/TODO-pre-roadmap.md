@@ -1,5 +1,8 @@
 # TODO — post v5.5.1
 
+> Historical archive: the backlog and instructions below describe the period after
+> v5.5.1. Use `docs/ROADMAP.md` and `HANDOFF.md` for the current queue and state.
+
 Ticket backlog for the next cycle. Work top-down within "Next up" first.
 Process for every ticket: branch off master, plain imperative commits, no
 signatures, stay inside the ticket's scope, tick the box in this file as

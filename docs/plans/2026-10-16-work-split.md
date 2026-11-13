@@ -1,5 +1,8 @@
 # Fable and Codex work split — 16 October 2026
 
+> Historical coordination plan. Its branches, assignments and gates describe
+> 16 October, not current work. Use `docs/ROADMAP.md` and `HANDOFF.md` now.
+
 Planning baseline: `next` at `0b08770`. Fetch the latest `origin/next` before starting; this document assigns lanes, not locks. Read HANDOFF.md, AGENTS.md, ARCHITECTURE.md traps and the full package row in docs/ROADMAP.md. Claim each package immediately before work. Do not claim the entire queue in advance.
 
 ## Objective

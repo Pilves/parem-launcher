@@ -1,5 +1,9 @@
 # v7 codebase audit — Codex, step 1
 
+> Historical planning snapshot from October 2026; statements below describe
+> that baseline or proposal, not the current queue. See [HANDOFF](../../../../HANDOFF.md)
+> and [ROADMAP](../../../ROADMAP.md) for current state.
+
 Evidence snapshot: 2026-10-23, checkout `6404d9686ab165f38f431800bef680558be90abb`. Planning only; no builds, device runs, code edits or commits. Paths below are repository-relative; `J/` means `app/src/main/java/com/parem/launcher/`. Candidate IDs are discussion handles, not claimed roadmap packages.
 
 ## Baseline: do not mistake planned 6.0 for shipped code

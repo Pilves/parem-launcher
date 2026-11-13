@@ -30,12 +30,14 @@ These three cover most of the architecture. Use `gd` (go to definition) and
 `gr` (references) to follow the chain; that's faster than guessing filenames.
 
 **1. "I tap an app in the drawer and it opens."**
-Start in `AppDrawerAdapter` (the row click), which calls
+Start in `AppDrawerAdapter` (the row click), then follow its callback to
+`AppDrawerFragment.onAppClick()`. The fragment handles private-space headers
+and checks the app's launch gate before it calls
 `MainViewModel.selectedApp(appModel, flag)`. The `flag` is the key idea: the
 same drawer is reused for *every* "pick an app" flow (launch it, assign it to
 home slot 3, set it as the swipe-left app…) and the flag says which one is
 happening. Find the `FLAG_` constants in `data/Constants.kt`, then look at the
-`when` over them in `MainViewModel`. Once this clicks, half the app makes sense.
+`when` over them in `MainViewModel`.
 
 **2. "I type `5 km in mi` in the drawer search."**
 Start at `AppDrawerFragment` search handling → `updateOmniboxState()` →
@@ -45,11 +47,11 @@ and settings, in that order; the drawer also maintains the app filter. Read
 `UnitConverterTest` and `OmniboxResolver` tests for the parser contracts.
 
 **3. "I flip a toggle in settings."**
-Start at `SettingsFragment`, which delegates row behavior to the settings
-cards. Each visual card is a class in `ui/settings/` (e.g. `WellbeingSettingsCard`) that takes the
-fragment/binding/prefs in its constructor and owns that card's clicks and
-state. The fragment keeps only cross-card logic (`resetOpenPickers`,
-`populateWellbeingSection`). To find which card owns a row: grep the row's
+Start at `SettingsFragment`, which delegates row behavior to controller
+classes in `ui/settings/` (e.g. `WellbeingSettingsCard`). A controller can
+own rows in more than one visual section; it takes the fragment, binding and
+preferences and wires its rows' clicks and state. The fragment also owns
+cross-card logic. To find which controller owns a row, search for the row's
 view id (from the layout XML) across `ui/settings/`.
 
 ## Finding things fast
@@ -75,6 +77,7 @@ view id (from the layout XML) across `ui/settings/`.
 ./gradlew compileFullDebugKotlin compilePlayDebugKotlin  # fast: does it compile
 ./gradlew testFullDebugUnitTest testPlayDebugUnitTest    # JVM tests (pure logic only)
 ./gradlew assembleFullDebug assemblePlayDebug            # debug APKs before calling anything done
+node --test scripts/build-handoff.test.mjs               # handoff generator harness
 ```
 
 Two rules that will bite you if skipped:
@@ -82,7 +85,8 @@ Two rules that will bite you if skipped:
   code, or run without the pipe.
 - "It compiles" is not verification for UI changes — install the APK
   (`app/build/outputs/apk/full/debug/app-full-debug.apk`) and touch the actual screen.
-  CI also builds a debug APK artifact on every master push.
+  CI runs a debug APK build on master pushes; the artifact is uploaded if the
+  build and preceding checks succeed.
 
 Building on the Pi has its own setup (qemu-wrapped aapt2) — documented in
 ARCHITECTURE.md under "Building on ARM64 hosts".
@@ -95,8 +99,9 @@ ARCHITECTURE.md under "Building on ARM64 hosts".
 2. Branch off master (`fix/…`, `feat/…`, `refactor/…`, `chore/…`).
 3. Make the change. Match surrounding style; comments explain *why*, not what.
 4. If behavior changed: add a line under `## [Unreleased]` in CHANGELOG.md.
-5. Add `docs/handoff/<WP-id>.md` and run `node scripts/build-handoff.mjs`
-   (format in `docs/handoff/README.md`) — never tick the roadmap by hand.
+5. If the PR closes a work package, add `docs/handoff/<WP-id>.md` and run
+   `node scripts/build-handoff.mjs` (format in `docs/handoff/README.md`) —
+   commit both generated files and never tick the roadmap by hand.
 6. Run the full verify loop above. Commits: plain imperative mood
    ("remove the cap", not "removed"), no signatures.
 7. Release process (version bump, fastlane, tag) is in ARCHITECTURE.md —
