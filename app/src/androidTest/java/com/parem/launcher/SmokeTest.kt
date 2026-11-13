@@ -924,6 +924,11 @@ class SmokeTest {
             val activity = ActivityLifecycleMonitorRegistry.getInstance()
                 .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
             activity.findNavController(R.id.nav_host_fragment).navigate(R.id.action_mainFragment_to_settingsFragment)
+        }
+        device.waitForIdle(TIMEOUT)
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
             val expected = context.getString(R.string.lock_needs_access)
             assertEquals(expected, activity.findViewById<android.widget.TextView>(R.id.swipeLeftApp).text.toString())
             assertEquals(expected, activity.findViewById<android.widget.TextView>(R.id.swipeRightApp).text.toString())
