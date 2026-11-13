@@ -19,6 +19,12 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.ui.BadHabitDialogs
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -114,6 +120,8 @@ class PermissionLossGateTest {
         assumeTrue("disposable emulator only", Build.HARDWARE == "ranchu" || Build.PRODUCT.contains("sdk_gphone"))
         Prefs(context).apply { firstOpen = false; onboardingVersionSeen = Constants.ONBOARDING_VERSION }
         val cancelled = AtomicInteger()
+        val siblingStarted = CountDownLatch(1)
+        val releaseSibling = CountDownLatch(1)
         AppLimitManager.setLimit(context, pkg, 15)
         AppLimitManager.setPause(context, pkg, advanceToPause)
         try {
@@ -130,10 +138,15 @@ class PermissionLossGateTest {
                 nav.childFragmentManager.executePendingTransactions()
                 val fragment = checkNotNull(nav.childFragmentManager.primaryNavigationFragment)
                 source = fragment
+                // Keep unrelated IO alive after scope cancellation; dismissal must not wait for it.
+                fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    withContext(NonCancellable) { siblingStarted.countDown(); releaseSibling.await(30, TimeUnit.SECONDS) }
+                }
                 BadHabitDialogs.gateLaunch(activity, fragment.viewLifecycleOwner.lifecycleScope,
                     { fragment.isAdded && fragment.view != null }, "Fixture", pkg,
                     open = { error("unexpected launch") }, onCancel = { cancelled.incrementAndGet() })
             }
+            assertTrue("sibling IO did not start", siblingStarted.await(10, TimeUnit.SECONDS))
             val warning = By.text(context.getString(R.string.limit_usage_access_missing))
             assertTrue(device.wait(Until.hasObject(warning), 10_000))
             val visibleSheet = if (advanceToPause) {
@@ -147,7 +160,9 @@ class PermissionLossGateTest {
             instrumentation.runOnMainSync { check(source.view == null) { "HOME did not destroy the source view" } }
             assertTrue("sheet survived its screen", device.wait(Until.gone(visibleSheet), 10_000))
             assertEquals(1, cancelled.get())
+            assertEquals("sibling unexpectedly completed before dismissal", 1L, releaseSibling.count)
         } finally {
+            releaseSibling.countDown()
             AppLimitManager.removeLimit(context, pkg)
             device.executeShellCommand("appops set ${context.packageName} GET_USAGE_STATS default")
         }
