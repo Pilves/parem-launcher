@@ -95,6 +95,7 @@ class SheetCheckRow(context: Context) : LinearLayout(context) {
         imageTintList = ColorStateList.valueOf(context.getColorFromAttr(R.attr.accentColor))
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }
+    var singleChoice: Boolean = false
     var checked: Boolean = false
         set(value) {
             field = value
@@ -118,7 +119,7 @@ class SheetCheckRow(context: Context) : LinearLayout(context) {
         ViewCompat.setAccessibilityDelegate(this, object : AccessibilityDelegateCompat() {
             override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
                 super.onInitializeAccessibilityNodeInfo(host, info)
-                info.className = "android.widget.CheckBox"
+                info.className = if (singleChoice) "android.widget.RadioButton" else "android.widget.CheckBox"
                 info.isCheckable = true
                 info.isChecked = checked
             }

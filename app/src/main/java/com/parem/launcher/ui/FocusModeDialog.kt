@@ -140,6 +140,7 @@ class FocusModeDialog(
         var durationMinutes = 25
         val durationRows = options.map { option ->
             SheetCheckRow(ctx).apply {
+                singleChoice = true
                 text = option.label
                 checked = option.minutes == durationMinutes
                 container.addView(this)

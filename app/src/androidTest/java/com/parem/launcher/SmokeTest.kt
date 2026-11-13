@@ -504,6 +504,10 @@ class SmokeTest {
                     "example.$it" to "Example $it"
                 }).show().dismissOnDestroy(activity)
             }
+            val duration = device.wait(Until.findObject(By.clazz("android.widget.RadioButton")
+                .desc(context.getString(R.string.focus_25_min))), TIMEOUT)
+            assertNotNull("Focus duration must expose a radio button", duration)
+            assertTrue("Default duration must be checked", duration.isChecked)
             val allowed = device.wait(Until.findObject(By.text(context.getString(R.string.focus_allowed_apps))), TIMEOUT)
             assertNotNull("Focus allowed-app picker missing", allowed)
             allowed.click()
