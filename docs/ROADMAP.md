@@ -275,6 +275,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP29 | **Done** (PR #32). Protect a new claim from concurrent release cleanup | `scripts/claim-wp.sh`, its regression test, roadmap and handoff fragment | Cleanup deletes only the release marker it wrote; an interleaved claim survives |
 
+| M6-WP22 | **Done** (PR #26). Label historical planning records and correct verified documentation contracts | Historical design records, archive/work split, selected handoff fragments, F-Droid draft and data-flow inventory | Source-backed corrections reviewed; audit coverage and remaining unverified claims recorded; handoff generated |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
