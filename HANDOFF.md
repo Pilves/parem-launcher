@@ -268,7 +268,7 @@ per package; the rest of each of those fragments is still in
   Not verified: device screenshots, large-font fitting, keyboard/insets, TalkBack/D-pad and e-ink rendering; existing graph paint sizing is unchanged.
   Easy to get wrong: primaryColor still means monochrome home text and participates in theme checks; surface text must use textColor/textSecondaryColor.
 - **M4-WP52 (PR #20):** Sheet choices show current selections, use shared check rows and font roles, and Focus and folders open app selection in separate single-scroller sheets.
-  Contract: picker selections remain staged until Focus Save or Enable; unknown whitelist packages survive, and the five-app cap remains.
+  Contract: picker heading, search, choices and actions share one RecyclerView, so scrolling can reveal them in short windows; selections remain staged until Focus Save or Enable, unknown whitelist packages survive, and the five-app cap remains.
   Verified on prior head 1c35bf2: CI passed after an emulator teardown rerun; isolated Android 15 tablet checks covered Focus and folder selection, cap, persistence, search, large font, and several checked choices. Not verified: final rebased head, quiet picker, spoken TalkBack, e-ink, and full device matrix; see PR for the device checklist.
   Easy to get wrong: app-picker selection lives in the adapter, survives filtering, and must not be saved merely by dismissing Focus.
 - **M4-WP53 (PR #0):** App and home menus use BottomSheetMenu: shared labelled app actions, a separate Home slot group, five background actions, local rename, Undo removal and Unlock refusal.

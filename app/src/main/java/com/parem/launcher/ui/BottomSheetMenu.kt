@@ -140,7 +140,7 @@ class BottomSheetMenu(private val context: Context) {
     private val dialog = BottomSheetDialog(context)
     private val motionRows = mutableListOf<View>()
     private val horizontalPadding = context.resources.getDimensionPixelSize(R.dimen.sheet_padding_horizontal)
-    private val container = PickerSheetLayout(context).apply {
+    private val container = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
         setBackgroundResource(R.drawable.bg_bottom_sheet)
         setPadding(0, 12.dpToPx(), 0, 24.dpToPx())
@@ -297,7 +297,7 @@ class BottomSheetMenu(private val context: Context) {
     }
 
     fun show(resizeForKeyboard: Boolean = false, scrollContent: Boolean = true, fitPicker: Boolean = false): BottomSheetDialog {
-        container.fitPicker = fitPicker
+        if (fitPicker) container.makePickerScroller()
         // Nested-scroll wrapper + expanded state: on landscape heights the
         // taller sheets (screen-time graph + top apps) exceed the screen, and
         // the default landscape peek opens sheets half-hidden. Short menus are

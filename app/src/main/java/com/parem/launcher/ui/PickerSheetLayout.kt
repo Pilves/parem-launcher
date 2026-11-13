@@ -1,55 +1,38 @@
 package com.parem.launcher.ui
 
-import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.parem.launcher.helper.dpToPx
 
-/** Measures the picker list after the sheet's fixed content, so its footer remains reachable. */
-internal class PickerSheetLayout(context: Context) : LinearLayout(context) {
-    var fitPicker = false
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val list = if (fitPicker) findPicker(this) else null
-        if (list == null || MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED) {
-            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-            return
-        }
-
-        // First measure title, search, actions and insets without the list. A second
-        // pass allocates only the remaining dialog height to the scrolling list.
-        val params = list.layoutParams
-        params.height = 0
-        forceRemeasure(list)
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        var occupied = paddingTop + paddingBottom
-        for (index in 0 until childCount) {
-            val child = getChildAt(index)
-            if (child.visibility == View.GONE) continue
-            val margins = child.layoutParams as? MarginLayoutParams
-            occupied += child.measuredHeight + (margins?.topMargin ?: 0) + (margins?.bottomMargin ?: 0)
-        }
-        val preferred = minOf(300.dpToPx(), resources.displayMetrics.heightPixels / 3)
-        params.height = minOf(preferred, (MeasureSpec.getSize(heightMeasureSpec) - occupied).coerceAtLeast(0))
-        forceRemeasure(list)
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+/** Put a picker's headings, search and actions in its one scrolling list. */
+internal fun LinearLayout.makePickerScroller() {
+    val content = (0 until childCount).map(::getChildAt).filterIsInstance<ViewGroup>()
+        .firstOrNull { group -> (0 until group.childCount).any { group.getChildAt(it) is RecyclerView } }
+        ?: return
+    val list = (0 until content.childCount).map(content::getChildAt).filterIsInstance<RecyclerView>().single()
+    val choices = list.adapter ?: return
+    val header = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+    val footer = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+    val children = (0 until childCount).map(::getChildAt)
+    var afterContent = false
+    for (child in children) {
+        removeView(child)
+        if (child === content) {
+            content.removeView(list)
+            header.addView(child)
+            afterContent = true
+        } else if (afterContent) footer.addView(child) else header.addView(child)
     }
+    list.adapter = ConcatAdapter(FixedPickerViewAdapter(header), choices, FixedPickerViewAdapter(footer))
+    addView(list, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+}
 
-    private fun forceRemeasure(list: View) {
-        var view: View? = list
-        while (view != null && view !== this) {
-            view.forceLayout()
-            view = view.parent as? View
-        }
-    }
-
-    private fun findPicker(view: View): RecyclerView? {
-        if (view is RecyclerView) return view
-        if (view is ViewGroup) for (index in 0 until view.childCount) {
-            findPicker(view.getChildAt(index))?.let { return it }
-        }
-        return null
-    }
+/** The fixed views retain their state when their single item is detached. */
+private class FixedPickerViewAdapter(private val view: View) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    override fun getItemCount() = 1
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
+        object : RecyclerView.ViewHolder(view) {}
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) = Unit
 }

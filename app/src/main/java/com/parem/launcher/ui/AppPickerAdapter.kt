@@ -79,8 +79,9 @@ class AppPickerAdapter(
 }
 
 /**
- * The search field plus fixed-height list every app-picker sheet shows. The
- * list is the sheet's only scroller; the padding parameters keep each sheet's inset.
+ * The search field and recycled list every app-picker sheet shows. The sheet
+ * moves the search, heading and actions into the list so there is one scroller;
+ * padding parameters keep each sheet's inset.
  */
 fun LinearLayout.addAppPicker(adapter: AppPickerAdapter, searchPaddingLeft: Int = 8.dpToPx(), searchPaddingTop: Int = 4.dpToPx()) {
     addView(EditText(context).apply {
