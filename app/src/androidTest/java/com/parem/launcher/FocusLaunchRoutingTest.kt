@@ -104,6 +104,13 @@ class FocusLaunchRoutingTest {
                 openCamera()
                 prefs.swipeLeftAction = Constants.GestureAction.OPEN_CAMERA
                 openCamera()
+                prefs.swipeLeftAction = Constants.GestureAction.OPEN_APP
+                prefs.appPackageSwipeLeft = fixturePackage
+                prefs.appActivityClassNameSwipeLeft = LaunchGateFixtureActivity::class.java.name
+                prefs.appUserSwipeLeft = Process.myUserHandle().toString()
+                device.swipe(device.displayWidth * 4 / 5, y, device.displayWidth / 5, y, 20)
+                SystemClock.sleep(750)
+                assertTrue("configured camera app gesture opened", !device.hasObject(By.text("Camera fixture activity is open")))
                 scenario.onActivity { it.findViewById<View>(R.id.homeApp1).performClick() }
                 assertTrue("blocked camera app left home", device.wait(Until.hasObject(By.pkg(context.packageName)), 3_000))
                 SystemClock.sleep(750)
