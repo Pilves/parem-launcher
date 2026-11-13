@@ -4,11 +4,28 @@ import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.MainActivity
 import com.parem.launcher.R
 import com.parem.launcher.helper.ChannelFeatures
 import com.parem.launcher.listener.DeviceAdmin
+
+/** A lock disclosure must not survive its screen moving to the background. */
+fun BottomSheetDialog.dismissLockSheetOnStop(owner: LifecycleOwner): BottomSheetDialog {
+    val observer = object : LifecycleEventObserver {
+        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+            if (event == Lifecycle.Event.ON_STOP || event == Lifecycle.Event.ON_DESTROY) {
+                source.lifecycle.removeObserver(this)
+                dismiss()
+            }
+        }
+    }
+    owner.lifecycle.addObserver(observer)
+    return this
+}
 
 /**
  * Play's prominent disclosure for the lock accessibility service. Every route

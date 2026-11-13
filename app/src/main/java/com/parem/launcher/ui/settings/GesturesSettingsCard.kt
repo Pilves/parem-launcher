@@ -25,6 +25,7 @@ import com.parem.launcher.listener.DeviceAdmin
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SettingsFragment
 import com.parem.launcher.ui.dismissOnDestroy
+import com.parem.launcher.ui.dismissLockSheetOnStop
 import com.parem.launcher.ui.requestLockAdmin
 import com.parem.launcher.ui.showLockConsent
 
@@ -311,7 +312,7 @@ class GesturesSettingsCard(
                     }
                 } ?: onDecline()
             },
-        ).dismissOnDestroy(fragment.viewLifecycleOwner)
+        ).dismissLockSheetOnStop(fragment.viewLifecycleOwner)
     }
 
     private fun hasLockGesture() =

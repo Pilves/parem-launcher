@@ -38,6 +38,7 @@ import com.parem.launcher.listener.OnSwipeTouchListener
 import com.parem.launcher.ui.HomeFragment
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.dismissOnDestroy
+import com.parem.launcher.ui.dismissLockSheetOnStop
 import com.parem.launcher.ui.QuietListSheet
 import com.parem.launcher.ui.isAlive
 import com.parem.launcher.ui.requestLockAdmin
@@ -418,7 +419,7 @@ class HomeGesturesController(
                             fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
                     },
                     onDecline = onDecline,
-                ).dismissOnDestroy(fragment.viewLifecycleOwner)
+                ).dismissLockSheetOnStop(fragment.viewLifecycleOwner)
                 return
             }
             LockServiceCheck.Outcome.EXPLAIN_OFF -> {
@@ -434,7 +435,7 @@ class HomeGesturesController(
                     onUseAdmin = {
                         (fragment.activity as? MainActivity)?.let { requestLockAdmin(it) {} }
                     },
-                ).dismissOnDestroy(fragment.viewLifecycleOwner)
+                ).dismissLockSheetOnStop(fragment.viewLifecycleOwner)
                 return
             }
             LockServiceCheck.Outcome.OFF_EXPLAINED -> {

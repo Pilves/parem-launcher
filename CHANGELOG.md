@@ -10,7 +10,7 @@
 - Make drawer dismissal deliberate and navigation transitions seekable.
 - Show current choices consistently in sheets and use one scrolling list in app pickers.
 - Keep web searches and links closed during Focus when no allowed receiving app can be identified.
-- Close lock consent when its owning screen is destroyed.
+- Close lock consent when its owning screen leaves the foreground.
 
 - Bring hidden notifications back to the shade at once when their app is allowed or quiet notifications are turned off, which no longer asks Keep or Dismiss. Show a new message in the quiet list when its chat was opened or dismissed there, instead of losing it, and keep the quiet list after a restart.
 
