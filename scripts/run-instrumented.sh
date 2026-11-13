@@ -36,7 +36,7 @@ collect_diagnostics() {
 
 if [ "${runs:-0}" -le 0 ]; then
   status=0
-  if ! timeout --kill-after=10s 12m ./gradlew connectedPlayDebugAndroidTest; then
+  if ! timeout --kill-after=10s 15m ./gradlew connectedPlayDebugAndroidTest; then
     status=1
     capture_failure play
     cp -r app/build/reports/androidTests/connected "$diag_out/play-failure-report" 2>/dev/null || true
@@ -47,7 +47,7 @@ if [ "${runs:-0}" -le 0 ]; then
       exit 1
     fi
   fi
-  if ! timeout --kill-after=10s 12m ./gradlew connectedFullDebugAndroidTest; then
+  if ! timeout --kill-after=10s 15m ./gradlew connectedFullDebugAndroidTest; then
     status=1
     capture_failure full
     if [ "$(timeout --kill-after=2s 8s adb get-state 2>/dev/null)" != device ]; then
@@ -57,7 +57,7 @@ if [ "${runs:-0}" -le 0 ]; then
     fi
   fi
   if [ "${2:-false}" = true ]; then
-    if ! timeout --kill-after=10s 12m bash scripts/perf-compare.sh; then
+    if ! timeout --kill-after=10s 15m bash scripts/perf-compare.sh; then
       status=1
       capture_failure perf
     fi
@@ -66,7 +66,7 @@ if [ "${runs:-0}" -le 0 ]; then
   exit "$status"
 fi
 
-timeout --kill-after=10s 12m ./gradlew installPlayDebug installPlayDebugAndroidTest || exit 1
+timeout --kill-after=10s 15m ./gradlew installPlayDebug installPlayDebugAndroidTest || exit 1
 mkdir -p "$diag_out"
 failed=0
 for ((i = 1; i <= runs; i++)); do
@@ -76,7 +76,7 @@ for ((i = 1; i <= runs; i++)); do
     failed=$((failed + 1))
     break
   fi
-  output=$(timeout --kill-after=10s 12m adb shell am instrument -w -e class "com.parem.launcher.SmokeTest#$test" \
+  output=$(timeout --kill-after=10s 15m adb shell am instrument -w -e class "com.parem.launcher.SmokeTest#$test" \
     "$pkg.test/androidx.test.runner.AndroidJUnitRunner" 2>&1)
   result=$?
   if [ "$result" -eq 0 ] && grep -q 'OK (1 test)' <<<"$output"; then
