@@ -271,7 +271,7 @@ per package; the rest of each of those fragments is still in
   Source checks preserve existing accessibility attributes; contrast evidence and the 90% scrim rationale are in docs/plans/2026-10-16-colour-implementation.md.
   Not verified: device screenshots, large-font fitting, keyboard/insets, TalkBack/D-pad and e-ink rendering; existing graph paint sizing is unchanged.
   Easy to get wrong: primaryColor still means monochrome home text and participates in theme checks; surface text must use textColor/textSecondaryColor.
-- **M4-WP51 (PR #0):** Settings use six sections, checked choice sheets and direct binary toggles, with access and configuration summaries.
+- **M4-WP51 (PR #31):** Settings use six sections, checked choice sheets and direct binary toggles, with access and configuration summaries.
   Contract: existing preference keys, defaults, export behavior and permission flows remain unchanged; keyboard toggles on one tap.
   Not verified: Gradle builds, tablet orientations, TalkBack, denied/restored access and quiet notifications require CI and device walks.
   Easy to get wrong: five new strings fall back to English in ar, de, es-rES, es-rUS, fr, he, hr, hu, in, it, ja, pl, pt-rBR, ru-rRU, sv, tr, uk and zh; carry translation review to WP9.
