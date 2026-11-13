@@ -8,6 +8,6 @@ import android.widget.TextView
 class LaunchGateFixtureActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(TextView(this).apply { text = "Focus camera fixture" })
+        setContentView(TextView(this).apply { text = "Camera fixture activity is open" })
     }
 }

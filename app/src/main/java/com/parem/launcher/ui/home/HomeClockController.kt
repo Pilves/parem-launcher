@@ -166,10 +166,9 @@ class HomeClockController(
     fun openCalendarApp(sourceView: android.view.View) {
         if (prefs.calendarAppPackage.isBlank()) {
             val calendar = Intent(Intent.ACTION_VIEW, CalendarContract.CONTENT_URI.buildUpon().appendPath("time").build())
-            val fallback = { openSystemIntent(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR)) }
-            val hasHandler = try { calendar.resolveActivity(context.packageManager) != null } catch (_: Exception) { false }
-            if (!hasHandler) fallback()
-            else openSystemIntent(calendar, fallback)
+            openSystemIntent(calendar) {
+                openSystemIntent(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR))
+            }
         }
         else
             fragment.slotsController?.launchApp(

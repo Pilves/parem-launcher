@@ -3,6 +3,7 @@ package com.parem.launcher
 import android.app.Instrumentation
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Process
 import android.os.SystemClock
 import android.provider.CalendarContract
@@ -76,28 +77,43 @@ class FocusLaunchRoutingTest {
         prefs.setHomeAppPackage(1, fixturePackage)
         prefs.setHomeAppActivityClassName(1, LaunchGateFixtureActivity::class.java.name)
         prefs.setHomeAppUser(1, Process.myUserHandle().toString())
-        val camera = instrumentation.addMonitor(IntentFilter(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA), null, true)
         try {
             FocusModeManager.setWhitelist(context, emptySet())
             FocusModeManager.enable(context, 30)
             ActivityScenario.launch(MainActivity::class.java).use { scenario ->
                 device.waitForIdle()
                 val y = device.displayHeight * 3 / 4
-                device.swipe(device.displayWidth * 4 / 5, y, device.displayWidth / 5, y, 20)
-                assertTrue("default camera gesture did not dispatch", waitForHits(camera, 1))
+                fun openCamera() {
+                    val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
+                    val resolved = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                    assertNotNull("camera handler must be available", resolved)
+                    val packageName = resolved!!.activityInfo.packageName
+                    device.swipe(device.displayWidth * 4 / 5, y, device.displayWidth / 5, y, 20)
+                    if (packageName == "android") {
+                        val choice = device.wait(Until.findObject(By.text("Focus camera fixture")), 5_000)
+                        assertNotNull("camera chooser did not appear", choice)
+                        choice.click()
+                        device.findObject(By.textMatches("(?i)just once"))?.click()
+                        assertTrue("camera fixture did not open", device.wait(Until.hasObject(By.text("Camera fixture activity is open")), 5_000))
+                    } else {
+                        assertTrue("camera app did not open", device.wait(Until.hasObject(By.pkg(packageName)), 5_000))
+                    }
+                    device.pressBack()
+                    device.waitForIdle()
+                }
+                openCamera()
                 prefs.swipeLeftAction = Constants.GestureAction.OPEN_CAMERA
-                device.swipe(device.displayWidth * 4 / 5, y, device.displayWidth / 5, y, 20)
-                assertTrue("assigned camera gesture did not dispatch", waitForHits(camera, 2))
+                openCamera()
                 scenario.onActivity { it.findViewById<View>(R.id.homeApp1).performClick() }
                 assertTrue("blocked camera app left home", device.wait(Until.hasObject(By.pkg(context.packageName)), 3_000))
-                assertTrue("blocked camera app opened", !device.hasObject(By.text("Focus camera fixture")))
+                SystemClock.sleep(750)
+                assertTrue("blocked camera app opened", !device.hasObject(By.text("Camera fixture activity is open")))
                 FocusModeManager.disable(context)
                 scenario.onActivity { it.findViewById<View>(R.id.homeApp1).performClick() }
-                assertTrue("allowed camera app did not open", device.wait(Until.hasObject(By.text("Focus camera fixture")), 5_000))
+                assertTrue("allowed camera app did not open", device.wait(Until.hasObject(By.text("Camera fixture activity is open")), 5_000))
                 device.pressBack()
             }
         } finally {
-            instrumentation.removeMonitor(camera)
             FocusModeManager.disable(context)
         }
     }
