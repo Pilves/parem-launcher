@@ -108,7 +108,8 @@ object BadHabitDialogs {
      * receive [intent] per [WebLaunchTarget.target] — focus first, then that
      * app's limit and pause through [gateLaunch]. [open] gets that package and must
      * pin the intent to it; "" means no single app (the chooser, or nothing) — the
-     * receiver is unknown, so nothing is gated and the intent goes out unpinned.
+     * receiver is unknown, so nothing is gated and the intent goes out unpinned;
+     * this is permitted only when focus is inactive.
      */
     fun gateWebOpen(
         context: Context,

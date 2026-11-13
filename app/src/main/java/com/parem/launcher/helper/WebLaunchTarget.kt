@@ -16,12 +16,13 @@ object WebLaunchTarget {
      * is. Without one the system chooser shows and nothing is gated — the
      * receiver is unknown, an accepted gap — unless focus is active ([allowed]
      * non-null): then the first allowed [candidates] entry stands in for the
-     * chooser so a blocked browser is never offered.
+     * chooser so a blocked browser is never offered. If no candidate is known,
+     * block rather than open an unpinned intent under focus.
      */
     fun target(handler: String?, candidates: List<String>, allowed: ((String) -> Boolean)?): String? {
         val isAllowed = allowed ?: { _: String -> true }
         if (!handler.isNullOrEmpty() && handler != CHOOSER) return if (isAllowed(handler)) handler else null
-        if (allowed == null || candidates.isEmpty()) return ""
+        if (allowed == null) return ""
         return candidates.firstOrNull(allowed)
     }
 }

@@ -37,8 +37,20 @@ class WebLaunchTargetTest {
     }
 
     @Test
-    fun noBrowserAtAllIsNotGated() {
+    fun unknownHandlerWithoutFocusLeavesIntentUnpinned() {
         assertEquals("", WebLaunchTarget.target(null, emptyList(), null))
-        assertEquals("", WebLaunchTarget.target(null, emptyList()) { true })
+        assertEquals("", WebLaunchTarget.target(WebLaunchTarget.CHOOSER, emptyList(), null))
+    }
+
+    @Test
+    fun unknownHandlerUnderFocusBlocksWhenCandidateLookupIsEmptyOrFailed() {
+        // A failed query is converted to an empty list by gateWebOpen.
+        assertNull(WebLaunchTarget.target(null, emptyList()) { true })
+        assertNull(WebLaunchTarget.target(WebLaunchTarget.CHOOSER, emptyList()) { true })
+    }
+
+    @Test
+    fun knownAllowedDefaultStillWorksWhenCandidateLookupIsEmpty() {
+        assertEquals("com.android.chrome", WebLaunchTarget.target("com.android.chrome", emptyList()) { true })
     }
 }
