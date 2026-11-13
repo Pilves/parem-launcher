@@ -19,6 +19,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.CrashReporter
+import com.parem.launcher.helper.SettingsImport
 import com.parem.launcher.helper.onOff
 import com.parem.launcher.helper.openAppInfo
 import com.parem.launcher.helper.openUrl
@@ -177,23 +178,19 @@ class AppInfoSettingsCard(
         val activity = fragment.requireActivity()
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val jsonString = withContext(Dispatchers.IO) {
-                    ctx.contentResolver.openInputStream(uri)
-                        ?.bufferedReader()?.use { it.readText() }
+                withContext(Dispatchers.IO) {
+                    val stream = ctx.contentResolver.openInputStream(uri) ?: throw IOException("Cannot open settings")
+                    val jsonString = stream.use { SettingsImport.readBounded(it) }
+                    prefs.importFromJson(JSONObject(jsonString))
                 }
-                if (jsonString != null) {
-                    val json = JSONObject(jsonString)
-                    withContext(Dispatchers.IO) {
-                        prefs.importFromJson(json)
-                    }
-                    // recreate() keeps the process, so static caches over
-                    // imported keys must be dropped by hand
-                    AppLimitManager.clearCache()
-                    ctx.showToast(ctx.getString(R.string.settings_imported))
-                    activity.recreate()
-                }
+                // recreate() keeps the process, so static caches over
+                // imported keys must be dropped by hand
+                AppLimitManager.clearCache()
+                if (!fragment.isAdded) return@launch
+                ctx.showToast(ctx.getString(R.string.settings_imported))
+                activity.recreate()
             } catch (e: Exception) {
-                ctx.showToast(ctx.getString(R.string.settings_import_failed_plain))
+                if (fragment.isAdded) ctx.showToast(ctx.getString(R.string.settings_import_failed_plain))
             }
         }
     }

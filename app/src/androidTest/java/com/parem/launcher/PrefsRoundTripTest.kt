@@ -19,6 +19,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Assume.assumeTrue
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
+import com.parem.launcher.helper.SettingsImport
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.FocusSchedule
@@ -232,6 +233,7 @@ class PrefsRoundTripTest {
         // the LONG_PREF_KEYS / FLOAT_PREF_KEYS guards keep their types
         val seeded = mapOf<String, Any>(
             "FIRST_OPEN_TIME" to 1000L,
+            "LAUNCHER_RECREATE_TIMESTAMP" to 1000L,
             "TEXT_SIZE_SCALE" to 2.0f,
             "HOME_APPS_NUM" to 6,
             "RENAME_com.example.app" to "Renamed",
@@ -250,7 +252,8 @@ class PrefsRoundTripTest {
         val prefs = Prefs(context)
         // Serialize and reparse like the real export file; an in-memory JSONObject
         // still holds Long/Double and would never exercise the type guards
-        val json = JSONObject(prefs.exportToJson().toString())
+        val exported = prefs.exportToJson().toString(2).byteInputStream()
+        val json = JSONObject(SettingsImport.readBounded(exported))
         json.put(EXCLUDED_KEY, 9999L)
 
         sp.edit().clear().putLong(EXCLUDED_KEY, 7000L).commit()
@@ -269,6 +272,7 @@ class PrefsRoundTripTest {
     fun invalidImportLeavesPreferencesAndHistoryUntouched() {
         val prefs = Prefs(context)
         prefs.appTheme = 2
+        prefs.homeAppsNum = 4
         prefs.omniboxHistoryEnabled = true
         prefs.omniboxHistory = "saved history"
         val invalid = JSONObject().put("__parem_export_version", 1)
@@ -277,6 +281,17 @@ class PrefsRoundTripTest {
         assertEquals(2, prefs.appTheme)
         assertTrue(prefs.omniboxHistoryEnabled)
         assertEquals("saved history", prefs.omniboxHistory)
+
+        val outOfRange = JSONObject().put("__parem_export_version", 1)
+            .put("HOME_APPS_NUM", Int.MAX_VALUE).put("APP_THEME", 1)
+        assertThrows(IllegalArgumentException::class.java) { prefs.importFromJson(outOfRange) }
+        assertEquals(2, prefs.appTheme)
+        assertEquals(4, prefs.homeAppsNum)
+        val deepFolder = "{\"1\":" + "[".repeat(100_000) + "]".repeat(100_000) + "}"
+        val hostileFolder = JSONObject().put("__parem_export_version", 1).put("FOLDER_DATA", deepFolder)
+        assertThrows(IllegalArgumentException::class.java) { prefs.importFromJson(hostileFolder) }
+        assertEquals(2, prefs.appTheme)
+        assertEquals(4, prefs.homeAppsNum)
     }
 
     @Test
