@@ -44,6 +44,8 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.AppOpenCounter
+import com.parem.launcher.helper.FocusModeManager
+import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.WallpaperWorker
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -834,6 +836,35 @@ class SmokeTest {
         } finally {
             device.setOrientationNatural()
         }
+    }
+
+    @Test
+    fun homeQuickFocusStartsWithoutShorteningAnActiveSession() {
+        val sp = context.getSharedPreferences(Prefs.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+        FocusModeManager.setScheduleEnabled(context, false)
+        FocusModeManager.disable(context)
+        val action = By.desc(context.getString(R.string.quick_focus_25))
+        fun openMenu() {
+            val x = device.displayWidth - 20
+            val y = device.displayHeight / 2
+            assertTrue("long press injection failed", device.swipe(x, y, x, y, 150))
+            assertTrue("home quick action missing", device.wait(Until.hasObject(action), TIMEOUT))
+            if (!GrayscaleController.isGranted(context)) {
+                assertFalse("grayscale offered without grant", device.hasObject(By.desc(context.getString(R.string.quick_grayscale))))
+            }
+        }
+        val before = System.currentTimeMillis()
+        openMenu()
+        device.findObject(action).click()
+        assertTrue(device.wait(Until.gone(action), TIMEOUT))
+        val end = sp.getLong("FOCUS_MODE_END_TIME", -1L)
+        assertTrue("quick focus did not start for 25 minutes", end in (before + 24 * 60_000L)..(System.currentTimeMillis() + 26 * 60_000L))
+        FocusModeManager.enable(context, 120)
+        val longerEnd = sp.getLong("FOCUS_MODE_END_TIME", -1L)
+        openMenu()
+        device.findObject(action).click()
+        assertTrue(device.wait(Until.gone(action), TIMEOUT))
+        assertEquals("quick focus shortened an active session", longerEnd, sp.getLong("FOCUS_MODE_END_TIME", -1L))
     }
 
     @Test

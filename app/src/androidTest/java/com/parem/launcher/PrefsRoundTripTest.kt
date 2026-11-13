@@ -14,6 +14,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
+import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.FocusSchedule
 import com.parem.launcher.helper.ThemeScheduleManager
 import com.parem.launcher.helper.ThemeScheduleWorker
@@ -113,6 +114,27 @@ class PrefsRoundTripTest {
         FocusModeManager.pauseSchedule(context)
         assertFalse(FocusModeManager.isActive(context))
         assertTrue(sp.getLong("FOCUS_SCHEDULE_SKIP_UNTIL", 0) > System.currentTimeMillis())
+    }
+
+    @Test
+    fun calmGestureAssignmentsRoundTripAndOldExportsKeepDefaults() {
+        val prefs = Prefs(context)
+        prefs.swipeLeftAction = Constants.GestureAction.FOCUS_25_MIN
+        prefs.swipeRightAction = Constants.GestureAction.TOGGLE_GRAYSCALE
+        DoubleTapActionManager.setAction(context, Constants.GestureAction.TOGGLE_GRAYSCALE)
+        val exported = JSONObject(prefs.exportToJson().toString())
+        prefs.swipeLeftAction = Constants.GestureAction.NONE
+        prefs.swipeRightAction = Constants.GestureAction.NONE
+        DoubleTapActionManager.setAction(context, Constants.GestureAction.NONE)
+        prefs.importFromJson(exported)
+        assertEquals(Constants.GestureAction.FOCUS_25_MIN, prefs.getEffectiveSwipeLeftAction())
+        assertEquals(Constants.GestureAction.TOGGLE_GRAYSCALE, prefs.getEffectiveSwipeRightAction())
+        assertEquals(Constants.GestureAction.TOGGLE_GRAYSCALE, DoubleTapActionManager.getAction(context))
+
+        prefs.importFromJson(JSONObject().put("__parem_export_version", 1))
+        assertEquals(Constants.GestureAction.OPEN_APP, prefs.getEffectiveSwipeLeftAction())
+        assertEquals(Constants.GestureAction.OPEN_APP, prefs.getEffectiveSwipeRightAction())
+        assertEquals(Constants.GestureAction.LOCK_SCREEN, DoubleTapActionManager.getAction(context))
     }
 
     @Test

@@ -469,4 +469,11 @@
     <string name="alignment_at_bottom" translatable="false">%1$s · bottom</string>
     <string name="lock_needs_access" translatable="false">Lock screen · Needs access</string>
     <string name="configured_app_count" translatable="false">%1$d configured</string>
+    <string name="quick_focus_25" translatable="false">Focus for 25 min</string>
+    <string name="quick_focus_already_active" translatable="false">Focus is already on</string>
+    <string name="quick_focus_started" translatable="false">Focus started for 25 minutes</string>
+    <string name="quick_grayscale" translatable="false">Manual grayscale on/off</string>
+    <string name="quick_grayscale_needs_access" translatable="false">Set up grayscale access in Settings</string>
+    <string name="quick_grayscale_manual_on" translatable="false">Manual grayscale on</string>
+    <string name="quick_grayscale_manual_off" translatable="false">Manual grayscale off; automatic grayscale may still be active</string>
 </resources>
