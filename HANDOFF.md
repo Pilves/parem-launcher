@@ -4,25 +4,15 @@ Current state only. History is `git log`, `CHANGELOG.md` and
 `docs/archive/TODO-pre-roadmap.md`. Work queue: `docs/ROADMAP.md`.
 Rules: `AGENTS.md`. Code map and traps: `ARCHITECTURE.md`.
 
-**Last updated:** 2026-11-12 — latest handoff date
-
-## 6.0.0 launch preparation
-
-The draft release branch and PR #7 are in progress. The Play and full debug
-flavours build on CI, but the final physical-phone pass, signing choice,
-consent translation review and the tablet API 36 missing-window cause remain
-open. The privacy page and compliance document are held uncommitted pending
-the owner's approval. See `docs/RELEASE_CHECKLIST.md`, `docs/play/signing.md`
-and the PR's current checks before treating this as a release candidate.
+**Last updated:** 2026-11-13 — latest handoff date
 
 ## Phase
 
-v5.5.1 is the latest published release (2026-07-03). `master` at `f4b55cf`
-is the v5.7.0 release candidate (versionCode 102), green since 2026-07-10 and
-held for Patric's device pass — roadmap M1. Parem is not on Google Play yet. Next:
-M2 (v5.8.0, Play readiness), M3 (v5.9.0, groundwork), M4 (v6.0.0, "Calm
-phone" — the first Play release, aiming for market leader). What is next and who owns it live in
-`docs/ROADMAP.md` — not here.
+v6.0.2 (versionCode 107) is published and in Play closed testing. PR #17
+(quiet notification release) is merged after that release and remains unreleased.
+The next milestone is v6.1, focused on navigation, sheet consistency and
+Estonian translation. Priorities, dependencies and design gates are in
+`docs/ROADMAP.md`; the product owner handles device checks and merges.
 
 ## What exists
 
@@ -341,22 +331,9 @@ per package; the rest of each of those fragments is still in
   Easy to get wrong: QA accessibility tests need the QA package in an external XML filter override; production lock XML remains unchanged. Historical perf timings use a different workload; CI measures pinned 996ef0c on the same warmed emulator instead of weakening thresholds.
   Release: evidence and limitations are in docs/releases/v6.0.0-beta.2-validation.md; release notes include the accepted no-default-browser gap. The owner tags after accepting beta limitations; the agent has not tagged or published.
 - **M6-WP15 (PR #10):** Stale saved launcher entries recover through LauncherApps.getActivityList without duplicate non-fatal reports.
-  Contract: every launch attempt stays in the requested profile; recovery uses the returned componentName, and final start failures remain reportable.
-  Not verified: Vivaldi on the affected Nothing phone or work/private-profile launches on hardware.
-  Easy to get wrong: retrying a rejected component under Process.myUserHandle can open the wrong profile and cannot repair a missing launcher category.
 - **M6-WP16 (PR #14):** An uninstall started from the drawer menu now reloads the drawer from a live query when it completes, without waiting for the LauncherApps callback.
-  Contract: `uninstallIntent(pkg)` is ACTION_UNINSTALL_PACKAGE with EXTRA_RETURN_RESULT, launched through AppDrawerFragment's ActivityResult launcher passed as `AppMenu.show(uninstall = …)`; on RESULT_OK the drawer calls `PackageChangeTracker.invalidate()` and then the same reload as the app-menu callback.
-  RESULT_OK is set by the installer only after PackageManager's deletePackageX has returned (AOSP main, PIA v1 and v2); cancel is RESULT_CANCELED (v1) or RESULT_FIRST_USER (v2), failure is RESULT_FIRST_USER, and neither reloads.
-  Not verified: on any device, the Nothing Phone 4a / Android 17 repro, or OEM installers; changes made outside Parem still depend on the callback, and a result for a drawer closed meanwhile is dropped.
-  Easy to get wrong: reloading when Parem regains focus can run before removal and cache the old list under the new stamp; the for-result route also swaps the installer's toast and notification for its own progress dialog.
 - **M6-WP17 (PR #15):** A downward drag that starts in an app-picker list (folder, focus mode, quiet list, app limits) scrolls the list back up and no longer closes the sheet.
-  Contract: addAppPicker's RecyclerView withholds nested pre-scroll for dy < 0 and disallows ancestor intercept on ACTION_DOWN; leftover scroll still reaches the outer NestedScrollView in both directions.
-  Not verified: any physical device (the reporter's Nothing Phone 4a on Android 17 included), landscape on a phone, or the three pickers other than the folder sheet on screen; SmokeTest covers the folder sheet on emulators.
-  Easy to get wrong: BottomSheetBehavior tracks only the first nested-scrolling view it finds, the sheet's outer NestedScrollView, so an inner scroller that offers pre-scroll upward lets the sheet take the drag before the inner list scrolls.
 - **M6-WP18 (PR #17):** Quiet notifications release instead of cancelling: allowing an app or turning the filter off re-snoozes Parem's keys for 1 ms so they return to the shade at once, and opening or dismissing a quiet-list item only marks it.
-  Contract: `helper/notifications/QuietKeys` holds the decisions with JVM tests (posted action: pass-through > dismissed-unchanged cancel > filter, a mark counting only within its key's snooze window; list visibility; prune; releasable keys; legacy decode); `quiet_keys` entries are `snoozed:<key>` → snooze time and `dismissed:<key>` → `Notification.when`, and the old `SNOOZED_KEYS` set migrates as snoozed now; `QuietNotificationsManager.setAllowed` releases newly allowed packages and `turnOff(context)` releases before unbinding; `onListenerConnected` releases keys of apps allowed while it was unbound; a release includes items the user opened or dismissed, which come back to the shade.
-  Settles M4-WP1's open points from AOSP android16 source, not a device: a listener's cancel on a snoozed key is a no-op; a post on a snoozed key is merged into it and reaches neither shade nor listener; the expiry repost alerts before listeners see it; snoozes survive a reboot, but `getSnoozedNotifications` lists a key only after its app reposts.
-  Verified on a Nothing A069 (Android 16) with a test app posting on one key: a hidden post is snoozed 8 h and a second post on that key stays swallowed; ticking the app in Allowed apps releases it to the shade at once (the 1 ms re-snooze works); after Dismiss all the list is empty while the key stays snoozed, and a new post on it shows in the list again; turning off shows no question and returns the item to the shade. Not verified: the expiry cancel of a dismissed item, the reboot prune, the upgrade migration on a device, and whether a release alerts audibly; a key the system still holds after a reboot, before its app reposts, cannot be released, so turning off leaves it until its snooze ends.
-  Easy to get wrong: never cancel or forget a key that is still snoozed, or that conversation goes silent until expiry; the in-memory pass-through entry must exist before the release snooze, or a repost that lands while still bound is snoozed again.
+- **M6-WP19 (PR #18):** The roadmap now records v6.0.2 and the audited v6.1 priorities, with open M4 identifiers retained.
 
 <!-- handoff:end -->
