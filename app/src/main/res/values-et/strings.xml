@@ -81,7 +81,6 @@
     <string name="copied">Kopeeritud</string>
     <string name="type_a_new_app_name_first">Kirjuta esmalt rakenduse uus nimi</string>
     <string name="app_not_found">Rakendust ei leitud</string>
-    <string name="private_space">Privaatruum</string>
     <string name="private_space_unlock">Ava lukk</string>
     <string name="private_space_lock">Lukusta</string>
     <string name="swipe_left_app_enabled">Vasakule viipamise rakendus on lubatud</string>
@@ -145,8 +144,6 @@
     <string name="double_tap_action">Topeltpuudutuse toiming</string>
     <string name="scheduled">Ajastatud</string>
     <string name="sunrise_sunset">Päikesetõus ja -loojang</string>
-    <string name="focus_mode">Keskendumisrežiim</string>
-    <string name="focus_mode_on">Keskendumisrežiim on SEES</string>
     <string name="focus_remaining">Jäänud: %s</string>
     <string name="enable_focus">Lülita sisse</string>
     <string name="disable_focus">Lülita välja</string>
@@ -157,9 +154,6 @@
     <string name="focus_until_disabled_status">Kuni käsitsi väljalülitamiseni</string>
     <string name="focus_duration">Kestus</string>
     <string name="focus_allowed_apps">Lubatud rakendused (kuni 5)</string>
-    <string name="app_blocked_focus">Keskendumisrežiim blokeeris rakenduse</string>
-    <string name="app_blocked_focus_scheduled">Keskendumine kestab kuni %1$s. Peata see: %2$s.</string>
-    <string name="app_blocked_focus_scheduled_no_end">Keskendumine on ajastatud. Peata see: %1$s.</string>
     <string name="focus_schedule">Ajakava</string>
     <string name="focus_schedule_add">Lisa ajavahemik</string>
     <string name="focus_schedule_hint">Muudmiseks puuduta ajavahemikku, eemaldamiseks hoia sõrme peal</string>
@@ -169,7 +163,6 @@
     <string name="focus_schedule_every_day">Iga päev</string>
     <string name="focus_schedule_until">Ajastatud kuni %s</string>
     <string name="focus_schedule_no_end">Ajastatud, järgmise 7 päeva jooksul lõppu pole</string>
-    <string name="focus_schedule_empty_whitelist">Ühtegi rakendust pole lubatud: ajastatud keskendumise ajal saab ainult helistada.</string>
     <string name="save">Salvesta</string>
     <string name="weather">Ilm</string>
     <string name="weather_settings">Ilmaseaded</string>
@@ -182,8 +175,6 @@
     <string name="open_anyway">Ava siiski</string>
     <string name="go_back">Mine tagasi</string>
     <string name="select_time_limit">Vali päevane ajapiirang</string>
-    <string name="mindful_pause_turn_on">Lülita teadlik paus sisse</string>
-    <string name="mindful_pause_turn_off">Lülita teadlik paus välja</string>
     <string name="mindful_pause_question">Miks avad rakenduse %1$s?</string>
     <string name="mindful_pause_wait">Ava %1$s %2$d sekundi pärast…</string>
     <string name="mindful_pause_open">Ava %1$s</string>
@@ -226,7 +217,6 @@
     <string name="quiet_allowed_apps">Lubatud rakendused</string>
     <string name="quiet_make_silent">Muuda hääletuks</string>
     <string name="quiet_card_needs_access">Vajab juurdepääsu teavitustele. Seadete avamiseks puuduta „Vajab juurdepääsu”.</string>
-    <string name="quiet_list">Vaikne loend</string>
     <string name="quiet_list_empty">Ootel teavitusi pole</string>
     <string name="quiet_list_dismiss_all">Eemalda kõik</string>
     <string name="quiet_pick_title">Rakendused, mille teavitused on lubatud</string>
@@ -236,19 +226,15 @@
     <string name="quiet_starting">Teavitusfilter käivitub. Proovi veidi hiljem uuesti.</string>
     <string name="quiet_open_settings">Ava seaded</string>
     <string name="quiet_turn_off">Lülita filter välja</string>
-    <string name="grayscale">Halltoonid</string>
     <string name="grayscale_set_up">Seadista</string>
     <string name="grayscale_now">Praegu</string>
-    <string name="grayscale_during_focus">Keskendumise ajal</string>
     <string name="grayscale_after_limit">Pärast piirangut (kuni Paremisse naasmiseni)</string>
-    <string name="grayscale_grant_title">Luba halltoonid</string>
     <string name="grayscale_grant_computer">Arvutiga: lülita sisse USB-silumine, ühenda telefon ja ava see leht Chrome’is või Edge’is:</string>
     <string name="grayscale_share_link">Jaga linki</string>
     <string name="grayscale_copy_link">Kopeeri link</string>
     <string name="grayscale_copy_command">Kopeeri adb käsk</string>
     <string name="grayscale_check_again">Kontrolli uuesti</string>
     <string name="grayscale_not_granted">Luba pole veel antud</string>
-    <string name="grayscale_ready">Halltoonid on sisse lülitatud</string>
     <string name="onboarding_home_screen_title">Muuda Parem oma avakuvaks</string>
     <string name="onboarding_home_screen_body">Parem töötab ainult avakuvana.</string>
     <string name="onboarding_home_screen_reassure">Sinu rakendused jäävad alles. Saad igal ajal tagasi vahetada.</string>
@@ -258,7 +244,6 @@
     <string name="onboarding_row_slow_down">Võta rakendusega hoogu maha</string>
     <string name="onboarding_row_slow_down_caption">Lühike paus enne valitud rakenduse avamist</string>
     <string name="onboarding_row_quiet">Vaiksed teavitused</string>
-    <string name="onboarding_row_quiet_caption">Teiste rakenduste teavitused ootavad vaikses loendis</string>
     <string name="onboarding_row_grayscale_caption">Ühekordne seadistamine arvutiga</string>
     <string name="onboarding_set_up">Seadista</string>
     <string name="onboarding_footer">Kõiki neid valikuid saad hiljem seadetes muuta</string>
@@ -289,7 +274,6 @@
     <string name="auto_launch_single_match">Ava ainus vaste automaatselt</string>
     <string name="app_menu_time_limit">Ajapiirang</string>
     <string name="app_menu_no_limit">Piiranguta</string>
-    <string name="app_menu_mindful_pause">Teadlik paus</string>
     <string name="app_menu_hide">Peida rakenduste loendist</string>
     <string name="app_menu_show">Kuva rakenduste loendis</string>
     <string name="app_menu_stays_home">Rakendus jääb avakuvale</string>
@@ -322,8 +306,6 @@
     <string name="onboarding_guide_search">Rakenduste otsimine ja haldamine</string>
     <string name="onboarding_guide_tools">Kalkulaator, teisendused ja kiirtoimingud</string>
     <string name="onboarding_guide_gestures">Viiped, tähed ja klaviatuur</string>
-    <string name="onboarding_guide_calm">Ekraaniaeg, piirangud ja keskendumine</string>
-    <string name="onboarding_guide_quiet">Vaiksed teavitused, halltoonid ja lukustus</string>
     <string name="onboarding_guide_appearance">Välimus ja hõlbustus</string>
     <string name="onboarding_guide_data">Varundamine, privaatsus ja tagasivahetamine</string>
     <string name="weather_disclosure">Sinu otsing ja valitud koha ümardatud koordinaadid saadetakse Open-Meteole.</string>
@@ -331,9 +313,6 @@
     <string name="agree">Nõustun</string>
     <string name="pause_only">Ainult paus</string>
     <string name="add_another_app">Lisa veel üks rakendus…</string>
-    <string name="focus_end_early">Kas lõpetada keskendumine varem?</string>
-    <string name="focus_end_wait">Lõpeta keskendumine %1$d sekundi pärast…</string>
-    <string name="focus_end_now">Lõpeta keskendumine</string>
     <string name="make_parem_home">Muuda Parem oma avakuvaks</string>
     <string name="edit_folder">Muuda kausta</string>
     <string name="duck_search_hint">↵  DuckDuckGo: %1$s</string>
@@ -348,7 +327,6 @@
     <string name="focus_schedule_pick_day">Vali vähemalt üks päev</string>
     <string name="private_space_open">Ava</string>
     <string name="settings_screen_time_access">Juurdepääs ekraaniajale</string>
-    <string name="settings_calm_section">Rahu</string>
     <string name="settings_search_section">Otsing</string>
     <string name="settings_backup_section">Varundamine ja teave</string>
     <string name="settings_default_home">Vaikimisi avakuva rakendus</string>
@@ -368,19 +346,17 @@
     <string name="lock_consent_body">Topeltpuudutusega lukustamine kasutab Androidi hõlbustusteenust. Android teavitab Paremi teenust, kui puudutad Paremi sees ekraani. Teenus eirab kõiki puudutusi peale enda nähtamatu lukustusala puudutuse ning palub selle korral Androidil ekraani lukustada. See ei saa teiste rakenduste sündmusi ega saa ekraani lugeda. Nähtut ei salvestata ega saadeta kuhugi. Saad teenuse igal ajal hõlbustusseadetes välja lülitada.</string>
     <string name="lock_service_off_body">Paremi hõlbustusteenus enam ei tööta, mistõttu lukustamisviibe ei saa ekraani lukustada. Android võib selle välja lülitada pärast rakenduse uuendamist, krahhi või siis, kui turvaseade piirab hõlbustusteenuseid. Lülita see hõlbustusseadetes uuesti sisse või vali Paremi viipeseadetes teine toiming.</string>
     <string name="grayscale_grant_body">Android lubab rakendusel ekraani halltoonidesse lülitada ainult pärast arendajatööriistade kaudu antud ühekordset luba. Parem kasutab seda üksnes halltoonide jaoks.\n\nVärvide taastamiseks igal ajal ilma Paremita ava Androidi seadetes Hõlbustus › Värviparandus.</string>
-    <string name="grayscale_app_needs_usage">Rakendusepõhised halltoonid vajavad kasutusandmete juurdepääsu, et märgata rakenduste vahetamist. Kõike arvestatakse sinu telefonis.</string>
-    <string name="grayscale_app_needs_default">Rakendusepõhised halltoonid vajavad värvide taastamiseks Paremist vaikimisi avakuva.</string>
     <string name="usage_access_limits_body">Rakenduste piirangud vajavad kasutusandmete juurdepääsu: Parem arvestab, kui kaua iga rakendus on avatud. Ilma selleta ei saa piirang käivituda.\n\nAndmeid arvestatakse selles telefonis. Parem ei saada neid kuhugi ega lisa Androidi pilvvarukoopiasse. Sinu alustatud telefonidevaheline ülekanne võib need uude telefoni kopeerida.</string>
     <string name="usage_access_granted_body">Parem arvestab selle abil ekraaniaega: avakuva koguaega, rakenduste piiranguid, kasutuse järgi sortimist ja nädalagraafikut. Androidis juurdepääsu väljalülitamine lülitab välja kõik need võimalused.</string>
     <string name="onboarding_lock_enabled_body">Telefoni lukustamiseks puuduta avakuva tühja ala kaks korda. Toimingut saad muuta seadetes Viiped. Hõlbustusjuurdepääsu eemaldamiseks ava Androidi seaded › Hõlbustus. Kui lukustad seadme administraatori õigusega, lülita see välja Paremi viipeseadetes.</string>
-    <string name="onboarding_pause_steps">Teadlik paus küsib, miks sa rakenduse avad, ja ootab enne avamist viis sekundit. Puuduta rakenduse piirangut ning vali Ainult paus või määra ajapiirang ja lülita paus samast loendist sisse.\n\nLoendis on täna kasutatud rakendused; valik Lisa veel üks rakendus näitab ülejäänuid. Võid ka avakuval rakendust pikalt puudutada ja valida selle ajapiirangu toimingu. Piirang kuvab hoiatuse, millest saad mööda minna; see ei blokeeri rakendust jäädavalt.</string>
-    <string name="onboarding_pause_no_usage">Kasutusandmeid veel pole. Lõpeta seadistamine, lisa rakendus avakuvale, hoia sellel sõrme ja vali Ajapiirang. Võid ka pärast rakenduse kasutamist avada Seaded › Rahu › Rakenduste piirangud.</string>
+    <string name="onboarding_pause_steps">Mindful pause asks why you are opening an app, then waits five seconds before you can open it. Tap an app’s limit and choose “Ainult paus”, or set a time limit and turn the pause on from the same list.\n\nThe list shows apps used today, and “Lisa veel üks rakendus…” reaches the rest. You can also long-press an app on home and choose its time-limit action. Limits show a warning you can override; they do not permanently block an app.</string>
+    <string name="onboarding_pause_no_usage">No usage is available yet. Finish setup, add an app to home, then long-press it and choose “Ajapiirang”. Or open “Seaded” › “Calm” › “Rakenduste piirangud” after using an app.</string>
     <string name="contact_search_disclosure">Kontaktiotsing loeb sinu kontaktide nimesid ja telefoninumbreid ainult selles telefonis, et leida sisestatule vasteid. Parem ei salvesta ega saada neid andmeid.</string>
     <string name="onboarding_guide_home_body">Kõigi rakenduste nägemiseks viipa avakuval üles. Avakuva menüü, sealhulgas Seaded ja Lisa vidin, avamiseks hoia sõrme avakuva tühjal alal. Alla viipamine avab vaikimisi teavitused; seda saad muuta seadetes Viiped.\n\nRakenduse valimiseks hoia sõrme tühjal rakenduse kohal. Täidetud kohal sõrme hoides saad seda muuta või eemaldada, luua kausta või lisada veebilehe otsetee. Kausta rakenduse valimiseks puuduta kausta; veebilehed avanevad brauseris. Seaded › Avakuva määrab kohtade arvu, joonduse ja paigutuse lukustuse. Paigutuse lukustus takistab muudatusi koha pikalt puudutamisel avanevas menüüs.\n\nKella või kalendri avamiseks puuduta kella või kuupäeva; teise rakenduse valimiseks hoia sellel sõrme. Ekraaniaja graafiku nägemiseks puuduta ekraaniaja kogusummat.\n\nLisa vidinaid avakuva menüüst. Suuruse muutmiseks lohista vidina alaservas olevat pidet. Hoia sõrme vidinal, et seda vahetada, liigutada või eemaldada. Seadetes saad valida, kas vidinad asuvad rakenduste kohal või all; laial tahvelarvutiekraanil asuvad need avakuva sisu kõrval.</string>
-    <string name="onboarding_guide_search_body">Viipa üles ja kirjuta rakenduse nimi. Ligikaudne otsing võimaldab kasutada nime osi. Seaded › Otsing › Kuva klaviatuur automaatselt määrab, kas rakenduste loendi avamisel saab kohe kirjutada. Avakuvale naasmiseks vajuta Tagasi. Vaikimisi avatakse ainus vastav rakendus automaatselt. Kui soovid puudutada või vajutada sisestusklahvi, lülita seadetes Otsing välja Ava ainus vaste automaatselt. Ekraanilugejaga on automaatne avamine välja lülitatud.\n\nRakenduse toimingute, näiteks peitmise, teabe või desinstallimise nägemiseks hoia rakenduste loendis sõrme rakendusel. Nime muutmiseks vali rakenduse menüüst Nimeta ümber. Peidetud rakendused leiad seadete jaotisest Peidetud rakendused, kus näidatakse ka nende arvu. Peitmine ei desinstalli rakendust. Kasutusandmete juurdepääsuga saad rakendusi kasutuse järgi sortida ja avamiskordi näha.\n\nKontaktiotsing on valikuline ja asub seadetes Otsing. See küsib juurdepääsu kontaktidele ning otsib selles seadmes nimedele vastavaid telefoninumbreid; vaste valimine avab helistamisrakenduse. Samas jaotises on valikuline otsinguajalugu. Hiljutised otsingud jäävad sellesse telefoni, neid saab seal kustutada ning ajaloo väljalülitamisel need kustuvad.\n\nTööprofiili rakendused on märgistatud seal, kus Android need kättesaadavaks teeb. Toetatud Androidi versioonides saad rakenduste loendi rea Privaatruum kaudu selle lukustada või avada. Ilma kerimiseta leidmiseks otsi „privaatruum”. Ruumi avamiseks või luku avamiseks puuduta tulemust või vajuta sisestusklahvi. Lukustatud ruumi rakendused on peidetud. Kui valid Androidi seadetes ruumi peitmise lukustatuna, ei kuvata seda ka loendis ega otsingus; ava see Androidi seadetes Turvalisus ja privaatsus › Privaatruum. Tööprofiili vidinad kuvatakse võimaluse korral vidinate valikus.</string>
-    <string name="onboarding_guide_tools_body">Rakenduste loendi otsinguväli toetab ka tööriistu. Proovi 2+2, 5 km to mi või 100 eur in usd. Arvutuse või teisenduse tulemuse kopeerimiseks puuduta seda või vajuta sisestusklahvi. Valuuta teisendamine laadib vajaduse korral alla Euroopa Keskpanga kursid; tulemus näitab nende kuupäeva ja uute kursside jaoks on vaja internetiühendust.\n\nTelefoninumbri avamiseks helistamisrakenduses kirjuta number. Google’is otsimiseks alusta päringut tühikuga või kasuta DuckDuckGo otseteed, näiteks !w calm. Veebiotsingud avanevad brauseris.\n\nProovi äratus 6.15 trenn, taimer 5 minutit või kohtumine reedel kell 15 hambaarst. Parem edastab toimingu sobivale kella- või kalendrirakendusele. Toetatud toimingusõnade hulgas on inglise- ja eestikeelseid sõnu.\n\nSeadete reale liikumiseks kirjuta seade nimi, näiteks halltoonid. Rakenduse otsetee sõnad, näiteks incog, võivad leida installitud rakenduste pakutud toiminguid. Otseteed sõltuvad rakendusest ega asenda ühe vastava rakenduse automaatset avamist.</string>
-    <string name="onboarding_guide_gestures_body">Seaded › Viiped võimaldab muuta vasakule ja paremale viipamist, alla viipamist ning topeltpuudutust. Toimingute hulgas on rakendus, otsing, teavitused, lukustus, kaamera ja taskulamp; vaikse loendi toiming ilmub siis, kui selle filter on sisse lülitatud. Viipamise väljalülitamiseks vali Puudub.\n\nLülita seadetes Viiped sisse Viipetähed ja määra tähtedele rakendused. Joonista avakuval täht ühe katkematu tõmbega. Sirged tõmbed jäävad viibeteks. Tuvastamine sõltub tähe kujust; lõpetamiseks tõsta sõrm.\n\nFüüsilisel klaviatuuril avab avakuval kirjutamine rakenduste otsingu; menüüklahv avab rakenduste loendi. Rakenduse valimiseks kasuta suunaklahve ja sisestusklahvi, menüü avamiseks hoia sisestusklahvi. TalkBack pakub avakuva toiminguid ja nähtavat rida Kõik rakendused, seega on viiped valikulised.</string>
-    <string name="onboarding_guide_calm_body">Kasutusandmete juurdepääs lubab Paremil arvestada selles telefonis rakendustes veedetud aega. Päevase kasutuse, seitsme päeva graafiku ja piisava ajaloo korral nädalate võrdluse nägemiseks puuduta avakuva ekraaniaega. Juurdepääsu haldad seadetes Rahu.\n\nRakenduste piirangud hoiatavad, kui oled rakendust päevase ajapiirangu jagu kasutanud. Valik Ava siiski lubab hoiatusest mööda minna. Lisa piirang rakenduse avakuva menüüst või rakenduste piirangute vaatest. See vaade loetleb täna enim kasutatud rakendused. Lisa veel üks rakendus näitab ülejäänuid. Vali Ainult paus, et enne avamist oodata viis sekundit ja mõelda, miks rakendust avad, ilma ajapiirangut määramata. Kui piirang on määratud, hoia uuesti rakendusel sõrme ja lülita Teadlik paus sisse või ava selle piirangu valik rakenduste piirangute vaates. Piiranguta eemaldab mõlemad.\n\nKeskendumisrežiim blokeerib Paremi kaudu avamised, välja arvatud lubatud rakendused ja kõned. Vali ajastatud seanss või nädalased ajavahemikud seadetes Rahu › Keskendumisrežiim. Ajavahemik võib ületada südaöö; sama algus- ja lõpuaeg tähendab tervet päeva. Lülita välja peatab praegu aktiivse ajastatud vahemiku kuni selle lõpuni.\n\nPiirangud, paus ja keskendumine kehtivad Paremi kaudu avamisel. Need ei sulge juba avatud rakendust ega takista Androidil ja teistel rakendustel seda avada. Veebilehed ja otsingu kiirtoimingud ei ole nende piirangutega kaitstud rakenduse avamised.</string>
+    <string name="onboarding_guide_search_body">Swipe up, then type an app name. Fuzzy matching lets you use parts of the name. “Kuva klaviatuur automaatselt” in “Seaded” › “Otsing” controls whether typing is ready when the drawer opens. Press Back to return home. A single matching app opens automatically by default. Turn off “Ava ainus vaste automaatselt” in “Seaded” › “Otsing” if you prefer to tap or press Enter. Automatic opening is off with a screen reader.\n\nLong-press an app in the drawer for its available actions, such as hiding it, app info or uninstalling. Use “Nimeta ümber” in the app menu to change its label. Find hidden apps again under “Peidetud rakendused” in Settings, which also shows how many there are. Hiding an app does not uninstall it. With usage access, you can sort the drawer by use and see app open counts.\n\n“Kontaktiotsing” is optional in “Seaded” › “Otsing”. It asks for Contacts access and matches names to phone numbers on your device; choosing a match opens the dialer. “Otsinguajalugu” is optional in the same section. Recent searches stay on this phone, can be cleared there, and are erased when history is switched off.\n\nWork-profile apps are badged where Android makes them available. On supported Android versions, the drawer’s Private space row lets you lock or unlock that space. Search for “private” or “private space” to reach it without scrolling. Tap the result or press Enter to unlock or open it. Its apps are hidden while it is locked. If you hide the space when locked in Android settings, its entry also stays out of the drawer and search; reveal it through Android Settings › Security &amp; privacy › Private space. Work-profile widgets appear in the widget picker when available.</string>
+    <string name="onboarding_guide_tools_body">The app drawer search field also accepts tools. Try 2+2, 5 km to mi, or 100 eur in usd. Tap a calculation or conversion result to copy it, or press Enter. Currency conversion downloads European Central Bank rates when needed; the result shows their date and needs an internet connection for new rates.\n\nType a phone number to open it in the dialer. Start a query with a space to search Google, or use a DuckDuckGo bang such as !w calm. Web searches open your browser.\n\nTry alarm 7:30, timer 10m, or event friday 3pm dentist. Parem passes the action to a compatible Clock or Calendar app. Supported action words include English and Estonian.\n\nType a setting name, such as “grayscale”, to jump to its row in “Seaded”. App shortcut words, such as incog, can find actions published by installed apps. Shortcuts depend on what each app provides and do not replace a single matching app’s automatic launch.</string>
+    <string name="onboarding_guide_gestures_body">“Seaded” › “Viiped” lets you change left and right swipes, swipe down and double tap. Available actions include an app, search, notifications, lock, camera or flashlight; the “Quiet list” action appears when its filter is enabled. Choose “Puudub” to turn a swipe off.\n\nTurn on “Viipetähed” in “Seaded” › “Viiped” and assign apps to letters. Draw the letter in one continuous stroke on home. Straight strokes remain swipes. Recognition depends on the letter shape; lift your finger to finish.\n\nWith a hardware keyboard, typing on home opens app search; the Menu key opens the drawer. Use the D-pad and Enter to choose an app, or hold Enter for its menu. TalkBack offers home actions and a visible “Kõik rakendused” row, so gestures are optional.</string>
+    <string name="onboarding_guide_calm_body">Usage access lets Parem count time spent in apps on this phone. Tap the home screen-time total for daily app usage, the seven-day graph and a weekly comparison when enough history exists. Manage access in “Seaded” › “Calm”.\n\nApp limits warn when you have used an app for its daily allowance. “Ava siiski” overrides the warning. Add a limit from an app’s home menu or the “Rakenduste piirangud” sheet. That sheet lists the most-used apps from today. “Lisa veel üks rakendus…” reaches everything else. Choose “Ainult paus” for a five-second wait before launches, with a prompt to consider why you are opening the app, and no time limit. With a limit set, long-press the app again and turn on “Mindful pause”, or reopen its limit picker in the “Rakenduste piirangud” sheet. “Piiranguta” removes both.\n\nFocus mode blocks Parem launches except your allowed apps and calls. Choose a timed session or weekly windows in “Seaded” › “Calm” › “Focus mode”. Windows can cross midnight; matching start and end times mean all day. “Lülita välja” pauses a currently active scheduled window until that run ends.\n\nLimits, pause and focus guard launches through Parem. They do not close an app already open or prevent Android and other apps from opening it.</string>
     <string name="onboarding_guide_appearance_body">Seaded › Välimus sisaldab heledat, tumedat ja süsteemiteemat, teema ajakava, suhtelist teksti suurust, paksu kirja, igapäevast taustpilti ja olekuriba nähtavust. Vali heleda ja tumeda teema ajad või päikesetõus ja -loojang. Ilma jaoks saad linna valida seadetes Avakuva. Tekst järgib ka Androidi kirjasuurust.\n\nSeaded › Avakuva juhib rakenduste ikoone ja ikoonipakette, kella ja kuupäeva nähtavust, joondust ja vidinate asukohta. Esmalt installi sobiv ikoonipakett, seejärel vali see ikooniseadetes.\n\nParem vähendab liikumist, kui Androidi animatsioonid on välja lülitatud. Avakuva põhitoimingutel on ekraanilugeja ja klaviatuuri alternatiivid.</string>
     <string name="onboarding_guide_data_body">Seadetes on eelistuste teisaldamiseks Ekspordi seaded ja Impordi seaded. Androidi pilvvarukoopia jätab Paremi välja, seega ekspordi enne uude telefoni kolimist. Import asendab salvestatud eelistused; kui soovid koopiat säilitada, ekspordi esmalt. Vidinaid ja muid seadmespetsiifilisi lubasid üle ei kanta: lisa vidinad ja anna load uues telefonis uuesti. Otsinguajalugu ei ekspordita.\n\nKrahhiaruanded on vaikimisi välja lülitatud. Kui need on lubatud, jääb aruanne pärast krahhi sellesse telefoni, kuni otsustad seda jagada. Saad seda enne saatmist lugeda või sellest loobuda. Aruanded sisaldavad vea üksikasju ja seadme teavet.\n\nRakenduste kasutuse arvestus, kontaktide vastendamine ja teavituste filtreerimine toimub selles telefonis. Veebiandmeid vajavad võimalused, näiteks ilm, valuutakursid ja igapäevane taustpilt, teevad võrgupäringuid; veebiotsingud ja lingid liiguvad brauserisse või sinu valitud teise rakendusse.\n\nAvakuvarakenduse vahetamisel jäävad sinu rakendused alles. Eelmise avakuva valimiseks kasuta Paremi vaikimisi avakuva seadet või Androidi seadeid Rakendused › Vaikerakendused › Avakuva rakendus. Seadete nimed erinevad telefoniti. Kõiki valikulisi seadistusi saab hiljem seadetes muuta.</string>
     <string-array name="omnibox_hints">
@@ -392,18 +368,10 @@
         <item>kohtumine reedel kell 15 hambaarst</item>
         <item>100 eur in usd</item>
     </string-array>
-    <string name="quiet_card_hint">Teavituse saabumisel võib siiski kõlada heli või tekkida vibratsioon. „Muuda hääletuks” avab Androidi teavitusseaded; hääletud teavitused võivad jääda teavitusribale. Vaikse loendi avamiseks vali Paremi seadetes viibe.</string>
+    <string name="quiet_card_hint">A sound or vibration may still occur. “Muuda hääletuks” opens Android notification settings; silent notifications may remain in the shade. Choose a swipe in Parem settings to open “Quiet list”.</string>
     <string name="quiet_disclosure_body">Sobivad teavitused rakendustest, mida sa pole lubanud, võidakse liigutada vaiksesse loendisse. Selle avamiseks avakuvalt vali Paremi seadetes viibe.\n\nParem jätab välja mõned süsteemirakendused ja kategooriad, sealhulgas kõne, äratuse, meedia, navigeerimise või süsteemihoiatusena märgitud teavitused. Rakendused võivad teavitusi teisiti märgistada.\n\nTeavituse saabumisel võib siiski kõlada heli või tekkida vibratsioon. Paremi kaudu saad avada rakenduse Androidi teavitusseaded; kui muudad selle teavitused hääletuks, võivad need vaikse loendi asemel jääda teavitusribale.\n\nSortimiseks loeb Parem selles seadmes iga teavituse rakendust ja tüüpi ning näitab vaikses loendis selle pealkirja. Peidetud teavituste kohta salvestab Parem tehnilise võtme ja edasilükkamise aja ning avatud või eemaldatud teavituse ajatempli. Võti võib sisaldada rakenduse valitud märgendit. Parem ei salvesta eraldi teavituse pealkirja ega sisu ega saada neid andmeid.\n\nParem palub Androidil sobivad teavitused 8 tunniks edasi lükata ja võib need sisselülitatud filtri ajal uuesti peita. Filtri väljalülitamisel püüab Parem vabastada teavitused, milleni ta pääseb; mõned võivad jääda edasilükatuks kuni tähtaja lõpuni. Juurdepääsu saad eemaldada ka Androidi seadetes jaotises Juurdepääs teavitustele.</string>
     <string name="quiet_needs_access_body">Paremil pole enam juurdepääsu teavitustele. Peidetud teavitused võivad jääda edasilükatuks kuni tähtaja lõpuni.</string>
     <string name="quiet_keep_info">Mõned peidetud teavitused võivad jääda edasilükatuks kuni tähtaja lõpuni.</string>
-    <string name="onboarding_guide_quiet_body">Vaiksed teavitused võivad lubatud loendist väljapoole jäävate rakenduste sobivad teavitused teavitusribalt eemaldada. Mõned kategooriad ja süsteemirakendused jäetakse välja, kuid rakendused võivad teavitusi teisiti märgistada. Heli või vibratsioon võib siiski esineda. „Muuda hääletuks” avab Androidi teavitusseaded; hääletud teavitused võivad jääda teavitusribale. Vaikse loendi avamiseks vali Paremi seadetes viibe. Filtri väljalülitamisel püüab Parem vabastada kättesaadavad teavitused; mõned võivad jääda edasilükatuks kuni tähtaja lõpuni. Seadistamine selgitab teavitusjuurdepääsu enne loa andmist.\n\nHalltoonid eemaldavad ekraanilt värvid. See vajab ühekordset arendajatööriistade luba, mille sammud seadistamisel selgitatakse. Pärast seadistamist vali Praegu, Keskendumise ajal või Pärast piirangut. Rakendusepõhised halltoonid on saadaval ka rakenduste menüüdes ning vajavad kasutusandmete juurdepääsu ja Paremit vaikimisi avakuvana. Värve saab alati taastada Androidi seadetes Hõlbustus › Värviparandus.\n\nTopeltpuudutusega lukustamine kasutab pärast sinu nõusolekut Androidi hõlbustusteenust; see ei saa ekraani lugeda. Alternatiivne seadme administraatoriga lukustamine asub seadetes Viiped ja vajab pärast iga lukustamist PIN-koodi. Viibet saad seal muuta või välja lülitada.</string>
-    <string name="grayscale_toggles_hint">Kui Paremi halltoonide käivitajad lõpevad, püüab Parem taastada sinu varasema värviparanduse. Kui ekraan jääb halliks, kontrolli Androidi seadetes Hõlbustus › Värviparandus.</string>
-    <string name="quick_focus_25">Keskendu 25 minutit</string>
-    <string name="quick_focus_already_active">Keskendumine on juba sisse lülitatud</string>
-    <string name="quick_focus_started">Keskendumine algas 25 minutiks</string>
-    <string name="quick_grayscale">Käsitsi halltoonid sisse või välja</string>
-    <string name="quick_grayscale_manual_off">Käsitsi halltoonid on väljas; automaatsed halltoonid võivad endiselt aktiivsed olla</string>
-    <string name="quick_grayscale_manual_on">Käsitsi halltoonid on sees</string>
-    <string name="quick_grayscale_needs_access">Seadista halltoonide juurdepääs seadetes</string>
+    <string name="onboarding_guide_quiet_body">Quiet notifications can move eligible notifications from apps outside your allowed list out of the shade. Some categories and system apps are excluded, but apps can label notifications differently. A sound or vibration may still happen. “Muuda hääletuks” opens Android notification settings; silent notifications may remain in the shade. Choose a swipe in Parem settings to open “Quiet list”. When you turn the filter off, Parem tries to release reachable items; some may remain snoozed until their snooze ends. Setup explains notification access before you grant it.\n\nGrayscale removes color from the screen. It needs a one-time developer-tools permission, and setup explains each step. After setup, choose “Praegu”, “During focus” or “Pärast piirangut (kuni Paremisse naasmiseni)”. Per-app grayscale is also available in app menus and needs usage access and Parem as default home. Color can always be restored in Android Settings › Accessibility › Color correction.\n\nDouble tap to lock uses Android’s accessibility service after your consent; it cannot read your screen. The alternative device-admin lock method is in “Seaded” › “Viiped” and requires your PIN after each lock. You can change or disable the gesture there.</string>
     <string name="picker_selected_count">%1$s · valitud %2$d</string>
 </resources>

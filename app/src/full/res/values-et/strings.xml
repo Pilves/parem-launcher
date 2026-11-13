@@ -1,20 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="grayscale_grant_wifi">Selles telefonis Wi-Fi kaudu:\n1. Lülita sisse arendajavalikud: Androidi seaded › Telefoni teave › puuduta järgunumbrit 7 korda.\n2. Lülita arendajavalikutes sisse juhtmeta silumine ja puuduta Seo seade sidumiskoodiga.\n3. Ava Paremi teavitus ja sisesta sinna 6-kohaline kood.</string>
-    <string name="grayscale_pair_start">Alusta sidumist</string>
-    <string name="grayscale_pair_needs_notif">Luba teavitused, et saaksid sisestada sidumiskoodi</string>
-    <string name="grayscale_pair_notif_title">Halltoonid: sidumiskood</string>
-    <string name="grayscale_pair_notif_text">Puuduta juhtmeta silumise seadetes Seo seade sidumiskoodiga ja sisesta siia 6-kohaline kood.</string>
-    <string name="grayscale_pair_code_hint">6-kohaline kood</string>
-    <string name="grayscale_pair_enter_code">Sisesta kood</string>
-    <string name="grayscale_pair_working">Sidumine…</string>
-    <string name="grayscale_pair_done">Halltoonid on sisse lülitatud. Võid juhtmeta silumise uuesti välja lülitada.</string>
-    <string name="grayscale_pair_err_code">See kood ei sobinud. Hoia sidumisaken avatud ja sisesta seal näidatud 6-kohaline kood.</string>
-    <string name="grayscale_pair_err_not_found">Sidumisakent ei leitud. Veendu, et Wi-Fi oleks sees, puuduta Seo seade sidumiskoodiga ja hoia aken sisestamise ajal avatud.</string>
-    <string name="grayscale_pair_err_connect">Sidumine õnnestus, kuid juhtmeta silumine pole kättesaadav. Kontrolli, kas see on endiselt sees, ja proovi uuesti.</string>
-    <string name="grayscale_pair_err_refused">Telefon keeldus luba andmast. Mõni telefon vajab arendajavalikutes lisalülitit (näiteks USB-silumine (turbeseaded)). Lülita see sisse ja proovi uuesti.</string>
-    <string name="grayscale_pair_err_generic">Sidumine nurjus. Proovi uue koodiga uuesti.</string>
     <string name="lock_consent_restricted">Kui lüliti on hall: Rakenduse teave › menüü › Luba piiratud seaded.</string>
-    <string name="grayscale_grant_computer">Või arvutiga: lülita sisse USB-silumine, ühenda telefon ja ava see leht Chrome’is või Edge’is:</string>
     <string name="onboarding_row_grayscale_caption">Ühekordne seadistamine, umbes 2 min</string>
 </resources>
