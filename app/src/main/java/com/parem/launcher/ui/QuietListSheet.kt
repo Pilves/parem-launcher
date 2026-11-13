@@ -182,7 +182,7 @@ object QuietListSheet {
                         return@option
                     }
                     BadHabitDialogs.gateLaunch(
-                        context, fragment.lifecycleScope, isAlive,
+                        context, fragment.viewLifecycleOwner.lifecycleScope, isAlive,
                         app, sbn.packageName,
                         open = { listener.open(context, sbn.key) },
                     )

@@ -102,6 +102,13 @@ object GrayscaleController {
         reconcile(context)
     }
 
+    /** Existing choices or ownership mean grant setup is a repair, not a fresh manual enable. */
+    fun hasExistingGrayscaleState(context: Context): Boolean {
+        val p = context.paremPrefs()
+        return listOf(KEY_MANUAL, KEY_ON_FOCUS, KEY_ON_LIMIT, KEY_APPLIED, KEY_SUPPRESSED,
+            KEY_LIMIT_OVERRIDE, KEY_APP_FG).any { p.getBoolean(it, false) } || hasMarkedApps(context)
+    }
+
     /** Only the policy can establish that restoration is currently pending. */
     fun restorationPendingWithoutAccess(context: Context): Boolean =
         !isGranted(context) && restorationPending(context)

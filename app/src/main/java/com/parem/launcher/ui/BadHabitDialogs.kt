@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
 import android.os.SystemClock
+import android.os.Handler
+import android.os.Looper
 import android.widget.TextView
 import androidx.core.text.BidiFormatter
 import androidx.core.view.ViewCompat
@@ -26,6 +28,7 @@ import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.showToast
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -89,6 +92,7 @@ object BadHabitDialogs {
                         R.string.limit_usage_access_missing else R.string.limit_usage_unavailable))
                     .option(context.getString(R.string.go_back)) {}
                     .option(context.getString(R.string.usage_access_open_settings)) {
+                        if (!isActive()) return@option
                         try { context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
                         catch (_: android.content.ActivityNotFoundException) { context.showToast(R.string.limit_settings_unavailable) }
                     }
@@ -103,10 +107,12 @@ object BadHabitDialogs {
                                 waiting = { left -> context.getString(R.string.mindful_pause_wait, label, left) },
                                 ready = context.getString(R.string.mindful_pause_open, label),
                                 onProceed = { if (isActive()) open() else onCancel() }, onCancel = onCancel)
+                                .dismissWithScope(scope)
                         } else open()
                     }
                     .onDismiss { if (!continued) onCancel() }
                     .show()
+                dialog.dismissWithScope(scope)
                 return@launch
             }
             val usageMs = (checkedReading as? UsageReadCache.Reading.Available)?.usage?.get(packageName) ?: 0L
@@ -208,6 +214,21 @@ object BadHabitDialogs {
      * dimmed way through, with the calm choice first. A pause, never a block.
      * [onCancel] runs on "Go back", back and swipe-down.
      */
+    /** Dismiss a launch-owned sheet when the originating screen's scope ends. */
+    private fun BottomSheetDialog.dismissWithScope(scope: CoroutineScope) {
+        val handle = scope.coroutineContext[Job]?.invokeOnCompletion {
+            Handler(Looper.getMainLooper()).post { if (isShowing) dismiss() }
+        }
+        // Do not replace the caller's onDismiss listener (which delivers cancellation).
+        window?.decorView?.addOnAttachStateChangeListener(object : android.view.View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: android.view.View) = Unit
+            override fun onViewDetachedFromWindow(v: android.view.View) {
+                handle?.dispose()
+                v.removeOnAttachStateChangeListener(this)
+            }
+        })
+    }
+
     fun showPause(
         context: Context,
         question: String,
@@ -216,7 +237,7 @@ object BadHabitDialogs {
         ready: String,
         onProceed: () -> Unit,
         onCancel: () -> Unit,
-    ) {
+    ): BottomSheetDialog {
         var proceeded = false
         // A plain row instead of option(): option() dismisses on any tap, and a
         // tap during the countdown must do nothing
@@ -265,6 +286,7 @@ object BadHabitDialogs {
                 tick.run()
             }
         }
+        return dialog
     }
 
     /** Toggle row for sheets that edit an app's limit; shown only while the app has one. */
