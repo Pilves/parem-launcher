@@ -300,7 +300,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP51 | **Done** (PR #56). **Todo**. Dismiss grayscale and quiet sheets with their owning screen | Grayscale and quiet sheet lifecycle, callers, tests, changelog and handoff | Settings, onboarding and gesture sheets do not outlive their fragment view |
 | M6-WP47 | **Done** (PR #52). **Todo**. Bound folder and home-slot names | `ui/AppMenu.kt`, `ui/CreateFolderDialog.kt`, `ui/home/HomeSlotsController.kt`, shared name limit, regression test | New names have a shared limit; existing names stay stored and are ellipsized on home |
 
-| M6-WP48 | **Done** (PR #0). **Todo**. Correct small gesture, website, onboarding and picker inconsistencies | Gesture choices, website input, onboarding and picker search | Current swipe app is visible, non-web input rejected, home setup is debounced and picker search is inset |
+| M6-WP48 | **Done** (PR #53). **Todo**. Correct small gesture, website, onboarding and picker inconsistencies | Gesture choices, website input, onboarding and picker search | Current swipe app is visible, non-web input rejected, home setup is debounced and picker search is inset |
 
 ## Recurring (no id)
 

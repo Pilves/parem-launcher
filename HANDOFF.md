@@ -379,7 +379,7 @@ per package; the rest of each of those fragments is still in
 - **M6-WP45 (PR #49):** Picker rows retain their checkbox accessibility semantics through filtering and RecyclerView rebinding.
 - **M6-WP46 (PR #48):** Pull requests run both flavor JVM suites, Node harness tests and the Play APK pairing check.
 - **M6-WP47 (PR #52):** Home-slot rename, folder names and new website labels accept at most 40 UTF-16 code units; home labels use at most two ellipsized lines.
-- **M6-WP48 (PR #0):** Swipe choices show the current app, home setup taps are debounced and picker search follows sheet insets.
+- **M6-WP48 (PR #53):** Swipe choices show the current app, home setup taps are debounced and picker search follows sheet insets.
 - **M6-WP51 (PR #56):** Grayscale toggles and Quiet sheets close when their owning fragment view is destroyed.
 - **M6-WP52 (PR #57):** Screen-time freshness checks treat future timestamps as stale after a clock rollback.
 
