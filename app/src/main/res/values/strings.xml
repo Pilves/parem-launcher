@@ -464,4 +464,9 @@
     <string name="settings_clock_date" translatable="false">Clock and date</string>
     <string name="settings_status_bar" translatable="false">Status bar</string>
     <string name="settings_quiet_notifications" translatable="false">Quiet notifications</string>
+    <string name="keyboard_caption" translatable="false">The keyboard lets you search for and open apps.</string>
+    <string name="align_at_bottom" translatable="false">Align at bottom</string>
+    <string name="alignment_at_bottom" translatable="false">%1$s · bottom</string>
+    <string name="lock_needs_access" translatable="false">Lock screen · Needs access</string>
+    <string name="configured_app_count" translatable="false">%1$d configured</string>
 </resources>

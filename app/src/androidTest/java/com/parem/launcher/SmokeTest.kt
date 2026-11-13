@@ -903,13 +903,17 @@ class SmokeTest {
         val row = By.res(context.resources.getResourceName(R.id.flSwipeDown))
         assertTrue("swipe-down search did not reveal its setting", device.wait(Until.hasObject(row), TIMEOUT))
         device.findObject(row).click()
-        val picker = By.res(context.resources.getResourceName(R.id.swipeDownSelectLayout))
-        assertTrue("revealed swipe-down picker did not open", device.wait(Until.hasObject(picker), TIMEOUT))
+        val option = By.desc(context.getString(R.string.notifications))
+        assertTrue("swipe-down sheet did not open", device.wait(Until.hasObject(option), TIMEOUT))
+        device.findObject(option).click()
+        assertTrue("swipe-down row vanished after picking", device.hasObject(row))
     }
 
     @Test
-    fun swipeDownRowStaysWhileItsPickerIsOpen() {
-        device.waitForIdle(TIMEOUT)
+    fun settingsChoiceSheetChecksCurrentValueAndKeyboardTogglesOnce() {
+        val prefs = Prefs(context)
+        prefs.autoShowKeyboard = true
+        prefs.keyboardMessageShown = false
         instrumentation.runOnMainSync {
             val activity = ActivityLifecycleMonitorRegistry.getInstance()
                 .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
@@ -919,17 +923,22 @@ class SmokeTest {
         instrumentation.runOnMainSync {
             val activity = ActivityLifecycleMonitorRegistry.getInstance()
                 .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
-            val row = activity.findViewById<View>(R.id.flSwipeDown)
-            val picker = activity.findViewById<View>(R.id.swipeDownSelectLayout)
-            activity.findViewById<View>(R.id.tvGestures).performClick()
-            assertTrue("row not revealed", row.isVisible)
-            row.performClick()
-            assertTrue("row vanished on tap", row.isVisible)
-            assertTrue("picker not shown", picker.isVisible)
-            activity.findViewById<View>(R.id.notifications).performClick()
-            assertTrue("row vanished after picking", row.isVisible)
-            assertFalse("picker stayed open", picker.isVisible)
+            activity.findViewById<View>(R.id.autoShowKeyboardRow).performClick()
         }
+        assertFalse("one tap should turn keyboard off", prefs.autoShowKeyboard)
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            activity.findViewById<View>(R.id.dateTimeRow).performClick()
+        }
+        val current = when (prefs.dateTimeVisibility) {
+            Constants.DateTime.ON -> R.string.on
+            Constants.DateTime.DATE_ONLY -> R.string.date_only
+            else -> R.string.off
+        }
+        val selected = device.wait(Until.findObject(By.desc(context.getString(current)).clazz("android.widget.RadioButton")), TIMEOUT)
+        assertNotNull("current date/time value was not offered as a radio choice", selected)
+        assertTrue("current date/time value was not checked", selected!!.isChecked)
     }
 
     private fun openDrawer() {

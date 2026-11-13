@@ -89,7 +89,6 @@ class AppInfoSettingsCard(
     }
 
     override fun onClick(view: View) {
-        fragment.resetOpenPickers(view.id)
         when (view.id) {
             R.id.hiddenAppsRow -> showHiddenApps()
             R.id.appInfo -> openAppInfo(context, Process.myUserHandle(), BuildConfig.APPLICATION_ID)

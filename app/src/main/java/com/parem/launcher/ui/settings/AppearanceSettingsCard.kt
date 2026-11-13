@@ -62,17 +62,12 @@ class AppearanceSettingsCard(
         binding.statusBarRow.setOnClickListener(this)
         binding.weatherRow?.setOnClickListener(this)
 
-        binding.textSize1.setOnClickListener(this)
-        binding.textSize2.setOnClickListener(this)
-        binding.textSize3.setOnClickListener(this)
-        binding.textSize4.setOnClickListener(this)
 
         binding.dailyWallpaperRow.setOnLongClickListener(this)
         binding.appThemeRow.setOnLongClickListener(this)
     }
 
     override fun onClick(view: View) {
-        fragment.resetOpenPickers(view.id)
         when (view.id) {
             R.id.dailyWallpaperUrl -> context.openUrl(prefs.dailyWallpaperUrl)
             R.id.dailyWallpaperRow -> toggleDailyWallpaperUpdate()
@@ -82,13 +77,8 @@ class AppearanceSettingsCard(
             }
             R.id.statusBarRow -> toggleStatusBar()
             R.id.appThemeRow -> showThemePicker()
-            R.id.textSizeRow -> binding.textSizesLayout.visibility = View.VISIBLE
+            R.id.textSizeRow -> showTextSizePicker()
             R.id.boldFontRow -> toggleBoldFont()
-
-            R.id.textSize1 -> updateTextSizeScale(TextScale.SMALLER)
-            R.id.textSize2 -> updateTextSizeScale(TextScale.DEFAULT)
-            R.id.textSize3 -> updateTextSizeScale(TextScale.LARGE)
-            R.id.textSize4 -> updateTextSizeScale(TextScale.LARGER)
 
             R.id.weatherRow -> {
                 if (WeatherManager.isEnabled(context)) {
@@ -164,6 +154,17 @@ class AppearanceSettingsCard(
         binding.dailyWallpaperRow.bindSwitchRow(prefs.dailyWallpaper)
         binding.dimWallpaper.text = context.onOff(prefs.dimWallpaper)
         binding.dimWallpaperRow.bindSwitchRow(prefs.dimWallpaper)
+    }
+
+    private fun showTextSizePicker() {
+        val menu = BottomSheetMenu(context).title(context.getString(R.string.text_size))
+        listOf(R.string.text_size_smaller to TextScale.SMALLER, R.string.text_size_default to TextScale.DEFAULT,
+            R.string.text_size_large to TextScale.LARGE, R.string.text_size_larger to TextScale.LARGER).forEach { (label, step) ->
+            menu.option(context.getString(label), checked = TextScale.nearestStep(prefs.textSizeScale) == step, singleChoice = true) {
+                updateTextSizeScale(step)
+            }
+        }
+        menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     private fun updateTextSizeScale(step: Float) {
@@ -242,11 +243,11 @@ class AppearanceSettingsCard(
         val manual = schedule == Constants.ThemeScheduleMode.MANUAL
         BottomSheetMenu(context)
             .title(context.getString(R.string.theme_mode))
-            .option(context.getString(R.string.light), checked = manual && prefs.appTheme == AppCompatDelegate.MODE_NIGHT_NO) { setManualTheme(AppCompatDelegate.MODE_NIGHT_NO) }
-            .option(context.getString(R.string.dark), checked = manual && prefs.appTheme == AppCompatDelegate.MODE_NIGHT_YES) { setManualTheme(AppCompatDelegate.MODE_NIGHT_YES) }
-            .option(context.getString(R.string.system_default), checked = manual && prefs.appTheme != AppCompatDelegate.MODE_NIGHT_NO && prefs.appTheme != AppCompatDelegate.MODE_NIGHT_YES) { setManualTheme(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) }
-            .option(context.getString(R.string.scheduled), checked = schedule == Constants.ThemeScheduleMode.SCHEDULED) { setScheduledTheme(Constants.ThemeScheduleMode.SCHEDULED) }
-            .option(context.getString(R.string.sunrise_sunset), checked = schedule == Constants.ThemeScheduleMode.SUNRISE_SUNSET) { setScheduledTheme(Constants.ThemeScheduleMode.SUNRISE_SUNSET) }
+            .option(context.getString(R.string.light), checked = manual && prefs.appTheme == AppCompatDelegate.MODE_NIGHT_NO, singleChoice = true) { setManualTheme(AppCompatDelegate.MODE_NIGHT_NO) }
+            .option(context.getString(R.string.dark), checked = manual && prefs.appTheme == AppCompatDelegate.MODE_NIGHT_YES, singleChoice = true) { setManualTheme(AppCompatDelegate.MODE_NIGHT_YES) }
+            .option(context.getString(R.string.system_default), checked = manual && prefs.appTheme != AppCompatDelegate.MODE_NIGHT_NO && prefs.appTheme != AppCompatDelegate.MODE_NIGHT_YES, singleChoice = true) { setManualTheme(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) }
+            .option(context.getString(R.string.scheduled), checked = schedule == Constants.ThemeScheduleMode.SCHEDULED, singleChoice = true) { setScheduledTheme(Constants.ThemeScheduleMode.SCHEDULED) }
+            .option(context.getString(R.string.sunrise_sunset), checked = schedule == Constants.ThemeScheduleMode.SUNRISE_SUNSET, singleChoice = true) { setScheduledTheme(Constants.ThemeScheduleMode.SUNRISE_SUNSET) }
             .show()
             .dismissOnDestroy(fragment.viewLifecycleOwner)
     }

@@ -11,7 +11,6 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.provider.Settings
 import android.view.KeyEvent
-import androidx.appcompat.app.AlertDialog
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -291,14 +290,6 @@ class MainActivity : AppCompatActivity() {
         viewModel.showDialog.observe(this) {
             if (isFinishing || isDestroyed) return@observe
             when (it) {
-                Constants.Dialog.KEYBOARD -> {
-                    AlertDialog.Builder(this)
-                        .setTitle(R.string.app_name)
-                        .setMessage(R.string.keyboard_message)
-                        .setPositiveButton(R.string.okay, null)
-                        .show()
-                }
-
                 Constants.Dialog.DIGITAL_WELLBEING -> {
                     BottomSheetMenu(this)
                         .title(getString(R.string.screen_time))

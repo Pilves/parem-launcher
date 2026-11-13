@@ -379,108 +379,6 @@
                         android:paddingStart="24dp"
                         android:paddingEnd="8dp"
                         tools:text="@string/_8" />
-                    <LinearLayout
-                        android:id="@+id/appsNumSelectLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_picker_selection"
-                        android:elevation="8dp"
-                        android:orientation="horizontal"
-                        android:outlineAmbientShadowColor="@color/colorPrimaryDark"
-                        android:outlineSpotShadowColor="@color/colorPrimaryDark"
-                        android:visibility="gone"
-                        tools:ignore="UnusedAttribute">
-                        <TextView
-                            android:id="@+id/maxApps0"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/_0" />
-                        <TextView
-                            android:id="@+id/maxApps1"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/_1" />
-                        <TextView
-                            android:id="@+id/maxApps2"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/_2" />
-                        <TextView
-                            android:id="@+id/maxApps3"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/_3" />
-                        <TextView
-                            android:id="@+id/maxApps4"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/_4" />
-                        <TextView
-                            android:id="@+id/maxApps5"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/_5" />
-                        <TextView
-                            android:id="@+id/maxApps6"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/_6" />
-                        <TextView
-                            android:id="@+id/maxApps7"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/_7" />
-                        <TextView
-                            android:id="@+id/maxApps8"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/_8" />
-                    </LinearLayout>
                 </FrameLayout>
                 <FrameLayout
                     android:id="@+id/dateTimeRow"
@@ -513,54 +411,6 @@
                         android:layout_marginEnd="4dp"
                         android:padding="8dp"
                         android:text="@string/on" />
-                    <LinearLayout
-                        android:id="@+id/dateTimeSelectLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_picker_selection"
-                        android:elevation="8dp"
-                        android:orientation="horizontal"
-                        android:outlineAmbientShadowColor="@color/colorPrimaryDark"
-                        android:outlineSpotShadowColor="@color/colorPrimaryDark"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="2dp"
-                        android:visibility="gone"
-                        tools:ignore="UnusedAttribute">
-                        <Space
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1" />
-                        <com.parem.launcher.ui.MotionTextView
-                            android:id="@+id/dateTimeOn"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmallBold"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="24dp"
-                            android:gravity="center"
-                            android:paddingVertical="6dp"
-                            android:text="@string/on" />
-                        <com.parem.launcher.ui.MotionTextView
-                            android:id="@+id/dateTimeOff"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmallBold"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="4dp"
-                            android:layout_marginEnd="24dp"
-                            android:gravity="center"
-                            android:paddingVertical="6dp"
-                            android:text="@string/off" />
-                        <com.parem.launcher.ui.MotionTextView
-                            android:id="@+id/dateOnly"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmallBold"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:paddingVertical="6dp"
-                            android:text="@string/date_only" />
-                    </LinearLayout>
                 </FrameLayout>
                 <FrameLayout
                     android:id="@+id/alignmentRow"
@@ -595,77 +445,6 @@
                         android:layout_marginEnd="4dp"
                         android:padding="8dp"
                         android:text="@string/left" />
-                    <HorizontalScrollView
-                        android:id="@+id/alignmentSelectLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_picker_selection"
-                        android:elevation="8dp"
-                        android:fadingEdgeLength="8dp"
-                        android:outlineAmbientShadowColor="@color/colorPrimaryDark"
-                        android:outlineSpotShadowColor="@color/colorPrimaryDark"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="2dp"
-                        android:requiresFadingEdge="horizontal"
-                        android:visibility="gone"
-                        tools:ignore="UnusedAttribute">
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="end"
-                            android:orientation="horizontal">
-                            <Space
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1" />
-                            <com.parem.launcher.ui.MotionTextView
-                                android:id="@+id/alignmentBottom"
-                                android:minHeight="@dimen/touch_target_min"
-                                android:gravity="center_vertical"
-                                style="@style/TextSmallBold"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="16dp"
-                                android:paddingVertical="6dp"
-                                android:text="@string/bottom_off" />
-                            <View
-                                android:layout_width="0.5dp"
-                                android:layout_height="match_parent"
-                                android:layout_marginVertical="4dp"
-                                android:layout_marginEnd="16dp"
-                                android:background="?attr/textSecondaryColor" />
-                            <com.parem.launcher.ui.MotionTextView
-                                android:id="@+id/alignmentLeft"
-                                android:minHeight="@dimen/touch_target_min"
-                                style="@style/TextSmallBold"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginEnd="16dp"
-                                android:gravity="center"
-                                android:paddingVertical="6dp"
-                                android:text="@string/left" />
-                            <com.parem.launcher.ui.MotionTextView
-                                android:id="@+id/alignmentCenter"
-                                android:minHeight="@dimen/touch_target_min"
-                                style="@style/TextSmallBold"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="4dp"
-                                android:layout_marginEnd="16dp"
-                                android:gravity="center"
-                                android:paddingVertical="6dp"
-                                android:text="@string/center" />
-                            <com.parem.launcher.ui.MotionTextView
-                                android:id="@+id/alignmentRight"
-                                android:minHeight="@dimen/touch_target_min"
-                                style="@style/TextSmallBold"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:paddingVertical="6dp"
-                                android:text="@string/right" />
-                        </LinearLayout>
-                    </HorizontalScrollView>
                 </FrameLayout>
                 <FrameLayout
                     android:id="@+id/homeLayoutLockRow"
@@ -849,6 +628,13 @@
                         android:padding="8dp"
                         android:text="@string/on" />
                 </FrameLayout>
+                <TextView
+                    style="@style/TextAppearance.Parem.Caption"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/keyboard_caption"
+                    android:textColor="?attr/textSecondaryColor" />
                 <FrameLayout
                     android:minHeight="@dimen/touch_target_min"
                     android:background="?attr/selectableItemBackground"
@@ -1123,8 +909,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:animateLayoutChanges="true"
-                    android:visibility="gone">
+                    android:animateLayoutChanges="true">
                     <TextView
                         android:importantForAccessibility="no"
                         style="@style/TextSmall"
@@ -1147,43 +932,6 @@
                         android:lines="1"
                         android:padding="8dp"
                         tools:text="@string/search" />
-                    <LinearLayout
-                        android:id="@+id/swipeDownSelectLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_picker_selection"
-                        android:elevation="8dp"
-                        android:orientation="horizontal"
-                        android:outlineAmbientShadowColor="@color/colorPrimaryDark"
-                        android:outlineSpotShadowColor="@color/colorPrimaryDark"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="2dp"
-                        android:visibility="gone"
-                        tools:ignore="UnusedAttribute">
-                        <Space
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1" />
-                        <com.parem.launcher.ui.MotionTextView
-                            android:id="@+id/notifications"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmallBold"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="24dp"
-                            android:gravity="center"
-                            android:paddingVertical="6dp"
-                            android:text="@string/notifications" />
-                        <com.parem.launcher.ui.MotionTextView
-                            android:id="@+id/search"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmallBold"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:paddingVertical="6dp"
-                            android:text="@string/search" />
-                    </LinearLayout>
                 </FrameLayout>
                 <LinearLayout
                     android:id="@+id/doubleTapRow"
@@ -1357,59 +1105,6 @@
                         android:paddingStart="24dp"
                         android:paddingEnd="8dp"
                         tools:text="@string/_8" />
-                    <LinearLayout
-                        android:id="@+id/textSizesLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_picker_selection"
-                        android:elevation="8dp"
-                        android:orientation="horizontal"
-                        android:outlineAmbientShadowColor="@color/colorPrimaryDark"
-                        android:outlineSpotShadowColor="@color/colorPrimaryDark"
-                        android:visibility="gone"
-                        tools:ignore="UnusedAttribute"
-                        tools:visibility="gone">
-                        <com.parem.launcher.ui.MotionTextView
-                            android:id="@+id/textSize1"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/text_size_smaller" />
-                        <com.parem.launcher.ui.MotionTextView
-                            android:id="@+id/textSize2"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/text_size_default" />
-                        <com.parem.launcher.ui.MotionTextView
-                            android:id="@+id/textSize3"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/text_size_large" />
-                        <com.parem.launcher.ui.MotionTextView
-                            android:id="@+id/textSize4"
-                            android:minHeight="@dimen/touch_target_min"
-                            style="@style/TextSmall"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:paddingVertical="8dp"
-                            android:text="@string/text_size_larger" />
-                    </LinearLayout>
                 </FrameLayout>
                 <FrameLayout
                     android:id="@+id/boldFontRow"

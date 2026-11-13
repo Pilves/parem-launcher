@@ -66,21 +66,7 @@ class HomeScreenSettingsCard(
         binding.searchHistoryClear?.setOnClickListener(this)
         binding.autoLaunchRow.setOnClickListener(this)
         binding.alignmentRow.setOnClickListener(this)
-        binding.alignmentLeft.setOnClickListener(this)
-        binding.alignmentCenter.setOnClickListener(this)
-        binding.alignmentRight.setOnClickListener(this)
-        binding.alignmentBottom.setOnClickListener(this)
         binding.dateTimeRow.setOnClickListener(this)
-        binding.dateTimeOn.setOnClickListener(this)
-        binding.dateTimeOff.setOnClickListener(this)
-        binding.dateOnly.setOnClickListener(this)
-
-        maxAppsOptions.forEachIndexed { count, option ->
-            option.setOnClickListener {
-                fragment.resetOpenPickers(option.id)
-                updateHomeAppsNum(count)
-            }
-        }
 
         binding.alignmentRow.setOnLongClickListener(this)
     }
@@ -92,21 +78,10 @@ class HomeScreenSettingsCard(
     }
 
     override fun onClick(view: View) {
-        fragment.resetOpenPickers(view.id)
         when (view.id) {
-            R.id.homeAppsNumRow -> {
-                populateAppsNumOptions()
-                binding.appsNumSelectLayout.visibility = View.VISIBLE
-            }
+            R.id.homeAppsNumRow -> showAppsNumPicker()
             R.id.alignmentRow -> showAlignmentPicker()
-            R.id.alignmentLeft -> viewModel.updateHomeAlignment(leftGravity)
-            R.id.alignmentCenter -> viewModel.updateHomeAlignment(Gravity.CENTER)
-            R.id.alignmentRight -> viewModel.updateHomeAlignment(rightGravity)
-            R.id.alignmentBottom -> updateHomeBottomAlignment()
-            R.id.dateTimeRow -> binding.dateTimeSelectLayout.visibility = View.VISIBLE
-            R.id.dateTimeOn -> toggleDateTime(Constants.DateTime.ON)
-            R.id.dateTimeOff -> toggleDateTime(Constants.DateTime.OFF)
-            R.id.dateOnly -> toggleDateTime(Constants.DateTime.DATE_ONLY)
+            R.id.dateTimeRow -> showDateTimePicker()
 
             R.id.widgetPlacementRow -> showWidgetPlacementPicker()
             R.id.showIconsRow -> toggleShowIcons()
@@ -139,19 +114,26 @@ class HomeScreenSettingsCard(
         return true
     }
 
-    private val maxAppsOptions
-        get() = listOf(
-            binding.maxApps0, binding.maxApps1, binding.maxApps2, binding.maxApps3,
-            binding.maxApps4, binding.maxApps5, binding.maxApps6, binding.maxApps7,
-            binding.maxApps8
-        )
-
-    /** Dims the counts that don't fit the measured home layout. */
-    private fun populateAppsNumOptions() {
-        val capacity = viewModel.homeAppsCapacity
-        maxAppsOptions.forEachIndexed { count, option ->
-            option.alpha = if (count <= capacity) 1f else 0.4f
+    private fun showAppsNumPicker() {
+        val menu = BottomSheetMenu(context).title(context.getString(R.string.apps_on_home_screen))
+        lateinit var dialog: com.google.android.material.bottomsheet.BottomSheetDialog
+        for (count in 0..8) {
+            menu.option(count.toString(), checked = count == prefs.homeAppsNum, singleChoice = true,
+                dimmed = count > viewModel.homeAppsCapacity, dismissOnClick = false) {
+                updateHomeAppsNum(count)
+                if (count <= viewModel.homeAppsCapacity) dialog.dismiss()
+            }
         }
+        dialog = menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)
+    }
+
+    private fun showDateTimePicker() {
+        val menu = BottomSheetMenu(context).title(context.getString(R.string.settings_clock_date))
+        listOf(R.string.on to Constants.DateTime.ON, R.string.off to Constants.DateTime.OFF,
+            R.string.date_only to Constants.DateTime.DATE_ONLY).forEach { (label, value) ->
+            menu.option(context.getString(label), checked = prefs.dateTimeVisibility == value, singleChoice = true) { toggleDateTime(value) }
+        }
+        menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     private fun updateHomeAppsNum(num: Int) {
@@ -163,7 +145,6 @@ class HomeScreenSettingsCard(
         }
         binding.homeAppsNum.text = num.toString()
         binding.homeAppsNumRow.bindValueRow(binding.homeAppsNum.text)
-        binding.appsNumSelectLayout.visibility = View.GONE
         prefs.homeAppsNum = num
         viewModel.refreshHome.postValue(true)
     }
@@ -206,9 +187,8 @@ class HomeScreenSettingsCard(
             Gravity.CENTER -> binding.alignment.text = context.getString(R.string.center)
             rightGravity -> binding.alignment.text = context.getString(R.string.right)
         }
-        binding.alignmentBottom.text = if (prefs.homeBottomAlignment)
-            context.getString(R.string.bottom_on)
-        else context.getString(R.string.bottom_off)
+        if (prefs.homeBottomAlignment)
+            binding.alignment.text = context.getString(R.string.alignment_at_bottom, binding.alignment.text)
         binding.alignmentRow.bindValueRow(binding.alignment.text)
     }
 
@@ -348,11 +328,11 @@ class HomeScreenSettingsCard(
     private fun showAlignmentPicker() {
         val menu = BottomSheetMenu(context).title(context.getString(R.string.home_layout_alignment))
         listOf(R.string.left to leftGravity, R.string.center to Gravity.CENTER, R.string.right to rightGravity).forEach { (label, gravity) ->
-            menu.option(context.getString(label), checked = prefs.homeAlignment == gravity) {
+            menu.option(context.getString(label), checked = prefs.homeAlignment == gravity, singleChoice = true) {
                 viewModel.updateHomeAlignment(gravity)
             }
         }
-        menu.option(context.getString(if (prefs.homeBottomAlignment) R.string.bottom_on else R.string.bottom_off), checked = prefs.homeBottomAlignment) {
+        menu.option(context.getString(R.string.align_at_bottom), checked = prefs.homeBottomAlignment) {
             updateHomeBottomAlignment()
         }
         menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)
@@ -361,7 +341,7 @@ class HomeScreenSettingsCard(
     private fun showWidgetPlacementPicker() {
         val menu = BottomSheetMenu(context).title(context.getString(R.string.widget_placement))
         listOf(R.string.above_apps to Constants.WidgetPlacement.ABOVE, R.string.below_apps to Constants.WidgetPlacement.BELOW).forEach { (label, placement) ->
-            menu.option(context.getString(label), checked = prefs.widgetPlacement == placement) {
+            menu.option(context.getString(label), checked = prefs.widgetPlacement == placement, singleChoice = true) {
                 prefs.widgetPlacement = placement
                 populateWidgetPlacement()
                 viewModel.refreshHome.postValue(false)

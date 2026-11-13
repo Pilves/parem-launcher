@@ -57,6 +57,12 @@ class GesturesSettingsCard(
 
         initClickListeners()
         initObservers()
+        fragment.viewLifecycleOwner.lifecycle.addObserver(androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME && fragment.isBindingAlive()) {
+                populateDoubleTapAction()
+                populateLockMethod()
+            }
+        })
     }
 
     private fun initClickListeners() {
@@ -65,10 +71,7 @@ class GesturesSettingsCard(
         binding.swipeLeftRow.setOnClickListener(this)
         binding.swipeRightRow.setOnClickListener(this)
         binding.flSwipeDown.setOnClickListener(this)
-        binding.search.setOnClickListener(this)
-        binding.notifications.setOnClickListener(this)
         binding.gestureLettersRow?.setOnClickListener(this)
-        binding.tvGestures?.setOnClickListener(this)
         binding.lockMethod.setOnClickListener(this)
     }
 
@@ -79,16 +82,12 @@ class GesturesSettingsCard(
     }
 
     override fun onClick(view: View) {
-        fragment.resetOpenPickers(view.id)
         when (view.id) {
             R.id.autoShowKeyboardRow -> toggleKeyboardText()
-            R.id.tvGestures -> binding.flSwipeDown.visibility = View.VISIBLE
 
             R.id.swipeLeftRow -> showSwipeActionPicker(isLeft = true)
             R.id.swipeRightRow -> showSwipeActionPicker(isLeft = false)
-            R.id.flSwipeDown -> binding.swipeDownSelectLayout.visibility = View.VISIBLE
-            R.id.notifications -> updateSwipeDownAction(Constants.SwipeDownAction.NOTIFICATIONS)
-            R.id.search -> updateSwipeDownAction(Constants.SwipeDownAction.SEARCH)
+            R.id.flSwipeDown -> showSwipeDownPicker()
 
             R.id.doubleTapRow -> showDoubleTapActionPicker()
             R.id.lockMethod -> toggleLockAdmin()
@@ -109,13 +108,8 @@ class GesturesSettingsCard(
     }
 
     private fun toggleKeyboardText() {
-        if (prefs.autoShowKeyboard && prefs.keyboardMessageShown.not()) {
-            viewModel.showDialog.postValue(Constants.Dialog.KEYBOARD)
-            prefs.keyboardMessageShown = true
-        } else {
-            prefs.autoShowKeyboard = !prefs.autoShowKeyboard
-            populateKeyboardText()
-        }
+        prefs.autoShowKeyboard = !prefs.autoShowKeyboard
+        populateKeyboardText()
     }
 
     private fun populateKeyboardText() {
@@ -139,6 +133,15 @@ class GesturesSettingsCard(
             else -> context.getString(R.string.search)
         }
         binding.flSwipeDown.bindValueRow(binding.swipeDownAction.text)
+    }
+
+    private fun showSwipeDownPicker() {
+        val menu = BottomSheetMenu(context).title(context.getString(R.string.swipe_down_for))
+        listOf(R.string.notifications to Constants.SwipeDownAction.NOTIFICATIONS,
+            R.string.search to Constants.SwipeDownAction.SEARCH).forEach { (label, value) ->
+            menu.option(context.getString(label), checked = prefs.swipeDownAction == value, singleChoice = true) { updateSwipeDownAction(value) }
+        }
+        menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     private fun updateSwipeDownAction(swipeDownFor: Int) {
@@ -182,7 +185,7 @@ class GesturesSettingsCard(
             if (prefs.swipeRightEnabled) prefs.getEffectiveSwipeRightAction() else Constants.GestureAction.NONE
         }
         for ((label, actionValue) in gestureActionChoices()) {
-            menu.option(label, checked = actionValue == selected) {
+            menu.option(label, checked = actionValue == selected, singleChoice = true) {
                 val previous = if (isLeft) prefs.swipeLeftAction else prefs.swipeRightAction
                 if (isLeft) {
                     prefs.swipeLeftAction = actionValue
@@ -237,7 +240,9 @@ class GesturesSettingsCard(
     }
 
     private fun populateDoubleTapAction() {
-        binding.doubleTapAction?.text = getDoubleTapLabel()
+        val needsAccess = DoubleTapActionManager.getAction(context) == Constants.GestureAction.LOCK_SCREEN &&
+            !isAccessServiceEnabled(context) && !deviceManager.isAdminActive(componentName)
+        binding.doubleTapAction?.text = if (needsAccess) context.getString(R.string.lock_needs_access) else getDoubleTapLabel()
         binding.doubleTapRow?.bindValueRow(binding.doubleTapAction?.text)
     }
 
@@ -249,7 +254,7 @@ class GesturesSettingsCard(
             .filter { it.second != Constants.GestureAction.QUIET_LIST }
             .sortedByDescending { it.second == Constants.GestureAction.LOCK_SCREEN }
         for ((label, actionValue) in choices) {
-            menu.option(label, checked = actionValue == DoubleTapActionManager.getAction(context)) {
+            menu.option(label, checked = actionValue == DoubleTapActionManager.getAction(context), singleChoice = true) {
                 val previous = DoubleTapActionManager.getAction(context)
                 DoubleTapActionManager.setAction(context, actionValue)
                 if (actionValue == Constants.GestureAction.OPEN_APP) {

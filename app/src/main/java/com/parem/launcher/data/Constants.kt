@@ -14,7 +14,6 @@ object Constants {
 
     object Dialog {
         const val HIDDEN = "HIDDEN"
-        const val KEYBOARD = "KEYBOARD"
         const val DIGITAL_WELLBEING = "DIGITAL_WELLBEING"
         const val GRAYSCALE_USAGE_ACCESS = "GRAYSCALE_USAGE_ACCESS"
         const val GRAYSCALE_DEFAULT_HOME = "GRAYSCALE_DEFAULT_HOME"

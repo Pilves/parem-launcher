@@ -42,8 +42,6 @@ import kotlinx.coroutines.withContext
  *
  * This fragment keeps only: binding lifecycle, constructing/wiring the cards,
  * and logic that's genuinely cross-section:
- *  - [resetOpenPickers], called by every card's onClick, since any row's click
- *    should collapse every other card's open inline picker (original behavior).
  *  - [populateWellbeingSection], since it sets three different cards' toggle
  *    texts (weather, gesture letters, focus mode) from one place.
  *  - [importSettingsLauncher], since ActivityResultLauncher must be registered
@@ -105,9 +103,6 @@ class SettingsFragment : BaseFragment() {
         viewModel.isParemDefault()
         binding.scrollView.padForSystemBars()
 
-        // Closes any open inline picker when the background is tapped
-        binding.scrollLayout.setOnClickListener { resetOpenPickers(it.id) }
-
         appInfoCard = AppInfoSettingsCard(this, binding, prefs, viewModel, importSettingsLauncher)
         appInfoCard.bind()
         homeScreenCard = HomeScreenSettingsCard(this, binding, prefs, viewModel, requestContactsPermissionLauncher)
@@ -148,24 +143,6 @@ class SettingsFragment : BaseFragment() {
     }
 
     /**
-     * Collapses every card's inline picker layout except the one just opened
-     * (identified by [clickedId]). Called first by every card's onClick, since
-     * opening one picker should close whichever other one was left open.
-     */
-    internal fun resetOpenPickers(clickedId: Int) {
-        if (_binding == null) return
-        binding.appsNumSelectLayout.visibility = View.GONE
-        binding.dateTimeSelectLayout.visibility = View.GONE
-        binding.swipeDownSelectLayout.visibility = View.GONE
-        // The row is its own picker's parent: hiding it for a click on the row would hide the picker too
-        if (clickedId != R.id.flSwipeDown && clickedId != R.id.notifications && clickedId != R.id.search)
-            binding.flSwipeDown.visibility = View.GONE
-        binding.textSizesLayout.visibility = View.GONE
-        if (clickedId != R.id.alignmentBottom)
-            binding.alignmentSelectLayout.visibility = View.GONE
-    }
-
-    /**
      * Navigates only while Settings is still the current destination: a fast
      * double-tap on a row would otherwise fire the settings action a second
      * time from the app list, which has no such action, and crash.
@@ -190,9 +167,6 @@ class SettingsFragment : BaseFragment() {
             wellbeingCard.openQuietControl(anchorId)
             return
         }
-        // Swipe-down is normally revealed by the Gestures heading; a search
-        // result must expose it before scrolling to its current value.
-        if (anchorId == R.id.swipeDownAction) b.flSwipeDown.visibility = View.VISIBLE
         val actualAnchor = if (anchorId == R.id.setLauncher && b.setLauncherTop.visibility == View.VISIBLE)
             R.id.setLauncherTop else anchorId
         val anchor = b.root.findViewById<View>(actualAnchor) ?: return

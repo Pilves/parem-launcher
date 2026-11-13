@@ -271,6 +271,10 @@ per package; the rest of each of those fragments is still in
   Source checks preserve existing accessibility attributes; contrast evidence and the 90% scrim rationale are in docs/plans/2026-10-16-colour-implementation.md.
   Not verified: device screenshots, large-font fitting, keyboard/insets, TalkBack/D-pad and e-ink rendering; existing graph paint sizing is unchanged.
   Easy to get wrong: primaryColor still means monochrome home text and participates in theme checks; surface text must use textColor/textSecondaryColor.
+- **M4-WP51 (PR #0):** Settings use six sections, checked choice sheets and direct binary toggles, with access and configuration summaries.
+  Contract: existing preference keys, defaults, export behavior and permission flows remain unchanged; keyboard toggles on one tap.
+  Not verified: Gradle builds, tablet orientations, TalkBack, denied/restored access and quiet notifications require CI and device walks.
+  Easy to get wrong: five new strings fall back to English in ar, de, es-rES, es-rUS, fr, he, hr, hu, in, it, ja, pl, pt-rBR, ru-rRU, sv, tr, uk and zh; carry translation review to WP9.
 - **M4-WP52 (PR #20):** Sheet choices show current selections, use shared check rows and font roles, and Focus and folders open app selection in separate single-scroller sheets.
   Contract: picker heading, search, choices and actions share one RecyclerView, so scrolling can reveal them in short windows; selections remain staged until Focus Save or Enable, unknown whitelist packages survive, and the five-app cap remains.
   Verified on prior head 1c35bf2: CI passed after an emulator teardown rerun; isolated Android 15 tablet checks covered Focus and folder selection, cap, persistence, search, large font, and several checked choices. Not verified: final rebased head, quiet picker, spoken TalkBack, e-ink, and full device matrix; see PR for the device checklist.
