@@ -250,10 +250,11 @@ device. Delete it again once the tag is pushed.
 - [ ] Wallpaper dim toggles independently, survives import/restart, and remains suppressed in e-ink mode; new colours remain readable with TalkBack and large fonts
 - [ ] Final candidate smoke CI passes; release APK builds with R8; tablet release performance and crash/ANR observations are recorded
 
-## 6.0 UX device pass
+## UX device checks from 6.0
 
-One subsection per UX package; each package appends its own lines (append-only,
-see DESIGN.md 13.2). Run with TalkBack on unless a line says otherwise.
+These checks originated in the 6.0 UX packages. Apply the relevant checks to
+the current release and add checks for changed behavior. Run with TalkBack on
+unless a line says otherwise.
 
 ### UX-2 — TalkBack users can leave home (M4-WP32)
 
@@ -281,8 +282,8 @@ see DESIGN.md 13.2). Run with TalkBack on unless a line says otherwise.
 - [ ] Gesture letters: a recognised letter buzzes once and launches; a stroke
       that turns but matches nothing (or a letter with no app) buzzes REJECT and
       its trail fades out; with "Remove animations" on it clears instantly
-- [ ] With the home layout locked, long-press on a slot buzzes REJECT and only
-      shows the toast
+- [ ] With the home layout locked, long-press on a slot buzzes REJECT and shows
+      locked-layout feedback with an Unlock action
 - [ ] Pressed labels dim on touch-down and are never left dimmed after a swipe
       or a letter stroke; swipes fire at the same finger travel on phone and
       tablet
@@ -320,9 +321,10 @@ see DESIGN.md 13.2). Run with TalkBack on unless a line says otherwise.
 - [ ] CHANGELOG `[Unreleased]` renamed, fastlane changelog added, version
       bumped — then tag `v*` and push
 
-## 6.0.0 final phone pass — both flavours
+## Phone pass — both flavours
 
-Record the commit, APK SHA-256, flavour, version, device model and Android version,
+These checks originated in the 6.0.0 final phone pass; adapt them to the current
+release and record any unavailable checks. Record the commit, APK SHA-256, flavour, version, device model and Android version,
 then record pass/fail, observed result and a screenshot or notes for every item.
 Run the steps once with `play` and once with `full`, on a physical phone. Debug
 APKs are for this early pass only; repeat on the actual signed release builds
