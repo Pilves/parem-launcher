@@ -9,6 +9,7 @@ import androidx.core.widget.TextViewCompat
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.R
 import com.parem.launcher.data.AppModel
+import com.parem.launcher.data.Constants
 import com.parem.launcher.data.FolderApp
 import com.parem.launcher.data.FolderGroup
 import com.parem.launcher.helper.dpToPx
@@ -60,6 +61,7 @@ class CreateFolderDialog(
             background = null
             setPadding(0, 8.dpToPx(), 0, 16.dpToPx())
             setText(initial?.name.orEmpty())
+            filters = filters + android.text.InputFilter.LengthFilter(Constants.MAX_HOME_NAME_LENGTH)
         }
         container.addView(nameInput)
 
