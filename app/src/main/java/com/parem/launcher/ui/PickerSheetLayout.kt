@@ -32,7 +32,11 @@ internal fun LinearLayout.makePickerScroller() {
 /** The fixed views retain their state when their single item is detached. */
 private class FixedPickerViewAdapter(private val view: View) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun getItemCount() = 1
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
-        object : RecyclerView.ViewHolder(view) {}
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        view.layoutParams = RecyclerView.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+        )
+        return object : RecyclerView.ViewHolder(view) {}
+    }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) = Unit
 }

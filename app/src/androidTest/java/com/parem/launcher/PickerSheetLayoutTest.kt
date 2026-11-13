@@ -23,7 +23,7 @@ class PickerSheetLayoutTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val context = InstrumentationRegistry.getInstrumentation().targetContext
             val sheet = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-            val title = View(context).apply { layoutParams = LinearLayout.LayoutParams(200, 70) }
+            val title = View(context).apply { layoutParams = LinearLayout.LayoutParams(40, 70) }
             val content = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
             val search = EditText(context)
             val choices = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -38,7 +38,7 @@ class PickerSheetLayoutTest {
                 layoutManager = LinearLayoutManager(context)
                 adapter = choices
             }
-            val action = View(context).apply { layoutParams = LinearLayout.LayoutParams(200, 70) }
+            val action = View(context).apply { layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 70) }
             content.addView(search)
             content.addView(list)
             sheet.addView(title)
@@ -55,6 +55,7 @@ class PickerSheetLayoutTest {
             )
             sheet.layout(0, 0, 200, 160)
             assertEquals(160, list.measuredHeight)
+            assertEquals("search must span the picker width", list.width, search.width)
             list.scrollToPosition(4)
             list.measure(
                 View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.EXACTLY),
@@ -64,6 +65,7 @@ class PickerSheetLayoutTest {
             val footer = list.findViewHolderForAdapterPosition(4)
             assertNotNull("footer is reachable in a short window", footer)
             assertTrue(footer!!.itemView.bottom <= list.height)
+            assertEquals("action must span the picker width", list.width, action.width)
         }
     }
 }
