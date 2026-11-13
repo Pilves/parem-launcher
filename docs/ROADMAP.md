@@ -284,7 +284,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP28 | **Done** (PR #30). Correct quiet-notification access disclosure and return guidance in all existing locales | quiet disclosure strings, CHANGELOG and handoff | Current key/timestamp and snooze/release behavior stated without guarantees; translations flagged for native review |
 
 | M6-WP36 | **Done** (PR #41). **Todo**. Acknowledge first-run tips from accessible navigation routes | HomeFragment, HomeGesturesController, SettingsFragment, SmokeTest, CHANGELOG and handoff | A successful launch drawer open dismisses its tip; any Settings route dismisses the other; app pickers do not dismiss drawer guidance |
-| M6-WP40 | **Done** (PR #0). Cleanup | Remove the approved unused launcher resources, views and observer | Relevant home/settings code, resources, motion documentation and handoff | Dead paths removed; quiet search routing and option callback contract preserved |
+| M6-WP40 | **Done** (PR #45). Cleanup | Remove the approved unused launcher resources, views and observer | Relevant home/settings code, resources, motion documentation and handoff | Dead paths removed; quiet search routing and option callback contract preserved |
 
 ## Recurring (no id)
 
