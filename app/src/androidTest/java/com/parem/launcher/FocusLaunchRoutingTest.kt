@@ -1,8 +1,6 @@
 package com.parem.launcher
 
-import android.app.Instrumentation
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Process
 import android.os.SystemClock
@@ -23,6 +21,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.regex.Pattern
 
 @RunWith(AndroidJUnit4::class)
 class FocusLaunchRoutingTest {
@@ -36,33 +35,36 @@ class FocusLaunchRoutingTest {
         hideSetDefaultLauncher = true
     }
 
-    private fun waitForHits(monitor: Instrumentation.ActivityMonitor, count: Int): Boolean {
-        val end = SystemClock.uptimeMillis() + 3_000
-        while (SystemClock.uptimeMillis() < end && monitor.hits < count) SystemClock.sleep(50)
-        return monitor.hits >= count
-    }
-
     @Test fun dateTapBlocksUnderFocusAndOpensWhenFocusIsOff() {
         val prefs = prepare()
         prefs.calendarAppPackage = ""
         prefs.dateTimeVisibility = Constants.DateTime.ON
         val intent = Intent(Intent.ACTION_VIEW, CalendarContract.CONTENT_URI.buildUpon().appendPath("time").build())
-        assertNotNull("calendar fixture must be resolvable", intent.resolveActivity(context.packageManager))
-        val filter = IntentFilter(Intent.ACTION_VIEW).apply { addDataScheme("content") }
-        val monitor = instrumentation.addMonitor(filter, null, true)
+        val handler = requireNotNull(context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)) {
+            "calendar fixture must be resolvable"
+        }.activityInfo.packageName
         try {
             FocusModeManager.setWhitelist(context, emptySet())
             FocusModeManager.enable(context, 30)
             ActivityScenario.launch(MainActivity::class.java).use { scenario ->
                 scenario.onActivity { it.findViewById<View>(R.id.date).performClick() }
                 device.waitForIdle()
-                assertEquals("blocked date launched an activity", 0, monitor.hits)
+                SystemClock.sleep(750)
+                assertEquals("blocked date left home", context.packageName, device.currentPackageName)
                 FocusModeManager.disable(context)
                 scenario.onActivity { it.findViewById<View>(R.id.date).performClick() }
-                assertTrue("control date did not dispatch", waitForHits(monitor, 1))
+                if (handler == "android") {
+                    val choice = device.wait(Until.findObject(By.text("Focus camera fixture")), 5_000)
+                    assertNotNull("calendar chooser did not appear", choice)
+                    choice.click()
+                    device.findObject(By.text(Pattern.compile("(?i)just once")))?.click()
+                    assertTrue("calendar fixture did not open", device.wait(Until.hasObject(By.text("Camera fixture activity is open")), 5_000))
+                } else {
+                    assertTrue("calendar app did not open", device.wait(Until.hasObject(By.pkg(handler)), 5_000))
+                }
+                device.pressBack()
             }
         } finally {
-            instrumentation.removeMonitor(monitor)
             FocusModeManager.disable(context)
         }
     }
@@ -93,7 +95,7 @@ class FocusLaunchRoutingTest {
                         val choice = device.wait(Until.findObject(By.text("Focus camera fixture")), 5_000)
                         assertNotNull("camera chooser did not appear", choice)
                         choice.click()
-                        device.findObject(By.textMatches("(?i)just once"))?.click()
+                        device.findObject(By.text(Pattern.compile("(?i)just once")))?.click()
                         assertTrue("camera fixture did not open", device.wait(Until.hasObject(By.text("Camera fixture activity is open")), 5_000))
                     } else {
                         assertTrue("camera app did not open", device.wait(Until.hasObject(By.pkg(packageName)), 5_000))
