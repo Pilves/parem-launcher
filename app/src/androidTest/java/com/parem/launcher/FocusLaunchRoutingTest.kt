@@ -63,7 +63,7 @@ class FocusLaunchRoutingTest {
                 FocusModeManager.disable(context)
                 scenario.onActivity { it.findViewById<View>(R.id.date).performClick() }
                 if (handler == "android") {
-                    val choice = device.wait(Until.findObject(By.text("Focus camera fixture")), 5_000)
+                    val choice = device.wait(Until.findObject(By.text("Camera test fixture")), 5_000)
                     assertNotNull("calendar chooser did not appear", choice)
                     choice.click()
                     device.findObject(By.text(Pattern.compile("(?i)just once")))?.click()
@@ -167,6 +167,11 @@ class FocusLaunchRoutingTest {
                         assertTrue("camera app did not open", device.wait(Until.hasObject(By.pkg(packageName)), 5_000))
                     }
                     device.pressBack()
+                    if (!device.wait(Until.hasObject(By.pkg(context.packageName)), 2_000)) {
+                        // Some resolvers remain underneath the selected camera activity.
+                        device.pressBack()
+                    }
+                    assertTrue("home did not return after camera", device.wait(Until.hasObject(By.pkg(context.packageName)), 5_000))
                     device.waitForIdle()
                 }
                 openCamera()

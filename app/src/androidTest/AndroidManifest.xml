@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
-        <activity android:name="com.parem.launcher.LaunchGateFixtureActivity" android:exported="true" android:label="Focus camera fixture">
+        <activity android:name="com.parem.launcher.LaunchGateFixtureActivity" android:exported="true" android:label="Camera test fixture">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
