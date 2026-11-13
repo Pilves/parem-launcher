@@ -34,8 +34,8 @@ ui/
                            helper/OmniboxResolver.kt).
   AppDrawerAdapter.kt      Drawer rows, long-press menu, rename, auto-launch logic.
   SettingsFragment.kt      Binding lifecycle, constructs/wires the settings/ cards,
-                           and the cross-section bits (resetOpenPickers,
-                           populateWellbeingSection, the import ActivityResultLauncher).
+                           and cross-section bits (populateWellbeingSection and
+                           the import ActivityResultLauncher).
   settings/                One class per settings card, mirroring HomeWidgetController's
                            shape (fragment/binding/prefs[/viewModel] in the constructor,
                            a bind() that populates + wires clicks + observers):
