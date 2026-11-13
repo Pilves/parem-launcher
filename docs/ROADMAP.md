@@ -277,6 +277,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP24 | **Done** (PR #23). Close lock disclosure sheets with their owning fragment views | `ui/LockConsentSheet.kt`, lock-sheet callers and instrumentation test, CHANGELOG, handoff | Dismissed on view destruction with existing consent and fallback semantics; device checks recorded |
 
 | M6-WP22 | **Done** (PR #26). Label historical planning records and correct verified documentation contracts | Historical design records, archive/work split, selected handoff fragments, F-Droid draft and data-flow inventory | Source-backed corrections reviewed; audit coverage and remaining unverified claims recorded; handoff generated |
+| M6-WP26 | **Done** (PR #27). Bound offline-emulator hangs while preserving failures and diagnostic artifacts | `scripts/run-instrumented.sh`, its node test, smoke workflow, handoff | Offline device does not stall all remaining phases; online failures still run remaining checks and fail; script tests pass |
 
 ## Recurring (no id)
 
