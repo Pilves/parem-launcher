@@ -110,7 +110,12 @@ class MainActivity : AppCompatActivity() {
         if (isEinkDisplay()) theme.applyStyle(R.style.ThemeOverlay_Parem_Eink, true)
 
         appWidgetManager = AppWidgetManager.getInstance(this)
-        appWidgetHost = AppWidgetHost(this, Constants.APPWIDGET_HOST_ID)
+        appWidgetHost = object : AppWidgetHost(this, Constants.APPWIDGET_HOST_ID) {
+            override fun onProvidersChanged() {
+                super.onProvidersChanged()
+                runOnUiThread { homeFragment()?.widgetController?.requestReconcile(force = true) }
+            }
+        }
 
         bindWidgetLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()

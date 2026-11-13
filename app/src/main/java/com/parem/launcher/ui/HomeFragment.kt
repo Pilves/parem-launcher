@@ -84,9 +84,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         initClickListeners()
         gesturesController?.initAllAppsRow()
         gesturesController?.initGestureLetterOverlay()
-        viewLifecycleOwner.lifecycleScope.launch {
-            widgetController?.restoreWidgets()
-        }
+        widgetController?.requestReconcile()
 
         // OnboardingFragment marks it seen when finished or skipped, not here
         if (prefs.onboardingVersionSeen < Constants.ONBOARDING_VERSION) {
@@ -99,6 +97,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         updateFirstRunTips()
         // Cancel any pending long-press timers from before the app was backgrounded
         widgetController?.cancelPendingLongPresses()
+        // Providers may have changed while the host was not listening.
+        widgetController?.requestReconcile()
         // Before populating: the "All apps" row's visibility feeds slot fitting
         gesturesController?.refreshAccessibilityRoutes()
         slotsController?.populateHomeScreen(false)
@@ -212,7 +212,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         viewModel.refreshHome.observe(viewLifecycleOwner) {
             slotsController?.populateHomeScreen(it)
             if (widgetController?.needsRestore() == true) {
-                viewLifecycleOwner.lifecycleScope.launch { widgetController?.restoreWidgets() }
+                widgetController?.requestReconcile()
             }
         }
         viewModel.isParemDefault.observe(viewLifecycleOwner) {

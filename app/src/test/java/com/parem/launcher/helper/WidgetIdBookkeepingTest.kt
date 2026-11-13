@@ -1,23 +1,28 @@
 package com.parem.launcher.helper
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class WidgetIdBookkeepingTest {
 
     @Test
-    fun idsToKeep_keepsValidAndRestorableInOrder() {
-        val kept = WidgetIdBookkeeping.idsToKeep(
-            ids = listOf(7, 3, 9, 5),
-            valid = setOf(3, 5),
-            restorable = setOf(7),
-        )
-        assertEquals(listOf(7, 3, 5), kept)
+    fun unavailableAndThrowingQueriesStayUnknown() {
+        var failures = 0
+        assertNull(WidgetIdBookkeeping.queryOrUnknown<String>({ null }) { failures++ })
+        assertEquals(0, failures)
+        assertNull(WidgetIdBookkeeping.queryOrUnknown<String>({ throw IllegalStateException("unavailable") }) { failures++ })
+        assertEquals(1, failures)
+        assertEquals("available", WidgetIdBookkeeping.queryOrUnknown({ "available" }) { failures++ })
     }
 
     @Test
-    fun idsToKeep_dropsInvalidWithoutProvider() {
-        assertEquals(emptyList<Int>(), WidgetIdBookkeeping.idsToKeep(listOf(4), emptySet(), emptySet()))
+    fun unavailableSavedIdsStillOccupyCapacityUntilRemoved() {
+        val saved = listOf(1, 2, 3, 4, 5, 6)
+        assertFalse(WidgetIdBookkeeping.canAdd(saved))
+        assertTrue(WidgetIdBookkeeping.canAdd(saved.dropLast(1)))
     }
 
     @Test
@@ -26,8 +31,20 @@ class WidgetIdBookkeepingTest {
     }
 
     @Test
-    fun replaceId_appendsWhenOldIdGone() {
-        assertEquals(listOf(1, 3, 20), WidgetIdBookkeeping.replaceId(listOf(1, 3), oldId = 2, newId = 20))
+    fun replaceId_neverResurrectsRemovedTarget() {
+        assertNull(WidgetIdBookkeeping.replaceId(listOf(1, 3), oldId = 2, newId = 20))
+    }
+
+    @Test
+    fun replaceId_tracksTargetAfterReorder() {
+        assertEquals(listOf(3, 20, 1), WidgetIdBookkeeping.replaceId(listOf(3, 2, 1), oldId = 2, newId = 20))
+    }
+
+    @Test
+    fun legacySwapIndexIsNeverUsedAsAnId() {
+        assertEquals(-2, WidgetIdBookkeeping.pendingTarget(null, legacyIndex = 1))
+        assertEquals(-1, WidgetIdBookkeeping.pendingTarget(null, legacyIndex = -1))
+        assertEquals(42, WidgetIdBookkeeping.pendingTarget(42, legacyIndex = 1))
     }
 
     @Test

@@ -36,12 +36,13 @@ import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.showToast
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
  * Owns the home screen's multi-widget system: picking, binding, configuring,
- * restoring after reboot/uninstall, drag-to-resize, reorder, and removal.
+ * reconciling availability, drag-to-resize, reorder, and removal.
  *
  * Created in HomeFragment.onViewCreated and released via [cleanup] in
  * onDestroyView; [isActive] guards every posted/async callback against running
@@ -79,7 +80,7 @@ class HomeWidgetController(
     fun cleanup() {
         released = true
         widgetGestureDetectors.clear()
-        widgetRestoreQueue.clear()
+        reconcileJob?.cancel()
         binding.widgetContainerAbove?.removeAllViews()
         binding.widgetContainerBelow?.removeAllViews()
     }
@@ -93,9 +94,28 @@ class HomeWidgetController(
 
     private fun getActiveScrollView() = if (above) binding.widgetScrollViewAbove else binding.widgetScrollViewBelow
 
-    // Queue of (oldWidgetId, providerComponentString) for widgets that need rebinding with permission
-    private val widgetRestoreQueue = mutableListOf<Pair<Int, String>>()
     private var isRestoringWidgets = false
+    private var reconcileJob: Job? = null
+    private var reconcileRequested = false
+    private var forceRebuild = false
+    private var renderedWidgets: List<Pair<Int, String?>>? = null
+    private var renderedAbove: Boolean? = null
+
+    /** Provider callbacks and return-home can coincide with an in-flight scan. */
+    fun requestReconcile(force: Boolean = false) {
+        if (!isActive()) return
+        reconcileRequested = true
+        forceRebuild = forceRebuild || force
+        if (reconcileJob?.isActive == true) return
+        reconcileJob = fragment.viewLifecycleOwner.lifecycleScope.launch {
+            while (reconcileRequested && isActive()) {
+                reconcileRequested = false
+                val force = forceRebuild
+                forceRebuild = false
+                restoreWidgets(force)
+            }
+        }
+    }
 
     /**
      * Keys of MainActivity.pendingWidgetOp: the system bind/configure dialog the
@@ -105,20 +125,19 @@ class HomeWidgetController(
     private object PendingOp {
         const val STAGE = "stage"
         const val WIDGET_ID = "widgetId"
-        const val OLD_ID = "oldId"
-        const val REPLACE_INDEX = "replaceIndex"
+        const val REPLACE_INDEX = "replaceIndex" // legacy state without a stable target ID
+        const val REPLACE_ID = "replaceId"
 
         const val BIND = 1          // add/swap: ACTION_APPWIDGET_BIND for WIDGET_ID
         const val CONFIGURE = 2     // add/swap: configure activity for the bound WIDGET_ID
-        const val RESTORE_BIND = 3  // rebind of invalidated OLD_ID as WIDGET_ID
+        const val RESTORE_BIND = 3  // legacy rebind started by an older process
     }
 
-    private fun setPendingOp(stage: Int, widgetId: Int, replaceIndex: Int = -1, oldId: Int = -1) {
+    private fun setPendingOp(stage: Int, widgetId: Int, replaceId: Int = -1) {
         mainActivity?.pendingWidgetOp = Bundle().apply {
             putInt(PendingOp.STAGE, stage)
             putInt(PendingOp.WIDGET_ID, widgetId)
-            putInt(PendingOp.REPLACE_INDEX, replaceIndex)
-            putInt(PendingOp.OLD_ID, oldId)
+            putInt(PendingOp.REPLACE_ID, replaceId)
         }
     }
 
@@ -126,20 +145,38 @@ class HomeWidgetController(
     fun onPendingWidgetResult(success: Boolean) {
         val mainActivity = mainActivity ?: return
         if (!isActive() || isRestoringWidgets) {
-            // restoreWidgets() rewrites WIDGET_IDS when it lands; it takes this result afterwards
+            // Let the in-flight snapshot finish before applying a pending result.
             mainActivity.pendingWidgetResult = success
             return
         }
         val op = mainActivity.pendingWidgetOp ?: return
         mainActivity.pendingWidgetOp = null
         val widgetId = op.getInt(PendingOp.WIDGET_ID)
-        val replaceIndex = op.getInt(PendingOp.REPLACE_INDEX, -1)
-        // Null once a refused bind or a cancelled configure released the ID
-        val info = mainActivity.appWidgetManager.getAppWidgetInfo(widgetId)
+        // Old process-state bundles recorded only an index. It may now refer to
+        // another widget, so cancel that legacy swap rather than guess.
+        val replaceId = WidgetIdBookkeeping.pendingTarget(
+            op.getInt(PendingOp.REPLACE_ID).takeIf { op.containsKey(PendingOp.REPLACE_ID) },
+            op.getInt(PendingOp.REPLACE_INDEX, -1),
+        )
+        if (op.getInt(PendingOp.STAGE) == PendingOp.RESTORE_BIND) {
+            // A restore bind started by an older version cannot prove the old
+            // widget's profile. Release only the newly allocated pending ID.
+            mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+            requestReconcile()
+            return
+        }
+        // A framework failure is not evidence that the pending widget is gone.
+        val info = try { mainActivity.appWidgetManager.getAppWidgetInfo(widgetId) }
+        catch (e: Exception) {
+            CrashReporter.reportNonFatal("HomeWidgetController: pending widget info failed", e)
+            mainActivity.pendingWidgetOp = op
+            mainActivity.pendingWidgetResult = success
+            return
+        }
         when (op.getInt(PendingOp.STAGE)) {
             PendingOp.BIND -> {
                 if (success && info != null) {
-                    onWidgetBound(widgetId, info, replaceIndex)
+                    onWidgetBound(widgetId, info, replaceId)
                 } else {
                     mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
                     context.showToast(context.getString(R.string.widget_bind_permission_denied))
@@ -147,154 +184,102 @@ class HomeWidgetController(
             }
             PendingOp.CONFIGURE -> {
                 // A cancelled configure still leaves a usable widget when the provider kept it bound
-                if (info != null) finishWidgetSetup(widgetId, info, replaceIndex)
+                if (info != null) finishWidgetSetup(widgetId, info, replaceId)
                 else mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
             }
-            PendingOp.RESTORE_BIND -> {
-                val oldId = op.getInt(PendingOp.OLD_ID)
-                // A restore after recreation queued this old ID again; this result settles it
-                widgetRestoreQueue.removeAll { it.first == oldId }
-                if (success && info != null) {
-                    completeWidgetRestore(oldId, widgetId)
-                } else {
-                    mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
-                    dropRestorable(oldId)
-                }
-                processNextWidgetRestore()
-            }
         }
     }
 
-    suspend fun restoreWidgets() {
-        if (isRestoringWidgets) return
+    private suspend fun restoreWidgets(force: Boolean) {
+        if (isRestoringWidgets) {
+            reconcileRequested = true
+            forceRebuild = forceRebuild || force
+            return
+        }
         isRestoringWidgets = true
         try {
-            val mainActivity = mainActivity ?: return
-            prefs.migrateWidgetIfNeeded(mainActivity.appWidgetManager)
+            val activity = mainActivity ?: return
+            try { prefs.migrateWidgetIfNeeded(activity.appWidgetManager) }
+            catch (e: Exception) {
+                // The legacy ID is already retained before provider lookup; keep
+                // rendering it even when the manager is temporarily unavailable.
+                CrashReporter.reportNonFatal("HomeWidgetController: widget migration lookup failed", e)
+            }
             val ids = prefs.getWidgetIdList()
-            sweepOrphanIds(mainActivity, ids)
-            val savedProviders = prefs.getAllWidgetProviders()
-            widgetRestoreQueue.clear()
-
-            // Clear existing widget views to prevent duplicates
-            getActiveContainer()?.removeAllViews()
-
-            // Gather widget info on background thread
-            data class WidgetRestoreInfo(val wid: Int, val info: AppWidgetProviderInfo?, val providerStr: String?)
-            val restoreInfoList = withContext(Dispatchers.IO) {
-                ids.map { wid ->
-                    val info = try {
-                        mainActivity.appWidgetManager.getAppWidgetInfo(wid)
-                    } catch (e: Exception) {
-                        CrashReporter.reportNonFatal("HomeWidgetController: restoreWidget: failed to get info for id=$wid", e)
-                        null
-                    }
-                    WidgetRestoreInfo(wid, info, savedProviders[wid])
+            sweepOrphanIds(activity, ids)
+            // The manager may return null or throw for inaccessible profiles; both
+            // are unknown and must never be treated as proof of an uninstall.
+            val infos = withContext(Dispatchers.IO) {
+                ids.associateWith { id ->
+                    WidgetIdBookkeeping.queryOrUnknown(
+                        query = { activity.appWidgetManager.getAppWidgetInfo(id) },
+                        onFailure = { e -> CrashReporter.reportNonFatal("HomeWidgetController: widget info failed for id=$id", e) },
+                    )
                 }
             }
-
-            // Process results on main thread
-            val validIds = mutableListOf<Int>()
-            for (restoreInfo in restoreInfoList) {
-                try {
-                    if (restoreInfo.info != null) {
-                        // Widget still valid
-                        val hostView = mainActivity.appWidgetHost.createView(
-                            context.applicationContext, restoreInfo.wid, restoreInfo.info
-                        )
-                        addWidgetToContainer(hostView, restoreInfo.wid)
-                        validIds.add(restoreInfo.wid)
-                    } else {
-                        // Widget invalidated — queue for rebind if we know the provider
-                        mainActivity.appWidgetHost.deleteAppWidgetId(restoreInfo.wid)
-                        if (restoreInfo.providerStr != null) {
-                            widgetRestoreQueue.add(restoreInfo.wid to restoreInfo.providerStr)
-                        }
-                    }
+            if (!isActive()) return
+            if (prefs.getWidgetIdList() != ids) {
+                reconcileRequested = true
+                return
+            }
+            val signature = ids.map { id -> id to infos[id]?.let { "${it.provider.flattenToString()}@${it.profile}" } }
+            if (!force && renderedWidgets == signature && renderedAbove == above) return
+            val container = getActiveContainer() ?: return
+            cancelPendingLongPresses()
+            widgetGestureDetectors.clear()
+            container.removeAllViews()
+            var failedToRender = false
+            for (id in ids) {
+                val info = infos[id]
+                if (info == null) addUnavailableWidget(id)
+                else try {
+                    val view = activity.appWidgetHost.createView(context.applicationContext, id, info)
+                    addWidgetToContainer(view, id)
                 } catch (e: Exception) {
-                    CrashReporter.reportNonFatal("HomeWidgetController: restoreWidget failed for id=${restoreInfo.wid}", e)
+                    CrashReporter.reportNonFatal("HomeWidgetController: widget view failed for id=$id", e)
+                    failedToRender = true
+                    addUnavailableWidget(id)
                 }
             }
-            // Invalidated IDs with a known provider stay in WIDGET_IDS until their rebind
-            // completes or is refused, so an interrupted rebind is asked again next time
-            val restorable = widgetRestoreQueue.map { it.first }.toSet()
-            prefs.setWidgetIdList(WidgetIdBookkeeping.idsToKeep(ids, validIds.toSet(), restorable))
+            renderedWidgets = if (failedToRender) null else signature
+            renderedAbove = above
             updateWidgetContainerVisibility()
-
-            // A bind dialog is still up, or its result is on its way back after a recreation:
-            // that result continues the queue; a second rebind started here would race it
-            if (mainActivity.pendingWidgetOp == null) processNextWidgetRestore()
         } finally {
             isRestoringWidgets = false
-        }
-        mainActivity?.let { activity ->
-            activity.pendingWidgetResult?.let {
-                activity.pendingWidgetResult = null
-                onPendingWidgetResult(it)
+            mainActivity?.let { activity ->
+                activity.pendingWidgetResult?.let {
+                    activity.pendingWidgetResult = null
+                    onPendingWidgetResult(it)
+                }
             }
         }
     }
 
-    // Host IDs an interrupted add or rebind allocated but never put on the home screen
+    // Host IDs an interrupted add allocated but never put on the home screen.
     private fun sweepOrphanIds(mainActivity: MainActivity, ids: List<Int>) {
         val pendingId = mainActivity.pendingWidgetOp?.getInt(PendingOp.WIDGET_ID) ?: -1
         WidgetIdBookkeeping.orphanIds(mainActivity.appWidgetHost.appWidgetIds, ids, pendingId)
             .forEach { mainActivity.appWidgetHost.deleteAppWidgetId(it) }
     }
 
-    // Give up on rebinding an invalidated widget: forget it in all three stores
-    private fun dropRestorable(oldId: Int) {
-        prefs.removeWidgetProvider(oldId)
-        prefs.removeWidgetHeight(oldId)
-        prefs.setWidgetIdList(prefs.getWidgetIdList().also { it.remove(oldId) })
-        updateWidgetContainerVisibility()
-    }
-
-    private fun processNextWidgetRestore() {
-        if (widgetRestoreQueue.isEmpty()) return
-        val (oldId, providerStr) = widgetRestoreQueue.removeAt(0)
-        val component = android.content.ComponentName.unflattenFromString(providerStr)
-        if (component == null) {
-            dropRestorable(oldId)
-            processNextWidgetRestore()
-            return
+    private fun addUnavailableWidget(widgetId: Int) {
+        val container = getActiveContainer() ?: return
+        val height = (prefs.getWidgetHeight(widgetId) * context.resources.displayMetrics.density).toInt()
+        val wrapper = FrameLayout(context).apply {
+            tag = widgetId
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT, height)
         }
-
-        val mainActivity = mainActivity ?: return
-        val newId = mainActivity.appWidgetHost.allocateAppWidgetId()
-
-        // Try silent bind first (works if app has system permission)
-        if (mainActivity.appWidgetManager.bindAppWidgetIdIfAllowed(newId, component)) {
-            completeWidgetRestore(oldId, newId)
-            processNextWidgetRestore()
-            return
-        }
-
-        // Need user permission — launch bind dialog; the result arrives in onPendingWidgetResult
-        setPendingOp(PendingOp.RESTORE_BIND, newId, oldId = oldId)
-        val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, newId)
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, component)
-        }
-        mainActivity.bindWidgetLauncher.launch(intent)
-    }
-
-    private fun completeWidgetRestore(oldId: Int, newId: Int) {
-        val mainActivity = mainActivity ?: return
-        val info = mainActivity.appWidgetManager.getAppWidgetInfo(newId)
-        if (info == null) {
-            mainActivity.appWidgetHost.deleteAppWidgetId(newId)
-            dropRestorable(oldId)
-            return
-        }
-
-        // Migrate saved height and provider to the new ID, in the old ID's position
-        prefs.setWidgetHeight(newId, prefs.getWidgetHeight(oldId))
-        prefs.removeWidgetHeight(oldId)
-        prefs.setWidgetProvider(newId, info.provider.flattenToString())
-        prefs.removeWidgetProvider(oldId)
-        prefs.setWidgetIdList(WidgetIdBookkeeping.replaceId(prefs.getWidgetIdList(), oldId, newId))
-        rebuildWidgetContainer()
+        wrapper.addView(TextView(context).apply {
+            text = context.getString(R.string.widget_unavailable)
+            contentDescription = text
+            gravity = Gravity.CENTER
+            setTextColor(context.getColorFromAttr(R.attr.textColor))
+            isFocusable = true
+            setOnClickListener { showWidgetOptionsDialog(widgetId) }
+            setOnLongClickListener { showWidgetOptionsDialog(widgetId); true }
+        }, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        container.addView(wrapper)
     }
 
     private fun addWidgetToContainer(hostView: android.appwidget.AppWidgetHostView, widgetId: Int) {
@@ -495,70 +480,48 @@ class HomeWidgetController(
     private fun showWidgetOptionsDialog(widgetId: Int) {
         val ids = prefs.getWidgetIdList()
         val index = ids.indexOf(widgetId)
+        if (index < 0) return
 
         val menu = BottomSheetMenu(context)
             .title(context.getString(R.string.widget_options))
         menu.option(context.getString(R.string.swap_widget)) {
-            showWidgetPicker { providerInfo -> bindWidget(providerInfo, replaceIndex = index) }
+            showWidgetPicker { providerInfo -> bindWidget(providerInfo, replaceId = widgetId) }
         }
         menu.option(context.getString(R.string.remove_widget)) { removeWidget(widgetId) }
         if (ids.size > 1 && index > 0)
-            menu.option(context.getString(R.string.move_up)) { moveWidget(index, index - 1) }
+            menu.option(context.getString(R.string.move_up)) { moveWidget(widgetId, -1) }
         if (ids.size > 1 && index < ids.size - 1)
-            menu.option(context.getString(R.string.move_down)) { moveWidget(index, index + 1) }
+            menu.option(context.getString(R.string.move_down)) { moveWidget(widgetId, 1) }
         menu.show()
     }
 
-    private fun moveWidget(fromIndex: Int, toIndex: Int) {
+    private fun moveWidget(widgetId: Int, offset: Int) {
         val ids = prefs.getWidgetIdList()
-        val id = ids.removeAt(fromIndex)
-        ids.add(toIndex, id)
+        val from = ids.indexOf(widgetId)
+        val to = from + offset
+        if (from !in ids.indices || to !in ids.indices) return
+        ids.add(to, ids.removeAt(from))
         prefs.setWidgetIdList(ids)
         rebuildWidgetContainer()
     }
 
     private fun rebuildWidgetContainer() {
-        val container = getActiveContainer() ?: return
-        container.removeAllViews()
-        val scrollView = getActiveScrollView() ?: return
-        scrollView.visibility = View.GONE
-
-        val ids = prefs.getWidgetIdList()
-        if (ids.isEmpty()) return
-
-        val mainActivity = mainActivity ?: return
-        val validIds = mutableListOf<Int>()
-
-        for (wid in ids) {
-            try {
-                val info = mainActivity.appWidgetManager.getAppWidgetInfo(wid) ?: continue
-                val hostView = mainActivity.appWidgetHost.createView(
-                    context.applicationContext, wid, info
-                )
-                addWidgetToContainer(hostView, wid)
-                validIds.add(wid)
-            } catch (e: Exception) {
-                CrashReporter.reportNonFatal("HomeWidgetController: rebuildWidget failed for id=$wid", e)
-            }
-        }
-        // Invalidated widgets awaiting a rebind keep their place (see restoreWidgets)
-        val restorable = prefs.getAllWidgetProviders().keys
-        val kept = WidgetIdBookkeeping.idsToKeep(ids, validIds.toSet(), restorable)
-        prefs.setWidgetIdList(kept)
-        prefs.pruneWidgetHeights(kept.toSet())
-        updateWidgetContainerVisibility()
+        renderedWidgets = null
+        requestReconcile(force = true)
     }
 
     private fun removeWidget(widgetId: Int) {
         val mainActivity = mainActivity ?: return
+        val ids = prefs.getWidgetIdList()
+        if (widgetId !in ids) return
+        ids.remove(widgetId)
         mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
         prefs.removeWidgetProvider(widgetId)
         prefs.removeWidgetHeight(widgetId)
 
-        val ids = prefs.getWidgetIdList()
-        ids.remove(widgetId)
         prefs.setWidgetIdList(ids)
 
+        renderedWidgets = null
         // Remove from container
         val container = getActiveContainer() ?: return
         container.findViewWithTag<View>(widgetId)?.let(container::removeView)
@@ -776,27 +739,30 @@ class HomeWidgetController(
         }
     }
 
-    private fun bindWidget(providerInfo: AppWidgetProviderInfo, replaceIndex: Int = -1) {
-        if (replaceIndex == -1 && prefs.getWidgetIdList().size >= 6) {
+    private fun bindWidget(providerInfo: AppWidgetProviderInfo, replaceId: Int = -1) {
+        if (replaceId != -1 && replaceId !in prefs.getWidgetIdList()) return
+        if (replaceId == -1 && !WidgetIdBookkeeping.canAdd(prefs.getWidgetIdList())) {
             context.showToast(context.getString(R.string.max_widgets_reached), Toast.LENGTH_SHORT)
             return
         }
-        if (replaceIndex == -1 && !newWidgetFits()) {
+        if (replaceId == -1 && !newWidgetFits()) {
             context.showToast(context.getString(R.string.widget_doesnt_fit, prefs.homeAppsNum))
             return
         }
+        val mainActivity = mainActivity ?: return
+        var allocatedId: Int? = null
         try {
-            val mainActivity = mainActivity ?: return
             val widgetId = mainActivity.appWidgetHost.allocateAppWidgetId()
+            allocatedId = widgetId
 
             val allowed = mainActivity.appWidgetManager.bindAppWidgetIdIfAllowed(
                 widgetId, providerInfo.profile, providerInfo.provider, null
             )
 
             if (allowed) {
-                onWidgetBound(widgetId, providerInfo, replaceIndex)
+                onWidgetBound(widgetId, providerInfo, replaceId)
             } else {
-                setPendingOp(PendingOp.BIND, widgetId, replaceIndex = replaceIndex)
+                setPendingOp(PendingOp.BIND, widgetId, replaceId = replaceId)
                 val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
                     putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
                     putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, providerInfo.provider)
@@ -805,6 +771,11 @@ class HomeWidgetController(
                 mainActivity.bindWidgetLauncher.launch(intent)
             }
         } catch (e: Exception) {
+            allocatedId?.let { id ->
+                if (mainActivity.pendingWidgetOp?.getInt(PendingOp.WIDGET_ID) == id)
+                    mainActivity.pendingWidgetOp = null
+                if (id !in prefs.getWidgetIdList()) mainActivity.appWidgetHost.deleteAppWidgetId(id)
+            }
             CrashReporter.reportNonFatal("HomeWidgetController: bindWidget failed", e)
             context.showToast(context.getString(R.string.widget_add_failed))
         }
@@ -825,12 +796,16 @@ class HomeWidgetController(
         return com.parem.launcher.helper.HomeCapacity.canAddWidget(slots.widgetRoomPx, widgetPx)
     }
 
-    private fun onWidgetBound(widgetId: Int, providerInfo: AppWidgetProviderInfo, replaceIndex: Int) {
+    private fun onWidgetBound(widgetId: Int, providerInfo: AppWidgetProviderInfo, replaceId: Int) {
         try {
             val mainActivity = mainActivity ?: return
 
+            if (replaceId != -1 && replaceId !in prefs.getWidgetIdList()) {
+                mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+                return
+            }
             if (providerInfo.configure != null) {
-                setPendingOp(PendingOp.CONFIGURE, widgetId, replaceIndex = replaceIndex)
+                setPendingOp(PendingOp.CONFIGURE, widgetId, replaceId = replaceId)
                 if (providerInfo.profile != Process.myUserHandle()) {
                     // A configure activity in another profile can't be started by component from this
                     // user; the host routes it and the result comes back through onActivityResult
@@ -845,32 +820,41 @@ class HomeWidgetController(
                 }
                 mainActivity.configureWidgetLauncher.launch(configIntent)
             } else {
-                finishWidgetSetup(widgetId, providerInfo, replaceIndex)
+                finishWidgetSetup(widgetId, providerInfo, replaceId)
             }
         } catch (e: Exception) {
+            mainActivity?.let { activity ->
+                if (activity.pendingWidgetOp?.getInt(PendingOp.WIDGET_ID) == widgetId)
+                    activity.pendingWidgetOp = null
+                if (widgetId !in prefs.getWidgetIdList()) activity.appWidgetHost.deleteAppWidgetId(widgetId)
+            }
             CrashReporter.reportNonFatal("HomeWidgetController: onWidgetBound failed", e)
             context.showToast(context.getString(R.string.widget_add_failed))
         }
     }
 
-    private fun finishWidgetSetup(widgetId: Int, providerInfo: AppWidgetProviderInfo, replaceIndex: Int) {
+    private fun finishWidgetSetup(widgetId: Int, providerInfo: AppWidgetProviderInfo, replaceId: Int) {
         try {
             val mainActivity = mainActivity ?: return
             val ids = prefs.getWidgetIdList()
 
-            if (replaceIndex in ids.indices) {
-                // Swap: remove old widget, insert new one at same position
-                val oldId = ids[replaceIndex]
-                mainActivity.appWidgetHost.deleteAppWidgetId(oldId)
-                prefs.removeWidgetProvider(oldId)
-                prefs.removeWidgetHeight(oldId)
-                ids[replaceIndex] = widgetId
+            if (replaceId != -1) {
+                val replaced = WidgetIdBookkeeping.replaceId(ids, replaceId, widgetId)
+                if (replaced == null) {
+                    // The original swap target disappeared while the system dialog was open.
+                    mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+                    return
+                }
+                prefs.setWidgetIdList(replaced)
+                prefs.setWidgetProvider(widgetId, providerInfo.provider.flattenToString())
+                prefs.removeWidgetProvider(replaceId)
+                prefs.removeWidgetHeight(replaceId)
+                mainActivity.appWidgetHost.deleteAppWidgetId(replaceId)
             } else {
-                // Add new
                 ids.add(widgetId)
+                prefs.setWidgetIdList(ids)
+                prefs.setWidgetProvider(widgetId, providerInfo.provider.flattenToString())
             }
-            prefs.setWidgetIdList(ids)
-            prefs.setWidgetProvider(widgetId, providerInfo.provider.flattenToString())
 
             rebuildWidgetContainer()
         } catch (e: Exception) {
