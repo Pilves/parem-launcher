@@ -176,8 +176,13 @@ class GesturesSettingsCard(
     private fun showSwipeActionPicker(isLeft: Boolean) {
         val menu = BottomSheetMenu(context)
             .title(context.getString(R.string.select_action))
+        val selected = if (isLeft) {
+            if (prefs.swipeLeftEnabled) prefs.getEffectiveSwipeLeftAction() else Constants.GestureAction.NONE
+        } else {
+            if (prefs.swipeRightEnabled) prefs.getEffectiveSwipeRightAction() else Constants.GestureAction.NONE
+        }
         for ((label, actionValue) in gestureActionChoices()) {
-            menu.option(label) {
+            menu.option(label, checked = actionValue == selected) {
                 val previous = if (isLeft) prefs.swipeLeftAction else prefs.swipeRightAction
                 if (isLeft) {
                     prefs.swipeLeftAction = actionValue
@@ -244,7 +249,7 @@ class GesturesSettingsCard(
             .filter { it.second != Constants.GestureAction.QUIET_LIST }
             .sortedByDescending { it.second == Constants.GestureAction.LOCK_SCREEN }
         for ((label, actionValue) in choices) {
-            menu.option(label) {
+            menu.option(label, checked = actionValue == DoubleTapActionManager.getAction(context)) {
                 val previous = DoubleTapActionManager.getAction(context)
                 DoubleTapActionManager.setAction(context, actionValue)
                 if (actionValue == Constants.GestureAction.OPEN_APP) {

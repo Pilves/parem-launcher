@@ -1,7 +1,6 @@
 package com.parem.launcher.ui
 
 import android.content.Context
-import android.view.WindowManager
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -113,8 +112,7 @@ object QuietListSheet {
             .customView(content)
             .option(context.getString(R.string.quiet_continue)) { onDone(adapter.selectedIds.toSet()) }
             .option(context.getString(android.R.string.cancel), dimmed = true) {}
-            .show()
-            .window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+            .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true)
     }
 
     /** Shown every time the filter is turned on, before the system access screen. */

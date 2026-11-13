@@ -238,13 +238,15 @@ class AppearanceSettingsCard(
     }
 
     private fun showThemePicker() {
+        val schedule = ThemeScheduleManager.getMode(context)
+        val manual = schedule == Constants.ThemeScheduleMode.MANUAL
         BottomSheetMenu(context)
             .title(context.getString(R.string.theme_mode))
-            .option(context.getString(R.string.light)) { setManualTheme(AppCompatDelegate.MODE_NIGHT_NO) }
-            .option(context.getString(R.string.dark)) { setManualTheme(AppCompatDelegate.MODE_NIGHT_YES) }
-            .option(context.getString(R.string.system_default)) { setManualTheme(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) }
-            .option(context.getString(R.string.scheduled)) { setScheduledTheme(Constants.ThemeScheduleMode.SCHEDULED) }
-            .option(context.getString(R.string.sunrise_sunset)) { setScheduledTheme(Constants.ThemeScheduleMode.SUNRISE_SUNSET) }
+            .option(context.getString(R.string.light), checked = manual && prefs.appTheme == AppCompatDelegate.MODE_NIGHT_NO) { setManualTheme(AppCompatDelegate.MODE_NIGHT_NO) }
+            .option(context.getString(R.string.dark), checked = manual && prefs.appTheme == AppCompatDelegate.MODE_NIGHT_YES) { setManualTheme(AppCompatDelegate.MODE_NIGHT_YES) }
+            .option(context.getString(R.string.system_default), checked = manual && prefs.appTheme != AppCompatDelegate.MODE_NIGHT_NO && prefs.appTheme != AppCompatDelegate.MODE_NIGHT_YES) { setManualTheme(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) }
+            .option(context.getString(R.string.scheduled), checked = schedule == Constants.ThemeScheduleMode.SCHEDULED) { setScheduledTheme(Constants.ThemeScheduleMode.SCHEDULED) }
+            .option(context.getString(R.string.sunrise_sunset), checked = schedule == Constants.ThemeScheduleMode.SUNRISE_SUNSET) { setScheduledTheme(Constants.ThemeScheduleMode.SUNRISE_SUNSET) }
             .show()
             .dismissOnDestroy(fragment.viewLifecycleOwner)
     }

@@ -3,7 +3,6 @@ package com.parem.launcher.ui
 import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
-import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
@@ -73,6 +72,64 @@ internal fun Context.selectableBackgroundRes(): Int {
     return tv.resourceId
 }
 
+/** A child picker cannot outlive the sheet that owns its pending selection. */
+internal fun BottomSheetDialog.dismissWithParent(parent: BottomSheetDialog) {
+    val parentView = parent.window?.decorView
+    val listener = object : View.OnAttachStateChangeListener {
+        override fun onViewAttachedToWindow(v: View) = Unit
+        override fun onViewDetachedFromWindow(v: View) { dismiss() }
+    }
+    parentView?.addOnAttachStateChangeListener(listener)
+    setOnDismissListener { parentView?.removeOnAttachStateChangeListener(listener) }
+}
+
+/** A reusable checkable sheet row for selections that remain open. */
+class SheetCheckRow(context: Context) : LinearLayout(context) {
+    private val label = TextView(context).apply {
+        TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetBody)
+        setTextColor(context.getColorFromAttr(R.attr.textColor))
+        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+    }
+    private val check = ImageView(context).apply {
+        setImageResource(R.drawable.ic_check)
+        imageTintList = ColorStateList.valueOf(context.getColorFromAttr(R.attr.accentColor))
+        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+    }
+    var singleChoice: Boolean = false
+    var checked: Boolean = false
+        set(value) {
+            field = value
+            check.visibility = if (value) View.VISIBLE else View.INVISIBLE
+            ViewCompat.setStateDescription(this, context.onOff(value))
+            sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
+        }
+    var text: CharSequence
+        get() = label.text
+        set(value) { label.text = value; contentDescription = value }
+
+    init {
+        orientation = HORIZONTAL
+        gravity = Gravity.CENTER_VERTICAL
+        minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
+        val padding = resources.getDimensionPixelSize(R.dimen.sheet_padding_horizontal)
+        setPadding(padding, 14.dpToPx(), padding, 14.dpToPx())
+        setBackgroundResource(if (context.isEinkDisplay()) R.drawable.bg_eink_control else context.selectableBackgroundRes())
+        isFocusable = true
+        ViewCompat.setScreenReaderFocusable(this, true)
+        ViewCompat.setAccessibilityDelegate(this, object : AccessibilityDelegateCompat() {
+            override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                super.onInitializeAccessibilityNodeInfo(host, info)
+                info.className = if (singleChoice) "android.widget.RadioButton" else "android.widget.CheckBox"
+                info.isCheckable = true
+                info.isChecked = checked
+            }
+        })
+        addView(label, LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f))
+        addView(check, LayoutParams(24.dpToPx(), 24.dpToPx()).apply { marginStart = 8.dpToPx() })
+        checked = false
+    }
+}
+
 /**
  * Builder for the app's standard bottom-sheet menus: drag handle, optional
  * title/message, and tappable text rows. Every bottom sheet in the app should go
@@ -113,7 +170,7 @@ class BottomSheetMenu(private val context: Context) {
     fun message(text: String): BottomSheetMenu {
         container.addView(TextView(context).apply {
             this.text = text
-            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_Body)
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetBody)
             setTextColor(context.getColorFromAttr(R.attr.textColor))
             setPadding(horizontalPadding, 8.dpToPx(), horizontalPadding, 16.dpToPx())
         })
@@ -179,7 +236,7 @@ class BottomSheetMenu(private val context: Context) {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
         }
         sourceLabel = TextView(context).apply {
-            TextViewCompat.setTextAppearance(this, if (primaryAction) R.style.TextAppearance_Parem_Label else R.style.TextAppearance_Parem_Body)
+            TextViewCompat.setTextAppearance(this, if (primaryAction) R.style.TextAppearance_Parem_SheetLabel else R.style.TextAppearance_Parem_SheetBody)
             this.text = text
             setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
             setTextColor(context.getColorFromAttr(when {
@@ -188,11 +245,10 @@ class BottomSheetMenu(private val context: Context) {
                 dimmed -> R.attr.textSecondaryColor
                 else -> R.attr.textColor
             }))
-            setTypeface(typeface, if (checked == true) Typeface.BOLD else Typeface.NORMAL)
         }
         labels.addView(sourceLabel)
         if (summary != null) labels.addView(TextView(context).apply {
-            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_Caption)
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetCaption)
             this.text = summary
             setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             setPadding(0, 4.dpToPx(), 0, 0)
@@ -222,7 +278,7 @@ class BottomSheetMenu(private val context: Context) {
     fun sectionLabel(text: String): BottomSheetMenu {
         gap()
         return customView(TextView(context).apply {
-            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_Caption)
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetCaption)
             this.text = text
             setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             setPadding(horizontalPadding, 0, horizontalPadding, 8.dpToPx())
@@ -240,7 +296,8 @@ class BottomSheetMenu(private val context: Context) {
         return this
     }
 
-    fun show(resizeForKeyboard: Boolean = false, scrollContent: Boolean = true): BottomSheetDialog {
+    fun show(resizeForKeyboard: Boolean = false, scrollContent: Boolean = true, fitPicker: Boolean = false): BottomSheetDialog {
+        if (fitPicker) container.makePickerScroller()
         // Nested-scroll wrapper + expanded state: on landscape heights the
         // taller sheets (screen-time graph + top apps) exceed the screen, and
         // the default landscape peek opens sheets half-hidden. Short menus are

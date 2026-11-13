@@ -2,14 +2,9 @@ package com.parem.launcher.ui
 
 import android.app.TimePickerDialog
 import android.content.Context
-import android.content.res.ColorStateList
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
-import android.widget.CheckBox
 import android.widget.LinearLayout
-import android.widget.RadioButton
-import android.widget.RadioGroup
 import android.widget.TextView
 import com.parem.launcher.R
 import com.parem.launcher.helper.FocusModeManager
@@ -17,7 +12,9 @@ import com.parem.launcher.helper.FocusSchedule
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.helper.isEinkDisplay
 import com.parem.launcher.helper.showToast
+import androidx.core.widget.TextViewCompat
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.helper.onOff
 import java.text.DateFormatSymbols
@@ -80,8 +77,8 @@ class FocusModeDialog(
         // Status text
         val statusText = TextView(ctx).apply {
             text = ctx.getString(R.string.focus_mode_on)
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetBody)
             setTextColor(primaryColor)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             setPadding(0, 8.dpToPx(), 0, 4.dpToPx())
         }
         container.addView(statusText)
@@ -96,8 +93,8 @@ class FocusModeDialog(
                 FocusModeManager.ActiveLabel.ScheduledNoEnd -> ctx.getString(R.string.focus_schedule_no_end)
                 FocusModeManager.ActiveLabel.Unlimited, null -> ctx.getString(R.string.focus_until_disabled_status)
             }
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetCaption)
             setTextColor(ctx.getColorFromAttr(R.attr.textSecondaryColor))
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             setPadding(0, 0, 0, 16.dpToPx())
         }
         container.addView(timeText)
@@ -133,37 +130,28 @@ class FocusModeDialog(
     ) {
         container.addView(createSectionLabel(ctx, ctx.getString(R.string.focus_duration)))
 
-        // Radio group for timer options
-        val radioGroup = RadioGroup(ctx).apply {
-            orientation = RadioGroup.VERTICAL
-            setPadding(0, 0, 0, 12.dpToPx())
-        }
-
         data class DurationOption(val label: String, val minutes: Int)
-
         val options = listOf(
             DurationOption(ctx.getString(R.string.focus_25_min), 25),
             DurationOption(ctx.getString(R.string.focus_1_hour), 60),
             DurationOption(ctx.getString(R.string.focus_2_hours), 120),
             DurationOption(ctx.getString(R.string.focus_until_disable), -1)
         )
-
-        options.forEachIndexed { index, option ->
-            val radioButton = RadioButton(ctx).apply {
-                id = index + 1
+        var durationMinutes = 25
+        val durationRows = options.map { option ->
+            SheetCheckRow(ctx).apply {
+                singleChoice = true
                 text = option.label
-                setTextColor(primaryColor)
-                // Default widget tint is the Material accent, which clashes
-                // with the launcher's mono palette
-                buttonTintList = ColorStateList.valueOf(primaryColor)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
-                setPadding(8.dpToPx(), 4.dpToPx(), 0, 4.dpToPx())
-                minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
+                checked = option.minutes == durationMinutes
+                container.addView(this)
             }
-            radioGroup.addView(radioButton)
         }
-        radioGroup.check(1) // Default: 25 minutes
-        container.addView(radioGroup)
+        durationRows.forEachIndexed { index, row ->
+            row.setOnClickListener {
+                durationMinutes = options[index].minutes
+                durationRows.forEachIndexed { i, item -> item.checked = i == index }
+            }
+        }
 
         // Allowed apps section
         var pickerAdapter: AppPickerAdapter? = null
@@ -171,8 +159,6 @@ class FocusModeDialog(
         var updateEmptyWarning: () -> Unit = {}
 
         if (allApps.isNotEmpty()) {
-            container.addView(createSectionLabel(ctx, ctx.getString(R.string.focus_allowed_apps)))
-
             val currentWhitelist = FocusModeManager.getWhitelist(ctx)
             val adapter = AppPickerAdapter(
                 textColor = primaryColor,
@@ -186,9 +172,20 @@ class FocusModeDialog(
                 onSelectionChanged = { updateEmptyWarning() }
             )
             pickerAdapter = adapter
-
-            container.addAppPicker(adapter)
-
+            container.addView(createWindowRow(ctx, primaryColor, ctx.getString(R.string.focus_allowed_apps),
+                onClick = {
+                    adapter.filter("")
+                    val pickerContent = LinearLayout(ctx).apply {
+                        orientation = LinearLayout.VERTICAL
+                        addAppPicker(adapter)
+                    }
+                    val picker = BottomSheetMenu(ctx)
+                        .title(ctx.getString(R.string.focus_allowed_apps))
+                        .customView(pickerContent)
+                        .option(ctx.getString(android.R.string.ok)) {}
+                        .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true)
+                    picker.dismissWithParent(dialog)
+                }, onLongClick = null))
         }
 
         // Schedule section: edits stay local until Save or Enable
@@ -196,11 +193,10 @@ class FocusModeDialog(
         var scheduleOn = FocusModeManager.isScheduleEnabled(ctx)
 
         val scheduleToggle = TextView(ctx).apply {
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetCaption)
             setTextColor(primaryColor)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-            setTypeface(null, android.graphics.Typeface.BOLD)
             setPadding(8.dpToPx(), 8.dpToPx(), 0, 8.dpToPx())
-            setBackgroundResource(ctx.selectableBackgroundRes())
+            setBackgroundResource(if (ctx.isEinkDisplay()) R.drawable.bg_eink_control else ctx.selectableBackgroundRes())
         }
         val scheduleHeader = LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -281,13 +277,6 @@ class FocusModeDialog(
         }
 
         menu.option(ctx.getString(R.string.enable_focus), dismissOnClick = false) {
-            val selectedId = radioGroup.checkedRadioButtonId
-            val durationMinutes = if (selectedId in 1..options.size) {
-                options[selectedId - 1].minutes
-            } else {
-                25
-            }
-
             saveSettings()
             FocusModeManager.enable(ctx, durationMinutes)
             // Also queues the focus-end job when grey goes on
@@ -302,22 +291,16 @@ class FocusModeDialog(
      */
     private fun editWindow(ctx: Context, initial: FocusSchedule.Window?, onDone: (FocusSchedule.Window) -> Unit) {
         val labels = (0..6).map { weekdayShortName(it) }.toTypedArray()
-        val checked = BooleanArray(7) { initial == null || initial.days and (1 shl it) != 0 }
         val is24h = android.text.format.DateFormat.is24HourFormat(ctx)
-        val textColor = ctx.getColorFromAttr(R.attr.textColor)
         val boxes = (0..6).map { day ->
-            CheckBox(ctx).apply {
+            SheetCheckRow(ctx).apply {
                 text = labels[day]
-                textSize = 16f
-                setTextColor(textColor)
-                buttonTintList = ColorStateList.valueOf(textColor)
-                isChecked = checked[day]
-                minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
+                checked = initial == null || initial.days and (1 shl day) != 0
+                setOnClickListener { this.checked = !this.checked }
             }
         }
         val dayList = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(16.dpToPx(), 0, 24.dpToPx(), 0)
             boxes.forEach { addView(it) }
         }
         lateinit var daysSheet: BottomSheetDialog
@@ -326,7 +309,7 @@ class FocusModeDialog(
             .customView(dayList)
             .option(ctx.getString(android.R.string.ok), dismissOnClick = false) {
                 if (!dialog.isShowing) return@option
-                val days = boxes.foldIndexed(0) { i, acc, box -> if (box.isChecked) acc or (1 shl i) else acc }
+                val days = boxes.foldIndexed(0) { i, acc, box -> if (box.checked) acc or (1 shl i) else acc }
                 if (days == 0) {
                     ctx.showToast(ctx.getString(R.string.focus_schedule_pick_day))
                     return@option
@@ -372,10 +355,11 @@ class FocusModeDialog(
     ): TextView {
         return TextView(ctx).apply {
             this.text = text
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetBody)
             setTextColor(color)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
             setPadding(8.dpToPx(), 10.dpToPx(), 0, 10.dpToPx())
-            setBackgroundResource(ctx.selectableBackgroundRes())
+            minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
+            setBackgroundResource(if (ctx.isEinkDisplay()) R.drawable.bg_eink_control else ctx.selectableBackgroundRes())
             setOnClickListener { onClick() }
             if (onLongClick != null) setOnLongClickListener { onLongClick(); true }
         }
@@ -384,8 +368,8 @@ class FocusModeDialog(
     private fun createMutedLine(ctx: Context, text: String): TextView {
         return TextView(ctx).apply {
             this.text = text
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetCaption)
             setTextColor(ctx.getColorFromAttr(R.attr.textSecondaryColor))
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
             setPadding(8.dpToPx(), 0, 0, 8.dpToPx())
         }
     }
@@ -393,8 +377,8 @@ class FocusModeDialog(
     private fun createSectionLabel(ctx: Context, text: String): TextView {
         return TextView(ctx).apply {
             this.text = text
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetCaption)
             setTextColor(ctx.getColorFromAttr(R.attr.textSecondaryColor))
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             setPadding(0, 8.dpToPx(), 0, 4.dpToPx())
         }
     }
