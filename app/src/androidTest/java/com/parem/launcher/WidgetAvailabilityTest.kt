@@ -134,7 +134,7 @@ class WidgetAvailabilityTest {
     }
 
     @Test
-    fun homeWhileConfigurePendingCannotStartAnotherWidgetOperation() {
+    fun seededPendingConfigureCannotStartAnotherWidgetOperation() {
         prepare()
         val prefs = Prefs(context)
         try {

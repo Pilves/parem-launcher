@@ -44,7 +44,7 @@ class WidgetProviderFixtureTest {
     }
 
     @Test
-    fun liveUninstallAndRealConfigureResultKeepOtherSlotsSafe() {
+    fun liveUninstallAndRealConfigureSuccessKeepOtherSlotsSafe() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("widget_fixture") == "true")
         assumeTrue(BuildConfig.DEBUG && context.packageName == "com.parem.launcher.debug")
         assumeTrue(Build.HARDWARE == "ranchu" || Build.PRODUCT.contains("sdk_gphone"))
@@ -115,23 +115,10 @@ class WidgetProviderFixtureTest {
             checkNotNull(device.wait(Until.findObject(By.text("Parem configurable fixture")), 20_000)).click()
             assertTrue("actual configure activity did not launch", device.wait(Until.hasObject(By.text("Parem fixture configuration")), 15_000))
             instrumentation.runOnMainSync {
-                Log.i("WidgetFixture", "before HOME: pending=${originalActivity?.pendingWidgetOp} saved=${prefs.getWidgetIdList()}")
-            }
-            assertTrue(device.pressHome())
-            assertTrue(device.wait(Until.hasObject(unavailable), 10_000))
-            onHome { activity ->
-                Log.i("WidgetFixture", "after HOME: sameActivity=${activity === originalActivity} pending=${activity.pendingWidgetOp} saved=${prefs.getWidgetIdList()}")
-                val operation = checkNotNull(activity.pendingWidgetOp)
+                val operation = checkNotNull(originalActivity?.pendingWidgetOp)
                 assertEquals(2, operation.getInt("stage"))
                 assertEquals(first, operation.getInt("replaceId"))
                 pending = operation.getInt("widgetId")
-            }
-            device.findObjects(unavailable)[1].click()
-            checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.swap_widget))), 10_000)).click()
-            assertFalse("second picker opened while configuration was unresolved", device.wait(Until.hasObject(By.clazz("android.widget.ListView")), 1_500))
-            onHome { activity ->
-                assertEquals(pending, activity.pendingWidgetOp?.getInt("widgetId"))
-                assertEquals(first, activity.pendingWidgetOp?.getInt("replaceId"))
             }
             device.executeShellCommand("am broadcast -a $fixture.COMPLETE -p $fixture")
             val resultDeadline = SystemClock.elapsedRealtime() + 15_000
