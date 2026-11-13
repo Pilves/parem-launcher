@@ -321,7 +321,7 @@
     <string name="grayscale_now" translatable="false">Now</string>
     <string name="grayscale_during_focus" translatable="false">During focus</string>
     <string name="grayscale_after_limit" translatable="false">After a limit (until you come back to Parem)</string>
-    <string name="grayscale_toggles_hint" translatable="false">Color always comes back when you turn these off. You can also switch it back yourself in Android Settings › Accessibility › Color correction.</string>
+    <string name="grayscale_toggles_hint" translatable="false">When Parem’s grayscale triggers end, it tries to restore your previous color correction. If the screen stays gray, check Android Settings › Accessibility › Color correction.</string>
     <string name="grayscale_grant_title" translatable="false">Allow grayscale</string>
     <string name="grayscale_grant_body" translatable="false">Android lets an app switch the screen to grayscale only after a one-time permission given through developer tools. Parem uses it for grayscale and nothing else.\n\nTo get color back at any time, without Parem: Android Settings › Accessibility › Color correction.</string>
     <string name="grayscale_grant_computer" translatable="false">With a computer: turn on USB debugging, plug the phone in, and open this page in Chrome or Edge:</string>
