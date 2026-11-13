@@ -20,8 +20,10 @@ Recorded 2026-10-03 after the design/manager review round. These override the
   sheet directly is out of scope for 6.0.
 - **M4-WP6 Private Space.** Keep `includePrivate` (default false) on
   `getAppsList`. Hide "time limit" on private rows.
-- **M4-WP7 website shortcuts.** First whitelisted browser opens the site, no
-  chooser. No globe icon.
+- **M4-WP7 website shortcuts.** Originally chose the first whitelisted browser
+  without a chooser and no globe icon. M4-WP36 later changed the routing: use
+  the default handler when present; with no default, use the system chooser
+  when focus is off, or the first allowed candidate when focus is active.
 - **M3-WP4 currency.** The M3-WP4 implementer adds ECB to the privacy-policy
   destinations in the M2-WP3 row.
 - **minSdk 29** (Patric, 2026-10-03): drop Android 7–9 in 6.0 without waiting for
@@ -31,8 +33,9 @@ Recorded 2026-10-03 after the design/manager review round. These override the
 - **M3-WP11 crash reports.** Hand-rolled handler (Option B), no ACRA. Send goes
   through the share sheet only — no hard-coded destination address in 6.0
   (a published address is Patric's call; add it later if wanted).
-- **M4-WP12 onboarding.** Drop the feature tour; no "Tips" link. Build after
-  M4-WP5 so every Calm-phone setup entry point exists.
+- **M4-WP12 onboarding.** Originally dropped the old feature tour and "Tips"
+  link. M4-WP57 later added optional grouped feature explanations to onboarding.
+  Build followed M4-WP5 so Calm-phone setup entry points existed.
 - **M4-WP13 adaptive layouts.** Table-top deferred to 6.1; split screen and
   desktop window are manual checks, not emulator legs. WP13 lands after WP20
   (minSdk 29). WP12 applies `content_side_padding` to its own layout.
