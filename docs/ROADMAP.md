@@ -289,7 +289,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP34 | **Done** (PR #39). Keep app picker actions visible | `ui/PickerSheetLayout.kt`, picker layout test, changelog and handoff | Quiet, Focus and folder picker actions remain below the scrolling list in short windows |
 | M6-WP38 | **Done** (PR #43). Show selected app counts in folder and Focus parent sheets | `ui/CreateFolderDialog.kt`, `ui/FocusModeDialog.kt`, strings, tests and handoff | Counts show current selection, including retained unavailable apps, and update after picker edits |
 | M6-WP41 | **Done** (PR #46). **Todo**. Avoid repeated first-run tip layout work | `ui/HomeFragment.kt`, first-run instrumentation test, changelog and handoff | Unchanged tips and default-home prompt skip updates; changes and view recreation retain prompt clearance |
-| M6-WP45 | **Done** (PR #0). **Todo**. Preserve picker accessibility after filtering | `ui/BottomSheetMenu.kt`, sheet accessibility test, changelog and handoff | Filtered and rebound rows retain checkbox semantics and current checked state |
+| M6-WP45 | **Done** (PR #49). **Todo**. Preserve picker accessibility after filtering | `ui/BottomSheetMenu.kt`, sheet accessibility test, changelog and handoff | Filtered and rebound rows retain checkbox semantics and current checked state |
 
 | M6-WP46 | **Done** (PR #48). **Todo**. Run JVM and build checks on pull requests | `.github/workflows/unit.yml`, handoff | Both flavor JVM suites, Node harness tests and the Play debug APK check run on each PR |
 
