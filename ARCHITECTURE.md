@@ -28,8 +28,8 @@ ui/
                            (swipe/touch listeners, gesture-letter overlay, gesture
                            actions, torch, lock), HomeClockController (date/time/
                            weather rendering, clock/calendar taps, screen-time row).
-  AppDrawerFragment.kt     App list + omnibox search (apps / calculator / unit
-                           conversion / dial / web / contact). The active mode
+  AppDrawerFragment.kt     App list + omnibox search (apps, calculator, unit and currency
+                           conversion, dial, web, quick actions, contacts and settings). The active mode
                            is a single OmniboxMode (sealed, declared in
                            helper/OmniboxResolver.kt).
   AppDrawerAdapter.kt      Drawer rows, long-press menu, rename, auto-launch logic.
@@ -79,7 +79,7 @@ data/
   Prefs.kt                 Typed facade over the main SharedPreferences file,
                            plus JSON export/import (settings backup).
   Constants.kt             Flags, URLs, enum-ish objects.
-  AppModel.kt, FolderData.kt, DrawerCharacterModel.kt
+  AppModel.kt, FolderData.kt
 
 listener/
   OnSwipeTouchListener (gesture detection), DeviceAdmin.
@@ -108,7 +108,7 @@ listener/
 - Flavours: `play` is the Google Play bundle. `full` is the APK for GitHub and F-Droid. Both flavours use the same applicationId; signing may differ by distribution channel. `full` adds in-app adb pairing, in `app/src/full/` (`helper/adb/`, `GrayscalePairing`, its receiver, POST_NOTIFICATIONS and the pairing strings). `play` has none of that code, and `scripts/check-play-build.sh` fails CI if any comes back (`docs/design/DECISIONS.md`). Shared code reaches the difference only through `helper/ChannelFeatures`, which exists once per flavour. Strings in `app/src/full/res/` override the wording in `main`, which is Play's.
 - Debug: `./gradlew assembleFullDebug` → `app/build/outputs/apk/full/debug/app-full-debug.apk`, likewise `play` (package id gets a `.debug` suffix so it installs alongside release). CI: `.github/workflows/debug-build.yml` runs tests + build of both flavours on every master push (or manually via workflow_dispatch) and uploads the APKs as an artifact. A manual run also builds the `full` release APK and `play` bundle, signed with that run's debug key, as a `play-check` artifact: the way to prove the bundle before a tag, because `release.yml` publishes. Note the CI debug keystore differs per run — updating a CI-built debug install usually needs an uninstall first.
 - Every behavior-changing PR adds an entry under `## [Unreleased]` in CHANGELOG.md; at release time, rename that section to the version and prepend a fresh `## [Unreleased]`.
-- Release: run the device pass in [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) first. Then bump `versionCode`/`versionName` in `app/build.gradle`, add `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` and a CHANGELOG.md entry, then push a tag matching `v*` → `.github/workflows/release.yml` builds a signed APK (keystore comes from repo secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) and attaches it to a GitHub release. A later step builds the Play bundle; the AAB and R8 `mapping.txt` are kept as the run's `play-<tag>` artifact for 90 days, not on the public release. The AAB carries the same mapping as `BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map`, so a Play upload needs no separate file. The first upload's signing key matters: see "Play App Signing" below.
+- Release: run the device pass in [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) first. Then bump `versionCode`/`versionName` in `app/build.gradle`, add `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` and a CHANGELOG.md entry, add `docs/releases/<tag>-notes.md`, then push a tag matching `v*` → `.github/workflows/release.yml` builds a signed APK (keystore comes from repo secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) and attaches it to a GitHub release. A later step builds the Play bundle; the AAB and R8 `mapping.txt` are kept as the run's `play-<tag>` artifact for 90 days, not on the public release. The AAB carries the same mapping as `BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map`, so a Play upload needs no separate file. The first upload's signing key matters: see "Play App Signing" below.
 - Dependency versions live in `gradle/libs.versions.toml`. AGP 8.9.1 / Gradle 8.11.1 / Kotlin 2.1.20; JDK 17+ (21 works).
 
 ### Play App Signing
@@ -126,7 +126,7 @@ Decided 2026-11-06: **Google generates the app signing key, with a new, separate
 - Sharing the key buys one thing: an in-place move from GitHub to Play. All published APKs together have 37 downloads (2026-11-05), and `docs/fdroid/README.md` already plans Play as a separate install, so that does not pay for the permanent cost.
 - "Updates must keep the same signing key" (`docs/releases/v6.0.0-beta.2-validation.md`) holds per channel, and the GitHub channel does not change. Moving between Play and a sideload channel means uninstalling, which erases app data, so users export their settings first.
 - **The trap:** with a Google-generated key, whichever key signs the first uploaded bundle becomes the upload key. `release.yml` signs the bundle with `UPLOAD_KEYSTORE_*` for that reason, so check the bundle's certificate against `docs/play/signing.md` before the first upload.
-- The app signing key can only be changed until a release reaches open testing or production. Closed testing does not lock it.
+- The 2026-11-06 decision assumed the signing key could still change in closed testing. Verify current Play Console policy before relying on that assumption.
 - Android developer verification ties a package name to signing keys, so `com.parem.launcher` needs both fingerprints registered: the existing certificate, and Play's from the Play App Signing page. Google may ask for proof of the existing key: an APK signed with it, carrying the console's snippet in `assets/adi-registration.properties`.
 - GitHub secrets are write-only and Play cannot recover this key, so keep an offline backup of the keystore.
 
