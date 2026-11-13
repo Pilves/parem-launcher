@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Announce single-choice sheet rows as checked radio buttons without misleading On/Off states.
+
 - Retry a daily wallpaper after its download or application fails.
 - Add 25-minute Focus and manual grayscale quick actions to the home menu and gestures.
 - Guide new users with independently dismissed home tips and a short, static drawer search tip.
