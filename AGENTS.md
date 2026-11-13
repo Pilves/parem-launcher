@@ -44,8 +44,7 @@ flavours must build: `play` and `full` differ (`ARCHITECTURE.md`, Build & releas
   reports use `noBackupFilesDir`. New exported keys need type registration in
   `Prefs` where applicable (see LONG_PREF_KEYS / exportExcludeKeys).
 - Async/posted callbacks in fragments must guard on `isAdded` / `_binding != null`.
-- Strings: new user-facing text goes in `res/values/strings.xml`; mark it
-  `translatable="false"` unless you also add translations.
+- Strings: Put user-facing text in `res/values/strings.xml`. Translate it in the locales required by the work package; if an English fallback is deliberately deferred, record the affected keys/locales and release follow-up. Mark truly non-translatable values `translatable="false"`; preserve format arguments and flavor overrides.
 - Behaviour changes add a line under `## [Unreleased]` in `CHANGELOG.md`.
 
 ## Release

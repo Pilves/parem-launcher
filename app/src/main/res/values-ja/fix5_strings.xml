@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="align_at_bottom">下に配置</string>
+    <string name="alignment_at_bottom">%1$s · 下</string>
+    <string name="configured_app_count">%1$d 件設定済み</string>
+    <string name="drawer_guidance">アプリ名を入力して検索</string>
+    <string name="grayscale_toggles_hint">Paremのグレースケールの条件が終了すると、以前の色補正の復元を試みます。画面が灰色のままの場合は、Androidの設定 › ユーザー補助 › 色補正を確認してください。</string>
+    <string name="home_guidance_long_press">設定を開くには背景を長押し</string>
+    <string name="home_guidance_swipe">上にスワイプしてアプリを表示</string>
+    <string name="keyboard_caption">キーボードでアプリを検索して開けます。</string>
+    <string name="lock_needs_access">画面をロック · アクセスが必要</string>
+    <string name="onboarding_guide_appearance_body">［Settings］›［外観］には、ライト、ダーク、システムテーマ、テーマスケジュール、相対的なテキストサイズ、太字フォント、デイリー壁紙、ステータスバーの表示/非表示があります。明るい時間帯と暗い時間帯、または日の出と日没を選択します。［Settings］›［ホーム画面］ で天気を表示する都市を選択します。テキストもAndroidのフォントサイズに従います。\n\n［Settings］›［ホーム画面］ では、アプリのアイコンとアイコンパック、時刻と日付の表示、配置、ウィジェットの配置を管理できます。最初に互換性のあるアイコンパックをインストールしてから、アイコン設定で選択してください。\n\nAndroidのアニメーションがオフになっている場合、Paremは動きを軽減します。コアホームアクションには、スクリーンリーダーとキーボードの代替手段をご用意しています。</string>
+    <string name="onboarding_guide_calm_body">使用状況へのアクセスを許可すると、Paremはこのスマートフォンでアプリに費やした時間をカウントできます。ホーム画面の合計スクリーンタイムをタップすると、アプリの日次使用状況、7日間のグラフ、および十分な履歴がある場合は週次比較が表示されます。［Settings］›［落ち着き］でアクセスを管理します。\n\nアプリ制限は、アプリを1日の許容時間分使用したときに警告します。［Open anyway］ を選択すると、警告が無視されます。アプリのホームメニューまたは「App limits」シートから制限を追加します。このシートには、本日最も使用されたアプリが一覧表示されています。「Add another app…」を選ぶと、他のすべてにアクセスできます。「Pause only」を選択すると、起動前に5秒間待機し、アプリを開く理由を考えるよう促されますが、時間制限はありません。制限を設定したら、もう一度アプリを長押しして「Mindful pause」をオンにするか、「App limits」シートで制限選択ツールを再度開きます。「No limit」を選ぶと、両方とも削除されます。\n\nFocus mode は、許可されたアプリと通話を除き、Paremを通じたアプリの起動をブロックします。［Settings］›［落ち着き］›［Focus mode］ で、時間制限のあるセッションまたは週ごとの時間帯を選択します。期間は午前0時をまたぐことができます。開始時刻と終了時刻が同じ場合は、終日を意味します。「Disable」を選ぶと、現在有効なスケジュールされたウィンドウが、その実行が終了するまで一時停止されます。\n\n制限、ポーズ、集中モードは、Paremを通じたアプリの起動に適用されます。すでに開いているアプリを閉じることも、Androidや他のアプリがそのアプリを開くのを妨げることもありません。ウェブサイトと検索のクイックアクションは、これらの制限によって保護されるアプリの起動ではありません。</string>
+    <string name="onboarding_guide_quiet_body">サイレント通知では、許可リストにないアプリからの対象通知を通知パネルから取り除くことがあります。一部のカテゴリとシステムアプリは除外されますが、アプリは通知に異なるラベルを付けることができます。音や振動が発生する場合があります。「Make silent」を選択すると、Androidの通知設定が開きます。サイレント通知は通知パネルに残る場合があります。Paremの設定でスワイプを選択して、「Quiet list」を開きます。フィルターをオフにすると、Paremはアクセス可能なアイテムをリリースしようとします。一部のアイテムは、スヌーズが終了するまでスヌーズされたままになる場合があります。設定では、通知へのアクセス権を付与する前に、その内容が説明されます。\n\nグレースケール（Grayscale）は、画面から色を削除します。1回限りの開発者ツール権限が必要で、セットアップでは各ステップが説明されます。設定後、「Now」、「During focus」、「After a limit (until you come back to Parem)」のいずれかを選択します。アプリごとのグレースケールは、アプリメニューでも利用できます。使用するには、使用状況へのアクセスと、Paremをデフォルトのホーム画面に設定する必要があります。色はいつでもAndroidの設定 › アクセシビリティ › 色の補正で元に戻すことができます。\n\nダブルタップでロックは、お客様の同意を得た上でAndroidのアクセシビリティサービスを使用します。画面を読み取ることはできません。代替のデバイス管理者ロック方法は、［Settings］›［ジェスチャー］ にあり、ロックするたびにPINを入力する必要があります。そこでジェスチャーを変更または無効にできます。</string>
+    <string name="onboarding_guide_search_body">上にスワイプしてから、アプリ名を入力します。あいまい一致を使用すると、名前の一部を使用できます。［Settings］›［検索］の［キーボードの自動表示］ で、ドロワーが開いたときにタイピングの準備ができているかどうかを制御します。[戻る] を押してホームに戻ります。デフォルトでは、一致するアプリが1つだけ自動的に開きます。［Settings］›［検索］で［Open single match automatically］ をオフにすると、タップまたは Enter キーを押すことができます。スクリーンリーダーを使用している場合、自動起動はオフになります。\n\nドロワー内のアプリを長押しすると、非表示、アプリ情報、アンインストールなどのアクションが表示されます。アプリメニューの「名前を変更」を使用して、ラベルを変更します。非表示にしたアプリは、［Settings］の［隠しアプリ］で再度確認できます。また、非表示のアプリの数も表示されます。アプリを非表示にしても、アンインストールされません。使用状況へのアクセスを許可すると、使用状況でドロワーを並べ替えたり、アプリの起動回数を確認したりできます。\n\n「Contact search」は、［Settings］›［検索］ で任意で設定できます。連絡先へのアクセスを求め、デバイス上の電話番号に名前を照合します。照合された名前を選択すると、ダイヤラーが開きます。同じセクションで、「Search history」を有効にするかどうかを選択できます。最近の検索は、このスマートフォンに保存され、ここで消去できます。履歴をオフにすると消去されます。\n\nAndroidが利用可能にしている場合、ワークプロファイルアプリにはバッジが表示されます。サポートされているAndroidバージョンでは、ドロワーの「Private space」行から、そのスペースをロックまたはロック解除できます。「private」または「private space」を検索すると、スクロールせずにアクセスできます。結果をタップするか、Enterキーを押してロックを解除または開きます。ロック中はアプリが非表示になります。Androidの設定でロック時にスペースを非表示にすると、そのエントリーもドロワーと検索に表示されなくなります。「Androidの設定」›「セキュリティとプライバシー」›「プライベートスペース」から表示してください。ワークプロフィールのウィジェットは、利用可能な場合にウィジェットピッカーに表示されます。</string>
+    <string name="onboarding_pause_no_usage">使用状況はまだありません。設定を完了し、ホームにアプリを追加して長押しし、Time limitを選んでください。またはアプリを使用した後、Settings › 落ち着き › App limitsを開いてください。</string>
+    <string name="quick_focus_25">25分間集中</string>
+    <string name="quick_focus_already_active">集中モードはすでにオンです</string>
+    <string name="quick_focus_started">集中モードを25分間開始しました</string>
+    <string name="quick_grayscale">手動グレースケールのオン／オフ</string>
+    <string name="quick_grayscale_manual_off">手動グレースケールはオフです。自動グレースケールは引き続き有効な場合があります</string>
+    <string name="quick_grayscale_manual_on">手動グレースケールがオンです</string>
+    <string name="quick_grayscale_needs_access">設定でグレースケールのアクセスを設定</string>
+    <string name="quiet_card_hint">通知時に音や振動が生じる場合があります。「Make silent」はAndroidの通知設定を開きます。サイレント通知は通知パネルに残る場合があります。静かなリスト（Quiet list）を開くスワイプをParemの設定で選んでください。</string>
+    <string name="quiet_keep_info">非表示の通知の一部は、スヌーズが終了するまで延期されたままになる場合があります。</string>
+    <string name="quiet_needs_access_body">Paremの通知へのアクセスが失われました。非表示の通知は、スヌーズが終了するまで延期されたままになる場合があります。</string>
+    <string name="settings_backup_section">バックアップと情報</string>
+    <string name="settings_calm_section">落ち着き</string>
+    <string name="settings_clock_date">時計と日付</string>
+    <string name="settings_default_home">デフォルトのホームアプリ</string>
+    <string name="settings_quiet_notifications">静かな通知</string>
+    <string name="settings_screen_time_access">スクリーンタイムへのアクセス</string>
+    <string name="settings_search_section">検索</string>
+    <string name="settings_set_default_home">デフォルトのホームに設定</string>
+    <string name="settings_status_bar">ステータスバー</string>
+    <string name="picker_selected_count">%1$s · %2$d 件選択済み</string>
+</resources>
