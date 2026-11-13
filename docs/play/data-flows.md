@@ -56,7 +56,7 @@ The app opens no socket here. The user acts, and an Android intent passes the da
 | S4 | **GitHub Pages** logs for `pilves.github.io/parem-launcher/` | Visitor opens the page | IP and browser details to GitHub. The grant page's CSP blocks page-initiated connections | `res/values/strings.xml:337`, `web/grant/index.html:6`, `.github/workflows/pages.yml:33` |
 | S5 | **Support mail** to the publisher | User writes | Whatever the user includes | Policy sections 4 and 7 |
 
-Device transfer (S2) and settings import also bring back on/off flags. After Android restore, `ParemBackupAgent` clears `Prefs.deviceOnlyKeys`; settings import instead preserves the local excluded keys and ignores imported copies. Neither mechanism excludes the switches below from export. So `WEATHER_ENABLED`, `DAILY_WALLPAPER`, `CRASH_REPORTS_ENABLED` and `OMNIBOX_HISTORY_ENABLED` return as saved:
+Device transfer (S2) and settings import also bring back on/off flags. After Android restore, `ParemBackupAgent` clears `Prefs.deviceOnlyKeys`; settings import validates the input, preserves local excluded keys and does not apply imported copies. Neither mechanism excludes the switches below from export. So `WEATHER_ENABLED`, `DAILY_WALLPAPER`, `CRASH_REPORTS_ENABLED` and `OMNIBOX_HISTORY_ENABLED` return as saved:
 
 - **Weather:** N2 resumes on the new phone with no action there (`helper/WeatherManager.kt:45`, `ui/HomeFragment.kt:103`). A place that arrives with weather off is erased at the next home resume, unless the sunrise theme uses it (`MainViewModel.getWeather`).
 - **Daily wallpaper:** the flag returns, but the WorkManager job does not, because backup covers shared preferences only. It restarts on a theme change (`MainActivity.kt:277`).
