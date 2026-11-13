@@ -15,6 +15,7 @@ import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.MindfulPause
+import com.parem.launcher.helper.LaunchGate
 import com.parem.launcher.helper.appLabelOrNull
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.UsageStatsHelper
@@ -49,9 +50,8 @@ object BadHabitDialogs {
     }
 
     /**
-     * The gate every launch route runs for a limited app: focus-blocked apps skip
-     * straight to [open] (which shows the focus toast), then the mindful pause or
-     * the over-limit warning per [MindfulPause.decide]. [onCancel] runs when the
+     * The gate for app launches: Focus blocks before the mindful pause or limit
+     * warning. [onCancel] runs when the
      * pause is backed out of (button, back, swipe-down).
      */
     fun gateLaunch(
@@ -63,9 +63,13 @@ object BadHabitDialogs {
         open: () -> Unit,
         onCancel: () -> Unit = {},
     ) {
-        if (!AppLimitManager.isGated(context, packageName) || !FocusModeManager.isAppAllowed(context, packageName)) {
-            open()
-            return
+        val focus = FocusModeManager.isActive(context)
+        val allowed = FocusModeManager.isAppAllowed(context, packageName)
+        val gated = AppLimitManager.isGated(context, packageName)
+        when (LaunchGate.decide(focus, allowed, gated, false, false)) {
+            LaunchGate.Decision.BLOCK -> { FocusModeManager.showBlocked(context); return }
+            LaunchGate.Decision.OPEN -> if (!gated) { open(); return }
+            else -> Unit
         }
         val limitMinutes = AppLimitManager.getLimit(context, packageName)
         val pause = AppLimitManager.hasPause(context, packageName)
@@ -82,14 +86,20 @@ object BadHabitDialogs {
                 ?.let { limitWarningText(context, label, usageMinutes, it) }
             // Opening past the limit is the "after a limit" grayscale trigger
             val openOverLimit = {
-                if (overLimit) GrayscaleController.onLimitOverride(context)
-                open()
+                if (isActive()) {
+                    if (!FocusModeManager.isAppAllowed(context, packageName)) FocusModeManager.showBlocked(context)
+                    else {
+                        if (overLimit) GrayscaleController.onLimitOverride(context)
+                        open()
+                    }
+                }
             }
-            when (MindfulPause.decide(pause, overLimit)) {
-                MindfulPause.Gate.LAUNCH -> open()
-                MindfulPause.Gate.LIMIT_WARNING ->
+            when (LaunchGate.decide(FocusModeManager.isActive(context), FocusModeManager.isAppAllowed(context, packageName), true, pause, overLimit)) {
+                LaunchGate.Decision.BLOCK -> FocusModeManager.showBlocked(context)
+                LaunchGate.Decision.OPEN -> open()
+                LaunchGate.Decision.LIMIT_WARNING ->
                     showLimitWarning(context, warning.orEmpty(), openOverLimit)
-                MindfulPause.Gate.PAUSE -> showPause(
+                LaunchGate.Decision.PAUSE -> showPause(
                     context,
                     question = context.getString(R.string.mindful_pause_question, label),
                     note = warning,
@@ -103,8 +113,7 @@ object BadHabitDialogs {
     }
 
     /**
-     * The gate for a web open (website shortcut, omnibox search, search gesture):
-     * a web open is not an app launch, so it is gated on the one app that will
+     * The gate for a resolved intent (including web opens): the intent is gated on the app that will
      * receive [intent] per [WebLaunchTarget.target] — focus first, then that
      * app's limit and pause through [gateLaunch]. [open] gets that package and must
      * pin the intent to it; "" means no single app (the chooser, or nothing) — the
@@ -139,6 +148,22 @@ object BadHabitDialogs {
             return
         }
         gateLaunch(context, scope, isActive, "", packageName, open = { open(packageName) })
+    }
+
+    /** Preserve an external action while applying the same receiver gate as web opens. */
+    fun gateIntent(context: Context, scope: CoroutineScope, isActive: () -> Boolean, intent: Intent, onFailure: () -> Unit = {}) {
+        gateWebOpen(context, scope, isActive, intent) { packageName ->
+            if (!isActive()) return@gateWebOpen
+            if (FocusModeManager.isActive(context) && (packageName.isEmpty() || !FocusModeManager.isAppAllowed(context, packageName))) {
+                FocusModeManager.showBlocked(context)
+                return@gateWebOpen
+            }
+            try {
+                context.startActivity(Intent(intent).apply { if (packageName.isNotEmpty()) setPackage(packageName) })
+            } catch (_: Exception) {
+                onFailure()
+            }
+        }
     }
 
     /** Gesture letters pass no name; show the app's label rather than its package. */
