@@ -1,6 +1,8 @@
 package com.parem.launcher
 
 import android.content.Context
+import android.content.ContextWrapper
+import android.content.pm.PackageManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.parem.launcher.data.Prefs
@@ -14,6 +16,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
+import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.FocusSchedule
 import com.parem.launcher.helper.ThemeScheduleManager
@@ -135,6 +138,24 @@ class PrefsRoundTripTest {
         assertEquals(Constants.GestureAction.OPEN_APP, prefs.getEffectiveSwipeLeftAction())
         assertEquals(Constants.GestureAction.OPEN_APP, prefs.getEffectiveSwipeRightAction())
         assertEquals(Constants.GestureAction.LOCK_SCREEN, DoubleTapActionManager.getAction(context))
+    }
+
+    @Test
+    fun quickGrayscaleKeepsManualChoiceWhenAccessIsLost() {
+        sp.edit().putBoolean(GrayscaleController.KEY_MANUAL, false)
+            .putBoolean(GrayscaleController.KEY_SUPPRESSED, true)
+            .putBoolean(GrayscaleController.KEY_ON_FOCUS, false).commit()
+        fun contextWithGrantCheck(firstGranted: Boolean) = object : ContextWrapper(context) {
+            var checks = 0
+            override fun checkSelfPermission(permission: String): Int =
+                if (checks++ == 0 && firstGranted) PackageManager.PERMISSION_GRANTED
+                else PackageManager.PERMISSION_DENIED
+        }
+        assertFalse(GrayscaleController.toggleManualIfGranted(contextWithGrantCheck(false)))
+        assertFalse(GrayscaleController.toggleManualIfGranted(contextWithGrantCheck(true)))
+        assertFalse(sp.getBoolean(GrayscaleController.KEY_MANUAL, true))
+        assertTrue(sp.getBoolean(GrayscaleController.KEY_SUPPRESSED, false))
+        assertFalse(sp.getBoolean(GrayscaleController.KEY_ON_FOCUS, true))
     }
 
     @Test

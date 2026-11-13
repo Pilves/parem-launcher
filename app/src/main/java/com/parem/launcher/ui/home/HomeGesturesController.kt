@@ -402,14 +402,9 @@ class HomeGesturesController(
     }
 
     private fun toggleManualGrayscale() {
-        if (!GrayscaleController.isGranted(context)) {
-            context.showToast(context.getString(R.string.quick_grayscale_needs_access))
-            return
-        }
-        val on = !GrayscaleController.isManual(context)
-        GrayscaleController.setManual(context, on)
-        val message = if (!GrayscaleController.isGranted(context)) R.string.quick_grayscale_needs_access
-        else if (on) R.string.quick_grayscale_manual_on else R.string.quick_grayscale_manual_off
+        val message = if (!GrayscaleController.toggleManualIfGranted(context)) R.string.quick_grayscale_needs_access
+        else if (GrayscaleController.isManual(context)) R.string.quick_grayscale_manual_on
+        else R.string.quick_grayscale_manual_off
         context.showToast(context.getString(message))
     }
 
