@@ -1,7 +1,7 @@
 # Release checklist
 
 The device pass Patric runs before tagging `v*`. Agents prepare the release;
-nobody tags until the applicable listed device checks pass on real devices and the candidate CI checks pass. Copy this file's
+nobody tags until every box below is ticked on a real device. Copy this file's
 checklists into the release PR or issue and tick them there — don't edit this
 file to record a pass.
 
@@ -252,9 +252,9 @@ device. Delete it again once the tag is pushed.
 
 ## UX device checks from 6.0
 
-These checks originated in the 6.0 UX packages. Apply the relevant checks to
-the current release and add checks for changed behavior. Run with TalkBack on
-unless a line says otherwise.
+These checks originated in the 6.0 UX packages. One subsection per UX package;
+each package appends its own lines (append-only, see DESIGN.md 13.2). Run with
+TalkBack on unless a line says otherwise.
 
 ### UX-2 — TalkBack users can leave home (M4-WP32)
 
