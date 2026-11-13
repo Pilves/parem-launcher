@@ -13,6 +13,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
+import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
@@ -161,8 +162,18 @@ class FocusLaunchRoutingTest {
                             break
                         }
                         assertNotNull("no camera handler was visible in the chooser", selected)
-                        device.findObject(By.text(Pattern.compile("(?i)just once")))?.click()
-                        assertTrue("selected camera app did not open", device.wait(Until.hasObject(By.pkg(selected!!)), 5_000))
+                        val deadline = SystemClock.uptimeMillis() + 10_000
+                        var opened = false
+                        while (!opened && SystemClock.uptimeMillis() < deadline) {
+                            try {
+                                opened = device.hasObject(By.pkg(selected!!))
+                                if (!opened) device.findObject(By.text(Pattern.compile("(?i)just once")))?.click()
+                            } catch (_: StaleObjectException) {
+                                // The system resolver can replace its buttons as it finishes loading.
+                            }
+                            if (!opened) SystemClock.sleep(100)
+                        }
+                        assertTrue("selected camera app did not open", opened)
                     } else {
                         assertTrue("camera app did not open", device.wait(Until.hasObject(By.pkg(packageName)), 5_000))
                     }
