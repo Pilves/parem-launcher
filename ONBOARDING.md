@@ -9,19 +9,19 @@ anything. It assumes you're comfortable with Kotlin basics and Neovim.
 
 - **One activity** (`MainActivity`), three main screens as fragments:
   `HomeFragment` (home), `AppDrawerFragment` (swipe up), `SettingsFragment`.
-  Navigation-component handles transitions; there is no other Activity you'll
-  ever touch (ignore `FakeHomeActivity`, it's a trick — see Traps).
-- **One state store**: a single SharedPreferences file, `"com.parem.launcher"`.
-  Core launcher state goes through the typed facade `data/Prefs.kt`; each
-  feature manager in `helper/` owns its own keys directly. There is no
-  database, no DataStore, no DI framework. If you're wondering "where is this
-  remembered?", the answer is always that prefs file.
+  Navigation-component handles transitions; `FakeHomeActivity` supports
+  default-launcher switching (see Traps).
+- **State**: core launcher state is in `"com.parem.launcher"` SharedPreferences,
+  through `data/Prefs.kt` or feature managers in `helper/`. Search history and
+  quiet-notification keys use separate, non-exported preferences files. Opt-in
+  crash reports use `noBackupFilesDir`. There is no database, DataStore or DI framework.
 - **One shared ViewModel**: `MainViewModel`, activity-scoped, reachable from
   every fragment. App list loading and app launching live here.
 - **Pure logic is separated on purpose**: parsers/matchers/calculators live in
   `helper/` as Android-free objects (`ExpressionEvaluator`, `UnitConverter`,
   `SearchMatcher`, `WeatherStaleness`) with JVM tests in `app/src/test`.
-  Everything else is verified by building + running on a device.
+  Instrumented Android tests run in CI; a device pass is still needed for
+  behavior those tests do not cover.
 
 ## Three traces to do on your first day
 
@@ -38,17 +38,15 @@ happening. Find the `FLAG_` constants in `data/Constants.kt`, then look at the
 `when` over them in `MainViewModel`. Once this clicks, half the app makes sense.
 
 **2. "I type `5 km in mi` in the drawer search."**
-Start at `AppDrawerFragment.initSearch()` → `updateOmniboxState()`. The search
-field is an omnibox with a precedence chain: calculator → unit conversion →
-dial → web search → plain app filter. Each mode has a cheap "looks like" gate
-(`ExpressionEvaluator.looksLikeExpression`, `UnitConverter.looksLikeConversion`)
-before the real parse, and every parse failure falls through to app search —
-that's the pattern any new omnibox mode must follow. The parsers themselves
-are Android-free; read `UnitConverterTest` to see the contract spelled out.
+Start at `AppDrawerFragment` search handling → `updateOmniboxState()` →
+`helper/OmniboxResolver.resolve()`. The resolver checks calculator, unit and
+currency conversion, dial, leading-space web search, quick actions, contacts
+and settings, in that order; the drawer also maintains the app filter. Read
+`UnitConverterTest` and `OmniboxResolver` tests for the parser contracts.
 
 **3. "I flip a toggle in settings."**
-Start at `SettingsFragment` — note it's only ~130 lines. Each visual card is a
-class in `ui/settings/` (e.g. `WellbeingSettingsCard`) that takes the
+Start at `SettingsFragment`, which delegates row behavior to the settings
+cards. Each visual card is a class in `ui/settings/` (e.g. `WellbeingSettingsCard`) that takes the
 fragment/binding/prefs in its constructor and owns that card's clicks and
 state. The fragment keeps only cross-card logic (`resetOpenPickers`,
 `populateWellbeingSection`). To find which card owns a row: grep the row's
@@ -109,8 +107,8 @@ ARCHITECTURE.md under "Building on ARM64 hosts".
 1. **Read-only**: do the three traces above; write down one question each.
 2. **Docs**: fix anything this file or ARCHITECTURE.md got wrong — docs PRs
    are real PRs.
-3. **Dead code**: PAREM-113 in `docs/archive/TODO-pre-roadmap.md` (a confirmed-dead function) — small,
-   real, teaches the verify loop and git archaeology.
+3. **Dead code**: verify a candidate has no callers before proposing removal;
+   archived tickets describe past state and are not a current work queue.
 4. **Pure logic**: add a unit alias or category to `UnitConverter` + tests —
    no Android surface, tests prove you right.
 5. **UI change**: pick a roadmap package that touches one fragment,

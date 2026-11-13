@@ -1,5 +1,9 @@
 # Parem design system (6.0 "Calm phone")
 
+This is the 6.0 design target and historical specification, not a claim that every
+item shipped. For current implementation and remaining work, see `HANDOFF.md`
+and `docs/ROADMAP.md`.
+
 Status: proposal by the lead product designer, 2026-10-03, revised the same day
 after the platform/roadmap review (section 15), waiting for Patric's sign-off. It is based on the five specialist reports in `docs/design/ux/`
 (impeccable, taste, motion, inclusive, ia), checked against `origin/next` @ 3915b38.

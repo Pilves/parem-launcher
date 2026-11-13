@@ -1,6 +1,6 @@
 # Architecture
 
-Parem Launcher is a single-module Android app: Kotlin, classic Views with ViewBinding (no Compose), one activity + Navigation-component fragments, no database, no DI framework, no test suite (yet). Everything lives under `app/src/main/java/com/parem/launcher/`.
+Parem Launcher is a single-module Android app: Kotlin, classic Views with ViewBinding (no Compose), one main activity + Navigation-component fragments, no database and no DI framework. Main code lives under `app/src/main/java/com/parem/launcher/`; JVM tests live in `app/src/test/` and instrumented tests in `app/src/androidTest/`.
 
 ## Code map
 
@@ -30,7 +30,8 @@ ui/
                            weather rendering, clock/calendar taps, screen-time row).
   AppDrawerFragment.kt     App list + omnibox search (apps / calculator / unit
                            conversion / dial / web / contact). The active mode
-                           is a single OmniboxMode (sealed, declared here).
+                           is a single OmniboxMode (sealed, declared in
+                           helper/OmniboxResolver.kt).
   AppDrawerAdapter.kt      Drawer rows, long-press menu, rename, auto-launch logic.
   SettingsFragment.kt      Binding lifecycle, constructs/wires the settings/ cards,
                            and the cross-section bits (resetOpenPickers,
@@ -54,7 +55,7 @@ helper/
   One object per feature, each owning its own SharedPreferences keys:
   FocusModeManager, AppLimitManager (+ mindful-pause opt-in; logic in
   MindfulPause), FolderManager (class),
-  GestureLetterManager, SwipeUpAppManager, WeatherManager (Open-Meteo),
+  GestureLetterManager, WeatherManager (Open-Meteo),
   DoubleTapActionManager, ThemeScheduleManager (+ Worker), IconPackManager,
   AppIconCache (bounded ConstantState cache for default app icons),
   WallpaperWorker, ExpressionEvaluator (omnibox calculator),
@@ -75,18 +76,18 @@ helper/
   FakeHomeActivity.kt        Default-launcher switching trick.
 
 data/
-  Prefs.kt                 Typed facade over the single SharedPreferences file,
+  Prefs.kt                 Typed facade over the main SharedPreferences file,
                            plus JSON export/import (settings backup).
   Constants.kt             Flags, URLs, enum-ish objects.
   AppModel.kt, FolderData.kt, DrawerCharacterModel.kt
 
 listener/
-  OnSwipeTouchListener, ViewSwipeTouchListener (gesture detection), DeviceAdmin.
+  OnSwipeTouchListener (gesture detection), DeviceAdmin.
 ```
 
 ## Conventions
 
-- **Storage**: everything is SharedPreferences in the single file `"com.parem.launcher"` (`Prefs.PREFS_NAME`). Core launcher state goes through `data/Prefs.kt`; feature managers in `helper/` read/write their own keys directly. When adding a key that must survive settings export/import with a specific type, register it in `Prefs.LONG_PREF_KEYS`/`FLOAT_PREF_KEYS`, and add device-specific keys to `exportExcludeKeys`.
+- **Storage**: core launcher state is in SharedPreferences `"com.parem.launcher"` (`Prefs.PREFS_NAME`), through `data/Prefs.kt` or feature managers in `helper/`. Search history and quiet-notification keys use separate SharedPreferences files, excluded from settings export and backup. Opt-in crash reports are files in `noBackupFilesDir`. When adding a key that must survive settings export/import with a specific type, register it in `Prefs.LONG_PREF_KEYS`/`FLOAT_PREF_KEYS`, and add device-specific keys to `exportExcludeKeys`.
 - **Bottom sheets**: build them with `ui/BottomSheetMenu`. Don't hand-assemble LinearLayouts.
   A sheet built outside `BottomSheetMenu` (a direct `BottomSheetDialog`) must call `disableAnimationsOnEink()` before it shows, or it slides on e-ink.
   A sheet opened from a fragment must be tied to it with `dismissOnDestroy(viewLifecycleOwner)`: dialogs belong to the activity's window, so Home would otherwise pop the fragment and leave the sheet up with callbacks into a dead fragment.
@@ -151,6 +152,7 @@ After an AGP upgrade, re-copy the new aapt2 binary — the override pins a speci
   in `helper/WeatherStaleness`. Still no per-fetch failure toast/indicator
   beyond that (by design — the home screen stays quiet).
 - Gesture-letter drawing and swipe gestures both see the same touch stream; a fast letter draw can also register as a swipe.
-- JVM unit tests exist only for pure logic (`app/src/test`: evaluator, search
-  matcher, sunrise calculator — `./gradlew testDebugUnitTest`); everything
-  touching Android still relies on `assembleDebug` plus manual runs.
+- JVM unit tests cover pure logic in `app/src/test`; run both flavour tasks
+  `testFullDebugUnitTest` and `testPlayDebugUnitTest`. Instrumented tests in
+  `app/src/androidTest` run on CI emulators, but do not replace real-device
+  checks for gestures, accessibility, permissions and device-specific behaviour.

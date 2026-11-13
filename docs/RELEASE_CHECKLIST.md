@@ -1,7 +1,7 @@
 # Release checklist
 
 The device pass Patric runs before tagging `v*`. Agents prepare the release;
-nobody tags until every box below is ticked on a real device. Copy this file's
+nobody tags until the applicable listed device checks pass on real devices and the candidate CI checks pass. Copy this file's
 checklists into the release PR or issue and tick them there — don't edit this
 file to record a pass.
 
@@ -75,8 +75,8 @@ int, string, boolean, string set) intact and leaves excluded keys local.
 
 ### 7. Settings walk
 
-- [ ] Open every settings card and toggle each row once; nothing crashes,
-      every change shows on home without a restart
+- [ ] Open every settings card and exercise each row's intended action; nothing
+      crashes, and home-affecting changes apply without a restart
 - [ ] Theme switch / scheduled theme applies without a restart loop
 - [ ] Back from settings returns home; Home button from any sub-screen resets
       to home
@@ -234,7 +234,7 @@ Rewrite this section for each release from `[Unreleased]` in CHANGELOG.md and
 the roadmap rows that landed: one line per change, saying what to try on the
 device. Delete it again once the tag is pushed.
 
-**v6.0.0-beta.2 (versionCode 104)** — record the exact candidate SHA and results in `docs/releases/v6.0.0-beta.2-validation.md`. Physical testing is tablet-only by owner instruction; phone-specific checks remain unverified.
+**Historical example: v6.0.0-beta.2 (versionCode 104).** These rows describe that candidate and its tablet-only owner instruction, not the current release. Replace them with this release's checks. Its recorded results are in `docs/releases/v6.0.0-beta.2-validation.md`.
 
 - [ ] Upgrade the same package without clearing data; retain folders, home slots, widgets and app limits; export/import all preference types including wallpaper dimming
 - [ ] On a spare phone with the published, signed v5.5.1 full APK, configure home slots, a folder, a bound widget and a non-default theme; install the signed 6.0.0 full release over it without clearing data. Verify home opens and all four survive. Record the phone and Android version. CI's same-debug-key upgrade does not verify the release signing key.

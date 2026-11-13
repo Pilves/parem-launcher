@@ -264,6 +264,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP17 | **Done** (PR #15). Keep downward app-picker drags in the list | App picker scrolling | See handoff fragment |
 | M6-WP18 | **Done** (PR #17). Release quiet notifications rather than cancelling snoozed keys | Quiet notifications | See handoff fragment |
 | M6-WP19 | **Done** (PR #18). Align roadmap and handoff with v6.0.2 and the v6.1 priorities | `docs/ROADMAP.md`, `HANDOFF.md`, `docs/handoff/M6-WP19.md` | Audit current open rows and regenerate handoff |
+| M6-WP20 | **Done** (PR #0). Correct verified documentation discrepancies and inventory remaining verification | Current operational docs, affected historical handoff fragments, `docs/handoff/M6-WP20.md` | Code-backed corrections reviewed; inventory records files and unverified claims; handoff generated |
 
 ## Recurring (no id)
 

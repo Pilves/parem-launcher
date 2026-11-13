@@ -62,9 +62,11 @@ Recorded 2026-10-03 after the design/manager review round. These override the
 - **Quiet notifications release, never cancel (2026-11-12, M6-WP18).** Overrides
   the M4-WP1 turn-off question. A listener's cancel is a no-op on a snoozed key,
   and the key swallows every later post from that conversation until it ends.
-  Turning the filter off releases every hidden notification to the shade at once
-  (a 1 ms re-snooze), so the Keep/Dismiss sheet is gone; only when no listener is
-  connected does the "within 8 h" toast remain. Opening a quiet-list item or
+  Turning the filter off requests immediate release (a 1 ms re-snooze) for
+  tracked notifications the connected listener can currently reach. Keys the
+  system does not list yet after reboot cannot be released until listed or the
+  snooze ends; if no listener is connected the "within 8 h" toast remains.
+  The Keep/Dismiss sheet is gone. Opening a quiet-list item or
   "Dismiss all" no longer cancels or forgets the key: Parem records the item's
   `Notification.when`, hides it until the app posts a newer one under that key,
   and cancels the unchanged item when it comes back at expiry.

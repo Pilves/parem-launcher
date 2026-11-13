@@ -58,8 +58,8 @@ that still differs, compare with `diffoscope` on the kept build directories.
 
 ## Submitting (Patric)
 
-1. Tag the first release that contains `dependenciesInfo` (6.0) and let
-   `release.yml` publish the APK.
+1. Select the published release tag to submit; the 6.0 releases have already
+   been tagged. Verify the chosen tag and APK before filling the draft recipe.
 2. Run the "Reproducible build" workflow with that tag. It must pass.
 3. Fill the TODOs in `com.parem.launcher.yml` (here): author name,
    versionName/versionCode of the tag, and the signing certificate's SHA-256

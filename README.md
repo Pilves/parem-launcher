@@ -62,13 +62,13 @@ It also finds app shortcuts and Parem's own settings, and your contacts if you o
 Every calm tool is optional, and each says what it needs first.
 
 - **Mindful pause:** choose any app for a question and a five-second wait before it opens.
-- **Quiet notifications:** apps you haven't allowed move out of the shade into a quiet list. Calls, alarms, media, navigation and emergency alerts stay visible, and hidden items return within 8 hours. A short sound or vibration may still play unless you choose Make silent.
+- **Quiet notifications:** apps you haven't allowed move out of the shade into a quiet list. Calls, alarms, media, navigation and emergency alerts stay visible. Hidden items are snoozed for 8 hours and may be hidden again while the filter remains on. A short sound or vibration may still play unless you choose Make silent.
 - **Focus mode:** timed sessions or weekly schedules. Up to 5 allowed apps, and your phone app is never blocked.
 - **Screen time:** today's total on home, a 7-day graph and a weekly review.
 - **App limits:** a daily allowance per app, then a warning you can override.
 - **Grayscale:** now, during focus, after a limit, or per app. Needs a one-time developer-tools permission, granted from a computer. The GitHub APK can also do this on the phone.
 
-Screen time, app limits and mindful pause need usage access. Quiet notifications need notification access.
+Screen time and app limits need usage access. Mindful pause can be enabled without it. Quiet notifications need notification access.
 
 Limits, pause and focus cover apps opened through Parem. They are speed bumps, not a lock, and you can always get past them.
 
@@ -156,7 +156,7 @@ Parem is directed by Patrick and written by AI coding agents, building on [Olaun
 | Device tests | A smoke suite on every pull request, on phone, foldable and tablet emulators running Android 14, plus a tablet on Android 16 |
 | Upgrades | Every pull request builds v5.5.1, seeds it, upgrades in place and verifies the result |
 | Performance | A pull request fails if cold start, return to home, drawer scrolling or typing gets more than 20% worse than a pinned reference build, beyond a noise floor |
-| Release builds | Minified APKs of both flavours are installed and smoke tested on release branches |
+| Release builds | Minified APKs of both flavours can be installed and smoke tested with the manual release-smoke workflow |
 | Real hardware | The release build has been checked on a Nothing phone and a Samsung tablet |
 
 Runtime dependencies are Kotlin, AndroidX and Material Components. There are no Google Play Services, Firebase or analytics SDKs.
@@ -196,6 +196,7 @@ The debug APK lands at `app/build/outputs/apk/full/debug/app-full-debug.apk`.
 
 - [ARCHITECTURE.md](ARCHITECTURE.md): code map, release process, and notes on building on ARM64 hosts (e.g. a Raspberry Pi)
 - [ONBOARDING.md](ONBOARDING.md): how to find your way around the code and ship a first change
+- [CONTRIBUTING.md](CONTRIBUTING.md): build checks and pull-request guidance
 - [CHANGELOG.md](CHANGELOG.md): what changed in each release
 
 ## Credits and licence
