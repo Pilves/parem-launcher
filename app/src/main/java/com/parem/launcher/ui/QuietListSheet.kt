@@ -177,6 +177,7 @@ object QuietListSheet {
                     ?.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString()?.trim()
                 val text = if (title.isNullOrEmpty()) app else "$app: $title"
                 menu.option(text) {
+                    if (!fragment.isAdded || fragment.view == null || !isAlive()) return@option
                     if (!FocusModeManager.isAppAllowed(context, sbn.packageName)) {
                         FocusModeManager.showBlocked(context)
                         return@option
