@@ -122,6 +122,7 @@ class PermissionLossGateTest {
         val cancelled = AtomicInteger()
         val siblingStarted = CountDownLatch(1)
         val releaseSibling = CountDownLatch(1)
+        val siblingFinished = CountDownLatch(1)
         AppLimitManager.setLimit(context, pkg, 15)
         AppLimitManager.setPause(context, pkg, advanceToPause)
         try {
@@ -140,7 +141,8 @@ class PermissionLossGateTest {
                 source = fragment
                 // Keep unrelated IO alive after scope cancellation; dismissal must not wait for it.
                 fragment.viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    withContext(NonCancellable) { siblingStarted.countDown(); releaseSibling.await(30, TimeUnit.SECONDS) }
+                    try { withContext(NonCancellable) { siblingStarted.countDown(); releaseSibling.await(60, TimeUnit.SECONDS) } }
+                    finally { siblingFinished.countDown() }
                 }
                 BadHabitDialogs.gateLaunch(activity, fragment.viewLifecycleOwner.lifecycleScope,
                     { fragment.isAdded && fragment.view != null }, "Fixture", pkg,
@@ -160,7 +162,7 @@ class PermissionLossGateTest {
             instrumentation.runOnMainSync { check(source.view == null) { "HOME did not destroy the source view" } }
             assertTrue("sheet survived its screen", device.wait(Until.gone(visibleSheet), 10_000))
             assertEquals(1, cancelled.get())
-            assertEquals("sibling unexpectedly completed before dismissal", 1L, releaseSibling.count)
+            assertEquals("sibling unexpectedly completed before dismissal", 1L, siblingFinished.count)
         } finally {
             releaseSibling.countDown()
             AppLimitManager.removeLimit(context, pkg)
