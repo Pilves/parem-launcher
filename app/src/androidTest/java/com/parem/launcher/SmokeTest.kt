@@ -893,6 +893,8 @@ class SmokeTest {
 
     @Test
     fun swipeDownSearchRevealsItsSetting() {
+        val prefs = Prefs(context)
+        prefs.swipeDownAction = Constants.SwipeDownAction.SEARCH
         instrumentation.runOnMainSync {
             val activity = ActivityLifecycleMonitorRegistry.getInstance()
                 .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
@@ -907,7 +909,14 @@ class SmokeTest {
         val option = By.desc(context.getString(R.string.notifications))
         assertTrue("swipe-down sheet did not open", device.wait(Until.hasObject(option), TIMEOUT))
         device.findObject(option).click()
-        assertTrue("swipe-down row vanished after picking", device.hasObject(row))
+        assertTrue("swipe-down row vanished after picking", device.wait(Until.hasObject(row), TIMEOUT))
+        assertEquals(Constants.SwipeDownAction.NOTIFICATIONS, prefs.swipeDownAction)
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            val value = ViewCompat.getStateDescription(activity.findViewById(R.id.flSwipeDown))
+            assertEquals(context.getString(R.string.notifications), value?.toString())
+        }
     }
 
     @Test
