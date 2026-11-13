@@ -79,6 +79,8 @@ class FocusLaunchRoutingTest {
                 FocusModeManager.disable(context)
                 scenario.onActivity { it.findViewById<View>(R.id.date).performClick() }
                 awaitLaunches(2)
+                SystemClock.sleep(750)
+                assertEquals("blocked date must not launch later", 2, monitor.hits)
             }
         } finally {
             instrumentation.removeMonitor(monitor)
