@@ -287,7 +287,7 @@ class HomeSlotsController(
         homeAppViews.forEach { it.visibility = View.GONE }
     }
 
-    fun homeAppClicked(location: Int) {
+    fun homeAppClicked(location: Int, sourceView: View? = null) {
         if (folderManager.isFolderSlot(location)) {
             toggleFolderExpansion(location)
             return
@@ -300,7 +300,8 @@ class HomeSlotsController(
             prefs.getHomeAppPackage(location),
             prefs.getHomeAppActivityClassName(location),
             prefs.getHomeAppUser(location),
-            prefs.getHomeAppUrl(location).ifEmpty { null }
+            prefs.getHomeAppUrl(location).ifEmpty { null },
+            sourceView
         )
     }
 
@@ -310,7 +311,10 @@ class HomeSlotsController(
      * the mindful pause apply to all of them. A website slot is gated on the
      * app that handles its URL, not on its empty package.
      */
-    fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String? = null) {
+    fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String? = null, sourceView: View? = null) {
+        val sourceBounds = sourceView?.let { android.graphics.Rect().also { bounds -> it.getGlobalVisibleRect(bounds) } }
+        if (com.parem.launcher.BuildConfig.DEBUG && sourceBounds != null)
+            android.util.Log.d("ParemNavigation", "Home launch bounds: $sourceBounds")
         val ctx = fragment.context ?: return
         if (url != null) {
             val safeUrl = WebShortcut.normalize(url) ?: run {
@@ -328,7 +332,7 @@ class HomeSlotsController(
         BadHabitDialogs.gateLaunch(
             ctx, fragment.viewLifecycleOwner.lifecycleScope, { fragment.isAdded },
             appName, packageName,
-            open = { openApp(appName, packageName, activityClassName, userString, url) },
+            open = { openApp(appName, packageName, activityClassName, userString, url, sourceBounds) },
         )
     }
 
@@ -341,7 +345,7 @@ class HomeSlotsController(
         )
     }
 
-    private fun openApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String?) {
+    private fun openApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String?, sourceBounds: android.graphics.Rect? = null) {
         viewModel.selectedApp(
             AppModel(
                 appName,
@@ -352,7 +356,7 @@ class HomeSlotsController(
                 getUserHandleFromString(context, userString),
                 url
             ),
-            Constants.FLAG_LAUNCH_APP
+            Constants.FLAG_LAUNCH_APP, sourceBounds = sourceBounds
         )
     }
 

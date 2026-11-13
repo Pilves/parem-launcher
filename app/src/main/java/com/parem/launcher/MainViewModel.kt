@@ -119,7 +119,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         super.onCleared()
     }
 
-    fun selectedApp(appModel: AppModel, flag: Int, gestureLetter: Char? = null) {
+    fun selectedApp(appModel: AppModel, flag: Int, gestureLetter: Char? = null, sourceBounds: android.graphics.Rect? = null) {
         when (flag) {
             Constants.FLAG_LAUNCH_APP, Constants.FLAG_HIDDEN_APPS -> {
                 // Before the package check: a website's package is the browser the
@@ -134,10 +134,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     return
                 }
                 if (appModel.shortcutId != null) {
-                    launchShortcut(appModel, appModel.shortcutId)
+                    launchShortcut(appModel, appModel.shortcutId, sourceBounds)
                     return
                 }
-                launchApp(appModel.appPackage, appModel.activityClassName, appModel.user, appModel.isPrivate)
+                launchApp(appModel.appPackage, appModel.activityClassName, appModel.user, appModel.isPrivate, sourceBounds)
             }
 
             in Constants.FLAG_SET_HOME_APP_1..Constants.FLAG_SET_HOME_APP_8 -> {
@@ -252,11 +252,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun launchApp(packageName: String, activityClassName: String?, userHandle: UserHandle, isPrivate: Boolean = false) {
+    private fun launchApp(packageName: String, activityClassName: String?, userHandle: UserHandle, isPrivate: Boolean = false, sourceBounds: android.graphics.Rect? = null) {
         // Fast path: the activity is known for every home slot and drawer row —
         // launch synchronously instead of paying two dispatcher hops per tap
         if (!activityClassName.isNullOrBlank()) {
-            if (startApp(ComponentName(packageName, activityClassName), userHandle, packageName, isPrivate, reportFailure = false)) return
+            if (startApp(ComponentName(packageName, activityClassName), userHandle, packageName, isPrivate, sourceBounds, reportFailure = false)) return
             // Stale component (app updated and renamed its activity) — fall through to resolve
         }
         viewModelScope.launch {
@@ -273,7 +273,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 appContext.showToast(appContext.getString(R.string.app_not_found))
                 return@launch
             }
-            if (!startApp(component, userHandle, packageName, isPrivate)) {
+            if (!startApp(component, userHandle, packageName, isPrivate, sourceBounds)) {
                 appContext.showToast(appContext.getString(R.string.unable_to_open_app))
             }
         }
@@ -283,9 +283,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * Any failure toasts, including SecurityException when Parem stopped being
      * the default home after the drawer listed the shortcut.
      */
-    private fun launchShortcut(appModel: AppModel, shortcutId: String) {
+    private fun launchShortcut(appModel: AppModel, shortcutId: String, sourceBounds: android.graphics.Rect?) {
         try {
-            launcherApps.startShortcut(appModel.appPackage, shortcutId, null, null, appModel.user)
+            launcherApps.startShortcut(appModel.appPackage, shortcutId, sourceBounds, null, appModel.user)
             if (!appModel.isPrivate) AppOpenCounter.increment(appContext, appModel.appPackage)
         } catch (e: Exception) {
             Log.e("MainViewModel", "Failed to start shortcut $shortcutId of ${appModel.appPackage}", e)
@@ -299,10 +299,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         userHandle: UserHandle,
         packageName: String,
         isPrivate: Boolean,
+        sourceBounds: android.graphics.Rect?,
         reportFailure: Boolean = true
     ): Boolean {
         val started = try {
-            launcherApps.startMainActivity(component, userHandle, null, null)
+            launcherApps.startMainActivity(component, userHandle, sourceBounds, null)
             // Open counts are exported; a private package name must never land there
             if (!isPrivate) AppOpenCounter.increment(appContext, packageName)
             true

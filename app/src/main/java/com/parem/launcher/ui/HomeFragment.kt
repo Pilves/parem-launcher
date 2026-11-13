@@ -121,7 +121,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             else -> {
                 try { // Launch app
                     val appLocation = view.tag.toString().toInt()
-                    slotsController?.homeAppClicked(appLocation)
+                    slotsController?.homeAppClicked(appLocation, view)
                 } catch (e: Exception) {
                     CrashReporter.reportNonFatal("HomeFragment: Failed to launch app", e)
                 }
@@ -247,6 +247,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         includeHiddenApps: Boolean = false,
         query: String? = null,
     ) {
+        val nav = findNavController()
+        if (nav.currentDestination?.id != R.id.mainFragment) return
         viewModel.getAppList(includeHiddenApps)
         val args = bundleOf(
             Constants.Key.FLAG to flag,
@@ -254,11 +256,11 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             Constants.Key.QUERY to query
         )
         try {
-            findNavController().navigate(R.id.action_mainFragment_to_appListFragment, args)
+            nav.navigate(R.id.action_mainFragment_to_appListFragment, args)
         } catch (e: Exception) {
             android.util.Log.w("ParemGesture", "drawer navigation failed", e)
             CrashReporter.reportNonFatal("HomeFragment: Navigation to app list failed, using fallback", e)
-            findNavController().navigate(R.id.appListFragment, args)
+            if (nav.currentDestination?.id == R.id.mainFragment) nav.navigate(R.id.appListFragment, args)
         }
     }
 

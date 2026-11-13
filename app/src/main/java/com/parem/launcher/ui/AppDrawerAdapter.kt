@@ -30,7 +30,7 @@ import com.parem.launcher.helper.ShortcutMatcher
 class AppDrawerAdapter(
     private var flag: Int,
     private val appLabelGravity: Int,
-    private val appClickListener: (AppModel) -> Unit,
+    private val appClickListener: (AppModel, View?) -> Unit,
     private val appLongPressListener: (AppModel) -> Unit,
 ) : ListAdapter<AppModel, AppDrawerAdapter.ViewHolder>(DIFF_CALLBACK), Filterable {
 
@@ -212,7 +212,7 @@ class AppDrawerAdapter(
                     try {
                         if (token == autoLaunchVersion && filterState.isCurrent(generation) &&
                             isQueryReady(query) && autoLaunchGuard(query))
-                            firstApp(filteredSnapshot, includeShortcuts = false)?.let(appClickListener)
+                            firstApp(filteredSnapshot, includeShortcuts = false)?.let { appClickListener(it, null) }
                     } catch (e: Exception) {
                         CrashReporter.reportNonFatal("AppDrawerAdapter.autoLaunch", e)
                     }
@@ -278,7 +278,7 @@ class AppDrawerAdapter(
 
     fun launchFirstInList() {
         // Enter is explicit: unlike auto-launch it may activate the Private Space entry.
-        currentList.firstOrNull { it.appPackage.isNotEmpty() || it.isPrivateHeader() }?.let(appClickListener)
+        currentList.firstOrNull { it.appPackage.isNotEmpty() || it.isPrivateHeader() }?.let { appClickListener(it, null) }
     }
 
     class ViewHolder(private val binding: AdapterAppDrawerBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -287,7 +287,7 @@ class AppDrawerAdapter(
             appLabelGravity: Int,
             myUserHandle: UserHandle,
             appModel: AppModel,
-            clickListener: (AppModel) -> Unit,
+            clickListener: (AppModel, View?) -> Unit,
             longPressListener: (AppModel) -> Unit,
             usageStats: Map<String, Long>,
             openCounts: Map<String, Int>,
@@ -300,7 +300,7 @@ class AppDrawerAdapter(
                     appTitle.text = root.context.getString(R.string.private_space)
                     appTitle.gravity = appLabelGravity
                     appTitle.setCompoundDrawablesRelative(null, null, null, null)
-                    appTitle.setOnClickListener { clickListener(appModel) }
+                    appTitle.setOnClickListener { clickListener(appModel, appTitle) }
                     appTitle.setOnLongClickListener(null)
                     otherProfileIndicator.isVisible = false
                     appUsageTime.text = appModel.appLabel
@@ -340,7 +340,7 @@ class AppDrawerAdapter(
                     appTitle.text = appModel.shortcutLabel
                     appUsageTime.text = appModel.appLabel
                     appUsageTime.visibility = View.VISIBLE
-                    appTitle.setOnClickListener { clickListener(appModel) }
+                    appTitle.setOnClickListener { clickListener(appModel, appTitle) }
                     appTitle.setOnLongClickListener(null)
                     return
                 }
@@ -359,7 +359,7 @@ class AppDrawerAdapter(
                     appUsageTime.visibility = View.GONE
                 }
 
-                appTitle.setOnClickListener { clickListener(appModel) }
+                appTitle.setOnClickListener { clickListener(appModel, appTitle) }
                 appTitle.setOnLongClickListener {
                     longPressListener(appModel)
                     true

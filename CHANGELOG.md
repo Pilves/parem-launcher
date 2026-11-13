@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Make drawer dismissal deliberate and navigation transitions seekable.
+
 - Bring hidden notifications back to the shade at once when their app is allowed or quiet notifications are turned off, which no longer asks Keep or Dismiss. Show a new message in the quiet list when its chat was opened or dismissed there, instead of losing it, and keep the quiet list after a restart.
 
 ## v6.0.2 — 2026-11-11

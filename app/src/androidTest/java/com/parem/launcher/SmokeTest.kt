@@ -315,7 +315,7 @@ class SmokeTest {
         lateinit var adapter: AppDrawerAdapter
         instrumentation.runOnMainSync {
             adapter = AppDrawerAdapter(Constants.FLAG_LAUNCH_APP, android.view.Gravity.START,
-                appClickListener = { clicks.incrementAndGet() }, appLongPressListener = {})
+                appClickListener = { _, _ -> clicks.incrementAndGet() }, appLongPressListener = {})
             adapter.onFilterCommitted = { query ->
                 if (query == "Alpha Fixture") {
                     // Queue Enter first. The adapter posts its auto-launch after this callback.
