@@ -15,7 +15,6 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
-import com.parem.launcher.helper.WidgetOperationResult
 import com.parem.launcher.ui.HomeFragment
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -174,7 +173,7 @@ class WidgetAvailabilityTest {
             onHome { activity ->
                 assertEquals("pending configure was overwritten", pending, activity.pendingWidgetOp?.getInt("widgetId"))
                 assertEquals("original swap target was overwritten", first, activity.pendingWidgetOp?.getInt("replaceId"))
-                home(activity).widgetController!!.onPendingWidgetResult(WidgetOperationResult(2, 2, pending, null, true))
+                home(activity).widgetController!!.onPendingWidgetResult(true)
             }
             val deadline = SystemClock.elapsedRealtime() + 10_000
             while (prefs.getWidgetIdList() != listOf(pending, second) && SystemClock.elapsedRealtime() < deadline)
@@ -206,7 +205,7 @@ class WidgetAvailabilityTest {
                     }
                 }
                 scenario.recreate()
-                scenario.onActivity { activity -> home(activity).widgetController!!.onPendingWidgetResult(WidgetOperationResult(2, 2, newWidget, null, true)) }
+                scenario.onActivity { activity -> home(activity).widgetController!!.onPendingWidgetResult(true) }
                 val deadline = SystemClock.elapsedRealtime() + 10_000
                 while (prefs.getWidgetIdList() != listOf(second, newWidget) && SystemClock.elapsedRealtime() < deadline)
                     SystemClock.sleep(50)
@@ -220,7 +219,7 @@ class WidgetAvailabilityTest {
                     activity.pendingWidgetOp = Bundle().apply {
                         putInt("stage", 2); putInt("widgetId", abandoned); putInt("replaceId", first)
                     }
-                    home(activity).widgetController!!.onPendingWidgetResult(WidgetOperationResult(2, 2, abandoned, null, true))
+                    home(activity).widgetController!!.onPendingWidgetResult(true)
                 }
                 val cleanupDeadline = SystemClock.elapsedRealtime() + 10_000
                 var leaked = true
@@ -236,23 +235,79 @@ class WidgetAvailabilityTest {
         }
     }
     @Test
-    fun mismatchedResultCannotConsumePendingConfigureOrDeleteItsId() {
+    fun cancelledConfigureAndRestoredBooleanPreserveSwapAndDropNewId() {
         prepare()
+        val prefs = Prefs(context)
         try {
             ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-                var pending = -1
+                var original = -1
+                var replacement = -1
                 scenario.onActivity { activity ->
-                    pending = activity.appWidgetHost.allocateAppWidgetId()
-                    activity.pendingWidgetOp = Bundle().apply { putInt("stage", 2); putInt("widgetId", pending); putInt("replaceId", -1) }
-                    val controller = home(activity).widgetController!!
-                    controller.onPendingWidgetResult(WidgetOperationResult(1, 2, pending, null, false))
-                    controller.onPendingWidgetResult(WidgetOperationResult(2, 2, pending, pending + 1, false))
-                    controller.onPendingWidgetResult(WidgetOperationResult(2, 2, pending + 1, null, false))
-                    assertEquals(pending, activity.pendingWidgetOp?.getInt("widgetId"))
-                    assertTrue(pending in activity.appWidgetHost.appWidgetIds)
-                    controller.onPendingWidgetResult(WidgetOperationResult(2, 2, pending, null, false))
-                    assertEquals(null, activity.pendingWidgetOp)
+                    original = activity.appWidgetHost.allocateAppWidgetId()
+                    replacement = activity.appWidgetHost.allocateAppWidgetId()
+                    prefs.setWidgetIdList(listOf(original))
+                    prefs.setWidgetHeight(original, 177)
+                    prefs.setWidgetProvider(original, provider.flattenToString())
+                    activity.pendingWidgetOp = Bundle().apply {
+                        putInt("stage", 2); putInt("widgetId", replacement); putInt("replaceId", original)
+                    }
+                    activity.pendingWidgetResult = false // Legacy deferred Boolean saved across recreation.
+                }
+                scenario.recreate()
+                val deadline = SystemClock.elapsedRealtime() + 10_000
+                var allocated = true
+                while (allocated && SystemClock.elapsedRealtime() < deadline) {
+                    scenario.onActivity { allocated = replacement in it.appWidgetHost.appWidgetIds }
+                    if (allocated) SystemClock.sleep(50)
+                }
+                assertFalse("cancelled replacement still allocated", allocated)
+                assertEquals(listOf(original), prefs.getWidgetIdList())
+                val fresh = Prefs(context)
+                assertEquals(177, fresh.getWidgetHeight(original))
+                assertEquals(provider.flattenToString(), fresh.getAllWidgetProviders()[original])
+                scenario.onActivity { assertTrue(original in it.appWidgetHost.appWidgetIds) }
+            }
+        } finally {
+            device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
+        }
+    }
+
+    @Test
+    fun cancelledConfigureAddReleasesOnlyUnsavedNewId() {
+        prepare()
+        val prefs = Prefs(context)
+        try {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                scenario.onActivity { activity ->
+                    val pending = activity.appWidgetHost.allocateAppWidgetId()
+                    activity.pendingWidgetOp = Bundle().apply {
+                        putInt("stage", 2); putInt("widgetId", pending); putInt("replaceId", -1)
+                    }
+                    home(activity).widgetController!!.onPendingWidgetResult(false)
+                    assertTrue(prefs.getWidgetIdList().isEmpty())
                     assertFalse(pending in activity.appWidgetHost.appWidgetIds)
+                }
+            }
+        } finally {
+            device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
+        }
+    }
+
+    @Test
+    fun cancelledConfigureNeverReleasesAnAlreadySavedId() {
+        prepare()
+        val prefs = Prefs(context)
+        try {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                scenario.onActivity { activity ->
+                    val saved = activity.appWidgetHost.allocateAppWidgetId()
+                    prefs.setWidgetIdList(listOf(saved))
+                    activity.pendingWidgetOp = Bundle().apply {
+                        putInt("stage", 2); putInt("widgetId", saved); putInt("replaceId", -1)
+                    }
+                    home(activity).widgetController!!.onPendingWidgetResult(false)
+                    assertEquals(listOf(saved), prefs.getWidgetIdList())
+                    assertTrue(saved in activity.appWidgetHost.appWidgetIds)
                 }
             }
         } finally {

@@ -144,7 +144,7 @@ class WidgetProviderFixtureTest {
         }
     }
     @Test
-    fun actualCancelWithNullDataKeepsSwapTargetAfterHomeAndRecreation() {
+    fun homeCancelsRealConfigurationAndPreservesSwapTarget() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("widget_fixture") == "true")
         assumeTrue(BuildConfig.DEBUG && context.packageName == "com.parem.launcher.debug")
         assumeTrue(Build.HARDWARE == "ranchu" || Build.PRODUCT.contains("sdk_gphone"))
@@ -158,11 +158,12 @@ class WidgetProviderFixtureTest {
         var first = -1
         var second = -1
         var pending = -1
-        var oldActivity: MainActivity? = null
+        lateinit var owner: MainActivity
         try {
             check(device.pressHome())
             check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
             onHome { activity ->
+                owner = activity
                 first = activity.appWidgetHost.allocateAppWidgetId()
                 second = activity.appWidgetHost.allocateAppWidgetId()
                 prefs.setWidgetIdList(listOf(first, second))
@@ -179,36 +180,21 @@ class WidgetProviderFixtureTest {
             checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.EditText")), 20_000)).text = "configurable"
             checkNotNull(device.wait(Until.findObject(By.text("Parem configurable fixture")), 20_000)).click()
             assertTrue(device.wait(Until.hasObject(By.text("Parem fixture configuration")), 15_000))
-            assertTrue(device.pressHome())
-            assertTrue(device.wait(Until.hasObject(unavailable), 10_000))
-            onHome { activity ->
-                val operation = checkNotNull(activity.pendingWidgetOp)
+            instrumentation.runOnMainSync {
+                val operation = checkNotNull(owner.pendingWidgetOp)
                 assertEquals(2, operation.getInt("stage"))
                 assertEquals(first, operation.getInt("replaceId"))
                 pending = operation.getInt("widgetId")
-                oldActivity = activity
-                activity.recreate()
             }
-            val recreateDeadline = SystemClock.elapsedRealtime() + 15_000
-            var recreated = false
-            while (!recreated && SystemClock.elapsedRealtime() < recreateDeadline) {
-                instrumentation.runOnMainSync {
-                    recreated = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
-                        .filterIsInstance<MainActivity>().any { it !== oldActivity }
-                }
-                if (!recreated) SystemClock.sleep(100)
-            }
-            assertTrue("home activity did not recreate", recreated)
+            assertTrue(device.pressHome())
             assertTrue(device.wait(Until.hasObject(unavailable), 15_000))
-            onHome { assertEquals(pending, it.pendingWidgetOp?.getInt("widgetId")) }
-            device.executeShellCommand("am broadcast -a $fixture.CANCEL -p $fixture")
             val deadline = SystemClock.elapsedRealtime() + 15_000
-            var stillAllocated = true
-            while (stillAllocated && SystemClock.elapsedRealtime() < deadline) {
-                onHome { stillAllocated = pending in it.appWidgetHost.appWidgetIds }
-                if (stillAllocated) SystemClock.sleep(100)
+            var allocated = true
+            while (allocated && SystemClock.elapsedRealtime() < deadline) {
+                onHome { allocated = pending in it.appWidgetHost.appWidgetIds }
+                if (allocated) SystemClock.sleep(100)
             }
-            assertFalse("cancelled allocation was not released", stillAllocated)
+            assertFalse("HOME-cancelled configure allocation remains", allocated)
             assertEquals(listOf(first, second), prefs.getWidgetIdList())
             val fresh = Prefs(context)
             assertEquals(101, fresh.getWidgetHeight(first))
