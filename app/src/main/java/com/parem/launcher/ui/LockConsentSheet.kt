@@ -4,10 +4,28 @@ import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.MainActivity
 import com.parem.launcher.R
 import com.parem.launcher.helper.ChannelFeatures
 import com.parem.launcher.listener.DeviceAdmin
+
+/** A lock disclosure must not survive its screen moving to the background. */
+fun BottomSheetDialog.dismissLockSheetOnStop(owner: LifecycleOwner): BottomSheetDialog {
+    val observer = object : LifecycleEventObserver {
+        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+            if (event == Lifecycle.Event.ON_STOP || event == Lifecycle.Event.ON_DESTROY) {
+                source.lifecycle.removeObserver(this)
+                dismiss()
+            }
+        }
+    }
+    owner.lifecycle.addObserver(observer)
+    return this
+}
 
 /**
  * Play's prominent disclosure for the lock accessibility service. Every route
@@ -23,7 +41,7 @@ import com.parem.launcher.listener.DeviceAdmin
 fun Context.withRestrictedNote(body: String): String =
     ChannelFeatures.restrictedSettingsNote(this)?.let { body + "\n\n" + it } ?: body
 
-fun showLockConsent(context: Context, onAccept: () -> Unit, onDecline: () -> Unit, onUseAdmin: (() -> Unit)? = null) {
+fun showLockConsent(context: Context, onAccept: () -> Unit, onDecline: () -> Unit, onUseAdmin: (() -> Unit)? = null): BottomSheetDialog {
     var decided = false
     val body = context.withRestrictedNote(context.getString(R.string.lock_consent_body))
     val menu = BottomSheetMenu(context)
@@ -38,7 +56,7 @@ fun showLockConsent(context: Context, onAccept: () -> Unit, onDecline: () -> Uni
             decided = true
             onUseAdmin()
         }
-    menu.option(context.getString(R.string.lock_consent_decline), dimmed = true) {
+    return menu.option(context.getString(R.string.lock_consent_decline), dimmed = true) {
             decided = true
             onDecline()
         }
@@ -53,7 +71,7 @@ fun showLockConsent(context: Context, onAccept: () -> Unit, onDecline: () -> Uni
  * the full disclosure and an explicit accept, because it routes into
  * accessibility settings (M2-WP5: consent before every such route).
  */
-fun showLockServiceOff(context: Context, onAccept: () -> Unit, onUseAdmin: (() -> Unit)? = null) {
+fun showLockServiceOff(context: Context, onAccept: () -> Unit, onUseAdmin: (() -> Unit)? = null): BottomSheetDialog {
     val body = context.withRestrictedNote(
         context.getString(R.string.lock_service_off_body) + "\n\n" + context.getString(R.string.lock_consent_body)
     )
@@ -63,7 +81,7 @@ fun showLockServiceOff(context: Context, onAccept: () -> Unit, onUseAdmin: (() -
         .option(context.getString(R.string.lock_consent_accept), onClick = onAccept)
     if (onUseAdmin != null)
         menu.option(context.getString(R.string.lock_admin_option), onClick = onUseAdmin)
-    menu.option(context.getString(R.string.lock_consent_decline), dimmed = true) {}
+    return menu.option(context.getString(R.string.lock_consent_decline), dimmed = true) {}
         .show()
 }
 

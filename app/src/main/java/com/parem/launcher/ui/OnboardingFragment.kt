@@ -312,7 +312,7 @@ class OnboardingFragment : BaseFragment() {
                 }
             },
             onDecline = {},
-        )
+        ).dismissLockSheetOnStop(viewLifecycleOwner)
     }
 
     private fun lockWorks(ctx: Context): Boolean {

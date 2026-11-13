@@ -8,6 +8,7 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import androidx.core.os.bundleOf
+import androidx.lifecycle.Lifecycle
 import com.parem.launcher.MainActivity
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -24,6 +25,7 @@ import com.parem.launcher.listener.DeviceAdmin
 import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.ui.SettingsFragment
 import com.parem.launcher.ui.dismissOnDestroy
+import com.parem.launcher.ui.dismissLockSheetOnStop
 import com.parem.launcher.ui.requestLockAdmin
 import com.parem.launcher.ui.showLockConsent
 
@@ -43,6 +45,7 @@ class GesturesSettingsCard(
 ) : View.OnClickListener {
 
     private val context get() = binding.root.context
+    private val viewLifecycle = fragment.viewLifecycleOwner.lifecycle
 
     private val deviceManager =
         context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
@@ -209,9 +212,9 @@ class GesturesSettingsCard(
                 if (actionValue == Constants.GestureAction.LOCK_SCREEN) {
                     ensureLockPermission(onDecline = {
                         val reverted = revertedLockAction(previous)
-                        if (isLeft) prefs.swipeLeftAction = reverted
-                        else prefs.swipeRightAction = reverted
-                        if (fragment.isAdded) {
+                        if (isLeft && prefs.swipeLeftAction == Constants.GestureAction.LOCK_SCREEN) prefs.swipeLeftAction = reverted
+                        else if (!isLeft && prefs.swipeRightAction == Constants.GestureAction.LOCK_SCREEN) prefs.swipeRightAction = reverted
+                        if (viewLifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
                             populateSwipeApps()
                             populateLockMethod()
                         }
@@ -268,8 +271,9 @@ class GesturesSettingsCard(
                 }
                 if (actionValue == Constants.GestureAction.LOCK_SCREEN) {
                     ensureLockPermission(onDecline = {
-                        DoubleTapActionManager.setAction(context, revertedLockAction(previous))
-                        if (fragment.isAdded) {
+                        if (DoubleTapActionManager.getAction(context) == Constants.GestureAction.LOCK_SCREEN)
+                            DoubleTapActionManager.setAction(context, revertedLockAction(previous))
+                        if (viewLifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
                             populateDoubleTapAction()
                             populateLockMethod()
                         }
@@ -304,11 +308,11 @@ class GesturesSettingsCard(
                 (fragment.activity as? MainActivity)?.let { activity ->
                     requestLockAdmin(activity) { ok ->
                         if (!ok) onDecline()
-                        else if (fragment.isAdded) populateLockMethod()
+                        else if (viewLifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) populateLockMethod()
                     }
                 } ?: onDecline()
             },
-        )
+        ).dismissLockSheetOnStop(fragment.viewLifecycleOwner)
     }
 
     private fun hasLockGesture() =
