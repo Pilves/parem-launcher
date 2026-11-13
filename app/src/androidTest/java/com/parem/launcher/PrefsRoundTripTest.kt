@@ -16,6 +16,7 @@ import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
+import org.junit.Assume.assumeTrue
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.GrayscaleController
@@ -166,6 +167,7 @@ class PrefsRoundTripTest {
         fun shell(command: String): String = ParcelFileDescriptor.AutoCloseInputStream(
             automation.executeShellCommand(command)
         ).bufferedReader().use { it.readText().trim() }
+        assumeTrue("requires a disposable Android emulator", shell("getprop ro.kernel.qemu") == "1")
         val enabledKey = "accessibility_display_daltonizer_enabled"
         val modeKey = "accessibility_display_daltonizer"
         val previousEnabled = shell("settings get secure $enabledKey")
