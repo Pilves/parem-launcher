@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.SystemClock
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
@@ -59,6 +60,7 @@ class OnboardingFragment : BaseFragment() {
     private var guideAnimated = false
     // The role dialog may stay suppressed after one denial, so the second tap goes to settings
     private var askedForHome = false
+    private var lastHomeRequestAt: Long? = null
     private val rows = mutableListOf<Row>()
 
     private val backPress = object : OnBackPressedCallback(true) {
@@ -144,6 +146,9 @@ class OnboardingFragment : BaseFragment() {
     }
 
     private fun askForHome() {
+        val now = SystemClock.elapsedRealtime()
+        if (lastHomeRequestAt?.let { now - it < 1_000L } == true) return
+        lastHomeRequestAt = now
         if (!askedForHome) {
             askedForHome = true
             viewModel.resetLauncherLiveData.call()
