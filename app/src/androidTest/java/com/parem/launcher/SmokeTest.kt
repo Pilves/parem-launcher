@@ -389,7 +389,8 @@ class SmokeTest {
             val adapter = RecentHistoryAdapter(android.view.Gravity.START,
                 onApp = { model, view -> clickedApp = model; clickedView = view }, onQuery = {})
             adapter.submit(listOf(RecentHistoryAdapter.Row.App(app)))
-            val holder = adapter.onCreateViewHolder(RecyclerView(activity), 1)
+            val parent = RecyclerView(activity).apply { layoutManager = androidx.recyclerview.widget.LinearLayoutManager(activity) }
+            val holder = adapter.onCreateViewHolder(parent, 1)
             adapter.onBindViewHolder(holder, 1)
             holder.itemView.performClick()
             assertEquals(app, clickedApp)
