@@ -191,8 +191,10 @@ is a bug:
   The only wake locks are WorkManager's while a job runs: scheduled theme
   (every 3 h, battery not low), daily wallpaper (every 8 h, network + battery
   not low) and the one-shot grayscale focus-end job.
-- Weather and scheduled focus are evaluated only when home resumes (weather
-  at most once an hour, 10 min backoff after a failure). Nothing polls them.
+- Home resume initiates the weather check (roughly hourly on success, with
+  10 min stored backoff after an exception). Scheduled focus is evaluated on
+  demand, including launch, settings and grayscale checks; it does not poll
+  schedule boundaries.
 - Quiet notifications: the listener is disabled until the user turns it on;
   per notification it does cheap checks first and binder lookups only for a
   candidate it might hide.
