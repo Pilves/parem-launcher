@@ -7,6 +7,7 @@
 - Announce single-choice sheet rows as checked radio buttons without misleading On/Off states.
 - Dismiss first-run tips when the drawer or Settings is opened by any route.
 - Remove unused settings views and drawer animation resources.
+- Keep picker actions visible while scrolling long app lists.
 
 - Retry a daily wallpaper after its download or application fails.
 - Add 25-minute Focus and manual grayscale quick actions to the home menu and gestures.
