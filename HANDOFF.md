@@ -377,6 +377,6 @@ per package; the rest of each of those fragments is still in
 - **M6-WP43 (PR #50):** Settings import bounds file size and JSON nesting and rejects out-of-range registered settings before applying any changes.
 - **M6-WP45 (PR #49):** Picker rows retain their checkbox accessibility semantics through filtering and RecyclerView rebinding.
 - **M6-WP46 (PR #48):** Pull requests run both flavor JVM suites, Node harness tests and the Play APK pairing check.
-- **M6-WP52 (PR #0):** Screen-time freshness checks treat future timestamps as stale after a clock rollback.
+- **M6-WP52 (PR #57):** Screen-time freshness checks treat future timestamps as stale after a clock rollback.
 
 <!-- handoff:end -->

@@ -294,7 +294,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP46 | **Done** (PR #48). **Todo**. Run JVM and build checks on pull requests | `.github/workflows/unit.yml`, handoff | Both flavor JVM suites, Node harness tests and the Play debug APK check run on each PR |
 | M6-WP43 | **Done** (PR #50). **Todo**. Reject unsafe settings backups before parsing or changing preferences | Settings import validation, settings card, import tests and handoff | Import bounds size and nesting, validates numeric ranges and leaves data untouched on failure |
 
-| M6-WP52 | **Done** (PR #0). **Todo**. Refresh screen time after a clock rollback | Screen-time freshness checks, tests, changelog and handoff | Future timestamps refresh both the home tile and shared usage cache while normal one-minute throttles remain |
+| M6-WP52 | **Done** (PR #57). **Todo**. Refresh screen time after a clock rollback | Screen-time freshness checks, tests, changelog and handoff | Future timestamps refresh both the home tile and shared usage cache while normal one-minute throttles remain |
 
 ## Recurring (no id)
 
