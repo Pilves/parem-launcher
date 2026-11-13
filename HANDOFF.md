@@ -339,6 +339,6 @@ per package; the rest of each of those fragments is still in
 - **M6-WP17 (PR #15):** A downward drag that starts in an app-picker list (folder, focus mode, quiet list, app limits) scrolls the list back up and no longer closes the sheet.
 - **M6-WP18 (PR #17):** Quiet notifications release instead of cancelling: allowing an app or turning the filter off re-snoozes Parem's keys for 1 ms so they return to the shade at once, and opening or dismissing a quiet-list item only marks it.
 - **M6-WP19 (PR #18):** The roadmap now records v6.0.2 and the audited v6.1 priorities, with open M4 identifiers retained.
-- **M6-WP20 (PR #0):** Operational documentation reflects verified current storage, test, onboarding, release and quiet-notification behavior; superseded handoff summaries identify later changes.
+- **M6-WP20 (PR #21):** Operational documentation reflects verified current storage, test, onboarding, release and quiet-notification behavior; superseded handoff summaries identify later changes.
 
 <!-- handoff:end -->
