@@ -301,7 +301,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP47 | **Done** (PR #52). **Todo**. Bound folder and home-slot names | `ui/AppMenu.kt`, `ui/CreateFolderDialog.kt`, `ui/home/HomeSlotsController.kt`, shared name limit, regression test | New names have a shared limit; existing names stay stored and are ellipsized on home |
 
 | M6-WP48 | **Done** (PR #53). **Todo**. Correct small gesture, website, onboarding and picker inconsistencies | Gesture choices, website input, onboarding and picker search | Current swipe app is visible, non-web input rejected, home setup is debounced and picker search is inset |
-| M6-WP55 | **Done** (PR #0). **Todo**. Explain unavailable grayscale recovery and app-limit checks | Grayscale and usage gates, usage query status, tests, strings and handoff | Pending restoration preserves trigger choices; unavailable usage is never treated as known zero |
+| M6-WP55 | **Done** (PR #60). **Todo**. Explain unavailable grayscale recovery and app-limit checks | Grayscale and usage gates, usage query status, tests, strings and handoff | Pending restoration preserves trigger choices; unavailable usage is never treated as known zero |
 
 | M6-WP53 | **Done** (PR #59). **Todo**. Preserve unavailable widgets without empty bind dialogs | Widget host reconciliation, placeholder, swap safety, tests, changelog and handoff | Unknown provider state preserves saved ID and exposes explicit removal; swaps retain their original target |
 | M6-WP54 | **Done** (PR #58). **Todo**. Reject invisible-only home labels | Home label logic, slot/folder/website dialogs, tests and handoff | Preserve visible Unicode sequences and old stored labels; prevent new invisible-only home rows |
