@@ -3,6 +3,7 @@ package com.parem.launcher.ui
 import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
+import android.provider.Settings
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -33,8 +34,11 @@ object GrayscaleSheet {
 
     fun open(fragment: Fragment, onPair: () -> Unit, onChanged: () -> Unit) {
         val context = fragment.context ?: return
-        if (GrayscaleController.isGranted(context)) showToggles(fragment, onChanged)
-        else showGrant(fragment, onPair, onChanged)
+        when {
+            GrayscaleController.isGranted(context) -> showToggles(fragment, onPair, onChanged)
+            GrayscaleController.restorationPendingWithoutAccess(context) -> showRestoreWarning(fragment, onPair, onChanged)
+            else -> showGrant(fragment, onPair, onChanged, recovery = false)
+        }
     }
 
     /**
@@ -47,7 +51,7 @@ object GrayscaleSheet {
         val context = fragment.context ?: return
         when {
             GrayscaleController.isAppMarked(context, pkg) -> GrayscaleController.toggleAppMark(context, pkg)
-            !GrayscaleController.isGranted(context) -> showGrant(fragment, onPair = { startPairing(fragment) }, onChanged = {})
+            !GrayscaleController.isGranted(context) -> showGrant(fragment, onPair = { startPairing(fragment) }, onChanged = {}, recovery = GrayscaleController.restorationPendingWithoutAccess(context))
             !context.appUsagePermissionGranted() -> showDialog(Constants.Dialog.GRAYSCALE_USAGE_ACCESS)
             !isParemDefault(context) -> showDialog(Constants.Dialog.GRAYSCALE_DEFAULT_HOME)
             else -> GrayscaleController.toggleAppMark(context, pkg)
@@ -67,7 +71,7 @@ object GrayscaleSheet {
      * command land with Parem in the foreground, so onResume alone would miss
      * them. The grant turns grayscale on, since tapping "Grayscale" was the intent.
      */
-    private fun showGrant(fragment: Fragment, onPair: () -> Unit, onChanged: () -> Unit) {
+    private fun showGrant(fragment: Fragment, onPair: () -> Unit, onChanged: () -> Unit, recovery: Boolean) {
         val context = fragment.requireContext()
         val pkg = context.packageName
         val shortUrl = context.getString(R.string.grayscale_grant_url) +
@@ -125,10 +129,12 @@ object GrayscaleSheet {
                 return@Runnable
             }
             dialog.dismiss()
-            GrayscaleController.setManual(context, true)
-            context.showToast(R.string.grayscale_ready)
+            val restoring = recovery || GrayscaleController.restorationPending(context)
+            if (restoring) GrayscaleController.reconcile(context)
+            else GrayscaleController.setManual(context, true)
+            if (!restoring) context.showToast(R.string.grayscale_ready)
             onChanged()
-            if (fragment.isAdded && fragment.view != null) showToggles(fragment, onChanged)
+            if (fragment.isAdded && fragment.view != null) showToggles(fragment, onPair, onChanged)
         }
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
@@ -145,7 +151,27 @@ object GrayscaleSheet {
         }
     }
 
+<<<<<<< HEAD
     private fun showToggles(fragment: Fragment, onChanged: () -> Unit) {
+=======
+    private fun showRestoreWarning(fragment: Fragment, onPair: () -> Unit, onChanged: () -> Unit) {
+        val context = fragment.context ?: return
+        BottomSheetMenu(context)
+            .title(context.getString(R.string.grayscale))
+            .message(context.getString(R.string.grayscale_restore_pending))
+            .option(context.getString(R.string.grayscale_restore_access)) {
+                showGrant(fragment, onPair, onChanged, recovery = true)
+            }
+            .option(context.getString(R.string.grayscale_android_settings)) {
+                try { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
+                catch (_: android.content.ActivityNotFoundException) { context.showToast(R.string.grayscale_settings_unavailable) }
+            }
+            .option(context.getString(R.string.not_now), dimmed = true) {}
+            .show().dismissOnDestroy(fragment.viewLifecycleOwner)
+    }
+
+    private fun showToggles(fragment: Fragment, onPair: () -> Unit, onChanged: () -> Unit) {
+>>>>>>> 427ebd04 (Explain unavailable grayscale and app limit checks)
         val context = fragment.context ?: return
         val content = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
         fun toggle(label: Int, initial: Boolean, onToggle: (Boolean) -> Unit) {
@@ -158,7 +184,11 @@ object GrayscaleSheet {
                 }
             })
         }
-        toggle(R.string.grayscale_now, GrayscaleController.isManual(context)) { GrayscaleController.setManual(context, it) }
+        toggle(R.string.grayscale_now, GrayscaleController.isManual(context)) {
+            GrayscaleController.setManual(context, it)
+            if (!it && GrayscaleController.restorationPendingWithoutAccess(context))
+                showRestoreWarning(fragment, onPair, onChanged)
+        }
         toggle(R.string.grayscale_during_focus, GrayscaleController.isOnFocus(context)) { GrayscaleController.setOnFocus(context, it) }
         toggle(R.string.grayscale_after_limit, GrayscaleController.isOnLimit(context)) { GrayscaleController.setOnLimit(context, it) }
         BottomSheetMenu(context)
