@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--On-phone grayscale pairing: absent from the play build-->
-    <string name="grayscale_grant_wifi" translatable="false">On this phone, over Wi-Fi:\n1. Turn on Developer options: Android Settings › About phone > tap Build number 7 times.\n2. In Developer options, turn on Wireless debugging and tap Pair device with pairing code.\n3. Pull down Parem\'s notification and type the 6-digit code into it.</string>
-    <string name="grayscale_pair_start" translatable="false">Start pairing</string>
-    <string name="grayscale_pair_needs_notif" translatable="false">Allow notifications so you can type the pairing code</string>
-    <string name="grayscale_pair_notif_title" translatable="false">Grayscale: pairing code</string>
-    <string name="grayscale_pair_notif_text" translatable="false">In Wireless debugging, tap Pair device with pairing code, then type the 6-digit code here.</string>
-    <string name="grayscale_pair_code_hint" translatable="false">6-digit code</string>
-    <string name="grayscale_pair_enter_code" translatable="false">Enter code</string>
-    <string name="grayscale_pair_working" translatable="false">Pairing…</string>
-    <string name="grayscale_pair_done" translatable="false">Grayscale is on. You can turn Wireless debugging off again.</string>
-    <string name="grayscale_pair_err_code" translatable="false">That code did not work. Keep the pairing dialog open and type the 6-digit code it shows.</string>
-    <string name="grayscale_pair_err_not_found" translatable="false">No pairing dialog found. Make sure Wi-Fi is on, tap Pair device with pairing code, and keep it open while you type.</string>
-    <string name="grayscale_pair_err_connect" translatable="false">Paired, but Wireless debugging is not reachable. Check it is still on and try again.</string>
-    <string name="grayscale_pair_err_refused" translatable="false">The phone refused the permission. Some phones need an extra switch in Developer options (for example USB debugging (Security settings)). Turn it on and try again.</string>
-    <string name="grayscale_pair_err_generic" translatable="false">Pairing failed. Try again with a new code.</string>
-    <string name="lock_consent_restricted" translatable="false">If the switch is greyed out: App info > menu > Allow restricted settings.</string>
+    <string name="grayscale_grant_wifi">On this phone, over Wi-Fi:\n1. Turn on Developer options: Android Settings › About phone > tap Build number 7 times.\n2. In Developer options, turn on Wireless debugging and tap Pair device with pairing code.\n3. Pull down Parem\'s notification and type the 6-digit code into it.</string>
+    <string name="grayscale_pair_start">Start pairing</string>
+    <string name="grayscale_pair_needs_notif">Allow notifications so you can type the pairing code</string>
+    <string name="grayscale_pair_notif_title">Grayscale: pairing code</string>
+    <string name="grayscale_pair_notif_text">In Wireless debugging, tap Pair device with pairing code, then type the 6-digit code here.</string>
+    <string name="grayscale_pair_code_hint">6-digit code</string>
+    <string name="grayscale_pair_enter_code">Enter code</string>
+    <string name="grayscale_pair_working">Pairing…</string>
+    <string name="grayscale_pair_done">Grayscale is on. You can turn Wireless debugging off again.</string>
+    <string name="grayscale_pair_err_code">That code did not work. Keep the pairing dialog open and type the 6-digit code it shows.</string>
+    <string name="grayscale_pair_err_not_found">No pairing dialog found. Make sure Wi-Fi is on, tap Pair device with pairing code, and keep it open while you type.</string>
+    <string name="grayscale_pair_err_connect">Paired, but Wireless debugging is not reachable. Check it is still on and try again.</string>
+    <string name="grayscale_pair_err_refused">The phone refused the permission. Some phones need an extra switch in Developer options (for example USB debugging (Security settings)). Turn it on and try again.</string>
+    <string name="grayscale_pair_err_generic">Pairing failed. Try again with a new code.</string>
+    <string name="lock_consent_restricted">If the switch is greyed out: App info > menu > Allow restricted settings.</string>
     <!--main carries the wording for builds whose only grant route is a computer-->
-    <string name="grayscale_grant_computer" translatable="false">Or with a computer: turn on USB debugging, plug the phone in, and open this page in Chrome or Edge:</string>
-    <string name="onboarding_row_grayscale_caption" translatable="false">One-time setup, about 2 min</string>
+    <string name="grayscale_grant_computer">Or with a computer: turn on USB debugging, plug the phone in, and open this page in Chrome or Edge:</string>
+    <string name="onboarding_row_grayscale_caption">One-time setup, about 2 min</string>
 </resources>

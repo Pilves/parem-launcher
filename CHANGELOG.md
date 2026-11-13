@@ -20,6 +20,8 @@
 - Limit new folder, home-slot and website labels and keep long home labels within two lines.
 - Clarify the selected swipe app, reject non-web shortcut schemes, debounce home setup and align picker search.
 - Avoid repeating unchanged first-run tip layout work when returning home.
+- Add an Estonian translation draft for the launcher and full-build setup.
+
 - Show the correct default-home settings row after checking the current role.
 
 - Announce single-choice sheet rows as checked radio buttons without misleading On/Off states.

@@ -17,7 +17,7 @@
     <string name="set_as_default_launcher">Set as default launcher</string>
     <string name="set_as_default_launcher_first">Set Parem Launcher default first</string>
     <string name="double_tap_to_lock_screen">Double tap to lock</string>
-    <string name="admin_permission_message" translatable="false">Parem uses this only to lock the screen when its accessibility service can\'t. After each such lock, your next unlock needs your PIN, pattern or password: fingerprint and face unlock won\'t work for it. Parem uses no other device admin power, and locking reads and sends nothing. To uninstall Parem, first turn this off in Parem\'s Settings › Gestures.</string>
+    <string name="admin_permission_message">Parem uses this only to lock the screen when its accessibility service can\'t. After each such lock, your next unlock needs your PIN, pattern or password: fingerprint and face unlock won\'t work for it. Parem uses no other device admin power, and locking reads and sends nothing. To uninstall Parem, first turn this off in Parem\'s Settings › Gestures.</string>
     <string name="off">Off</string>
     <string name="on">On</string>
     <string name="change_default_launcher">Change default launcher</string>
@@ -40,25 +40,25 @@
     <string name="_6">6</string>
     <string name="_7">7</string>
     <string name="_8">8</string>
-    <string name="home_guidance_swipe" translatable="false">Swipe up for apps</string>
-    <string name="home_guidance_long_press" translatable="false">Long press the background for settings</string>
-    <string name="drawer_guidance" translatable="false">Type an app name to search</string>
+    <string name="home_guidance_swipe">Swipe up for apps</string>
+    <string name="home_guidance_long_press">Long press the background for settings</string>
+    <string name="drawer_guidance">Type an app name to search</string>
     <string name="app_drawer_tips">Tip: Start typing an app name to auto-launch it</string>
     <string name="google_search_hint" translatable="false">↵  Google: %1$s</string>
-    <string name="light_theme_from" translatable="false">Light theme from</string>
-    <string name="dark_theme_from" translatable="false">Dark theme from</string>
-    <string name="call_hint" translatable="false">↵  Call: %1$s</string>
-    <string name="contact_hint" translatable="false">↵  Call %1$s · %2$s</string>
-    <string name="setting_hint" translatable="false">Settings › %1$s</string>
+    <string name="light_theme_from">Light theme from</string>
+    <string name="dark_theme_from">Dark theme from</string>
+    <string name="call_hint">↵  Call: %1$s</string>
+    <string name="contact_hint">↵  Call %1$s · %2$s</string>
+    <string name="setting_hint">Settings › %1$s</string>
     <string name="currency_hint" translatable="false">≈ %1$s · ECB %2$s</string>
-    <string name="alarm_hint" translatable="false">↵  Alarm %1$s</string>
-    <string name="timer_hint" translatable="false">↵  Timer %1$s</string>
-    <string name="event_hint" translatable="false">↵  Event %1$s · %2$s</string>
-    <string name="event_all_day" translatable="false">%1$s, all day</string>
-    <string name="quick_action_sent" translatable="false">Sent to Clock</string>
-    <string name="quick_action_no_app" translatable="false">No app on this phone can do that</string>
+    <string name="alarm_hint">↵  Alarm %1$s</string>
+    <string name="timer_hint">↵  Timer %1$s</string>
+    <string name="event_hint">↵  Event %1$s · %2$s</string>
+    <string name="event_all_day">%1$s, all day</string>
+    <string name="quick_action_sent">Sent to Clock</string>
+    <string name="quick_action_no_app">No app on this phone can do that</string>
     <!-- Empty-drawer hint, one per drawer open: what the search field can do -->
-    <string-array name="omnibox_hints" translatable="false">
+    <string-array name="omnibox_hints">
         <item>2+2</item>
         <item>alarm 7:30</item>
         <item>5 km to mi</item>
@@ -67,21 +67,21 @@
         <item>event friday 3pm dentist</item>
         <item>100 eur in usd</item>
     </string-array>
-    <string name="currency_downloading" translatable="false">Downloading ECB rates…</string>
-    <string name="currency_unavailable" translatable="false">ECB rates unavailable offline</string>
-    <string name="contact_search" translatable="false">Contact search</string>
-    <string name="search_history" translatable="false">Search history</string>
-    <string name="search_history_clear" translatable="false">Clear</string>
-    <string name="search_history_cleared" translatable="false">Search history cleared</string>
-    <string name="search_history_recent" translatable="false">Recent</string>
+    <string name="currency_downloading">Downloading ECB rates…</string>
+    <string name="currency_unavailable">ECB rates unavailable offline</string>
+    <string name="contact_search">Contact search</string>
+    <string name="search_history">Search history</string>
+    <string name="search_history_clear">Clear</string>
+    <string name="search_history_cleared">Search history cleared</string>
+    <string name="search_history_recent">Recent</string>
     <string name="search_history_query" translatable="false">“%1$s”</string>
-    <string name="crash_reports" translatable="false">Crash reports</string>
-    <string name="crash_report_title" translatable="false">Parem crashed last time</string>
-    <string name="crash_report_body" translatable="false">Parem saved a report of the crash on this phone. Parem has sent nothing. Send opens an app you choose with the full report, so you can read it before it goes anywhere. It holds the error, which can name an app or a web address, plus Parem\'s version, the Android version, the phone\'s maker and model, and the time. It includes no app list, contacts or settings.</string>
-    <string name="crash_report_send" translatable="false">Send report</string>
-    <string name="crash_report_copy" translatable="false">Copy report</string>
-    <string name="crash_report_discard" translatable="false">Discard</string>
-    <string name="crash_report_subject" translatable="false">Parem crash report</string>
+    <string name="crash_reports">Crash reports</string>
+    <string name="crash_report_title">Parem crashed last time</string>
+    <string name="crash_report_body">Parem saved a report of the crash on this phone. Parem has sent nothing. Send opens an app you choose with the full report, so you can read it before it goes anywhere. It holds the error, which can name an app or a web address, plus Parem\'s version, the Android version, the phone\'s maker and model, and the time. It includes no app list, contacts or settings.</string>
+    <string name="crash_report_send">Send report</string>
+    <string name="crash_report_copy">Copy report</string>
+    <string name="crash_report_discard">Discard</string>
+    <string name="crash_report_subject">Parem crash report</string>
     <string name="okay">Okay</string>
     <string name="auto_show_keyboard">Auto show keyboard</string>
     <string name="status_bar">Status bar on top</string>
@@ -103,15 +103,15 @@
     <string name="bottom_on">Bottom: On</string>
     <string name="bottom_off">Bottom: Off</string>
     <string name="please_set_parem_as_default_first">Please set Parem Launcher as default first</string>
-    <string name="hidden_apps_message" translatable="false">Hidden. Find it under Hidden apps in Settings.</string>
-    <string name="hidden_apps_hint" translatable="false">Not in the list? Check hidden apps</string>
+    <string name="hidden_apps_message">Hidden. Find it under Hidden apps in Settings.</string>
+    <string name="hidden_apps_hint">Not in the list? Check hidden apps</string>
     <string name="swipe_down_for">Swipe down for</string>
     <string name="search">Search</string>
     <string name="notifications">Notifications</string>
     <string name="double_tap_lock">Double tap to lock</string>
     <string name="disable">Disable</string>
     <string name="text_size">Text size</string>
-    <string name="bold_font" translatable="false">Bold font</string>
+    <string name="bold_font">Bold font</string>
     <string name="enabled">Enabled</string>
     <string name="disabled">Disabled</string>
     <string name="please_turn_on_double_tap_to_unlock">Please turn on double tap to lock</string>
@@ -121,9 +121,9 @@
     <string name="copied">Copied</string>
     <string name="type_a_new_app_name_first">Type a new app name first</string>
     <string name="app_not_found">App not found</string>
-    <string name="private_space" translatable="false">Private space</string>
-    <string name="private_space_unlock" translatable="false">Unlock</string>
-    <string name="private_space_lock" translatable="false">Lock</string>
+    <string name="private_space">Private space</string>
+    <string name="private_space_unlock">Unlock</string>
+    <string name="private_space_lock">Lock</string>
     <string name="swipe_left_app_enabled">Swipe left app enabled</string>
     <string name="swipe_right_app_enabled">Swipe right app enabled</string>
     <string name="swipe_left_app_disabled">Swipe left app disabled</string>
@@ -159,8 +159,8 @@
     <string name="swipe_left_action">Swipe left action</string>
     <string name="swipe_right_action">Swipe right action</string>
     <string name="open_app">Open app</string>
-    <string name="select_app" translatable="false">Select app</string>
-    <string name="change_app" translatable="false">Change app</string>
+    <string name="select_app">Select app</string>
+    <string name="change_app">Change app</string>
     <string name="lock_screen">Lock screen</string>
     <string name="camera">Camera</string>
     <string name="flashlight">Flashlight</string>
@@ -173,90 +173,90 @@
     <string name="import_settings_confirm">This will overwrite your current settings. Continue?</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
-    <string name="checking_hidden_apps" translatable="false">Checking hidden apps…</string>
-    <string name="hidden_apps_check_failed" translatable="false">Couldn’t check hidden apps. Try again.</string>
+    <string name="checking_hidden_apps">Checking hidden apps…</string>
+    <string name="hidden_apps_check_failed">Couldn’t check hidden apps. Try again.</string>
     <string name="no_apps_found">No apps found</string>
 
     <!-- Folders -->
-    <string name="create_folder" translatable="false">Create folder</string>
-    <string name="folder_name" translatable="false">Folder name</string>
-    <string name="select_apps" translatable="false">Select apps (max 4)</string>
+    <string name="create_folder">Create folder</string>
+    <string name="folder_name">Folder name</string>
+    <string name="select_apps">Select apps (max 4)</string>
 
     <!-- Icon Packs -->
-    <string name="show_icons" translatable="false">Show icons</string>
-    <string name="lock_home_layout" translatable="false">Lock home layout</string>
-    <string name="home_layout_locked" translatable="false">Home layout is locked. Unlock it in Settings.</string>
-    <string name="select_icon_pack" translatable="false">Select icon pack</string>
-    <string name="system_icons" translatable="false">System icons</string>
+    <string name="show_icons">Show icons</string>
+    <string name="lock_home_layout">Lock home layout</string>
+    <string name="home_layout_locked">Home layout is locked. Unlock it in Settings.</string>
+    <string name="select_icon_pack">Select icon pack</string>
+    <string name="system_icons">System icons</string>
 
     <!-- Screen Time Limits -->
 
     <!-- Double Tap -->
-    <string name="double_tap_action" translatable="false">Double tap action</string>
+    <string name="double_tap_action">Double tap action</string>
 
     <!-- Theme Schedule -->
-    <string name="scheduled" translatable="false">Scheduled</string>
-    <string name="sunrise_sunset" translatable="false">Sunrise/Sunset</string>
+    <string name="scheduled">Scheduled</string>
+    <string name="sunrise_sunset">Sunrise/Sunset</string>
 
     <!-- Focus Mode -->
     <string name="focus_mode">Focus mode</string>
-    <string name="focus_mode_on" translatable="false">Focus mode is ON</string>
-    <string name="focus_remaining" translatable="false">Remaining: %s</string>
+    <string name="focus_mode_on">Focus mode is ON</string>
+    <string name="focus_remaining">Remaining: %s</string>
     <string name="enable_focus">Enable</string>
-    <string name="disable_focus" translatable="false">Disable</string>
+    <string name="disable_focus">Disable</string>
     <string name="focus_25_min">25 minutes</string>
     <string name="focus_1_hour">1 hour</string>
     <string name="focus_2_hours">2 hours</string>
     <string name="focus_until_disable">Until I disable</string>
-    <string name="focus_until_disabled_status" translatable="false">Until manually disabled</string>
+    <string name="focus_until_disabled_status">Until manually disabled</string>
     <string name="focus_duration">Duration</string>
     <string name="focus_allowed_apps">Allowed apps (max 5)</string>
-    <string name="app_blocked_focus" translatable="false">Blocked by Focus Mode</string>
-    <string name="app_blocked_focus_scheduled" translatable="false">Focus until %1$s. Pause it in %2$s.</string>
-    <string name="app_blocked_focus_scheduled_no_end" translatable="false">Focus is scheduled. Pause it in %1$s.</string>
+    <string name="app_blocked_focus">Blocked by Focus Mode</string>
+    <string name="app_blocked_focus_scheduled">Focus until %1$s. Pause it in %2$s.</string>
+    <string name="app_blocked_focus_scheduled_no_end">Focus is scheduled. Pause it in %1$s.</string>
     <string name="focus_schedule">Schedule</string>
     <string name="focus_schedule_add">Add window</string>
     <string name="focus_schedule_hint">Tap a window to edit it, long-press to remove it</string>
-    <string name="focus_schedule_days" translatable="false">Days</string>
-    <string name="focus_schedule_start" translatable="false">Start</string>
-    <string name="focus_schedule_end" translatable="false">End</string>
-    <string name="focus_schedule_every_day" translatable="false">Every day</string>
-    <string name="focus_schedule_until" translatable="false">Scheduled until %s</string>
-    <string name="focus_schedule_no_end" translatable="false">Scheduled, no end in the next 7 days</string>
-    <string name="focus_schedule_empty_whitelist" translatable="false">No apps allowed: only calls work during scheduled focus.</string>
+    <string name="focus_schedule_days">Days</string>
+    <string name="focus_schedule_start">Start</string>
+    <string name="focus_schedule_end">End</string>
+    <string name="focus_schedule_every_day">Every day</string>
+    <string name="focus_schedule_until">Scheduled until %s</string>
+    <string name="focus_schedule_no_end">Scheduled, no end in the next 7 days</string>
+    <string name="focus_schedule_empty_whitelist">No apps allowed: only calls work during scheduled focus.</string>
 
     <!-- Quick Note -->
     <string name="save">Save</string>
 
     <!-- Weather -->
-    <string name="weather" translatable="false">Weather</string>
-    <string name="weather_settings" translatable="false">Weather settings</string>
-    <string name="search_city" translatable="false">Search city\u2026</string>
-    <string name="searching" translatable="false">Searching\u2026</string>
-    <string name="no_results" translatable="false">No results found</string>
-    <string name="current_city" translatable="false">Current: %s</string>
+    <string name="weather">Weather</string>
+    <string name="weather_settings">Weather settings</string>
+    <string name="search_city">Search city\u2026</string>
+    <string name="searching">Searching\u2026</string>
+    <string name="no_results">No results found</string>
+    <string name="current_city">Current: %s</string>
 
     <!-- App Limits -->
-    <string name="app_limits" translatable="false">App limits</string>
-    <string name="app_limit_warning" translatable="false">You\u2019ve used %1$s for %2$s today (limit: %3$s)</string>
-    <string name="open_anyway" translatable="false">Open anyway</string>
+    <string name="app_limits">App limits</string>
+    <string name="app_limit_warning">You\u2019ve used %1$s for %2$s today (limit: %3$s)</string>
+    <string name="open_anyway">Open anyway</string>
     <string name="go_back">Go back</string>
-    <string name="select_time_limit" translatable="false">Select daily time limit</string>
-    <string name="mindful_pause_turn_on" translatable="false">Turn on mindful pause</string>
-    <string name="mindful_pause_turn_off" translatable="false">Turn off mindful pause</string>
+    <string name="select_time_limit">Select daily time limit</string>
+    <string name="mindful_pause_turn_on">Turn on mindful pause</string>
+    <string name="mindful_pause_turn_off">Turn off mindful pause</string>
     <string name="mindful_pause_question">Why are you opening %1$s?</string>
     <string name="mindful_pause_wait">Open %1$s in %2$d…</string>
-    <string name="mindful_pause_open" translatable="false">Open %1$s</string>
+    <string name="mindful_pause_open">Open %1$s</string>
 
     <!-- Gesture Letters -->
-    <string name="gesture_letters" translatable="false">Gesture letters</string>
-    <string name="no_app_for_letter" translatable="false">No app assigned to letter %s</string>
+    <string name="gesture_letters">Gesture letters</string>
+    <string name="no_app_for_letter">No app assigned to letter %s</string>
 
     <!-- Wellbeing section -->
-    <string name="wellbeing" translatable="false">Digital Wellbeing</string>
+    <string name="wellbeing">Digital Wellbeing</string>
 
     <!-- General new -->
-    <string name="configure" translatable="false">Configure</string>
+    <string name="configure">Configure</string>
 
     <!-- Onboarding -->
 
@@ -267,61 +267,61 @@
 
     <string name="screen_time_week_title">Screen time \u2014 last 7 days</string>
     <string name="top_apps_week">Top apps this week</string>
-    <string name="top_apps_day" translatable="false">Top apps \u2014 %1$s</string>
+    <string name="top_apps_day">Top apps \u2014 %1$s</string>
     <string name="daily_average">%1$s/day average</string>
     <string name="weekly_review_title">This week vs last week</string>
-    <string name="weekly_review_up" translatable="false">Up %1$d%% from %2$s/day last week</string>
-    <string name="weekly_review_down" translatable="false">Down %1$d%% from %2$s/day last week</string>
-    <string name="weekly_review_same" translatable="false">Same as last week (%1$s/day)</string>
-    <string name="weekly_review_partial" translatable="false">Last week has %1$d of 7 days on record</string>
+    <string name="weekly_review_up">Up %1$d%% from %2$s/day last week</string>
+    <string name="weekly_review_down">Down %1$d%% from %2$s/day last week</string>
+    <string name="weekly_review_same">Same as last week (%1$s/day)</string>
+    <string name="weekly_review_partial">Last week has %1$d of 7 days on record</string>
     <string name="weekly_review_no_history">Not enough usage history yet to compare with last week</string>
-    <string name="weekly_review_riser" translatable="false">Most up: %1$s, +%2$s/day</string>
-    <string name="weekly_review_faller" translatable="false">Most down: %1$s, \u2212%2$s/day</string>
-    <string name="apps_dont_fit" translatable="false">Only %1$d apps fit — resize or remove widgets first</string>
-    <string name="home_apps_hidden" translatable="false">Only %1$d apps fit — hidden: %2$s. Resize or remove widgets, or lower Apps on home screen</string>
-    <string name="widget_doesnt_fit" translatable="false">No room for a widget with %1$d apps on home — lower Apps on home screen in Settings first</string>
-    <string name="folder_name_hint" translatable="false">Social, Work, etc.</string>
-    <string name="folder_needs_name_and_app" translatable="false">Enter a name and select at least one app</string>
-    <string name="unable_to_open_link" translatable="false">Unable to open link</string>
-    <string name="add_website" translatable="false">Add website…</string>
+    <string name="weekly_review_riser">Most up: %1$s, +%2$s/day</string>
+    <string name="weekly_review_faller">Most down: %1$s, \u2212%2$s/day</string>
+    <string name="apps_dont_fit">Only %1$d apps fit — resize or remove widgets first</string>
+    <string name="home_apps_hidden">Only %1$d apps fit — hidden: %2$s. Resize or remove widgets, or lower Apps on home screen</string>
+    <string name="widget_doesnt_fit">No room for a widget with %1$d apps on home — lower Apps on home screen in Settings first</string>
+    <string name="folder_name_hint">Social, Work, etc.</string>
+    <string name="folder_needs_name_and_app">Enter a name and select at least one app</string>
+    <string name="unable_to_open_link">Unable to open link</string>
+    <string name="add_website">Add website…</string>
     <string name="website_url_hint" translatable="false">example.com</string>
-    <string name="website_label_hint" translatable="false">Label (optional)</string>
-    <string name="invalid_url" translatable="false">Enter a web address (http or https)</string>
-    <string name="folder_full" translatable="false">A folder holds up to 4 items</string>
-    <string name="select_an_app" translatable="false">Please select an app</string>
+    <string name="website_label_hint">Label (optional)</string>
+    <string name="invalid_url">Enter a web address (http or https)</string>
+    <string name="folder_full">A folder holds up to 4 items</string>
+    <string name="select_an_app">Please select an app</string>
     <string name="lock_consent_body">Double tap to lock uses Android\'s accessibility service. Android tells Parem\'s service when you tap inside Parem. The service ignores every tap except the one on its own invisible lock area, and when that tap comes it asks Android to lock the screen. It gets no events from other apps and cannot read your screen. Nothing it sees is stored or sent anywhere. You can turn it off any time in Accessibility settings.</string>
     <string name="lock_consent_accept">Agree and open settings</string>
     <string name="lock_consent_decline">Not now</string>
-    <string name="lock_service_off_title" translatable="false">Lock gesture is off</string>
-    <string name="lock_service_off_body" translatable="false">Parem\'s accessibility service is no longer running, so your lock gesture cannot lock the screen. Android can turn it off after an app update, a crash, or when a security setting restricts accessibility services. Turn it back on in Accessibility settings, or pick another gesture action in Parem\'s gesture settings.</string>
-    <string name="lock_service_off_toast" translatable="false">Can\'t lock: accessibility is off. See %1$s.</string>
-    <string name="lock_admin_option" translatable="false">Lock with device admin instead (needs PIN after every lock)</string>
-    <string name="lock_admin_off_row" translatable="false">Lock without accessibility (PIN after every lock)</string>
-    <string name="lock_admin_on_row" translatable="false">Lock uses device admin (PIN after each lock): turn off</string>
-    <string name="quiet_notif" translatable="false">Hide from shade, keep for later</string>
-    <string name="quiet_needs_access" translatable="false">Needs access</string>
-    <string name="quiet_allowed_apps" translatable="false">Allowed apps</string>
-    <string name="quiet_make_silent" translatable="false">Make silent</string>
+    <string name="lock_service_off_title">Lock gesture is off</string>
+    <string name="lock_service_off_body">Parem\'s accessibility service is no longer running, so your lock gesture cannot lock the screen. Android can turn it off after an app update, a crash, or when a security setting restricts accessibility services. Turn it back on in Accessibility settings, or pick another gesture action in Parem\'s gesture settings.</string>
+    <string name="lock_service_off_toast">Can\'t lock: accessibility is off. See %1$s.</string>
+    <string name="lock_admin_option">Lock with device admin instead (needs PIN after every lock)</string>
+    <string name="lock_admin_off_row">Lock without accessibility (PIN after every lock)</string>
+    <string name="lock_admin_on_row">Lock uses device admin (PIN after each lock): turn off</string>
+    <string name="quiet_notif">Hide from shade, keep for later</string>
+    <string name="quiet_needs_access">Needs access</string>
+    <string name="quiet_allowed_apps">Allowed apps</string>
+    <string name="quiet_make_silent">Make silent</string>
     <string name="quiet_card_hint" translatable="false">A sound or vibration may still occur. Make silent opens Android notification settings; silent notifications may remain in the shade. Choose a swipe in Parem settings to open the quiet list.</string>
-    <string name="quiet_card_needs_access" translatable="false">Needs notification access. Tap \'Needs access\' to open settings.</string>
+    <string name="quiet_card_needs_access">Needs notification access. Tap \'Needs access\' to open settings.</string>
     <string name="quiet_list">Quiet list</string>
-    <string name="quiet_list_empty" translatable="false">Nothing waiting</string>
+    <string name="quiet_list_empty">Nothing waiting</string>
     <string name="quiet_list_dismiss_all">Dismiss all</string>
-    <string name="quiet_pick_title" translatable="false">Apps allowed to alert</string>
-    <string name="quiet_continue" translatable="false">Continue</string>
-    <string name="quiet_not_now" translatable="false">Not now</string>
+    <string name="quiet_pick_title">Apps allowed to alert</string>
+    <string name="quiet_continue">Continue</string>
+    <string name="quiet_not_now">Not now</string>
     <string name="quiet_disclosure_title">Hide notifications from other apps?</string>
     <string name="quiet_disclosure_body">Eligible notifications from apps you have not allowed can move to a quiet list. Choose a swipe gesture in Parem settings to open it from home.\n\nParem excludes some system apps and categories, including notifications identified as calls, alarms, media, navigation or system alerts. Apps may label notifications differently.\n\nA sound or vibration may still occur when a notification arrives. From Parem you can open Android notification settings for an app; if you make its notifications silent, they may stay in the shade instead of the quiet list.\n\nParem reads each notification’s app and type on this device to sort it, and shows its title in the quiet list. For hidden items, it stores a technical key and the snooze time, and the notification’s timestamp if you open or dismiss it. The key can include a tag chosen by the app. Parem does not separately store the notification title or body or send this data.\n\nParem asks Android to snooze eligible notifications for 8 hours and may hide them again while the filter is on. When you turn the filter off, Parem tries to release items it can reach; some may stay snoozed until their snooze ends. You can also remove access in Android Settings › Notification access.</string>
     <string name="quiet_needs_access_body" translatable="false">Parem no longer has notification access. Hidden notifications may remain snoozed until their snooze ends.</string>
-    <string name="quiet_starting" translatable="false">Notification filter is starting. Try again in a moment.</string>
-    <string name="quiet_open_settings" translatable="false">Open settings</string>
-    <string name="quiet_turn_off" translatable="false">Turn off filter</string>
+    <string name="quiet_starting">Notification filter is starting. Try again in a moment.</string>
+    <string name="quiet_open_settings">Open settings</string>
+    <string name="quiet_turn_off">Turn off filter</string>
     <string name="quiet_keep_info" translatable="false">Some hidden notifications may remain snoozed until their snooze ends.</string>
     <string name="grayscale">Grayscale</string>
-    <string name="grayscale_set_up" translatable="false">Set up</string>
-    <string name="grayscale_now" translatable="false">Now</string>
-    <string name="grayscale_during_focus" translatable="false">During focus</string>
-    <string name="grayscale_after_limit" translatable="false">After a limit (until you come back to Parem)</string>
+    <string name="grayscale_set_up">Set up</string>
+    <string name="grayscale_now">Now</string>
+    <string name="grayscale_during_focus">During focus</string>
+    <string name="grayscale_after_limit">After a limit (until you come back to Parem)</string>
     <string name="grayscale_restore_pending" translatable="false">Now is off. Parem cannot restore the previous color settings without access.</string>
     <string name="grayscale_restore_access" translatable="false">Restore grayscale access</string>
     <string name="grayscale_android_settings" translatable="false">Open Android accessibility settings</string>
@@ -330,23 +330,23 @@
     <string name="limit_usage_unavailable" translatable="false">Parem could not check this app’s daily limit.</string>
     <string name="limit_settings_unavailable" translatable="false">Open Usage access in Android Settings.</string>
     <string name="grayscale_toggles_hint" translatable="false">When Parem’s grayscale triggers end, it tries to restore your previous color correction. If the screen stays gray, check Android Settings › Accessibility › Color correction.</string>
-    <string name="grayscale_grant_title" translatable="false">Allow grayscale</string>
-    <string name="grayscale_grant_body" translatable="false">Android lets an app switch the screen to grayscale only after a one-time permission given through developer tools. Parem uses it for grayscale and nothing else.\n\nTo get color back at any time, without Parem: Android Settings › Accessibility › Color correction.</string>
-    <string name="grayscale_grant_computer" translatable="false">With a computer: turn on USB debugging, plug the phone in, and open this page in Chrome or Edge:</string>
+    <string name="grayscale_grant_title">Allow grayscale</string>
+    <string name="grayscale_grant_body">Android lets an app switch the screen to grayscale only after a one-time permission given through developer tools. Parem uses it for grayscale and nothing else.\n\nTo get color back at any time, without Parem: Android Settings › Accessibility › Color correction.</string>
+    <string name="grayscale_grant_computer">With a computer: turn on USB debugging, plug the phone in, and open this page in Chrome or Edge:</string>
     <string name="grayscale_grant_url" translatable="false">pilves.github.io/parem-launcher/grant/</string>
-    <string name="grayscale_share_link" translatable="false">Share link</string>
-    <string name="grayscale_copy_link" translatable="false">Copy link</string>
-    <string name="grayscale_copy_command" translatable="false">Copy adb command</string>
-    <string name="grayscale_check_again" translatable="false">Check again</string>
-    <string name="grayscale_not_granted" translatable="false">Not allowed yet</string>
-    <string name="grayscale_ready" translatable="false">Grayscale is on</string>
-    <string name="grayscale_app_needs_usage" translatable="false">Per-app grayscale needs usage access to notice when you switch apps. Everything is counted on your phone.</string>
-    <string name="grayscale_app_needs_default" translatable="false">Per-app grayscale needs Parem as your default home screen to bring color back.</string>
+    <string name="grayscale_share_link">Share link</string>
+    <string name="grayscale_copy_link">Copy link</string>
+    <string name="grayscale_copy_command">Copy adb command</string>
+    <string name="grayscale_check_again">Check again</string>
+    <string name="grayscale_not_granted">Not allowed yet</string>
+    <string name="grayscale_ready">Grayscale is on</string>
+    <string name="grayscale_app_needs_usage">Per-app grayscale needs usage access to notice when you switch apps. Everything is counted on your phone.</string>
+    <string name="grayscale_app_needs_default">Per-app grayscale needs Parem as your default home screen to bring color back.</string>
     <!-- Onboarding (6.0): home screen, then optional Calm setup -->
-    <string name="onboarding_home_screen_title" translatable="false">Make Parem your home screen</string>
-    <string name="onboarding_home_screen_body" translatable="false">Parem only works as your home screen.</string>
-    <string name="onboarding_home_screen_reassure" translatable="false">Your apps stay installed. You can switch back anytime.</string>
-    <string name="onboarding_set_home" translatable="false">Set as home screen</string>
+    <string name="onboarding_home_screen_title">Make Parem your home screen</string>
+    <string name="onboarding_home_screen_body">Parem only works as your home screen.</string>
+    <string name="onboarding_home_screen_reassure">Your apps stay installed. You can switch back anytime.</string>
+    <string name="onboarding_set_home">Set as home screen</string>
     <string name="onboarding_calm_title">Calm phone (optional)</string>
     <string name="onboarding_calm_body">Turn on what helps. Each one explains itself first, and you can skip all of them.</string>
     <string name="onboarding_row_slow_down">Slow down an app</string>
@@ -358,125 +358,125 @@
     <string name="onboarding_footer">Change any of these later in Settings</string>
     <string name="onboarding_done">Done</string>
     <!-- Screen-reader routes out of home (UX-2) -->
-    <string name="a11y_all_apps" translatable="false">All apps</string>
-    <string name="a11y_open_app" translatable="false">Open %1$s</string>
-    <string name="a11y_app_info" translatable="false">App info</string>
-    <string name="a11y_work_profile" translatable="false">Work profile</string>
-    <string name="a11y_screen_time_today" translatable="false">Screen time today, %1$s</string>
-    <string name="a11y_screen_time_under_minute" translatable="false">Screen time today, under 1 minute</string>
-    <string name="a11y_widget" translatable="false">Widget</string>
-    <string name="a11y_wallpaper_source" translatable="false">Wallpaper source, opens in browser</string>
-    <string name="a11y_app_limit_row" translatable="false">%1$s, %2$s today, %3$s</string>
-    <string name="a11y_app_limit_value" translatable="false">limit %1$s</string>
-    <string name="a11y_picker_cap" translatable="false">Only %1$d apps can be selected</string>
-    <string name="text_size_smaller" translatable="false">Smaller</string>
+    <string name="a11y_all_apps">All apps</string>
+    <string name="a11y_open_app">Open %1$s</string>
+    <string name="a11y_app_info">App info</string>
+    <string name="a11y_work_profile">Work profile</string>
+    <string name="a11y_screen_time_today">Screen time today, %1$s</string>
+    <string name="a11y_screen_time_under_minute">Screen time today, under 1 minute</string>
+    <string name="a11y_widget">Widget</string>
+    <string name="a11y_wallpaper_source">Wallpaper source, opens in browser</string>
+    <string name="a11y_app_limit_row">%1$s, %2$s today, %3$s</string>
+    <string name="a11y_app_limit_value">limit %1$s</string>
+    <string name="a11y_picker_cap">Only %1$d apps can be selected</string>
+    <string name="text_size_smaller">Smaller</string>
     <string name="text_size_medium" translatable="false">Medium</string>
-    <string name="text_size_large" translatable="false">Large</string>
-    <string name="text_size_larger" translatable="false">Larger</string>
-    <string name="usage_access" translatable="false">Usage access</string>
-    <string name="usage_access_limits_body" translatable="false">App limits need usage access: Parem counts how long each app is open. Without it a limit can never fire.\n\nCounted on this phone. Parem sends these numbers nowhere and keeps them out of Android cloud backup. A phone-to-phone transfer you start can copy them to your new phone.</string>
-    <string name="usage_access_granted_body" translatable="false">Parem counts screen time with it: the total on the home screen, app limits, sort by usage and the weekly graph. Turning it off in Android turns all of those off.</string>
-    <string name="usage_access_open_settings" translatable="false">Open usage access settings</string>
-    <string name="focus_scheduled" translatable="false">Scheduled</string>
-    <string name="grayscale_automatic" translatable="false">Automatic</string>
-    <string name="screen_time_a11y_hours_minutes" translatable="false">%1$d hours %2$d minutes</string>
-    <string name="screen_time_a11y_hours" translatable="false">%1$d hours</string>
-    <string name="screen_time_a11y_minutes" translatable="false">%1$d minutes</string>
-    <string name="screen_time_a11y_day" translatable="false">%1$s, %2$s</string>
-    <string name="screen_time_a11y_day_today" translatable="false">%1$s, today, %2$s</string>
-    <string name="auto_launch_single_match" translatable="false">Open single match automatically</string>
+    <string name="text_size_large">Large</string>
+    <string name="text_size_larger">Larger</string>
+    <string name="usage_access">Usage access</string>
+    <string name="usage_access_limits_body">App limits need usage access: Parem counts how long each app is open. Without it a limit can never fire.\n\nCounted on this phone. Parem sends these numbers nowhere and keeps them out of Android cloud backup. A phone-to-phone transfer you start can copy them to your new phone.</string>
+    <string name="usage_access_granted_body">Parem counts screen time with it: the total on the home screen, app limits, sort by usage and the weekly graph. Turning it off in Android turns all of those off.</string>
+    <string name="usage_access_open_settings">Open usage access settings</string>
+    <string name="focus_scheduled">Scheduled</string>
+    <string name="grayscale_automatic">Automatic</string>
+    <string name="screen_time_a11y_hours_minutes">%1$d hours %2$d minutes</string>
+    <string name="screen_time_a11y_hours">%1$d hours</string>
+    <string name="screen_time_a11y_minutes">%1$d minutes</string>
+    <string name="screen_time_a11y_day">%1$s, %2$s</string>
+    <string name="screen_time_a11y_day_today">%1$s, today, %2$s</string>
+    <string name="auto_launch_single_match">Open single match automatically</string>
     <!-- Consistent app and home menus (M4-WP53). -->
-    <string name="app_menu_time_limit" translatable="false">Time limit</string>
-    <string name="app_menu_no_limit" translatable="false">No limit</string>
-    <string name="app_menu_mindful_pause" translatable="false">Mindful pause</string>
-    <string name="app_menu_hide" translatable="false">Hide from app list</string>
-    <string name="app_menu_show" translatable="false">Show in app list</string>
-    <string name="app_menu_stays_home" translatable="false">App stays on home</string>
-    <string name="app_menu_uninstall" translatable="false">Uninstall</string>
-    <string name="app_menu_home_slot" translatable="false">Home slot</string>
-    <string name="app_menu_add_home" translatable="false">Add to home</string>
-    <string name="app_menu_home" translatable="false">Home</string>
-    <string name="app_menu_wallpaper" translatable="false">Wallpaper</string>
-    <string name="dim_wallpaper" translatable="false">Dim wallpaper</string>
-    <string name="app_menu_wallpaper_unavailable" translatable="false">No wallpaper app is available</string>
-    <string name="app_menu_remove_home" translatable="false">Remove from home</string>
-    <string name="app_menu_remove_folder" translatable="false">Remove folder from home</string>
-    <string name="app_menu_rename_home" translatable="false">Rename on home</string>
-    <string name="app_menu_rename_list" translatable="false">Rename in app list</string>
-    <string name="app_menu_name" translatable="false">Name</string>
-    <string name="app_menu_enter_name" translatable="false">Enter a name</string>
-    <string name="app_menu_removed" translatable="false">%1$s removed from home</string>
-    <string name="app_menu_folder_removed" translatable="false">Folder removed from home</string>
-    <string name="app_menu_undo" translatable="false">Undo</string>
-    <string name="app_menu_unlock" translatable="false">Unlock</string>
-    <string name="app_menu_layout_locked" translatable="false">Home layout is locked</string>
+    <string name="app_menu_time_limit">Time limit</string>
+    <string name="app_menu_no_limit">No limit</string>
+    <string name="app_menu_mindful_pause">Mindful pause</string>
+    <string name="app_menu_hide">Hide from app list</string>
+    <string name="app_menu_show">Show in app list</string>
+    <string name="app_menu_stays_home">App stays on home</string>
+    <string name="app_menu_uninstall">Uninstall</string>
+    <string name="app_menu_home_slot">Home slot</string>
+    <string name="app_menu_add_home">Add to home</string>
+    <string name="app_menu_home">Home</string>
+    <string name="app_menu_wallpaper">Wallpaper</string>
+    <string name="dim_wallpaper">Dim wallpaper</string>
+    <string name="app_menu_wallpaper_unavailable">No wallpaper app is available</string>
+    <string name="app_menu_remove_home">Remove from home</string>
+    <string name="app_menu_remove_folder">Remove folder from home</string>
+    <string name="app_menu_rename_home">Rename on home</string>
+    <string name="app_menu_rename_list">Rename in app list</string>
+    <string name="app_menu_name">Name</string>
+    <string name="app_menu_enter_name">Enter a name</string>
+    <string name="app_menu_removed">%1$s removed from home</string>
+    <string name="app_menu_folder_removed">Folder removed from home</string>
+    <string name="app_menu_undo">Undo</string>
+    <string name="app_menu_unlock">Unlock</string>
+    <string name="app_menu_layout_locked">Home layout is locked</string>
 
     <!-- Optional onboarding feature explanations (M4-WP57). -->
     <string name="onboarding_feature_guide">Explore every feature (optional)</string>
-    <string name="onboarding_guide_expanded" translatable="false">Expanded. Tap to hide feature topics</string>
-    <string name="onboarding_guide_collapsed" translatable="false">Collapsed. Tap to show feature topics</string>
-    <string name="onboarding_guide_read" translatable="false">Read</string>
+    <string name="onboarding_guide_expanded">Expanded. Tap to hide feature topics</string>
+    <string name="onboarding_guide_collapsed">Collapsed. Tap to show feature topics</string>
+    <string name="onboarding_guide_read">Read</string>
     <string name="onboarding_screen_time_caption">See time spent on your phone and apps, with a weekly review</string>
     <string name="onboarding_lock_caption">Double-tap empty home space to lock your phone</string>
-    <string name="onboarding_lock_enabled_body" translatable="false">Double-tap empty space on your home screen to lock your phone. Change the action in Settings › Gestures. To remove accessibility access, use Android Settings › Accessibility. If device admin is your lock method, turn it off in Parem’s gesture settings.</string>
-    <string name="onboarding_pause_steps" translatable="false">Mindful pause asks why you are opening an app, then waits five seconds before you can open it. Tap an app’s limit and choose Pause only, or set a time limit and turn the pause on from the same list.\n\nThe list shows apps used today, and Add another app reaches the rest. You can also long-press an app on home and choose its time-limit action. Limits show a warning you can override; they do not permanently block an app.</string>
-    <string name="onboarding_pause_no_usage" translatable="false">No usage is available yet. Finish setup, add an app to home, then long-press it and choose Time limit. Or open Settings › Calm › App limits after using an app.</string>
-    <string name="onboarding_open_limits" translatable="false">Open app limits</string>
-    <string name="onboarding_guide_home" translatable="false">Home, folders and widgets</string>
-    <string name="onboarding_guide_home_body" translatable="false">Swipe up on home for all apps. Long-press empty home space for the home menu, including Settings and Add widget. Swipe down opens notifications by default; change it in Settings › Gestures.\n\nLong-press an empty app slot to choose an app. Long-press an occupied slot to change or remove it, create a folder, or add a website shortcut. Tap a folder to choose one of its apps; websites open in your browser. Settings › Home screen controls the number of slots, alignment and layout lock. Layout lock prevents edits through the slot long-press menu.\n\nTap the clock or date to open Clock or Calendar; long-press to choose another app. Tap the screen-time total for its graph.\n\nAdd widgets from the home menu. Drag the handle at a widget’s bottom edge to resize it. Hold the widget to swap, move or remove it. Settings controls whether widgets sit above or below apps; wide tablet layouts place them beside the home content.</string>
-    <string name="onboarding_guide_search" translatable="false">Find and manage apps</string>
-    <string name="onboarding_guide_search_body" translatable="false">Swipe up, then type an app name. Fuzzy matching lets you use parts of the name. Auto show keyboard in Settings › Search controls whether typing is ready when the drawer opens. Press Back to return home. A single matching app opens automatically by default. Turn off Open single match automatically in Settings › Search if you prefer to tap or press Enter. Automatic opening is off with a screen reader.\n\nLong-press an app in the drawer for its available actions, such as hiding it, app info or uninstalling. Use Rename in the app menu to change its label. Find hidden apps again under Hidden apps in Settings, which also shows how many there are. Hiding an app does not uninstall it. With usage access, you can sort the drawer by use and see app open counts.\n\nContact search is optional in Settings › Search. It asks for Contacts access and matches names to phone numbers on your device; choosing a match opens the dialer. Search history is optional in the same section. Recent searches stay on this phone, can be cleared there, and are erased when history is switched off.\n\nWork-profile apps are badged where Android makes them available. On supported Android versions, the drawer’s Private space row lets you lock or unlock that space. Search for “private” or “private space” to reach it without scrolling. Tap the result or press Enter to unlock or open it. Its apps are hidden while it is locked. If you hide the space when locked in Android settings, its entry also stays out of the drawer and search; reveal it through Android Settings › Security &amp; privacy › Private space. Work-profile widgets appear in the widget picker when available.</string>
-    <string name="onboarding_guide_tools" translatable="false">Calculator, conversions and quick actions</string>
-    <string name="onboarding_guide_tools_body" translatable="false">The app drawer search field also accepts tools. Try 2+2, 5 km to mi, or 100 eur in usd. Tap a calculation or conversion result to copy it, or press Enter. Currency conversion downloads European Central Bank rates when needed; the result shows their date and needs an internet connection for new rates.\n\nType a phone number to open it in the dialer. Start a query with a space to search Google, or use a DuckDuckGo bang such as !w calm. Web searches open your browser.\n\nTry alarm 7:30, timer 10m, or event friday 3pm dentist. Parem passes the action to a compatible Clock or Calendar app. Supported action words include English and Estonian.\n\nType a setting name, such as grayscale, to jump to its row in Settings. App shortcut words, such as incog, can find actions published by installed apps. Shortcuts depend on what each app provides and do not replace a single matching app’s automatic launch.</string>
-    <string name="onboarding_guide_gestures" translatable="false">Swipes, letters and keyboard</string>
-    <string name="onboarding_guide_gestures_body" translatable="false">Settings › Gestures lets you change left and right swipes, swipe down and double tap. Available actions include an app, search, notifications, lock, camera or flashlight; the quiet-list action appears when its filter is enabled. Choose None to turn a swipe off.\n\nTurn on Gesture letters in Settings › Gestures and assign apps to letters. Draw the letter in one continuous stroke on home. Straight strokes remain swipes. Recognition depends on the letter shape; lift your finger to finish.\n\nWith a hardware keyboard, typing on home opens app search; the Menu key opens the drawer. Use the D-pad and Enter to choose an app, or hold Enter for its menu. TalkBack offers home actions and a visible All apps row, so gestures are optional.</string>
-    <string name="onboarding_guide_calm" translatable="false">Screen time, limits and focus</string>
-    <string name="onboarding_guide_calm_body" translatable="false">Usage access lets Parem count time spent in apps on this phone. Tap the home screen-time total for daily app usage, the seven-day graph and a weekly comparison when enough history exists. Manage access in Settings › Calm.\n\nApp limits warn when you have used an app for its daily allowance. Open anyway overrides the warning. Add a limit from an app’s home menu or the App limits sheet. That sheet lists the most-used apps from today. Add another app reaches everything else. Choose Pause only for a five-second wait before launches, with a prompt to consider why you are opening the app, and no time limit. With a limit set, long-press the app again and turn on Mindful pause, or reopen its limit picker in the App limits sheet. No limit removes both.\n\nFocus mode blocks Parem launches except your allowed apps and calls. Choose a timed session or weekly windows in Settings › Calm › Focus mode. Windows can cross midnight; matching start and end times mean all day. Disable pauses a currently active scheduled window until that run ends.\n\nLimits, pause and focus guard launches through Parem. They do not close an app already open or prevent Android and other apps from opening it. Websites and search quick actions are not app launches guarded by these limits.</string>
-    <string name="onboarding_guide_quiet" translatable="false">Quiet notifications, grayscale and lock</string>
+    <string name="onboarding_lock_enabled_body">Double-tap empty space on your home screen to lock your phone. Change the action in Settings › Gestures. To remove accessibility access, use Android Settings › Accessibility. If device admin is your lock method, turn it off in Parem’s gesture settings.</string>
+    <string name="onboarding_pause_steps">Mindful pause asks why you are opening an app, then waits five seconds before you can open it. Tap an app’s limit and choose Pause only, or set a time limit and turn the pause on from the same list.\n\nThe list shows apps used today, and Add another app reaches the rest. You can also long-press an app on home and choose its time-limit action. Limits show a warning you can override; they do not permanently block an app.</string>
+    <string name="onboarding_pause_no_usage">No usage is available yet. Finish setup, add an app to home, then long-press it and choose Time limit. Or open Settings › Calm › App limits after using an app.</string>
+    <string name="onboarding_open_limits">Open app limits</string>
+    <string name="onboarding_guide_home">Home, folders and widgets</string>
+    <string name="onboarding_guide_home_body">Swipe up on home for all apps. Long-press empty home space for the home menu, including Settings and Add widget. Swipe down opens notifications by default; change it in Settings › Gestures.\n\nLong-press an empty app slot to choose an app. Long-press an occupied slot to change or remove it, create a folder, or add a website shortcut. Tap a folder to choose one of its apps; websites open in your browser. Settings › Home screen controls the number of slots, alignment and layout lock. Layout lock prevents edits through the slot long-press menu.\n\nTap the clock or date to open Clock or Calendar; long-press to choose another app. Tap the screen-time total for its graph.\n\nAdd widgets from the home menu. Drag the handle at a widget’s bottom edge to resize it. Hold the widget to swap, move or remove it. Settings controls whether widgets sit above or below apps; wide tablet layouts place them beside the home content.</string>
+    <string name="onboarding_guide_search">Find and manage apps</string>
+    <string name="onboarding_guide_search_body">Swipe up, then type an app name. Fuzzy matching lets you use parts of the name. Auto show keyboard in Settings › Search controls whether typing is ready when the drawer opens. Press Back to return home. A single matching app opens automatically by default. Turn off Open single match automatically in Settings › Search if you prefer to tap or press Enter. Automatic opening is off with a screen reader.\n\nLong-press an app in the drawer for its available actions, such as hiding it, app info or uninstalling. Use Rename in the app menu to change its label. Find hidden apps again under Hidden apps in Settings, which also shows how many there are. Hiding an app does not uninstall it. With usage access, you can sort the drawer by use and see app open counts.\n\nContact search is optional in Settings › Search. It asks for Contacts access and matches names to phone numbers on your device; choosing a match opens the dialer. Search history is optional in the same section. Recent searches stay on this phone, can be cleared there, and are erased when history is switched off.\n\nWork-profile apps are badged where Android makes them available. On supported Android versions, the drawer’s Private space row lets you lock or unlock that space. Search for “private” or “private space” to reach it without scrolling. Tap the result or press Enter to unlock or open it. Its apps are hidden while it is locked. If you hide the space when locked in Android settings, its entry also stays out of the drawer and search; reveal it through Android Settings › Security &amp; privacy › Private space. Work-profile widgets appear in the widget picker when available.</string>
+    <string name="onboarding_guide_tools">Calculator, conversions and quick actions</string>
+    <string name="onboarding_guide_tools_body">The app drawer search field also accepts tools. Try 2+2, 5 km to mi, or 100 eur in usd. Tap a calculation or conversion result to copy it, or press Enter. Currency conversion downloads European Central Bank rates when needed; the result shows their date and needs an internet connection for new rates.\n\nType a phone number to open it in the dialer. Start a query with a space to search Google, or use a DuckDuckGo bang such as !w calm. Web searches open your browser.\n\nTry alarm 7:30, timer 10m, or event friday 3pm dentist. Parem passes the action to a compatible Clock or Calendar app. Supported action words include English and Estonian.\n\nType a setting name, such as grayscale, to jump to its row in Settings. App shortcut words, such as incog, can find actions published by installed apps. Shortcuts depend on what each app provides and do not replace a single matching app’s automatic launch.</string>
+    <string name="onboarding_guide_gestures">Swipes, letters and keyboard</string>
+    <string name="onboarding_guide_gestures_body">Settings › Gestures lets you change left and right swipes, swipe down and double tap. Available actions include an app, search, notifications, lock, camera or flashlight; the quiet-list action appears when its filter is enabled. Choose None to turn a swipe off.\n\nTurn on Gesture letters in Settings › Gestures and assign apps to letters. Draw the letter in one continuous stroke on home. Straight strokes remain swipes. Recognition depends on the letter shape; lift your finger to finish.\n\nWith a hardware keyboard, typing on home opens app search; the Menu key opens the drawer. Use the D-pad and Enter to choose an app, or hold Enter for its menu. TalkBack offers home actions and a visible All apps row, so gestures are optional.</string>
+    <string name="onboarding_guide_calm">Screen time, limits and focus</string>
+    <string name="onboarding_guide_calm_body">Usage access lets Parem count time spent in apps on this phone. Tap the home screen-time total for daily app usage, the seven-day graph and a weekly comparison when enough history exists. Manage access in Settings › Calm.\n\nApp limits warn when you have used an app for its daily allowance. Open anyway overrides the warning. Add a limit from an app’s home menu or the App limits sheet. That sheet lists the most-used apps from today. Add another app reaches everything else. Choose Pause only for a five-second wait before launches, with a prompt to consider why you are opening the app, and no time limit. With a limit set, long-press the app again and turn on Mindful pause, or reopen its limit picker in the App limits sheet. No limit removes both.\n\nFocus mode blocks Parem launches except your allowed apps and calls. Choose a timed session or weekly windows in Settings › Calm › Focus mode. Windows can cross midnight; matching start and end times mean all day. Disable pauses a currently active scheduled window until that run ends.\n\nLimits, pause and focus guard launches through Parem. They do not close an app already open or prevent Android and other apps from opening it. Websites and search quick actions are not app launches guarded by these limits.</string>
+    <string name="onboarding_guide_quiet">Quiet notifications, grayscale and lock</string>
     <string name="onboarding_guide_quiet_body" translatable="false">Quiet notifications can move eligible notifications from apps outside your allowed list out of the shade. Some categories and system apps are excluded, but apps can label notifications differently. A sound or vibration may still happen. Make silent opens Android notification settings; silent notifications may remain in the shade. Choose a swipe in Parem settings to open the quiet list. When you turn the filter off, Parem tries to release reachable items; some may remain snoozed until their snooze ends. Setup explains notification access before you grant it.\n\nGrayscale removes color from the screen. It needs a one-time developer-tools permission, and setup explains each step. After setup, choose Now, During focus or After a limit. Per-app grayscale is also available in app menus and needs usage access and Parem as default home. Color can always be restored in Android Settings › Accessibility › Color correction.\n\nDouble tap to lock uses Android’s accessibility service after your consent; it cannot read your screen. The alternative device-admin lock method is in Settings › Gestures and requires your PIN after each lock. You can change or disable the gesture there.</string>
-    <string name="onboarding_guide_appearance" translatable="false">Appearance and accessibility</string>
-    <string name="onboarding_guide_appearance_body" translatable="false">Settings › Appearance has light, dark and system themes, theme schedules, relative text size, bold font, daily wallpaper and status-bar visibility. Choose scheduled light and dark times, or sunrise and sunset. Choose a city for weather in Settings › Home screen. Text also follows Android’s font size.\n\nSettings › Home screen controls app icons and icon packs, clock and date visibility, alignment and widget placement. Install a compatible icon pack first, then choose it through the icon setting.\n\nParem reduces motion when Android animations are off. Screen-reader and keyboard alternatives are available for core home actions.</string>
-    <string name="onboarding_guide_data" translatable="false">Backup, privacy and switching back</string>
-    <string name="onboarding_guide_data_body" translatable="false">Settings has Export settings and Import settings for moving your preferences. Android cloud backup leaves Parem out, so export before you move to a new phone. Import replaces saved preferences; export first if you want to keep a copy. Widgets and other device-specific grants are not transferred: add widgets and grant access again on the new phone. Search history is not exported.\n\nCrash reports are off by default. If enabled, a report stays on this phone until you choose to share it after a crash. You can read it before sending or discard it. Reports include error details and device information.\n\nApp usage, contact matching and notification filtering happen on this phone. Features that need online data, such as weather, currency rates and daily wallpaper, make network requests; web searches and links go to the browser or another app you choose.\n\nYour apps stay installed when you switch launchers. Use Parem’s default-launcher setting or Android Settings › Apps › Default apps › Home app to choose your previous home screen. Setting names vary by phone. All optional setup can be changed later in Settings.</string>
-    <string name="weather_disclosure" translatable="false">Your search and the chosen place\'s rounded coordinates are sent to Open-Meteo.</string>
-    <string name="weather_credit" translatable="false">Weather data by Open-Meteo.com. Location data by GeoNames via Open-Meteo.</string>
-    <string name="agree" translatable="false">Agree</string>
+    <string name="onboarding_guide_appearance">Appearance and accessibility</string>
+    <string name="onboarding_guide_appearance_body">Settings › Appearance has light, dark and system themes, theme schedules, relative text size, bold font, daily wallpaper and status-bar visibility. Choose scheduled light and dark times, or sunrise and sunset. Choose a city for weather in Settings › Home screen. Text also follows Android’s font size.\n\nSettings › Home screen controls app icons and icon packs, clock and date visibility, alignment and widget placement. Install a compatible icon pack first, then choose it through the icon setting.\n\nParem reduces motion when Android animations are off. Screen-reader and keyboard alternatives are available for core home actions.</string>
+    <string name="onboarding_guide_data">Backup, privacy and switching back</string>
+    <string name="onboarding_guide_data_body">Settings has Export settings and Import settings for moving your preferences. Android cloud backup leaves Parem out, so export before you move to a new phone. Import replaces saved preferences; export first if you want to keep a copy. Widgets and other device-specific grants are not transferred: add widgets and grant access again on the new phone. Search history is not exported.\n\nCrash reports are off by default. If enabled, a report stays on this phone until you choose to share it after a crash. You can read it before sending or discard it. Reports include error details and device information.\n\nApp usage, contact matching and notification filtering happen on this phone. Features that need online data, such as weather, currency rates and daily wallpaper, make network requests; web searches and links go to the browser or another app you choose.\n\nYour apps stay installed when you switch launchers. Use Parem’s default-launcher setting or Android Settings › Apps › Default apps › Home app to choose your previous home screen. Setting names vary by phone. All optional setup can be changed later in Settings.</string>
+    <string name="weather_disclosure">Your search and the chosen place\'s rounded coordinates are sent to Open-Meteo.</string>
+    <string name="weather_credit">Weather data by Open-Meteo.com. Location data by GeoNames via Open-Meteo.</string>
+    <string name="agree">Agree</string>
     <string name="contact_search_disclosure">Contact search reads names and phone numbers from your contacts, only on this phone, to match what you type. Parem never saves or sends them.</string>
-    <string name="pause_only" translatable="false">Pause only</string>
-    <string name="add_another_app" translatable="false">Add another app…</string>
-    <string name="focus_end_early" translatable="false">End focus early?</string>
-    <string name="focus_end_wait" translatable="false">End focus in %1$d…</string>
-    <string name="focus_end_now" translatable="false">End focus</string>
-    <string name="make_parem_home" translatable="false">Make Parem your home screen</string>
+    <string name="pause_only">Pause only</string>
+    <string name="add_another_app">Add another app…</string>
+    <string name="focus_end_early">End focus early?</string>
+    <string name="focus_end_wait">End focus in %1$d…</string>
+    <string name="focus_end_now">End focus</string>
+    <string name="make_parem_home">Make Parem your home screen</string>
     <string name="usage_opens" translatable="false">%1$d×</string>
     <string name="usage_time_and_opens" translatable="false">%1$s · %2$d×</string>
-    <string name="edit_folder" translatable="false">Edit folder</string>
+    <string name="edit_folder">Edit folder</string>
     <string name="widget_label_with_size" translatable="false">%1$s · %2$d×%3$d</string>
-    <string name="duck_search_hint" translatable="false">↵  DuckDuckGo: %1$s</string>
-    <string name="web_search_hint" translatable="false">↵  Search the web: %1$s</string>
-    <string name="contact_search_denied" translatable="false">Android won\'t ask again. To use contact search, allow Contacts for Parem in its app settings.</string>
-    <string name="open_app_settings" translatable="false">Open app settings</string>
-    <string name="app_limits_empty" translatable="false">No app use recorded today yet.</string>
-    <string name="settings_export_failed_plain" translatable="false">Couldn\'t save the settings file</string>
-    <string name="settings_import_failed_plain" translatable="false">Couldn\'t read that file as Parem settings</string>
-    <string name="widget_add_failed" translatable="false">Couldn\'t add this widget</string>
-    <string name="weather_search_failed" translatable="false">Can\'t reach the weather service right now.</string>
-    <string name="focus_schedule_pick_day" translatable="false">Pick at least one day</string>
-    <string name="private_space_open" translatable="false">Open</string>
-    <string name="settings_screen_time_access" translatable="false">Screen time access</string>
-    <string name="settings_calm_section" translatable="false">Calm</string>
-    <string name="settings_search_section" translatable="false">Search</string>
-    <string name="settings_backup_section" translatable="false">Backup and about</string>
-    <string name="settings_default_home" translatable="false">Default home app</string>
-    <string name="settings_set_default_home" translatable="false">Set as default home</string>
-    <string name="settings_clock_date" translatable="false">Clock and date</string>
-    <string name="settings_status_bar" translatable="false">Status bar</string>
-    <string name="settings_quiet_notifications" translatable="false">Quiet notifications</string>
-    <string name="keyboard_caption" translatable="false">The keyboard lets you search for and open apps.</string>
-    <string name="align_at_bottom" translatable="false">Align at bottom</string>
-    <string name="alignment_at_bottom" translatable="false">%1$s · bottom</string>
-    <string name="lock_needs_access" translatable="false">Lock screen · Needs access</string>
-    <string name="configured_app_count" translatable="false">%1$d configured</string>
+    <string name="duck_search_hint">↵  DuckDuckGo: %1$s</string>
+    <string name="web_search_hint">↵  Search the web: %1$s</string>
+    <string name="contact_search_denied">Android won\'t ask again. To use contact search, allow Contacts for Parem in its app settings.</string>
+    <string name="open_app_settings">Open app settings</string>
+    <string name="app_limits_empty">No app use recorded today yet.</string>
+    <string name="settings_export_failed_plain">Couldn\'t save the settings file</string>
+    <string name="settings_import_failed_plain">Couldn\'t read that file as Parem settings</string>
+    <string name="widget_add_failed">Couldn\'t add this widget</string>
+    <string name="weather_search_failed">Can\'t reach the weather service right now.</string>
+    <string name="focus_schedule_pick_day">Pick at least one day</string>
+    <string name="private_space_open">Open</string>
+    <string name="settings_screen_time_access">Screen time access</string>
+    <string name="settings_calm_section">Calm</string>
+    <string name="settings_search_section">Search</string>
+    <string name="settings_backup_section">Backup and about</string>
+    <string name="settings_default_home">Default home app</string>
+    <string name="settings_set_default_home">Set as default home</string>
+    <string name="settings_clock_date">Clock and date</string>
+    <string name="settings_status_bar">Status bar</string>
+    <string name="settings_quiet_notifications">Quiet notifications</string>
+    <string name="keyboard_caption">The keyboard lets you search for and open apps.</string>
+    <string name="align_at_bottom">Align at bottom</string>
+    <string name="alignment_at_bottom">%1$s · bottom</string>
+    <string name="lock_needs_access">Lock screen · Needs access</string>
+    <string name="configured_app_count">%1$d configured</string>
     <string name="quick_focus_25" translatable="false">Focus for 25 min</string>
     <string name="quick_focus_already_active" translatable="false">Focus is already on</string>
     <string name="quick_focus_started" translatable="false">Focus started for 25 minutes</string>
