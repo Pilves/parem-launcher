@@ -277,7 +277,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP22 | **Done** (PR #26). Label historical planning records and correct verified documentation contracts | Historical design records, archive/work split, selected handoff fragments, F-Droid draft and data-flow inventory | Source-backed corrections reviewed; audit coverage and remaining unverified claims recorded; handoff generated |
 | M6-WP26 | **Done** (PR #27). Bound offline-emulator hangs while preserving failures and diagnostic artifacts | `scripts/run-instrumented.sh`, its node test, smoke workflow, handoff | Offline device does not stall all remaining phases; online failures still run remaining checks and fail; script tests pass |
 | M6-WP32 | **Done** (PR #37). Synthetic quiet notification lifecycle fixture on disposable emulators | Instrumentation test, dedicated CI workflow and handoff | Shell fixture tests seeded snooze and release without touching physical devices; positive filtering remains unverified |
-| M6-WP35 | **Done** (PR #0). Correct audit follow-up documentation and redundant alias test | Operational docs, roadmap, listing draft, SettingsSearchTest, handoff | Workflow/check commands and notification wording match source; actual settings alias test remains |
+| M6-WP35 | **Done** (PR #40). Correct audit follow-up documentation and redundant alias test | Operational docs, roadmap, listing draft, SettingsSearchTest, handoff | Workflow/check commands and notification wording match source; actual settings alias test remains |
 
 ## Recurring (no id)
 
