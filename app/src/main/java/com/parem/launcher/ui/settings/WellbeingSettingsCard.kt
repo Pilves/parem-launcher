@@ -19,6 +19,7 @@ import com.parem.launcher.helper.WellbeingRowState.Row
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.onOff
 import com.parem.launcher.ui.BadHabitDialogs
+import com.parem.launcher.ui.BottomSheetMenu
 import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.notifications.QuietNotificationsManager
 import com.parem.launcher.helper.notifications.QuietNotificationsManager.State
@@ -100,7 +101,31 @@ class WellbeingSettingsCard(
         when (QuietNotificationsManager.state(context)) {
             State.OFF -> QuietListSheet.startTurnOn(fragment, prefs, fragment::isBindingAlive, onChanged)
             State.NEEDS_ACCESS -> QuietListSheet.showNeedsAccess(context, starting = false, onChanged = onChanged)
-            State.ON -> QuietListSheet.turnOff(context, onChanged)
+            State.ON -> BottomSheetMenu(context)
+                .title(context.getString(R.string.settings_quiet_notifications))
+                .option(context.getString(R.string.quiet_allowed_apps)) { openQuietControl(R.id.quietNotifAllowed) }
+                .option(context.getString(R.string.quiet_make_silent)) { openQuietControl(R.id.quietNotifSilent) }
+                .option(context.getString(R.string.quiet_turn_off)) { QuietListSheet.turnOff(context, onChanged) }
+                .show().dismissOnDestroy(fragment.viewLifecycleOwner)
+        }
+    }
+
+    /** Search results route to the same controls that the Quiet notifications sheet exposes. */
+    internal fun openQuietControl(anchor: Int) {
+        if (!fragment.isAdded || !fragment.isBindingAlive()) return
+        if (QuietNotificationsManager.state(context) != State.ON) {
+            onQuietNotifToggle()
+            return
+        }
+        when (anchor) {
+            R.id.quietNotifAllowed -> QuietListSheet.editAllowed(fragment, prefs, fragment::isBindingAlive)
+            R.id.quietNotifSilent -> {
+                viewModel.getAppList(true)
+                fragment.navigateFromSettings(
+                    R.id.action_settingsFragment_to_appListFragment,
+                    bundleOf(Constants.Key.FLAG to Constants.FLAG_PICK_SILENT_APP)
+                )
+            }
         }
     }
 
@@ -148,7 +173,7 @@ class WellbeingSettingsCard(
         binding.quietNotifRow?.bindValueRow(binding.quietNotifToggle?.text)
         binding.quietNotifAllowedRow?.bindValueRow(binding.quietNotifAllowed?.text)
         binding.quietNotifSilentRow?.bindValueRow(binding.quietNotifSilent?.text)
-        binding.quietNotifRows?.visibility = if (state == State.ON) View.VISIBLE else View.GONE
+        binding.quietNotifRows?.visibility = View.GONE
         binding.quietNotifHint?.apply {
             when (state) {
                 State.OFF -> visibility = View.GONE

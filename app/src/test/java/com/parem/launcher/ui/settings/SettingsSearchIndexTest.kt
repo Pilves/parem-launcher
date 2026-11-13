@@ -12,7 +12,7 @@ import java.io.File
  */
 class SettingsSearchIndexTest {
 
-    private val sectionHeaders = setOf("home_screen", "appearance", "wellbeing")
+    private val sectionHeaders = setOf("home_screen", "appearance", "settings_calm_section", "settings_search_section")
 
     private fun mainFile(path: String): File =
         listOf(File("src/main/$path"), File("app/src/main/$path")).firstOrNull { it.isFile }

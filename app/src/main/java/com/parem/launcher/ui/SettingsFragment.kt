@@ -170,7 +170,13 @@ class SettingsFragment : BaseFragment() {
      */
     private fun scrollToSetting(anchorId: Int) {
         val b = _binding ?: return
-        val anchor = b.root.findViewById<View>(anchorId) ?: return
+        if (anchorId == R.id.quietNotifAllowed || anchorId == R.id.quietNotifSilent) {
+            wellbeingCard.openQuietControl(anchorId)
+            return
+        }
+        val actualAnchor = if (anchorId == R.id.setLauncher && b.setLauncherTop.visibility == View.VISIBLE)
+            R.id.setLauncherTop else anchorId
+        val anchor = b.root.findViewById<View>(actualAnchor) ?: return
         // anchor … row, card — everything below scrollLayout
         val chain = generateSequence(anchor) { it.parent as? View }.takeWhile { it !== b.scrollLayout }.toList()
         val row = chain.getOrNull(chain.size - 2) ?: anchor
@@ -210,6 +216,11 @@ class SettingsFragment : BaseFragment() {
         // Not a switch: tapping while on opens the letter config, not off
         binding.gestureLettersRow?.bindValueRow(binding.gestureLettersToggle?.text)
         binding.weatherRow?.bindValueRow(binding.weatherToggle?.text)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::viewModel.isInitialized) viewModel.isParemDefault()
     }
 
     override fun onDestroyView() {
