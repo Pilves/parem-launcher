@@ -18,6 +18,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.FolderManager
 import com.parem.launcher.ui.AppMenu
 import com.parem.launcher.ui.CreateFolderDialog
+import com.parem.launcher.ui.WebsiteDialog
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -25,6 +26,14 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class NameLengthTest {
+    private fun find(view: View, predicate: (View) -> Boolean): View? {
+        if (predicate(view)) return view
+        if (view is ViewGroup) for (i in 0 until view.childCount) {
+            find(view.getChildAt(i), predicate)?.let { return it }
+        }
+        return null
+    }
+
     private fun findEditText(view: View): EditText? {
         if (view is EditText) return view
         if (view is ViewGroup) for (i in 0 until view.childCount) {
@@ -96,6 +105,37 @@ class NameLengthTest {
             }
         } finally {
             FolderManager(context).removeFolder(1)
+        }
+    }
+
+    @Test
+    fun websiteLabelsAreBoundedWithoutTruncatingUrls() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val url = "https://" + "a".repeat(200) + ".example/path"
+                val saved = mutableListOf<Pair<String, String>>()
+                fun saveSite(name: String) {
+                    val dialog = WebsiteDialog(activity) { savedUrl, label -> saved.add(savedUrl to label) }.show()
+                    try {
+                        val root = dialog.window!!.decorView
+                        val address = requireNotNull(find(root) { it is EditText && it.hint == activity.getString(R.string.website_url_hint) } as? EditText)
+                        val label = requireNotNull(find(root) { it is EditText && it.hint == activity.getString(R.string.website_label_hint) } as? EditText)
+                        address.setText(url)
+                        if (name.isNotEmpty()) {
+                            label.setText("x".repeat(39) + "😀")
+                            assertEquals("x".repeat(39), label.text.toString())
+                        }
+                        label.setText(name)
+                        if (name.isNotEmpty()) assertEquals(40, label.text.length)
+                        requireNotNull(find(root) { it.contentDescription == activity.getString(R.string.save) }).performClick()
+                    } finally {
+                        dialog.dismiss()
+                    }
+                }
+                saveSite("x".repeat(300))
+                saveSite("")
+                assertEquals(listOf(url to "x".repeat(40), url to "a".repeat(40)), saved)
+            }
         }
     }
 }

@@ -90,4 +90,10 @@ class WebShortcutTest {
     fun defaultLabel_idnAndPort() {
         assertEquals("jõgi.ee", WebShortcut.defaultLabel("https://jõgi.ee:8443/x"))
     }
+
+    @Test
+    fun defaultLabel_boundsLongHostsWithoutSplittingSurrogates() {
+        assertEquals("a".repeat(40), WebShortcut.defaultLabel("https://" + "a".repeat(200) + ".example"))
+        assertEquals("a".repeat(39), WebShortcut.defaultLabel("https://" + "a".repeat(39) + "😀.example"))
+    }
 }

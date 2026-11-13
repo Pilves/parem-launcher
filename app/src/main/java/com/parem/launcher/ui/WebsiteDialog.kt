@@ -1,12 +1,14 @@
 package com.parem.launcher.ui
 
 import android.content.Context
+import android.text.InputFilter
 import android.text.InputType
 import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.core.widget.TextViewCompat
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.R
+import com.parem.launcher.data.Constants
 import com.parem.launcher.helper.WebShortcut
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
@@ -42,7 +44,9 @@ class WebsiteDialog(
             setPadding(0, 8.dpToPx(), 0, 16.dpToPx())
         }
         val urlInput = input(R.string.website_url_hint, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI)
-        val labelInput = input(R.string.website_label_hint, InputType.TYPE_CLASS_TEXT)
+        val labelInput = input(R.string.website_label_hint, InputType.TYPE_CLASS_TEXT).apply {
+            filters = filters + InputFilter.LengthFilter(Constants.MAX_HOME_NAME_LENGTH)
+        }
         container.addView(urlInput)
         container.addView(labelInput)
 
