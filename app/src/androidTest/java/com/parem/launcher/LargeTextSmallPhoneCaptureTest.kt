@@ -5,7 +5,6 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
-import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Prefs
@@ -32,14 +31,14 @@ class LargeTextSmallPhoneCaptureTest {
         fun capture(name: String) { device.executeShellCommand("screencap -p $out/$name.png") }
         fun id(resource: Int) = context.resources.getResourceName(resource)
         fun waitFor(resource: Int) = device.wait(Until.findObject(By.res(id(resource))), 10_000)
-        fun clickAfterScrolling(container: Int, target: Int) {
-            var button = waitFor(target)
-            repeat(3) {
+        fun clickAfterScrolling(target: Int) {
+            var button = device.findObject(By.res(id(target)))
+            repeat(5) {
                 if (button == null) {
-                    val scroll = waitFor(container)
-                    assertNotNull("onboarding scroll container missing", scroll)
-                    scroll!!.scroll(Direction.DOWN, 0.8f)
-                    button = waitFor(target)
+                    device.swipe(device.displayWidth / 2, device.displayHeight * 4 / 5,
+                        device.displayWidth / 2, device.displayHeight / 3, 20)
+                    device.waitForIdle()
+                    button = device.findObject(By.res(id(target)))
                 }
             }
             assertNotNull("onboarding action unreachable: ${id(target)}", button)
@@ -50,10 +49,10 @@ class LargeTextSmallPhoneCaptureTest {
             scenario.onActivity { assertEquals(TextScale.LARGE, Prefs(it).textSizeScale, 0.001f) }
             assertNotNull("first onboarding screen missing", waitFor(R.id.homeScreen))
             capture("onboarding-home")
-            clickAfterScrolling(R.id.homeScreen, R.id.btnNotNow)
+            clickAfterScrolling(R.id.btnNotNow)
             assertNotNull("Calm onboarding screen missing", waitFor(R.id.calmScreen))
             capture("onboarding-calm-top")
-            clickAfterScrolling(R.id.calmScreen, R.id.btnDone)
+            clickAfterScrolling(R.id.btnDone)
             assertNotNull("home missing", waitFor(R.id.homeAppsLayout))
             scenario.onActivity { activity ->
                 val prefs = Prefs(activity)
