@@ -218,7 +218,11 @@ class HomeWidgetController(
             val infos = withContext(Dispatchers.IO) {
                 ids.associateWith { id ->
                     WidgetIdBookkeeping.queryOrUnknown(
-                        query = { activity.appWidgetManager.getAppWidgetInfo(id) },
+                        query = {
+                            activity.appWidgetManager.getAppWidgetInfo(id)?.let { info ->
+                                info to "${info.provider.flattenToString()}@${info.profile}"
+                            }
+                        },
                         onFailure = { e -> CrashReporter.reportNonFatal("HomeWidgetController: widget info failed for id=$id", e) },
                     )
                 }
@@ -228,7 +232,7 @@ class HomeWidgetController(
                 reconcileRequested = true
                 return
             }
-            val signature = ids.map { id -> id to infos[id]?.let { "${it.provider.flattenToString()}@${it.profile}" } }
+            val signature = ids.map { id -> id to infos[id]?.second }
             if (!force && renderedWidgets == signature && renderedAbove == above) return
             val container = getActiveContainer() ?: return
             cancelPendingLongPresses()
@@ -236,7 +240,7 @@ class HomeWidgetController(
             container.removeAllViews()
             var failedToRender = false
             for (id in ids) {
-                val info = infos[id]
+                val info = infos[id]?.first
                 if (info == null) addUnavailableWidget(id)
                 else try {
                     val view = activity.appWidgetHost.createView(context.applicationContext, id, info)
@@ -534,8 +538,16 @@ class HomeWidgetController(
         updateWidgetContainerVisibility()
     }
 
+    private fun rejectPendingOperation(): Boolean {
+        val activity = mainActivity ?: return true
+        if (WidgetIdBookkeeping.canStartOperation(activity.pendingWidgetOp != null, activity.pendingWidgetResult != null)) return false
+        context.showToast(R.string.widget_setup_in_progress)
+        return true
+    }
+
     fun showWidgetPicker(onSelected: (AppWidgetProviderInfo) -> Unit = { bindWidget(it) }) {
         val mainActivity = mainActivity ?: return
+        if (rejectPendingOperation()) return
         val pm = context.packageManager
 
         fragment.viewLifecycleOwner.lifecycleScope.launch {
@@ -584,7 +596,7 @@ class HomeWidgetController(
                 }
             }
 
-            if (!isActive()) return@launch
+            if (!isActive() || rejectPendingOperation()) return@launch
 
             if (allEntries.isEmpty()) {
                 context.showToast(context.getString(R.string.no_widgets_available))
@@ -707,7 +719,7 @@ class HomeWidgetController(
             listView.setOnItemClickListener { _, _, position, _ ->
                 val entry = currentItems[position].second ?: return@setOnItemClickListener
                 dialog.dismiss()
-                onSelected(entry.provider)
+                if (isActive() && !rejectPendingOperation()) onSelected(entry.provider)
             }
 
             menu.customView(searchField)
@@ -746,6 +758,7 @@ class HomeWidgetController(
     }
 
     private fun bindWidget(providerInfo: AppWidgetProviderInfo, replaceId: Int = -1) {
+        if (rejectPendingOperation()) return
         if (replaceId != -1 && replaceId !in prefs.getWidgetIdList()) return
         if (replaceId == -1 && !WidgetIdBookkeeping.canAdd(prefs.getWidgetIdList())) {
             context.showToast(context.getString(R.string.max_widgets_reached), Toast.LENGTH_SHORT)

@@ -138,6 +138,7 @@
     <string name="alignment_changed">Alignment changed ✅</string>
     <string name="home_screen">Home screen</string>
     <string name="notification_bar">Notification bar</string>
+    <string name="widget_setup_in_progress" translatable="false">Finish the current widget setup first.</string>
     <string name="widget_unavailable" translatable="false">Widget unavailable. Tap for options.</string>
     <string name="remove_widget">Remove widget</string>
     <string name="no_widgets_available">No widgets available</string>
