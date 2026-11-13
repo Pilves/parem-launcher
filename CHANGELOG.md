@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Preserve picker checkbox accessibility after filtering and recycling rows.
 - Avoid repeating unchanged first-run tip layout work when returning home.
 - Show the correct default-home settings row after checking the current role.
 
