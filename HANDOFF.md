@@ -286,7 +286,7 @@ per package; the rest of each of those fragments is still in
   Not verified: tablet/work-profile menus, actual TalkBack speech, e-ink, folder Undo and real-world motion quality.
   Easy to get wrong: successful home selection clears FolderData, cancellation does not; FolderManager checks stored JSON before reusing its parsed cache; Website/CreateFolder expose dialogs so callers dismiss them with the fragment view.
   Scope: minimal summary/check/group APIs and checked/no-limit picker choices landed here; global typography/width tokens, shared timing targets, settings redesign and predictive-back motion remain WP50/51/52/55.
-- **M4-WP54 (PR #0):** Home long press and assigned gestures offer 25-minute Focus and manual grayscale quick actions.
+- **M4-WP54 (PR #33):** Home long press and assigned gestures offer 25-minute Focus and manual grayscale quick actions.
   Contract: gesture values 8 and 9 append to existing assignments; an active Focus session is never replaced; grayscale is offered only with access and rechecks it on execution.
   Not verified: real device behavior, grant revocation, scheduled Focus, TalkBack, and export/import from an older installed build.
   Easy to get wrong: turning manual grayscale off does not disable automatic triggers, which can keep the screen gray.
