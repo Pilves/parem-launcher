@@ -65,6 +65,11 @@ class GrayscaleRecoveryTest {
                 assertEquals("0", device.executeShellCommand("settings get secure $enabledKey").trim())
             }
         } finally {
+            context.paremPrefs().edit().putBoolean(GrayscaleController.KEY_APPLIED, false)
+                .putBoolean(GrayscaleController.KEY_MANUAL, false)
+                .putBoolean(GrayscaleController.KEY_ON_FOCUS, false)
+                .putBoolean(GrayscaleController.KEY_ON_LIMIT, false)
+                .putBoolean(GrayscaleController.KEY_APP_FG, false).commit()
             fun restore(key: String, value: String) {
                 if (value == "null") device.executeShellCommand("settings delete secure $key")
                 else device.executeShellCommand("settings put secure $key $value")
