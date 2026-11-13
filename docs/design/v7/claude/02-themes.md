@@ -1,5 +1,9 @@
 # Candidate v7 themes (Claude, step 1)
 
+> Historical planning snapshot from October 2026; statements below describe
+> that baseline or proposal, not the current queue. See [HANDOFF](../../../../HANDOFF.md)
+> and [ROADMAP](../../../ROADMAP.md) for current state.
+
 6.0 answered "can a launcher control attention, not just measure it?" Each v7
 theme below is one question. v7 should pick **one** headline theme plus a
 maintenance stream; three themes at once is how 6.0 got twelve WPs.

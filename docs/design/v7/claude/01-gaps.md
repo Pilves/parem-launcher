@@ -1,5 +1,9 @@
 # What 6.0 leaves open — inputs for v7 (Claude, step 1)
 
+> Historical planning snapshot from October 2026; statements below describe
+> that baseline or proposal, not the current queue. See [HANDOFF](../../../../HANDOFF.md)
+> and [ROADMAP](../../../ROADMAP.md) for current state.
+
 Sources: `docs/ROADMAP.md` (2026-10-03), `docs/design/DECISIONS.md`,
 `docs/design/M*-WP*.md`, `ARCHITECTURE.md` Traps / Known issues,
 `docs/archive/TODO-pre-roadmap.md`. Nothing below is new scope; it is what the
