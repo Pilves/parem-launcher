@@ -62,7 +62,7 @@ It also finds app shortcuts and Parem's own settings, and your contacts if you o
 Every calm tool is optional, and each says what it needs first.
 
 - **Mindful pause:** add a question and a five-second wait before opening a configured app.
-- **Quiet notifications:** eligible notifications from apps you haven't allowed move out of the shade into a quiet list. Calls, alarms, media, navigation and emergency alerts stay visible. Hidden items are snoozed for 8 hours and may be hidden again while the filter remains on. A short sound or vibration may still play unless you choose Make silent.
+- **Quiet notifications:** eligible notifications from apps you haven't allowed move out of the shade into a quiet list. Parem excludes some system apps and categories, including notifications identified as calls, alarms, media, navigation or system alerts; apps can label notifications differently. Eligible items are snoozed for 8 hours and may be hidden again while the filter remains on. A sound or vibration may still occur. Make silent opens Android notification settings; notifications made silent may remain in the shade.
 - **Focus mode:** timed sessions or weekly schedules. Up to 5 allowed apps; the default phone app is allowed when Android identifies it.
 - **Screen time:** today's total on home, a 7-day graph and a weekly review.
 - **App limits:** a daily allowance per app, then a warning you can override.
