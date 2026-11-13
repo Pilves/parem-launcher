@@ -357,6 +357,6 @@ per package; the rest of each of those fragments is still in
 - **M6-WP25 (PR #24):** The handoff generator updates provisional roadmap PR references when fragments gain a PR number.
 - **M6-WP27 (PR #28):** Daily wallpaper failures retain the previous applied URL so the same candidate can be retried.
 - **M6-WP29 (PR #32):** Claim release cleanup preserves a claim that arrives after the release marker.
-- **M6-WP33 (PR #0):** A separate CI-only launcher app supplies synthetic notifications for positive Quiet filtering and release checks on a disposable emulator.
+- **M6-WP33 (PR #38):** A separate CI-only launcher app supplies synthetic notifications for positive Quiet filtering and release checks on a disposable emulator.
 
 <!-- handoff:end -->

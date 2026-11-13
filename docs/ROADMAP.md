@@ -277,7 +277,7 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP22 | **Done** (PR #26). Label historical planning records and correct verified documentation contracts | Historical design records, archive/work split, selected handoff fragments, F-Droid draft and data-flow inventory | Source-backed corrections reviewed; audit coverage and remaining unverified claims recorded; handoff generated |
 
-| M6-WP33 | **Done** (PR #0). Exercise positive Quiet filtering with a synthetic launcher app on disposable CI emulators | Separate CI-only fixture app, instrumentation test and workflow, handoff | A real eligible synthetic notification is snoozed, an exempt category stays active, and allowing/disabling attempts release |
+| M6-WP33 | **Done** (PR #38). Exercise positive Quiet filtering with a synthetic launcher app on disposable CI emulators | Separate CI-only fixture app, instrumentation test and workflow, handoff | A real eligible synthetic notification is snoozed, an exempt category stays active, and allowing/disabling attempts release |
 
 ## Recurring (no id)
 
