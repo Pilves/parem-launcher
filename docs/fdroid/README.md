@@ -87,9 +87,11 @@ with `diffoscope` on the kept build directories.
 >
 > - Source: https://github.com/Pilves/parem-launcher
 > - Reproducibility candidate: `Binaries` names the signed release APK and
->   `AllowedAPKSigningKeys` names its certificate. Our local check produced two
->   identical unsigned builds and matched the signed APK's entries, excluding
->   signature files. F-Droid's full signature/layout verification is separate.
+>   `AllowedAPKSigningKeys` names its certificate. **Replace this sentence with
+>   the actual tag, APK and local check results before submitting.** The local
+>   check compares two unsigned builds and, when supplied the signed APK,
+>   their entries excluding signature files. F-Droid's full signature/layout
+>   verification is separate.
 > - Anti-features: `NonFreeNet` (opt-in wallpapers from Unsplash and other hosts, ECB currency
 >   rates). No trackers, no proprietary dependencies.
 > - Permissions worth explaining: the accessibility service is used only for
