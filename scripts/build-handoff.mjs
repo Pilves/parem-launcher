@@ -67,8 +67,8 @@ const unlisted = new Set();
 for (const { wp, pr } of fragments) {
   const done = `**Done** (PR #${pr})`;
   // Two formats live in the roadmap: table rows `| M0-WP7 | outcome |` and
-  // headings `**M1-WP5 — title**`. A cell or heading that already says Done is
-  // left alone, which is what makes a second run a no-op.
+  // headings `**M1-WP5 — title**`. A provisional PR #0 can become a PR
+  // number after opening the PR; established Done markers stay unchanged.
   const row = new RegExp(`^(\\|\\s*${wp}\\s*\\|)(.*)$`, 'm');
   const heading = new RegExp(`^(\\*\\*${wp} — [^*]*\\*\\*)(.*)$`, 'm');
   const match = roadmap.match(row) ?? roadmap.match(heading);
@@ -77,7 +77,14 @@ for (const { wp, pr } of fragments) {
     unlisted.add(milestoneOf(wp));
     continue;
   }
-  if (/\*\*Done/.test(match[2].split('|')[0])) continue;
+  if (/\*\*Done/.test(match[2].split('|')[0])) {
+    if (pr !== '0') {
+      const outcome = match[2].split('|')[0];
+      const updated = outcome.replace('**Done** (PR #0)', done);
+      roadmap = roadmap.replace(match[0], () => match[1] + updated + match[2].slice(outcome.length));
+    }
+    continue;
+  }
   roadmap = match[1].startsWith('|')
     ? roadmap.replace(row, (_, head, rest) => `${head} ${done}.${rest}`)
     : roadmap.replace(heading, (_, head, rest) => `${head} — ${done}${rest}`);

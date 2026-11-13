@@ -41,6 +41,26 @@ test('generates stable handoff docs without Git metadata and refreshes completed
     assert.ok(complete[1].includes('**Done** (PR #2)'));
     generate();
     assert.deepEqual(output(), complete);
+
+    // A PR can be created after the first generation. Only the provisional
+    // Done marker changes, not a later PR mention or an established marker.
+    writeFileSync(join(root, 'docs/ROADMAP.md'), complete[1]
+      + '| M2-WP1 | **Done** (PR #0). See PR #0 for context. | PR #0 owner |\n'
+      + '| M2-WP2 | **Done** (PR #7). Historical marker |\n'
+      + '| M2-WP3 | **Done** (PR #0). Branch merge |\n'
+      + '**M3-WP1 — Heading** — **Done** (PR #0) More context\n');
+    fragment('M2-WP1', 21, '2026-09-28', 'New PR.');
+    fragment('M2-WP2', 8, '2026-09-28', 'Existing PR.');
+    fragment('M2-WP3', 0, '2026-09-28', 'Branch merge.');
+    fragment('M3-WP1', 22, '2026-09-28', 'Heading PR.');
+    generate();
+    const synchronized = output();
+    assert.ok(synchronized[1].includes('| M2-WP1 | **Done** (PR #21). See PR #0 for context. | PR #0 owner |'));
+    assert.ok(synchronized[1].includes('| M2-WP2 | **Done** (PR #7). Historical marker |'));
+    assert.ok(synchronized[1].includes('| M2-WP3 | **Done** (PR #0). Branch merge |'));
+    assert.ok(synchronized[1].includes('**M3-WP1 — Heading** — **Done** (PR #22) More context'));
+    generate();
+    assert.deepEqual(output(), synchronized);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
