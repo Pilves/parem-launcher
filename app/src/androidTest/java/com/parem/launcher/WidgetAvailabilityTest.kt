@@ -260,4 +260,46 @@ class WidgetAvailabilityTest {
         }
     }
 
+    @Test
+    fun legacyFinishedResultIsAbandonedButInflightOperationSurvives() {
+        prepare()
+        val prefs = Prefs(context)
+        try {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                var original = -1
+                var pending = -1
+                scenario.onActivity { activity ->
+                    original = activity.appWidgetHost.allocateAppWidgetId()
+                    pending = activity.appWidgetHost.allocateAppWidgetId()
+                    prefs.setWidgetIdList(listOf(original))
+                    prefs.setWidgetHeight(original, 177)
+                    prefs.setWidgetProvider(original, provider.flattenToString())
+                    val op = Bundle().apply { putInt("stage", 2); putInt("widgetId", pending); putInt("replaceId", original) }
+                    activity.restorePendingWidgetState(Bundle().apply { putBundle("pendingWidgetOp", op) })
+                    assertEquals("in-flight operation was lost", pending, activity.pendingWidgetOp?.getInt("widgetId"))
+                    activity.restorePendingWidgetState(Bundle().apply {
+                        putBundle("pendingWidgetOp", op); putBoolean("pendingWidgetResult", false)
+                    })
+                    assertEquals(null, activity.pendingWidgetOp)
+                    assertEquals(listOf(original), prefs.getWidgetIdList())
+                    home(activity).widgetController!!.requestReconcile(force = true)
+                }
+                val deadline = SystemClock.elapsedRealtime() + 10_000
+                var pendingAllocated = true
+                while (pendingAllocated && SystemClock.elapsedRealtime() < deadline) {
+                    scenario.onActivity { pendingAllocated = pending in it.appWidgetHost.appWidgetIds }
+                    if (pendingAllocated) SystemClock.sleep(50)
+                }
+                assertFalse("abandoned unsaved allocation was not reclaimed", pendingAllocated)
+                assertEquals(listOf(original), prefs.getWidgetIdList())
+                val fresh = Prefs(context)
+                assertEquals(177, fresh.getWidgetHeight(original))
+                assertEquals(provider.flattenToString(), fresh.getAllWidgetProviders()[original])
+                scenario.onActivity { assertTrue(original in it.appWidgetHost.appWidgetIds) }
+            }
+        } finally {
+            device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
+        }
+    }
+
 }

@@ -100,13 +100,9 @@ class MainActivity : AppCompatActivity() {
         AppCompatDelegate.setDefaultNightMode(prefs.appTheme)
         // HomeFragment restores widgets during content inflation, so its orphan sweep
         // and deferred-result delivery must already see the saved operation.
-        pendingWidgetOp = savedInstanceState?.getBundle("pendingWidgetOp")
+        restorePendingWidgetState(savedInstanceState)
         // recreate() makes a new instance, so the cap only holds if it survives in state
         themeCheckRetries = savedInstanceState?.getInt("themeCheckRetries") ?: 0
-        pendingWidgetResult = savedInstanceState?.getBundle("pendingWidgetResultV2")?.let {
-            WidgetOperationResult(it.getInt("source"), it.getInt("stage"), it.getInt("id"),
-                if (it.containsKey("returnedId")) it.getInt("returnedId") else null, it.getBoolean("success"))
-        }
         super.onCreate(savedInstanceState)
         nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         if (prefs.boldFont) theme.applyStyle(R.style.BoldFontOverlay, true)
@@ -183,6 +179,21 @@ class MainActivity : AppCompatActivity() {
 
         // Edge-to-edge on API 29-34 (35+ enforces it); fragments pad by WindowInsets
         WindowCompat.setDecorFitsSystemWindows(window, false)
+    }
+
+    /** Do not reinterpret a finished legacy Boolean result as a new typed operation. */
+    internal fun restorePendingWidgetState(state: Bundle?) {
+        pendingWidgetOp = state?.getBundle("pendingWidgetOp")
+        pendingWidgetResult = state?.getBundle("pendingWidgetResultV2")
+            ?.takeIf { bundle -> listOf("source", "stage", "id", "success").all(bundle::containsKey) }
+            ?.let {
+            WidgetOperationResult(it.getInt("source"), it.getInt("stage"), it.getInt("id"),
+                if (it.containsKey("returnedId")) it.getInt("returnedId") else null, it.getBoolean("success"))
+        }?.takeIf { result -> pendingWidgetOp?.let { result.matches(it.getInt("stage"), it.getInt("widgetId")) } == true }
+        // The old Boolean carries no source or operation identity. Abandon only
+        // finished legacy work; the host's orphan sweep can release unsaved IDs.
+        if (pendingWidgetResult == null && state?.containsKey("pendingWidgetResult") == true)
+            pendingWidgetOp = null
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
