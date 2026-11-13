@@ -38,7 +38,7 @@ Your clock, your date and up to 8 apps, as plain text. No feed asking for your a
 
 ![Two Parem search screens. One converts 100 eur in usd using European Central Bank rates. The other shows 2+2 equals 4.](docs/images/search.png)
 
-Swipe up and type. Initials and partial names work, and a single match opens by itself unless you turn that off. The same field does the rest:
+Swipe up and type. Initials and partial names work. A single app match can open by itself; you can turn this off, and it is suppressed for screen readers and value queries. The same field does the rest:
 
 | Type | You get |
 |---|---|
