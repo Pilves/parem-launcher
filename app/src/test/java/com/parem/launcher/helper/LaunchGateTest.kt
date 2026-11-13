@@ -4,6 +4,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class LaunchGateTest {
+    @Test fun explicitComponentDoesNotDependOnPackageVisibility() {
+        assertEquals("example.wellbeing", LaunchGate.knownTarget("example.wellbeing", null))
+        assertEquals("example.wellbeing", LaunchGate.knownTarget("example.wellbeing", "wrong.package"))
+        assertEquals("example.package", LaunchGate.knownTarget(null, "example.package"))
+        assertEquals(null, LaunchGate.knownTarget(null, null))
+    }
+
     @Test fun focusBlocksDisallowedAndAllowsAllowedPackages() {
         assertEquals(LaunchGate.Decision.BLOCK, LaunchGate.decide(true, false, false, false, false))
         assertEquals(LaunchGate.Decision.OPEN, LaunchGate.decide(true, true, false, false, false))

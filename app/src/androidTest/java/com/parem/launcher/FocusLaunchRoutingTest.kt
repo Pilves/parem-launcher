@@ -7,6 +7,7 @@ import android.os.SystemClock
 import android.provider.CalendarContract
 import android.provider.MediaStore
 import android.view.View
+import androidx.lifecycle.lifecycleScope
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -16,6 +17,7 @@ import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.FocusModeManager
+import com.parem.launcher.ui.BadHabitDialogs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -51,6 +53,12 @@ class FocusLaunchRoutingTest {
                 device.waitForIdle()
                 SystemClock.sleep(750)
                 assertEquals("blocked date left home", context.packageName, device.currentPackageName)
+                val allowed = if (handler == "android") instrumentation.context.packageName else handler
+                FocusModeManager.setWhitelist(context, setOf(allowed))
+                scenario.onActivity { it.findViewById<View>(R.id.date).performClick() }
+                assertTrue("allowed calendar did not open during focus", device.wait(Until.hasObject(By.pkg(allowed)), 5_000))
+                device.pressBack()
+                device.waitForIdle()
                 FocusModeManager.disable(context)
                 scenario.onActivity { it.findViewById<View>(R.id.date).performClick() }
                 if (handler == "android") {
@@ -62,6 +70,31 @@ class FocusLaunchRoutingTest {
                 } else {
                     assertTrue("calendar app did not open", device.wait(Until.hasObject(By.pkg(handler)), 5_000))
                 }
+                device.pressBack()
+            }
+        } finally {
+            FocusModeManager.disable(context)
+        }
+    }
+
+    @Test fun explicitHandlerIsBlockedOrOpenedByFocusAllowlist() {
+        prepare()
+        val fixturePackage = instrumentation.context.packageName
+        val intent = Intent().setClassName(fixturePackage, LaunchGateFixtureActivity::class.java.name)
+        try {
+            FocusModeManager.setWhitelist(context, emptySet())
+            FocusModeManager.enable(context, 30)
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                fun launch() = scenario.onActivity { activity ->
+                    BadHabitDialogs.gateIntent(activity, activity.lifecycleScope, { !activity.isFinishing }, intent)
+                }
+                launch()
+                device.waitForIdle()
+                SystemClock.sleep(750)
+                assertEquals("blocked explicit handler left home", context.packageName, device.currentPackageName)
+                FocusModeManager.setWhitelist(context, setOf(fixturePackage))
+                launch()
+                assertTrue("allowed explicit handler did not open", device.wait(Until.hasObject(By.text("Camera fixture activity is open")), 5_000))
                 device.pressBack()
             }
         } finally {

@@ -128,14 +128,14 @@ object BadHabitDialogs {
         open: (packageName: String) -> Unit,
     ) {
         val pm = context.packageManager
-        val handler = try {
+        val handler = LaunchGate.knownTarget(intent.component?.packageName, intent.`package`) ?: try {
             pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
         } catch (_: Exception) {
             null
         }
         // Candidates matter only under focus, where the chooser must not offer a blocked browser
         val focusActive = FocusModeManager.isActive(context)
-        val candidates = if (!focusActive) emptyList() else try {
+        val candidates = if (!focusActive || (!handler.isNullOrEmpty() && handler != WebLaunchTarget.CHOOSER)) emptyList() else try {
             pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY).map { it.activityInfo.packageName }
         } catch (_: Exception) {
             emptyList()
