@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
       - app/src/main/java/com/parem/launcher/helper/notifications/**
+      - app/src/main/java/com/parem/launcher/ui/QuietListSheet.kt
       - app/src/main/AndroidManifest.xml
       - app/src/androidTest/java/com/parem/launcher/QuietNotificationFixtureTest.kt
       - scripts/run-quiet-fixture.sh
