@@ -14,6 +14,10 @@ object WidgetIdBookkeeping {
     /** All saved widgets, including temporarily unavailable ones, occupy capacity. */
     fun canAdd(ids: List<Int>): Boolean = ids.size < 6
 
+    /** Results carry no widget ID, so a second operation cannot overlap the first. */
+    fun canStartOperation(hasPendingOp: Boolean, hasPendingResult: Boolean): Boolean =
+        !hasPendingOp && !hasPendingResult
+
     /** A pending ID can be released only while it is not saved on home. */
     fun canReleasePending(savedIds: List<Int>, pendingId: Int): Boolean = pendingId !in savedIds
 

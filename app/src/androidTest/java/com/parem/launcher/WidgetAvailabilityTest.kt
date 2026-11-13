@@ -97,6 +97,57 @@ class WidgetAvailabilityTest {
     }
 
     @Test
+    fun homeWhileConfigurePendingCannotStartAnotherWidgetOperation() {
+        prepare()
+        val prefs = Prefs(context)
+        try {
+            check(device.pressHome())
+            check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
+            fun onHome(block: (MainActivity) -> Unit) {
+                instrumentation.runOnMainSync {
+                    val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                        .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                    block(activity)
+                }
+            }
+            val pickerList = By.clazz("android.widget.ListView")
+            onHome { home(it).widgetController!!.showWidgetPicker() }
+            assertTrue("control picker did not open", device.wait(Until.hasObject(pickerList), 15_000))
+            device.pressBack()
+            if (!device.wait(Until.gone(pickerList), 1_000)) device.pressBack()
+            check(device.wait(Until.gone(pickerList), 10_000))
+
+            var first = -1
+            var second = -1
+            var pending = -1
+            onHome { activity ->
+                first = activity.appWidgetHost.allocateAppWidgetId()
+                second = activity.appWidgetHost.allocateAppWidgetId()
+                pending = activity.appWidgetHost.allocateAppWidgetId()
+                assertTrue(activity.appWidgetManager.bindAppWidgetIdIfAllowed(pending, provider))
+                prefs.setWidgetIdList(listOf(first, second))
+                activity.pendingWidgetOp = Bundle().apply {
+                    putInt("stage", 2); putInt("widgetId", pending); putInt("replaceId", first)
+                }
+            }
+            assertTrue(device.pressHome())
+            onHome { home(it).widgetController!!.showWidgetPicker() }
+            assertFalse("a second widget picker opened", device.wait(Until.hasObject(pickerList), 1_500))
+            onHome { activity ->
+                assertEquals("pending configure was overwritten", pending, activity.pendingWidgetOp?.getInt("widgetId"))
+                assertEquals("original swap target was overwritten", first, activity.pendingWidgetOp?.getInt("replaceId"))
+                home(activity).widgetController!!.onPendingWidgetResult(true)
+            }
+            val deadline = SystemClock.elapsedRealtime() + 10_000
+            while (prefs.getWidgetIdList() != listOf(pending, second) && SystemClock.elapsedRealtime() < deadline)
+                SystemClock.sleep(50)
+            assertEquals("old configure targeted a different widget", listOf(pending, second), prefs.getWidgetIdList())
+        } finally {
+            device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
+        }
+    }
+
+    @Test
     fun pendingSwapTracksIdThroughReorderAndDoesNotResurrectRemoval() {
         prepare()
         val prefs = Prefs(context)

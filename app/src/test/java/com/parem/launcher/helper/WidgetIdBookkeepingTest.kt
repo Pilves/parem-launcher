@@ -26,6 +26,14 @@ class WidgetIdBookkeepingTest {
     }
 
     @Test
+    fun anotherWidgetOperationWaitsForPendingOperationAndResult() {
+        assertTrue(WidgetIdBookkeeping.canStartOperation(false, false))
+        assertFalse(WidgetIdBookkeeping.canStartOperation(true, false))
+        assertFalse(WidgetIdBookkeeping.canStartOperation(false, true))
+        assertFalse(WidgetIdBookkeeping.canStartOperation(true, true))
+    }
+
+    @Test
     fun pendingReleaseNeverDeletesASavedWidget() {
         assertFalse(WidgetIdBookkeeping.canReleasePending(listOf(1, 2), 2))
         assertTrue(WidgetIdBookkeeping.canReleasePending(listOf(1, 2), 3))
