@@ -218,12 +218,12 @@ Released-At: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 		return 1
 	fi
 
-	# Tidy-up only: the id is already free above whether or not this works, so a
-	# refused delete is not a failed release.
-	if git push --quiet "$remote" --delete "$prefix/$id" 2>/dev/null; then
+	# Delete only our marker: another session may already have claimed its child.
+	# Cleanup is optional, so a changed ref or refused delete is not a failure.
+	if git push --quiet --force-with-lease="$prefix/$id:$new" "$remote" --delete "$prefix/$id" 2>/dev/null; then
 		echo "$id released, claim ref deleted"
 	else
-		echo "$id released (ref kept: this token may not delete refs)"
+		echo "$id released (cleanup skipped: ref changed or deletion refused)"
 	fi
 	return 0
 }

@@ -350,5 +350,6 @@ per package; the rest of each of those fragments is still in
 - **M6-WP20 (PR #21):** Operational documentation reflects verified current storage, test, onboarding, release and quiet-notification behavior; superseded handoff summaries identify later changes.
 - **M6-WP23 (PR #22):** Web opens with no identifiable receiving app are blocked during Focus instead of leaving the intent unpinned.
 - **M6-WP25 (PR #24):** The handoff generator updates provisional roadmap PR references when fragments gain a PR number.
+- **M6-WP29 (PR #0):** Claim release cleanup preserves a claim that arrives after the release marker.
 
 <!-- handoff:end -->
