@@ -289,6 +289,7 @@ per package; the rest of each of those fragments is still in
 - **M4-WP54 (PR #33):** Home long press and assigned gestures offer 25-minute Focus and manual grayscale quick actions.
   Contract: gesture values 8 and 9 append to existing assignments; an active Focus session is never replaced; grayscale is offered only with access and rechecks it on execution.
   Not verified: real device behavior, grant revocation, scheduled Focus, TalkBack, and export/import from an older installed build.
+  Not handled: revocation between the two secure writes can leave a partial restore; `Settings.Secure.putInt` false returns are ignored.
   Easy to get wrong: turning manual grayscale off does not disable automatic triggers, which can keep the screen gray.
 - **M4-WP55 (PR #19):** Drawer dismissal now requires a deliberate pull and release, navigation avoids duplicate drawers, and navigation transitions use seekable animators.
   Contract: top-edge drag crosses 64dp for haptic and release; flings and cancelled drags do not dismiss; app launch bounds use the tapped label when available.
