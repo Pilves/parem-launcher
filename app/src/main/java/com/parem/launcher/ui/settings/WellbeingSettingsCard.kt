@@ -12,6 +12,7 @@ import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
+import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.ChannelFeatures
 import com.parem.launcher.helper.WellbeingRowState
@@ -76,7 +77,6 @@ class WellbeingSettingsCard(
     }
 
     override fun onClick(view: View) {
-        fragment.resetOpenPickers(view.id)
         when (view.id) {
             R.id.screenTimeLayout -> BadHabitDialogs.showUsageAccessSheet(context)
             R.id.focusModeRow -> showFocusModeFromSettings()
@@ -197,7 +197,8 @@ class WellbeingSettingsCard(
         binding.screenTimeLayout.bindValueRow(binding.screenTimeOnOff.text)
         val needsAccess = WellbeingRowState.appLimits(granted) == Row.NEEDS_ACCESS
         binding.screenTimeLimitsToggle?.apply {
-            text = context.getString(if (needsAccess) R.string.quiet_needs_access else R.string.configure)
+            text = if (needsAccess) context.getString(R.string.quiet_needs_access)
+                else context.getString(R.string.configured_app_count, AppLimitManager.configuredApps(context).size)
             alpha = 1f
             setTextColor(context.getColorFromAttr(if (needsAccess) R.attr.accentColor else R.attr.textColor))
         }
@@ -229,6 +230,7 @@ class WellbeingSettingsCard(
         // fall back to the last persisted map rather than opening an empty sheet
         val usageMap = viewModel.perAppScreenTime.value ?: prefs.getCachedUsageStats()
         ScreenTimeLimitDialog(context, usageMap, fragment.viewLifecycleOwner.lifecycleScope).show()
+            .apply { setOnDismissListener { if (fragment.isBindingAlive()) populateUsageAccess() } }
             .dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 }

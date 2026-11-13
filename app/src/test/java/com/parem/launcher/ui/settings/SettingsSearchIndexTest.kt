@@ -12,7 +12,8 @@ import java.io.File
  */
 class SettingsSearchIndexTest {
 
-    private val sectionHeaders = setOf("home_screen", "appearance", "settings_calm_section", "settings_search_section")
+    // Non-interactive captions are spoken as explanatory text, not searchable rows.
+    private val nonRowText = setOf("home_screen", "appearance", "settings_calm_section", "settings_search_section", "keyboard_caption")
 
     private fun mainFile(path: String): File =
         listOf(File("src/main/$path"), File("app/src/main/$path")).firstOrNull { it.isFile }
@@ -29,7 +30,7 @@ class SettingsSearchIndexTest {
             .map { it.groupValues[1] }
             .filter { "android:id=" !in it }
             .mapNotNull { Regex("""android:text="@string/(\w+)"""").find(it)?.groupValues?.get(1) }
-            .toSet() - sectionHeaders
+            .toSet() - nonRowText
         assertTrue("no row titles parsed", titles.size > 20)
         val missing = titles - entries.map { it.first }.toSet()
         assertTrue("rows missing from SettingsSearchIndex: $missing", missing.isEmpty())

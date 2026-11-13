@@ -41,6 +41,7 @@ import androidx.test.uiautomator.Until
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
+import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.AppOpenCounter
 import com.parem.launcher.helper.WallpaperWorker
@@ -892,6 +893,8 @@ class SmokeTest {
 
     @Test
     fun swipeDownSearchRevealsItsSetting() {
+        val prefs = Prefs(context)
+        prefs.swipeDownAction = Constants.SwipeDownAction.SEARCH
         instrumentation.runOnMainSync {
             val activity = ActivityLifecycleMonitorRegistry.getInstance()
                 .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
@@ -903,13 +906,29 @@ class SmokeTest {
         val row = By.res(context.resources.getResourceName(R.id.flSwipeDown))
         assertTrue("swipe-down search did not reveal its setting", device.wait(Until.hasObject(row), TIMEOUT))
         device.findObject(row).click()
-        val picker = By.res(context.resources.getResourceName(R.id.swipeDownSelectLayout))
-        assertTrue("revealed swipe-down picker did not open", device.wait(Until.hasObject(picker), TIMEOUT))
+        val option = By.desc(context.getString(R.string.notifications))
+        assertTrue("swipe-down sheet did not open", device.wait(Until.hasObject(option), TIMEOUT))
+        device.findObject(option).click()
+        assertTrue("swipe-down row vanished after picking", device.wait(Until.hasObject(row), TIMEOUT))
+        assertEquals(Constants.SwipeDownAction.NOTIFICATIONS, prefs.swipeDownAction)
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            val value = ViewCompat.getStateDescription(activity.findViewById(R.id.flSwipeDown))
+            assertEquals(context.getString(R.string.notifications), value?.toString())
+        }
     }
 
     @Test
-    fun swipeDownRowStaysWhileItsPickerIsOpen() {
-        device.waitForIdle(TIMEOUT)
+    fun swipeLockRowsShowMissingAccess() {
+        val admin = context.getSystemService(android.content.Context.DEVICE_POLICY_SERVICE) as android.app.admin.DevicePolicyManager
+        org.junit.Assume.assumeFalse("accessibility lock is enabled", isAccessServiceEnabled(context))
+        org.junit.Assume.assumeFalse("device admin is enabled", admin.isAdminActive(ComponentName(context, com.parem.launcher.listener.DeviceAdmin::class.java)))
+        val prefs = Prefs(context)
+        prefs.swipeLeftEnabled = true
+        prefs.swipeRightEnabled = true
+        prefs.swipeLeftAction = Constants.GestureAction.LOCK_SCREEN
+        prefs.swipeRightAction = Constants.GestureAction.LOCK_SCREEN
         instrumentation.runOnMainSync {
             val activity = ActivityLifecycleMonitorRegistry.getInstance()
                 .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
@@ -919,17 +938,42 @@ class SmokeTest {
         instrumentation.runOnMainSync {
             val activity = ActivityLifecycleMonitorRegistry.getInstance()
                 .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
-            val row = activity.findViewById<View>(R.id.flSwipeDown)
-            val picker = activity.findViewById<View>(R.id.swipeDownSelectLayout)
-            activity.findViewById<View>(R.id.tvGestures).performClick()
-            assertTrue("row not revealed", row.isVisible)
-            row.performClick()
-            assertTrue("row vanished on tap", row.isVisible)
-            assertTrue("picker not shown", picker.isVisible)
-            activity.findViewById<View>(R.id.notifications).performClick()
-            assertTrue("row vanished after picking", row.isVisible)
-            assertFalse("picker stayed open", picker.isVisible)
+            val expected = context.getString(R.string.lock_needs_access)
+            assertEquals(expected, activity.findViewById<android.widget.TextView>(R.id.swipeLeftApp).text.toString())
+            assertEquals(expected, activity.findViewById<android.widget.TextView>(R.id.swipeRightApp).text.toString())
         }
+    }
+
+    @Test
+    fun settingsChoiceSheetChecksCurrentValueAndKeyboardTogglesOnce() {
+        val prefs = Prefs(context)
+        prefs.autoShowKeyboard = true
+        prefs.keyboardMessageShown = false
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            activity.findNavController(R.id.nav_host_fragment).navigate(R.id.action_mainFragment_to_settingsFragment)
+        }
+        device.waitForIdle(TIMEOUT)
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            activity.findViewById<View>(R.id.autoShowKeyboardRow).performClick()
+        }
+        assertFalse("one tap should turn keyboard off", prefs.autoShowKeyboard)
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            activity.findViewById<View>(R.id.dateTimeRow).performClick()
+        }
+        val current = when (prefs.dateTimeVisibility) {
+            Constants.DateTime.ON -> R.string.on
+            Constants.DateTime.DATE_ONLY -> R.string.date_only
+            else -> R.string.off
+        }
+        val selected = device.wait(Until.findObject(By.desc(context.getString(current)).clazz("android.widget.RadioButton")), TIMEOUT)
+        assertNotNull("current date/time value was not offered as a radio choice", selected)
+        assertTrue("current date/time value was not checked", selected!!.isChecked)
     }
 
     private fun openDrawer() {

@@ -187,6 +187,7 @@ class BottomSheetMenu(private val context: Context) {
         destructive: Boolean = false,
         primaryAction: Boolean = false,
         onSourceBounds: ((android.graphics.Rect?) -> Unit)? = null,
+        singleChoice: Boolean = false,
         onClick: () -> Unit,
     ): BottomSheetMenu {
         lateinit var sourceLabel: TextView
@@ -219,7 +220,11 @@ class BottomSheetMenu(private val context: Context) {
             ViewCompat.setAccessibilityDelegate(this, object : AccessibilityDelegateCompat() {
                 override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
                     super.onInitializeAccessibilityNodeInfo(host, info)
-                    info.className = if (checked == null) "android.widget.Button" else "android.widget.CheckBox"
+                    info.className = when {
+                        checked == null -> "android.widget.Button"
+                        singleChoice -> "android.widget.RadioButton"
+                        else -> "android.widget.CheckBox"
+                    }
                     if (checked != null) info.isSelected = false
                     info.isCheckable = checked != null
                     info.isChecked = checked == true
