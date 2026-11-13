@@ -30,12 +30,14 @@ These three cover most of the architecture. Use `gd` (go to definition) and
 `gr` (references) to follow the chain; that's faster than guessing filenames.
 
 **1. "I tap an app in the drawer and it opens."**
-Start in `AppDrawerAdapter` (the row click), which calls
+Start in `AppDrawerAdapter` (the row click), then follow its callback to
+`AppDrawerFragment.onAppClick()`. The fragment handles private-space headers
+and checks the app's launch gate before it calls
 `MainViewModel.selectedApp(appModel, flag)`. The `flag` is the key idea: the
 same drawer is reused for *every* "pick an app" flow (launch it, assign it to
 home slot 3, set it as the swipe-left app…) and the flag says which one is
 happening. Find the `FLAG_` constants in `data/Constants.kt`, then look at the
-`when` over them in `MainViewModel`. Once this clicks, half the app makes sense.
+`when` over them in `MainViewModel`.
 
 **2. "I type `5 km in mi` in the drawer search."**
 Start at `AppDrawerFragment` search handling → `updateOmniboxState()` →
