@@ -398,14 +398,17 @@ class Prefs(context: Context) {
         return parsed
     }
 
-    fun migrateWidgetIfNeeded(appWidgetManager: android.appwidget.AppWidgetManager? = null) {
-        if (widgetId != -1 && widgetIds.isBlank()) {
-            setWidgetIdList(listOf(widgetId))
-            // Try to save provider info for the migrated widget
-            appWidgetManager?.getAppWidgetInfo(widgetId)?.provider?.let { provider ->
-                setWidgetProvider(widgetId, provider.flattenToString())
-            }
+    fun migrateWidgetIfNeeded(appWidgetManager: android.appwidget.AppWidgetManager? = null) =
+        migrateWidgetWithProviderLookup { id -> appWidgetManager?.getAppWidgetInfo(id)?.provider?.flattenToString() }
+
+    internal fun migrateWidgetWithProviderLookup(provider: (Int) -> String?) {
+        val legacyId = widgetId
+        if (legacyId != -1 && widgetIds.isBlank()) {
+            setWidgetIdList(listOf(legacyId))
+            // The ID is already safely saved: provider lookup can fail, but it
+            // must not leave a legacy marker that later resurrects a removal.
             widgetId = -1
+            provider(legacyId)?.let { setWidgetProvider(legacyId, it) }
         }
     }
 
