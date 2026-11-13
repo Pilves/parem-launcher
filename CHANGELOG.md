@@ -8,6 +8,7 @@
 - Dismiss first-run tips when the drawer or Settings is opened by any route.
 - Remove unused settings views and drawer animation resources.
 - Keep picker actions visible while scrolling long app lists.
+- Show the number of selected apps in folder and Focus picker rows.
 
 - Retry a daily wallpaper after its download or application fails.
 - Add 25-minute Focus and manual grayscale quick actions to the home menu and gestures.

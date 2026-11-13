@@ -71,16 +71,23 @@ class CreateFolderDialog(
         val appsById = apps.associateBy(::rowId)
         // By ID, not via the list: a hidden app is not offered but must survive an edit
         val initialApps = initial?.apps.orEmpty().filter { it.url.isEmpty() }.associateBy(::savedRowId)
-        val pickerAdapter = AppPickerAdapter(
+        lateinit var selectAppsRow: TextView
+        lateinit var pickerAdapter: AppPickerAdapter
+        pickerAdapter = AppPickerAdapter(
             textColor = context.getColorFromAttr(R.attr.textColor),
             maxSelected = MAX_ITEMS,
             entries = apps.map { AppPickerAdapter.Entry(rowId(it), it.appLabel) },
             initiallySelected = initialApps.keys,
+            onSelectionChanged = {
+                selectAppsRow.text = context.getString(R.string.picker_selected_count,
+                    context.getString(R.string.select_apps), pickerAdapter.selectedIds.size)
+            },
         )
 
-        container.addView(TextView(context).apply {
+        selectAppsRow = TextView(context).apply {
             TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetBody)
-            text = context.getString(R.string.select_apps)
+            text = context.getString(R.string.picker_selected_count,
+                context.getString(R.string.select_apps), pickerAdapter.selectedIds.size)
             setTextColor(context.getColorFromAttr(R.attr.textColor))
             minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
             setPadding(0, 12.dpToPx(), 0, 12.dpToPx())
@@ -98,7 +105,8 @@ class CreateFolderDialog(
                     .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true)
                 picker.dismissWithParent(dialog)
             }
-        })
+        }
+        container.addView(selectAppsRow)
 
         // Websites sit beside the picked apps under the same 4-item cap;
         // unchecking one drops it

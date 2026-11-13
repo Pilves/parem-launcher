@@ -157,6 +157,7 @@ class FocusModeDialog(
         var pickerAdapter: AppPickerAdapter? = null
         // Set once the schedule section exists; the picker calls it on every check change
         var updateEmptyWarning: () -> Unit = {}
+        var updateAllowedCount: () -> Unit = {}
 
         if (allApps.isNotEmpty()) {
             val currentWhitelist = FocusModeManager.getWhitelist(ctx)
@@ -169,10 +170,10 @@ class FocusModeDialog(
                 initiallySelected = allApps.mapNotNull { (packageName, _) ->
                     packageName.takeIf { it in currentWhitelist }
                 },
-                onSelectionChanged = { updateEmptyWarning() }
+                onSelectionChanged = { updateEmptyWarning(); updateAllowedCount() }
             )
             pickerAdapter = adapter
-            container.addView(createWindowRow(ctx, primaryColor, ctx.getString(R.string.focus_allowed_apps),
+            val allowedRow = createWindowRow(ctx, primaryColor, ctx.getString(R.string.focus_allowed_apps),
                 onClick = {
                     adapter.filter("")
                     val pickerContent = LinearLayout(ctx).apply {
@@ -185,7 +186,17 @@ class FocusModeDialog(
                         .option(ctx.getString(android.R.string.ok)) {}
                         .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true)
                     picker.dismissWithParent(dialog)
-                }, onLongClick = null))
+                }, onLongClick = null)
+            updateAllowedCount = {
+                val count = FocusModeManager.mergeWhitelist(
+                    adapter.selectedIds, FocusModeManager.getWhitelist(ctx),
+                    allApps.mapTo(mutableSetOf()) { it.first },
+                ).size
+                allowedRow.text = ctx.getString(R.string.picker_selected_count,
+                    ctx.getString(R.string.focus_allowed_apps), count)
+            }
+            updateAllowedCount()
+            container.addView(allowedRow)
         }
 
         // Schedule section: edits stay local until Save or Enable

@@ -475,4 +475,5 @@
     <string name="quick_grayscale_needs_access" translatable="false">Set up grayscale access in Settings</string>
     <string name="quick_grayscale_manual_on" translatable="false">Manual grayscale on</string>
     <string name="quick_grayscale_manual_off" translatable="false">Manual grayscale off; automatic grayscale may still be active</string>
+    <string name="picker_selected_count" translatable="false">%1$s · %2$d selected</string>
 </resources>
