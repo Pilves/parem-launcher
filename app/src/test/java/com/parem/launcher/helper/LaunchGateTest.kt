@@ -16,6 +16,12 @@ class LaunchGateTest {
         assertEquals(LaunchGate.Decision.OPEN, LaunchGate.decide(true, false, false, false))
     }
 
+    @Test fun unknownIntentHandlerFailsClosedDuringFocus() {
+        assertEquals(null, WebLaunchTarget.target(null, emptyList()) { false })
+        assertEquals(null, WebLaunchTarget.target(WebLaunchTarget.CHOOSER, emptyList()) { true })
+        assertEquals("", WebLaunchTarget.target(null, emptyList(), null))
+    }
+
     @Test fun denialAlwaysPrecedesPauseAndLimit() {
         for (gated in listOf(false, true)) for (pause in listOf(false, true)) for (over in listOf(false, true)) {
             assertEquals(LaunchGate.Decision.BLOCK, LaunchGate.decide(false, gated, pause, over))

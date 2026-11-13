@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Process
 import android.os.SystemClock
+import android.provider.AlarmClock
 import android.provider.CalendarContract
 import android.provider.MediaStore
 import android.view.View
@@ -70,6 +71,31 @@ class FocusLaunchRoutingTest {
                 } else {
                     assertTrue("calendar app did not open", device.wait(Until.hasObject(By.pkg(handler)), 5_000))
                 }
+                device.pressBack()
+            }
+        } finally {
+            FocusModeManager.disable(context)
+        }
+    }
+
+    @Test fun clockTapBlocksUnderFocusAndOpensWhenAllowed() {
+        val prefs = prepare()
+        prefs.clockAppPackage = ""
+        prefs.dateTimeVisibility = Constants.DateTime.ON
+        val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
+        val handler = requireNotNull(context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)).activityInfo.packageName
+        val allowed = if (handler == "android") instrumentation.context.packageName else handler
+        try {
+            FocusModeManager.setWhitelist(context, emptySet())
+            FocusModeManager.enable(context, 30)
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                scenario.onActivity { it.findViewById<View>(R.id.clock).performClick() }
+                device.waitForIdle()
+                SystemClock.sleep(750)
+                assertEquals("blocked clock left home", context.packageName, device.currentPackageName)
+                FocusModeManager.setWhitelist(context, setOf(allowed))
+                scenario.onActivity { it.findViewById<View>(R.id.clock).performClick() }
+                assertTrue("allowed clock did not open", device.wait(Until.hasObject(By.pkg(allowed)), 5_000))
                 device.pressBack()
             }
         } finally {
