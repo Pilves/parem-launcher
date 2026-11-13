@@ -39,9 +39,10 @@ Recorded 2026-10-03 after the design/manager review round. These override the
 - **M4-WP13 adaptive layouts.** Table-top deferred to 6.1; split screen and
   desktop window are manual checks, not emulator legs. WP13 lands after WP20
   (minSdk 29). WP12 applies `content_side_padding` to its own layout.
-- **M4-WP14 app shortcuts.** Auto-launch stays king: shortcuts surface only when
-  the app word matches 0 or 2+ app rows. Enter on a shortcut-only match launches
-  the shortcut. Roadmap examples become "liked" / "incog".
+- **M4-WP14 app shortcuts.** Auto-launch stays king: shortcut rows do not count
+  toward single-app auto-launch. When auto-launch is off or suppressed, matching
+  shortcuts can still appear alongside one app row. Enter on a shortcut-only
+  match launches the shortcut. Roadmap examples become "liked" / "incog".
 - **M4-WP15 quick actions.** "remind me" with only a time → labelled alarm, with
   a day → calendar event. Auto-launch is suppressed on keyword prefixes of 3+
   characters. Omnibox features are discovered via a rotating hint in the empty

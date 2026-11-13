@@ -102,7 +102,7 @@ Limits, pause and focus cover apps opened through Parem. They are speed bumps, n
 
 ### App drawer
 
-- Per-app daily usage time and open count ("1h 23m · 7×") shown next to each app
+- Per-app daily usage time and open count ("1h 23m · 7×") shown next to apps with recorded activity; usage time requires usage access
 - Sort apps by usage time
 - Long-press menu: uninstall, rename, hide, set time limit, app info
 - App renaming and per-profile (work profile) support
