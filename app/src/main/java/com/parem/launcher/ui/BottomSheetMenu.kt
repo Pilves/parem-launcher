@@ -96,13 +96,22 @@ class SheetCheckRow(context: Context) : LinearLayout(context) {
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }
     var singleChoice: Boolean = false
-    var checked: Boolean = false
-        set(value) {
-            field = value
-            check.visibility = if (value) View.VISIBLE else View.INVISIBLE
-            ViewCompat.setStateDescription(this, context.onOff(value))
+    private var checkedState = false
+    var checked: Boolean
+        get() = checkedState
+        set(value) = updateChecked(value, announce = true)
+
+    /** RecyclerView binding is not a user selection change. */
+    internal fun bindChecked(value: Boolean) = updateChecked(value, announce = false)
+
+    private fun updateChecked(value: Boolean, announce: Boolean) {
+        val changed = checkedState != value
+        checkedState = value
+        check.visibility = if (value) View.VISIBLE else View.INVISIBLE
+        if (announce && changed && isAttachedToWindow) {
             sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
         }
+    }
     var text: CharSequence
         get() = label.text
         set(value) { label.text = value; contentDescription = value }
@@ -122,6 +131,7 @@ class SheetCheckRow(context: Context) : LinearLayout(context) {
                 info.className = if (singleChoice) "android.widget.RadioButton" else "android.widget.CheckBox"
                 info.isCheckable = true
                 info.isChecked = checked
+                if (!singleChoice) info.stateDescription = context.onOff(checked)
             }
         })
         addView(label, LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f))
@@ -216,7 +226,7 @@ class BottomSheetMenu(private val context: Context) {
             contentDescription = listOfNotNull(text, summary).joinToString(", ")
             ViewCompat.setScreenReaderFocusable(this, true)
             isSelected = checked == true
-            if (checked != null) ViewCompat.setStateDescription(this, context.onOff(checked))
+            if (checked != null && !singleChoice) ViewCompat.setStateDescription(this, context.onOff(checked))
             ViewCompat.setAccessibilityDelegate(this, object : AccessibilityDelegateCompat() {
                 override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
                     super.onInitializeAccessibilityNodeInfo(host, info)

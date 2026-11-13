@@ -66,7 +66,7 @@ class AppPickerAdapter(
         val entry = visibleEntries[position]
         holder.row.apply {
             text = entry.label
-            checked = entry.id in selectedIds
+            bindChecked(entry.id in selectedIds)
             setOnClickListener {
                 if (entry.id in selectedIds) selectedIds.remove(entry.id)
                 else if (selectedIds.size < maxSelected) selectedIds.add(entry.id)
