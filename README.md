@@ -61,14 +61,14 @@ It also finds app shortcuts and Parem's own settings, and your contacts if you o
 
 Every calm tool is optional, and each says what it needs first.
 
-- **Mindful pause:** choose any app for a question and a five-second wait before it opens.
+- **Mindful pause:** add a question and a five-second wait before opening a configured app.
 - **Quiet notifications:** eligible notifications from apps you haven't allowed move out of the shade into a quiet list. Calls, alarms, media, navigation and emergency alerts stay visible. Hidden items are snoozed for 8 hours and may be hidden again while the filter remains on. A short sound or vibration may still play unless you choose Make silent.
 - **Focus mode:** timed sessions or weekly schedules. Up to 5 allowed apps; the default phone app is allowed when Android identifies it.
 - **Screen time:** today's total on home, a 7-day graph and a weekly review.
 - **App limits:** a daily allowance per app, then a warning you can override.
 - **Grayscale:** now, during focus, after a limit, or per app. Needs a one-time developer-tools permission, granted from a computer. The GitHub APK can also do this on the phone.
 
-Screen time and app limits need usage access. Mindful pause can be enabled without it. Quiet notifications need notification access.
+Screen time, app limits and initial pause-only setup need usage access. A configured pause can run without it. Quiet notifications need notification access.
 
 Limits, pause and focus cover apps opened through Parem. They are speed bumps, not a lock, and you can always get past them.
 
@@ -97,7 +97,7 @@ Limits, pause and focus cover apps opened through Parem. They are speed bumps, n
 - **Focus mode:** timed sessions (25 minutes, 1 hour, 2 hours, or until you disable it) or weekly schedules that block all but up to 5 allowed apps
 - **Screen time graph:** 7-day usage bar chart. Tap the home screen time display to view it
 - **Screen time limits:** soft per-app time limits with warnings when exceeded
-- **Mindful pause:** choose any app for a five-second pause before opening it through Parem. A time limit is optional
+- **Mindful pause:** add a five-second pause before opening a configured app through Parem. A time limit is optional
 - **Configurable double tap:** lock screen, open app, notifications, search, camera, flashlight or nothing
 
 ### App drawer
