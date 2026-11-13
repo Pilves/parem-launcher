@@ -1,0 +1,11 @@
+plugins { id 'com.android.application' version '8.9.1' }
+
+android {
+    namespace 'com.parem.quietfixture'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.parem.quietfixture'
+        minSdk 29
+        targetSdk 36
+    }
+}

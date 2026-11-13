@@ -1,0 +1,47 @@
+# A disposable emulator and a separate synthetic launcher app; never a real device.
+name: Quiet positive filtering fixture
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fixture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Build separate CI-only launcher fixture
+        run: ./gradlew -p ci/quiet-fixture-app assembleDebug
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run synthetic launcher notification test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          profile: pixel_6
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: |
+            set -e
+            adb install ci/quiet-fixture-app/build/outputs/apk/debug/*.apk
+            adb shell pm grant com.parem.quietfixture android.permission.POST_NOTIFICATIONS
+            ./gradlew connectedPlayDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.QuietPositiveFixtureTest -Pandroid.testInstrumentationRunnerArguments.quiet_positive_fixture=true
+            ./gradlew connectedFullDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.QuietPositiveFixtureTest -Pandroid.testInstrumentationRunnerArguments.quiet_positive_fixture=true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quiet-positive-reports
+          path: app/build/reports/androidTests/
+          if-no-files-found: ignore
