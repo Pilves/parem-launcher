@@ -20,8 +20,12 @@ Recorded 2026-10-03 after the design/manager review round. These override the
   sheet directly is out of scope for 6.0.
 - **M4-WP6 Private Space.** Keep `includePrivate` (default false) on
   `getAppsList`. Hide "time limit" on private rows.
-- **M4-WP7 website shortcuts.** First whitelisted browser opens the site, no
-  chooser. No globe icon.
+- **M4-WP7 website shortcuts.** Originally chose the first whitelisted browser
+  without a chooser and no globe icon. M4-WP36 later changed the routing: use
+  the default handler when present; with no default, use the system chooser
+  when focus is off, or the first allowed candidate when focus is active. If
+  the candidate lookup is empty, current code leaves the intent unpinned even
+  under focus; M6-WP23 tracks a fail-closed change.
 - **M3-WP4 currency.** The M3-WP4 implementer adds ECB to the privacy-policy
   destinations in the M2-WP3 row.
 - **minSdk 29** (Patric, 2026-10-03): drop Android 7–9 in 6.0 without waiting for
@@ -31,18 +35,20 @@ Recorded 2026-10-03 after the design/manager review round. These override the
 - **M3-WP11 crash reports.** Hand-rolled handler (Option B), no ACRA. Send goes
   through the share sheet only — no hard-coded destination address in 6.0
   (a published address is Patric's call; add it later if wanted).
-- **M4-WP12 onboarding.** Drop the feature tour; no "Tips" link. Build after
-  M4-WP5 so every Calm-phone setup entry point exists.
+- **M4-WP12 onboarding.** Originally dropped the old feature tour and "Tips"
+  link. M4-WP57 later added optional grouped feature explanations to onboarding.
+  Build followed M4-WP5 so Calm-phone setup entry points existed.
 - **M4-WP13 adaptive layouts.** Table-top deferred to 6.1; split screen and
   desktop window are manual checks, not emulator legs. WP13 lands after WP20
   (minSdk 29). WP12 applies `content_side_padding` to its own layout.
-- **M4-WP14 app shortcuts.** Auto-launch stays king: shortcuts surface only when
-  the app word matches 0 or 2+ app rows. Enter on a shortcut-only match launches
-  the shortcut. Roadmap examples become "liked" / "incog".
+- **M4-WP14 app shortcuts.** Auto-launch stays king: shortcut rows do not count
+  toward single-app auto-launch. When auto-launch is off or suppressed, matching
+  shortcuts can still appear alongside one app row. Enter on a shortcut-only
+  match launches the shortcut. Roadmap examples become "liked" / "incog".
 - **M4-WP15 quick actions.** "remind me" with only a time → labelled alarm, with
   a day → calendar event. Auto-launch is suppressed on keyword prefixes of 3+
   characters. Omnibox features are discovered via a rotating hint in the empty
-  drawer (owned by WP15). Estonian keywords ship as drafted; Patric reviews.
+  drawer (owned by WP15); v6.0.1 limits examples to the first 20 launch-drawer opens. Estonian keywords ship as drafted; Patric reviews.
 - **M4-WP18 lock fallback.** Accepted as designed incl. settings row + toast
   pointer. The fastlane admin sentence waits for Patric's wording.
 - **Owner review list (Patric):** Estonian quick-action keywords and all
@@ -62,9 +68,11 @@ Recorded 2026-10-03 after the design/manager review round. These override the
 - **Quiet notifications release, never cancel (2026-11-12, M6-WP18).** Overrides
   the M4-WP1 turn-off question. A listener's cancel is a no-op on a snoozed key,
   and the key swallows every later post from that conversation until it ends.
-  Turning the filter off releases every hidden notification to the shade at once
-  (a 1 ms re-snooze), so the Keep/Dismiss sheet is gone; only when no listener is
-  connected does the "within 8 h" toast remain. Opening a quiet-list item or
+  Turning the filter off requests immediate release (a 1 ms re-snooze) for
+  tracked notifications the connected listener can currently reach. Keys the
+  system does not list yet after reboot cannot be released until listed or the
+  snooze ends; if no listener is connected the "within 8 h" toast remains.
+  The Keep/Dismiss sheet is gone. Opening a quiet-list item or
   "Dismiss all" no longer cancels or forgets the key: Parem records the item's
   `Notification.when`, hides it until the app posts a newer one under that key,
   and cancels the unchanged item when it comes back at expiry.

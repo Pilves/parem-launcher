@@ -8,6 +8,10 @@ fragment. `.github/workflows/handoff.yml` regenerates the files on every PR and
 master push and fails on stale output; it never pushes. **Never edit that
 section, or the `Last updated` line, by hand.**
 
+Fragments describe their work package at the time it landed. Later packages may
+supersede a contract or verification result; check subsequent fragments and the
+current code before treating an older fragment as current behavior.
+
 One file per work package, named after its id: `docs/handoff/M1-WP5.md`. Each
 PR adds its own fragment. If generated files conflict during integration, preserve
 both fragments and rerun the generator after resolving the roadmap source.

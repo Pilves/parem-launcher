@@ -1,6 +1,6 @@
 # Architecture
 
-Parem Launcher is a single-module Android app: Kotlin, classic Views with ViewBinding (no Compose), one activity + Navigation-component fragments, no database, no DI framework, no test suite (yet). Everything lives under `app/src/main/java/com/parem/launcher/`.
+Parem Launcher is a single-module Android app: Kotlin, classic Views with ViewBinding (no Compose), one main activity + Navigation-component fragments, no database and no DI framework. Main code lives under `app/src/main/java/com/parem/launcher/`; JVM tests live in `app/src/test/` and instrumented tests in `app/src/androidTest/`.
 
 ## Code map
 
@@ -28,9 +28,10 @@ ui/
                            (swipe/touch listeners, gesture-letter overlay, gesture
                            actions, torch, lock), HomeClockController (date/time/
                            weather rendering, clock/calendar taps, screen-time row).
-  AppDrawerFragment.kt     App list + omnibox search (apps / calculator / unit
-                           conversion / dial / web / contact). The active mode
-                           is a single OmniboxMode (sealed, declared here).
+  AppDrawerFragment.kt     App list + omnibox search (apps, calculator, unit and currency
+                           conversion, dial, web, quick actions, contacts and settings). The active mode
+                           is a single OmniboxMode (sealed, declared in
+                           helper/OmniboxResolver.kt).
   AppDrawerAdapter.kt      Drawer rows, long-press menu, rename, auto-launch logic.
   SettingsFragment.kt      Binding lifecycle, constructs/wires the settings/ cards,
                            and the cross-section bits (resetOpenPickers,
@@ -54,7 +55,7 @@ helper/
   One object per feature, each owning its own SharedPreferences keys:
   FocusModeManager, AppLimitManager (+ mindful-pause opt-in; logic in
   MindfulPause), FolderManager (class),
-  GestureLetterManager, SwipeUpAppManager, WeatherManager (Open-Meteo),
+  GestureLetterManager, WeatherManager (Open-Meteo),
   DoubleTapActionManager, ThemeScheduleManager (+ Worker), IconPackManager,
   AppIconCache (bounded ConstantState cache for default app icons),
   WallpaperWorker, ExpressionEvaluator (omnibox calculator),
@@ -75,18 +76,18 @@ helper/
   FakeHomeActivity.kt        Default-launcher switching trick.
 
 data/
-  Prefs.kt                 Typed facade over the single SharedPreferences file,
+  Prefs.kt                 Typed facade over the main SharedPreferences file,
                            plus JSON export/import (settings backup).
   Constants.kt             Flags, URLs, enum-ish objects.
-  AppModel.kt, FolderData.kt, DrawerCharacterModel.kt
+  AppModel.kt, FolderData.kt
 
 listener/
-  OnSwipeTouchListener, ViewSwipeTouchListener (gesture detection), DeviceAdmin.
+  OnSwipeTouchListener (gesture detection), DeviceAdmin.
 ```
 
 ## Conventions
 
-- **Storage**: everything is SharedPreferences in the single file `"com.parem.launcher"` (`Prefs.PREFS_NAME`). Core launcher state goes through `data/Prefs.kt`; feature managers in `helper/` read/write their own keys directly. When adding a key that must survive settings export/import with a specific type, register it in `Prefs.LONG_PREF_KEYS`/`FLOAT_PREF_KEYS`, and add device-specific keys to `exportExcludeKeys`.
+- **Storage**: core launcher state is in SharedPreferences `"com.parem.launcher"` (`Prefs.PREFS_NAME`), through `data/Prefs.kt` or feature managers in `helper/`. Search history and quiet-notification keys use separate SharedPreferences files, excluded from settings export and backup. Opt-in crash reports are files in `noBackupFilesDir`. When adding a key that must survive settings export/import with a specific type, register it in `Prefs.LONG_PREF_KEYS`/`FLOAT_PREF_KEYS`, and add device-specific keys to `exportExcludeKeys`.
 - **Bottom sheets**: build them with `ui/BottomSheetMenu`. Don't hand-assemble LinearLayouts.
   A sheet built outside `BottomSheetMenu` (a direct `BottomSheetDialog`) must call `disableAnimationsOnEink()` before it shows, or it slides on e-ink.
   A sheet opened from a fragment must be tied to it with `dismissOnDestroy(viewLifecycleOwner)`: dialogs belong to the activity's window, so Home would otherwise pop the fragment and leave the sheet up with callbacks into a dead fragment.
@@ -107,7 +108,7 @@ listener/
 - Flavours: `play` is the Google Play bundle. `full` is the APK for GitHub and F-Droid. Both flavours use the same applicationId; signing may differ by distribution channel. `full` adds in-app adb pairing, in `app/src/full/` (`helper/adb/`, `GrayscalePairing`, its receiver, POST_NOTIFICATIONS and the pairing strings). `play` has none of that code, and `scripts/check-play-build.sh` fails CI if any comes back (`docs/design/DECISIONS.md`). Shared code reaches the difference only through `helper/ChannelFeatures`, which exists once per flavour. Strings in `app/src/full/res/` override the wording in `main`, which is Play's.
 - Debug: `./gradlew assembleFullDebug` → `app/build/outputs/apk/full/debug/app-full-debug.apk`, likewise `play` (package id gets a `.debug` suffix so it installs alongside release). CI: `.github/workflows/debug-build.yml` runs tests + build of both flavours on every master push (or manually via workflow_dispatch) and uploads the APKs as an artifact. A manual run also builds the `full` release APK and `play` bundle, signed with that run's debug key, as a `play-check` artifact: the way to prove the bundle before a tag, because `release.yml` publishes. Note the CI debug keystore differs per run — updating a CI-built debug install usually needs an uninstall first.
 - Every behavior-changing PR adds an entry under `## [Unreleased]` in CHANGELOG.md; at release time, rename that section to the version and prepend a fresh `## [Unreleased]`.
-- Release: run the device pass in [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) first. Then bump `versionCode`/`versionName` in `app/build.gradle`, add `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` and a CHANGELOG.md entry, then push a tag matching `v*` → `.github/workflows/release.yml` builds a signed APK (keystore comes from repo secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) and attaches it to a GitHub release. A later step builds the Play bundle; the AAB and R8 `mapping.txt` are kept as the run's `play-<tag>` artifact for 90 days, not on the public release. The AAB carries the same mapping as `BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map`, so a Play upload needs no separate file. The first upload's signing key matters: see "Play App Signing" below.
+- Release: run the device pass in [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) first. Then bump `versionCode`/`versionName` in `app/build.gradle`, add `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` and a CHANGELOG.md entry, add `docs/releases/<tag>-notes.md`, then push a tag matching `v*` → `.github/workflows/release.yml` builds a signed APK (keystore comes from repo secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`) and attaches it to a GitHub release. A later step builds the Play bundle; the AAB and R8 `mapping.txt` are kept as the run's `play-<tag>` artifact for 90 days, not on the public release. The AAB carries the same mapping as `BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map`, so a Play upload needs no separate file. The first upload's signing key matters: see "Play App Signing" below.
 - Dependency versions live in `gradle/libs.versions.toml`. AGP 8.9.1 / Gradle 8.11.1 / Kotlin 2.1.20; JDK 17+ (21 works).
 
 ### Play App Signing
@@ -125,7 +126,7 @@ Decided 2026-11-06: **Google generates the app signing key, with a new, separate
 - Sharing the key buys one thing: an in-place move from GitHub to Play. All published APKs together have 37 downloads (2026-11-05), and `docs/fdroid/README.md` already plans Play as a separate install, so that does not pay for the permanent cost.
 - "Updates must keep the same signing key" (`docs/releases/v6.0.0-beta.2-validation.md`) holds per channel, and the GitHub channel does not change. Moving between Play and a sideload channel means uninstalling, which erases app data, so users export their settings first.
 - **The trap:** with a Google-generated key, whichever key signs the first uploaded bundle becomes the upload key. `release.yml` signs the bundle with `UPLOAD_KEYSTORE_*` for that reason, so check the bundle's certificate against `docs/play/signing.md` before the first upload.
-- The app signing key can only be changed until a release reaches open testing or production. Closed testing does not lock it.
+- The 2026-11-06 decision assumed the signing key could still change in closed testing. Verify current Play Console policy before relying on that assumption.
 - Android developer verification ties a package name to signing keys, so `com.parem.launcher` needs both fingerprints registered: the existing certificate, and Play's from the Play App Signing page. Google may ask for proof of the existing key: an APK signed with it, carrying the console's snippet in `assets/adi-registration.properties`.
 - GitHub secrets are write-only and Play cannot recover this key, so keep an offline backup of the keystore.
 
@@ -151,6 +152,7 @@ After an AGP upgrade, re-copy the new aapt2 binary — the override pins a speci
   in `helper/WeatherStaleness`. Still no per-fetch failure toast/indicator
   beyond that (by design — the home screen stays quiet).
 - Gesture-letter drawing and swipe gestures both see the same touch stream; a fast letter draw can also register as a swipe.
-- JVM unit tests exist only for pure logic (`app/src/test`: evaluator, search
-  matcher, sunrise calculator — `./gradlew testDebugUnitTest`); everything
-  touching Android still relies on `assembleDebug` plus manual runs.
+- JVM unit tests cover pure logic in `app/src/test`; run both flavour tasks
+  `testFullDebugUnitTest` and `testPlayDebugUnitTest`. Instrumented tests in
+  `app/src/androidTest` run on CI emulators, but do not replace real-device
+  checks for gestures, accessibility, permissions and device-specific behaviour.

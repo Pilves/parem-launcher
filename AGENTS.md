@@ -39,8 +39,10 @@ flavours must build: `play` and `full` differ (`ARCHITECTURE.md`, Build & releas
   Android-free object with unit tests next to the existing ones.
 - Bottom sheets go through `ui/BottomSheetMenu`; app-launch/selection flows go
   through `MainViewModel.selectedApp(model, flag)`.
-- All state is SharedPreferences file `"com.parem.launcher"`. New exported keys
-  need type registration in `Prefs` (see LONG_PREF_KEYS / exportExcludeKeys).
+- Core launcher settings use SharedPreferences file `"com.parem.launcher"`. Search
+  history and quiet-notification keys use separate, non-exported files; crash
+  reports use `noBackupFilesDir`. New exported keys need type registration in
+  `Prefs` where applicable (see LONG_PREF_KEYS / exportExcludeKeys).
 - Async/posted callbacks in fragments must guard on `isAdded` / `_binding != null`.
 - Strings: new user-facing text goes in `res/values/strings.xml`; mark it
   `translatable="false"` unless you also add translations.

@@ -2,7 +2,7 @@
 
 **Source baseline:** `release/v6.0.0` at `9bfd58f`, reviewed 2026-11-06. This is a source review, not an exact-head build or traffic capture. The earlier 2026-11-05 audit at `217b303` is historical and is available in Git history; do not use its old findings as current release status. Policy references below were researched on 2026-11-05 and must be checked against the current Console wording before submission.
 
-**Release status:** not ready for submission. CI results, the merged manifests of the exact-head debug APKs and the uploaded release bundle, a physical-phone pass, the accessibility demonstration, live policy and grant URLs, closed testing, signing and the owner's final declarations remain open. No human code review or independent security audit is claimed. `docs/play/data-flows.md` contains the detailed network and storage inventory; its original source audit has older line numbers, so recheck against the final build.
+**Release status at the 2026-11-06 audit:** not ready for submission. This is a historical audit, not the status of the current release or Play Console. CI results, the merged manifests of the exact-head debug APKs and the uploaded release bundle, a physical-phone pass, the accessibility demonstration, live policy and grant URLs, closed testing, signing and the owner's final declarations remain open. No human code review or independent security audit is claimed. `docs/play/data-flows.md` contains the detailed network and storage inventory; its original source audit has older line numbers, so recheck against the final build.
 
 ## 1. Release and publication gates
 
