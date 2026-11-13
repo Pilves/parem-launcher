@@ -1,0 +1,49 @@
+# Synthetic notifications and listener access on a fresh disposable emulator only.
+name: Quiet notification fixture
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - app/src/main/java/com/parem/launcher/helper/notifications/**
+      - app/src/main/java/com/parem/launcher/ui/QuietListSheet.kt
+      - app/src/main/AndroidManifest.xml
+      - app/src/androidTest/java/com/parem/launcher/QuietNotificationFixtureTest.kt
+      - scripts/run-quiet-fixture.sh
+      - .github/workflows/quiet-fixture.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fixture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run synthetic notification fixture
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          profile: pixel_6
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: bash scripts/run-quiet-fixture.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quiet-fixture-reports
+          path: |
+            app/build/reports/androidTests/
+            app/build/quiet-fixture-logcat.txt
+          if-no-files-found: ignore
