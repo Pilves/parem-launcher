@@ -850,6 +850,23 @@ class SmokeTest {
     }
 
     @Test
+    fun swipeDownSearchRevealsItsSetting() {
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            activity.findNavController(R.id.nav_host_fragment).navigate(
+                R.id.action_mainFragment_to_settingsFragment,
+                bundleOf(Constants.Key.SETTING to R.id.swipeDownAction)
+            )
+        }
+        val row = By.res(context.resources.getResourceName(R.id.flSwipeDown))
+        assertTrue("swipe-down search did not reveal its setting", device.wait(Until.hasObject(row), TIMEOUT))
+        device.findObject(row).click()
+        val picker = By.res(context.resources.getResourceName(R.id.swipeDownSelectLayout))
+        assertTrue("revealed swipe-down picker did not open", device.wait(Until.hasObject(picker), TIMEOUT))
+    }
+
+    @Test
     fun swipeDownRowStaysWhileItsPickerIsOpen() {
         device.waitForIdle(TIMEOUT)
         instrumentation.runOnMainSync {

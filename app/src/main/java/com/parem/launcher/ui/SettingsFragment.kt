@@ -190,6 +190,9 @@ class SettingsFragment : BaseFragment() {
             wellbeingCard.openQuietControl(anchorId)
             return
         }
+        // Swipe-down is normally revealed by the Gestures heading; a search
+        // result must expose it before scrolling to its current value.
+        if (anchorId == R.id.swipeDownAction) b.flSwipeDown.visibility = View.VISIBLE
         val actualAnchor = if (anchorId == R.id.setLauncher && b.setLauncherTop.visibility == View.VISIBLE)
             R.id.setLauncherTop else anchorId
         val anchor = b.root.findViewById<View>(actualAnchor) ?: return
