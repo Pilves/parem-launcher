@@ -46,7 +46,7 @@ Recorded 2026-10-03 after the design/manager review round. These override the
 - **M4-WP15 quick actions.** "remind me" with only a time → labelled alarm, with
   a day → calendar event. Auto-launch is suppressed on keyword prefixes of 3+
   characters. Omnibox features are discovered via a rotating hint in the empty
-  drawer (owned by WP15). Estonian keywords ship as drafted; Patric reviews.
+  drawer (owned by WP15); v6.0.1 limits examples to the first 20 launch-drawer opens. Estonian keywords ship as drafted; Patric reviews.
 - **M4-WP18 lock fallback.** Accepted as designed incl. settings row + toast
   pointer. The fastlane admin sentence waits for Patric's wording.
 - **Owner review list (Patric):** Estonian quick-action keywords and all
