@@ -302,7 +302,7 @@ per package; the rest of each of those fragments is still in
   Setup states reuse WellbeingRowState; enabled screen time and lock explain themselves, and granting notification permission continues grayscale pairing.
   Verified: required compile, 366 JVM tests, APK assembly and handoff harness pass; Android 16 A069 short setup, all eight guide sheets, spoken-caption hierarchy and Done surviving restart pass; 200% topic rows wrap without overlap and long guide sheets scroll to Close/Done.
   Not verified: actual TalkBack speech, rotation/process-death recovery, permission-return flows and every described feature’s live behavior.
-  Easy to get wrong: pause still requires a limit and the existing picker only lists used apps; onboarding explains this and avoids opening an empty list, while WP47 owns any-app setup.
+  Easy to get wrong: WP47 later allowed a pause without a limit and added an app picker; initial pause-only setup still requires usage access. Keep onboarding explanations aligned with those paths.
 - **M4-WP58 (PR #0):** The Fable/Codex task split is in docs/plans/2026-10-16-work-split.md, with a copy/paste Fable kickoff and explicit source ownership.
   Contract: Fable takes WP35 then WP45; Codex reviews WP24 read-only until WP35 lands, then finishes WP24 before WP47; later visual packages retain their approval and dependency gates.
   Coordination: isolated worktrees, live package claims, one Gradle lock and one phone operator; app-menu/onboarding follow-ups are assigned to the packages changing their behavior.
@@ -337,7 +337,7 @@ per package; the rest of each of those fragments is still in
   Contract: sheet text, row order, validation and callback-before-dismiss order remain; keyboard resize is set before showing forms, and the widget picker retains its own weighted scrolling ListView. Focus's XML is removed; callers attach lifecycle/dismiss hooks to the returned dialog.
   Verified: rebased onto next5282500, retaining the merged colour roles and sheet width cap; compile, 403 JVM tests, debug assembly and handoff harness pass.
   Integration approved by Patric. Release candidate passes 403 JVM tests and four CI device configurations; tablet Focus search passes at normal/200% fonts, and the owner confirms TalkBack home navigation and double-tap lock. Full gesture/visual parity and the remaining release checklist are not claimed complete.
-  Deferred: WIDGET_ID migration (65), portrait/landscape settings unification (WP51), and further section 5 work; architecture traps 1–5 are unchanged.
+  Deferred at the time: WIDGET_ID migration (65), portrait/landscape settings unification (WP51), and further section 5 work. WP51's regroup later removed the separate landscape settings layout; architecture traps 1–5 still need review when touching those paths.
   Easy to get wrong: a slot double tap keeps the detector's default callback, while a background double tap cancels swipe release; never wrap the widget ListView in the sheet's outer scroll view.
 - **M4-WP64 (PR #0):** v6.0.0-beta.2 (104) is prepared on next with approved WP63 and WP24/WP60/WP61 integration, corrected release notes, landscape Calm controls and keyboard-visible Focus search results.
   Contract: existing Parem package/signing identity and preference storage remain; isolated tablet upgrades from versions 100/101/102 preserve settings, and version 102 retains four widgets. Old app.olauncher packages are separate installs.
