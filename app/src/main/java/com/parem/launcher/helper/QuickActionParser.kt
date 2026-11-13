@@ -98,7 +98,7 @@ object QuickActionParser {
 
     /**
      * True while the query could still be heading for an action: a keyword
-     * prefix of 3+ characters, or a keyword plus anything. The drawer holds
+     * nonempty keyword prefix, or a keyword plus anything. The drawer holds
      * auto-launch then, so "alarm 7:30" never opens an app called "Alarmy".
      */
     fun isActionPrefix(query: String): Boolean {
@@ -106,7 +106,7 @@ object QuickActionParser {
         val q = query.lowercase(Locale.ROOT).replace(Regex("\\s+"), " ")
         return KEYWORDS.any { (keyword, _) ->
             val withSpace = "$keyword "
-            (q.length >= 3 && withSpace.startsWith(q)) || q.startsWith(withSpace)
+            (q.isNotEmpty() && withSpace.startsWith(q)) || q.startsWith(withSpace)
         }
     }
 

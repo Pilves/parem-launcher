@@ -16,6 +16,19 @@ class SettingsSearchTest {
         Row("Ilmateade", 6),
     )
 
+    private val prefixKeys = SettingsSearch.prefixKeys(rows + Row("Sort apps by usage", 7, listOf("Rank apps")))
+
+    @Test
+    fun guardIncludesShortPrefixesAliasesAndWordMatches() {
+        listOf("s", "so", "sh", "wall", "ra", "rank a", "ILMATÉ", "key").forEach {
+            assertEquals("prefix '$it'", true, SettingsSearch.isPrefix(it, prefixKeys))
+        }
+        listOf("", "  ", " so", "zz", "not a setting").forEach {
+            assertEquals("not a prefix '$it'", false, SettingsSearch.isPrefix(it, prefixKeys))
+        }
+        assertNull(match("so")) // The guard does not make short suggestions visible.
+    }
+
     private fun match(q: String) = SettingsSearch.match(q, rows)?.anchor
 
     @Test
