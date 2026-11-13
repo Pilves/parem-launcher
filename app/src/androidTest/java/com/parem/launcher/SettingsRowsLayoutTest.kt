@@ -17,6 +17,17 @@ import java.util.Locale
 @RunWith(AndroidJUnit4::class)
 class SettingsRowsLayoutTest {
     @Test
+    fun defaultHomeRowsStartHiddenBeforeRoleIsObserved() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val app = InstrumentationRegistry.getInstrumentation().targetContext
+            val context = ContextThemeWrapper(app, R.style.AppTheme)
+            val root = LayoutInflater.from(context).inflate(R.layout.fragment_settings, null)
+            assertEquals(View.GONE, root.findViewById<View>(R.id.setLauncherTop).visibility)
+            assertEquals(View.GONE, root.findViewById<View>(R.id.setLauncher).visibility)
+        }
+    }
+
+    @Test
     fun titleAndLongValueFitAtLargeFont() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val app = InstrumentationRegistry.getInstrumentation().targetContext

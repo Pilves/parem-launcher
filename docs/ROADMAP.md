@@ -285,6 +285,7 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP36 | **Done** (PR #41). **Todo**. Acknowledge first-run tips from accessible navigation routes | HomeFragment, HomeGesturesController, SettingsFragment, SmokeTest, CHANGELOG and handoff | A successful launch drawer open dismisses its tip; any Settings route dismisses the other; app pickers do not dismiss drawer guidance |
 | M6-WP40 | **Done** (PR #45). Cleanup | Remove the approved unused launcher resources, views and observer | Relevant home/settings code, resources, motion documentation and handoff | Dead paths removed; quiet search routing and option callback contract preserved |
+| M6-WP39 | **Done** (PR #0). Default-home settings rows start hidden until their role is known | Settings layout, default-home UI tests and handoff | Both rows inflate hidden; the fresh-role search test waits for the correct row |
 
 ## Recurring (no id)
 

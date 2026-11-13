@@ -31,6 +31,7 @@ import com.parem.launcher.ui.settings.WellbeingSettingsCard
 import com.parem.launcher.ui.settings.bindSwitchRow
 import com.parem.launcher.ui.settings.bindValueRow
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -54,6 +55,8 @@ class SettingsFragment : BaseFragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
+    private var defaultHomeSearchPending = false
+    private var defaultHomeRefresh: Job? = null
 
     /** Exposes binding liveness to card classes for async-callback guards. */
     internal fun isBindingAlive() = _binding != null
@@ -124,16 +127,7 @@ class SettingsFragment : BaseFragment() {
         arguments?.getInt(Constants.Key.SETTING)?.takeIf { it != 0 }?.let { anchor ->
             arguments?.remove(Constants.Key.SETTING)
             if (anchor == R.id.setLauncher) {
-                // The cached LiveData may be stale when returning from Android's home settings.
-                // Resolve this particular search target before choosing either conditional row.
-                val appContext = requireContext().applicationContext
-                viewLifecycleOwner.lifecycleScope.launch {
-                    val isDefault = withContext(Dispatchers.IO) { isParemDefault(appContext) }
-                    val b = _binding ?: return@launch
-                    b.setLauncherTop.visibility = if (isDefault) View.GONE else View.VISIBLE
-                    b.setLauncher.visibility = if (isDefault) View.VISIBLE else View.GONE
-                    b.scrollView.post { if (_binding === b) scrollToSetting(anchor) }
-                }
+                defaultHomeSearchPending = true
             } else binding.scrollView.post { if (_binding != null) scrollToSetting(anchor) }
         }
 
@@ -214,11 +208,30 @@ class SettingsFragment : BaseFragment() {
 
     override fun onResume() {
         super.onResume()
-        if (::viewModel.isInitialized) viewModel.isParemDefault()
+        if (::viewModel.isInitialized) {
+            viewModel.isParemDefault()
+            // The shared LiveData can contain the previous home role. Resolve the
+            // current role before showing either row or scrolling a search result.
+            defaultHomeRefresh?.cancel()
+            val appContext = requireContext().applicationContext
+            defaultHomeRefresh = viewLifecycleOwner.lifecycleScope.launch {
+                val isDefault = withContext(Dispatchers.IO) { isParemDefault(appContext) }
+                val b = _binding ?: return@launch
+                b.setLauncherTop.visibility = if (isDefault) View.GONE else View.VISIBLE
+                b.setLauncher.visibility = if (isDefault) View.VISIBLE else View.GONE
+                if (defaultHomeSearchPending) {
+                    defaultHomeSearchPending = false
+                    b.scrollView.post { if (_binding === b) scrollToSetting(R.id.setLauncher) }
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        defaultHomeSearchPending = false
+        defaultHomeRefresh?.cancel()
+        defaultHomeRefresh = null
         _binding = null
     }
 
