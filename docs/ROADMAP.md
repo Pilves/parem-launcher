@@ -272,7 +272,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP23 | **Done** (PR #22). Block web opens during Focus when no receiving app is identified | `helper/WebLaunchTarget.kt`, its JVM test, web-gate comments, CHANGELOG and handoff | Unknown or failed candidate lookup blocks only during Focus; known allowed default still opens; required CI checks pass |
 | M6-WP25 | **Done** (PR #24). Keep provisional handoff PR references synchronized | `scripts/build-handoff.mjs`, its test, roadmap and handoff fragment | Generator replaces a provisional PR #0 when its fragment gains a PR number; established markers and branch merges remain unchanged |
 
-| M6-WP29 | **Done** (PR #0). Protect a new claim from concurrent release cleanup | `scripts/claim-wp.sh`, its regression test, roadmap and handoff fragment | Cleanup deletes only the release marker it wrote; an interleaved claim survives |
+| M6-WP29 | **Done** (PR #32). Protect a new claim from concurrent release cleanup | `scripts/claim-wp.sh`, its regression test, roadmap and handoff fragment | Cleanup deletes only the release marker it wrote; an interleaved claim survives |
 
 ## Recurring (no id)
 
