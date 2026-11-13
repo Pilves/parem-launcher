@@ -19,7 +19,10 @@ object SettingsImport {
         var inString = false
         var escaped = false
         var previous = '\u0000'
-        for (ch in text) {
+        for (index in text.indices) {
+            val ch = text[index]
+            // Android's JSONTokener accepts a single UTF-8 BOM at the start.
+            if (index == 0 && ch == '\uFEFF') continue
             if (inString) {
                 when {
                     escaped -> escaped = false

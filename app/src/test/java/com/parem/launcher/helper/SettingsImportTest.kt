@@ -48,6 +48,9 @@ class SettingsImportTest {
         assertThrows(IllegalArgumentException::class.java) { read("{\"__parem_export_version\":1") }
         val escaped = "{\"label\":\"escaped \\\" [ { \\\\ ] }\",\"set\":[\"one\"]}"
         assertEquals(escaped, read(escaped))
+        val bomExport = "\uFEFF{\"__parem_export_version\":1,\"APP_THEME\":2}"
+        assertEquals(bomExport, read(bomExport))
+        assertThrows(IllegalArgumentException::class.java) { read("\uFEFF$bomExport") }
         assertThrows(IllegalArgumentException::class.java) { read("{\"x\":/*\"*/" + "[".repeat(100) + "]".repeat(100) + "}") }
         assertThrows(IllegalArgumentException::class.java) { read("{\"x\":'" + "[".repeat(100) + "'}") }
         val prefix = "{\"x\":\""
@@ -55,6 +58,9 @@ class SettingsImportTest {
         val atLimit = prefix + "a".repeat(SettingsImport.MAX_IMPORT_BYTES - prefix.length - suffix.length) + suffix
         assertEquals(atLimit, read(atLimit))
         assertThrows(IllegalArgumentException::class.java) { read(atLimit.dropLast(2) + "é\"}") }
+        val bomAtLimit = "\uFEFF" + prefix + "a".repeat(SettingsImport.MAX_IMPORT_BYTES - 3 - prefix.length - suffix.length) + suffix
+        assertEquals(bomAtLimit, read(bomAtLimit))
+        assertThrows(IllegalArgumentException::class.java) { read("\uFEFF$atLimit") }
         assertThrows(java.nio.charset.CharacterCodingException::class.java) {
             SettingsImport.readBounded(ByteArrayInputStream(byteArrayOf(0xC3.toByte(), 0x28)))
         }
