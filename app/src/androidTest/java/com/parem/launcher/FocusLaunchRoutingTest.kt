@@ -1,7 +1,11 @@
 package com.parem.launcher
 
+import android.app.Activity
+import android.app.Instrumentation
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.os.PatternMatcher
 import android.os.Process
 import android.os.SystemClock
 import android.provider.AlarmClock
@@ -47,6 +51,18 @@ class FocusLaunchRoutingTest {
         val handler = requireNotNull(context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)) {
             "calendar fixture must be resolvable"
         }.activityInfo.packageName
+        // Observe the actual date-route intent without depending on an external calendar's UI.
+        val filter = IntentFilter(Intent.ACTION_VIEW).apply {
+            addDataScheme("content")
+            addDataAuthority("com.android.calendar", null)
+            addDataPath("/time", PatternMatcher.PATTERN_PREFIX)
+        }
+        val monitor = instrumentation.addMonitor(filter, Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null), true)
+        fun awaitLaunches(expected: Int) {
+            val deadline = SystemClock.elapsedRealtime() + 5_000
+            while (monitor.hits < expected && SystemClock.elapsedRealtime() < deadline) SystemClock.sleep(50)
+            assertEquals("date route must launch the calendar intent", expected, monitor.hits)
+        }
         try {
             FocusModeManager.setWhitelist(context, emptySet())
             FocusModeManager.enable(context, 30)
@@ -55,26 +71,17 @@ class FocusLaunchRoutingTest {
                 device.waitForIdle()
                 SystemClock.sleep(750)
                 assertEquals("blocked date left home", context.packageName, device.currentPackageName)
+                assertEquals("blocked date must not launch a calendar", 0, monitor.hits)
                 val allowed = if (handler == "android") instrumentation.context.packageName else handler
                 FocusModeManager.setWhitelist(context, setOf(allowed))
                 scenario.onActivity { it.findViewById<View>(R.id.date).performClick() }
-                assertTrue("allowed calendar did not open during focus", device.wait(Until.hasObject(By.pkg(allowed)), 5_000))
-                device.pressBack()
-                device.waitForIdle()
+                awaitLaunches(1)
                 FocusModeManager.disable(context)
                 scenario.onActivity { it.findViewById<View>(R.id.date).performClick() }
-                if (handler == "android") {
-                    val choice = device.wait(Until.findObject(By.text("Camera test fixture")), 5_000)
-                    assertNotNull("calendar chooser did not appear", choice)
-                    choice.click()
-                    device.findObject(By.text(Pattern.compile("(?i)just once")))?.click()
-                    assertTrue("calendar fixture did not open", device.wait(Until.hasObject(By.text("Camera fixture activity is open")), 5_000))
-                } else {
-                    assertTrue("calendar app did not open", device.wait(Until.hasObject(By.pkg(handler)), 5_000))
-                }
-                device.pressBack()
+                awaitLaunches(2)
             }
         } finally {
+            instrumentation.removeMonitor(monitor)
             FocusModeManager.disable(context)
         }
     }
