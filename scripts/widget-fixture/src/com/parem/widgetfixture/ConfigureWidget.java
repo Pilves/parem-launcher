@@ -14,7 +14,7 @@ public class ConfigureWidget extends Activity {
     private final BroadcastReceiver complete = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             int id = getIntent().getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
-            setResult(RESULT_OK, new Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id));
+            ConfigureWidget.this.setResult(RESULT_OK, new Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id));
             finish();
         }
     };
