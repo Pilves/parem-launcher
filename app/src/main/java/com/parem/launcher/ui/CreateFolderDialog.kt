@@ -95,7 +95,7 @@ class CreateFolderDialog(
                     .title(context.getString(R.string.select_apps))
                     .customView(pickerContent)
                     .option(context.getString(android.R.string.ok)) {}
-                    .show(resizeForKeyboard = true, scrollContent = false)
+                    .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true)
                 picker.dismissWithParent(dialog)
             }
         })

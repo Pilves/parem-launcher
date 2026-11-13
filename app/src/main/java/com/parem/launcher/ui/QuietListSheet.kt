@@ -112,7 +112,7 @@ object QuietListSheet {
             .customView(content)
             .option(context.getString(R.string.quiet_continue)) { onDone(adapter.selectedIds.toSet()) }
             .option(context.getString(android.R.string.cancel), dimmed = true) {}
-            .show(resizeForKeyboard = true, scrollContent = false)
+            .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true)
     }
 
     /** Shown every time the filter is turned on, before the system access screen. */

@@ -183,7 +183,7 @@ class FocusModeDialog(
                         .title(ctx.getString(R.string.focus_allowed_apps))
                         .customView(pickerContent)
                         .option(ctx.getString(android.R.string.ok)) {}
-                        .show(resizeForKeyboard = true, scrollContent = false)
+                        .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true)
                     picker.dismissWithParent(dialog)
                 }, onLongClick = null))
         }
