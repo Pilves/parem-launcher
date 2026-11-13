@@ -281,6 +281,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP37 | **Done** (PR #42). Planned. Correct sheet radio accessibility state and avoid picker bind announcements | `BottomSheetMenu.kt`, `AppPickerAdapter.kt`, sheet accessibility instrumentation, handoff | Radio choices expose checked state without On/Off; binding does not announce unchanged picker data |
 
+| M6-WP28 | **Done** (PR #30). Correct quiet-notification access disclosure and return guidance in all existing locales | quiet disclosure strings, CHANGELOG and handoff | Current key/timestamp and snooze/release behavior stated without guarantees; translations flagged for native review |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
