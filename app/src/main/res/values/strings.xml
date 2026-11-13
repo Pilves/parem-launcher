@@ -326,7 +326,7 @@
     <string name="grayscale_restore_access" translatable="false">Restore grayscale access</string>
     <string name="grayscale_android_settings" translatable="false">Open Android accessibility settings</string>
     <string name="grayscale_settings_unavailable" translatable="false">Open Accessibility settings in Android to change color correction.</string>
-    <string name="limit_usage_access_missing" translatable="false">Usage access is off. Parem cannot check this app’s daily limit.</string>
+    <string name="limit_usage_access_missing" translatable="false">Parem cannot access usage data, so it cannot check this app’s daily limit.</string>
     <string name="limit_usage_unavailable" translatable="false">Parem could not check this app’s daily limit.</string>
     <string name="limit_settings_unavailable" translatable="false">Open Usage access in Android Settings.</string>
     <string name="grayscale_toggles_hint" translatable="false">When Parem’s grayscale triggers end, it tries to restore your previous color correction. If the screen stays gray, check Android Settings › Accessibility › Color correction.</string>
