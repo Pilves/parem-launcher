@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Refresh screen time after the device clock moves backwards.
+- Close grayscale and quiet notification sheets when their screen is dismissed.
 
 - Preserve picker checkbox accessibility after filtering and recycling rows.
 - Reject unsafe or invalid settings imports without changing existing preferences.

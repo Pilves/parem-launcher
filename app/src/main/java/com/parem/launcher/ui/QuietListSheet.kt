@@ -3,6 +3,7 @@ package com.parem.launcher.ui
 import android.content.Context
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.parem.launcher.R
 import com.parem.launcher.data.Prefs
@@ -32,11 +33,11 @@ object QuietListSheet {
         val context = fragment.context ?: return
         when (QuietNotificationsManager.state(context)) {
             State.OFF -> startTurnOn(fragment, prefs, isAlive, onChanged = {})
-            State.NEEDS_ACCESS -> showNeedsAccess(context, starting = false, onChanged = {})
+            State.NEEDS_ACCESS -> showNeedsAccess(fragment, starting = false, onChanged = {})
             State.ON -> {
                 val listener = QuietNotificationListener.instance
                 // Never show an empty list unless the listener can actually see the snoozed set
-                if (listener == null) showNeedsAccess(context, starting = true, onChanged = {})
+                if (listener == null) showNeedsAccess(fragment, starting = true, onChanged = {})
                 else showList(fragment, isAlive, listener)
             }
         }
@@ -53,9 +54,10 @@ object QuietListSheet {
                 QuietNotificationsManager.defaultDialer(context),
                 QuietNotificationsManager.defaultSms(context),
             )
-            showAllowedPicker(context, entries, preselected) { selected ->
+            showAllowedPicker(context, fragment.viewLifecycleOwner, entries, preselected) { selected ->
+                if (!fragment.isAdded || !isAlive()) return@showAllowedPicker
                 QuietNotificationsManager.setAllowed(context, selected)
-                showDisclosure(context, onChanged)
+                showDisclosure(context, fragment.viewLifecycleOwner, onChanged)
             }
         }
     }
@@ -63,7 +65,8 @@ object QuietListSheet {
     /** Edits the allowlist only; used from settings once the filter is on. */
     fun editAllowed(fragment: Fragment, prefs: Prefs, isAlive: () -> Boolean) {
         withAppEntries(fragment, prefs, isAlive) { context, entries ->
-            showAllowedPicker(context, entries, QuietNotificationsManager.getAllowed(context)) { selected ->
+            showAllowedPicker(context, fragment.viewLifecycleOwner, entries, QuietNotificationsManager.getAllowed(context)) { selected ->
+                if (!fragment.isAdded || !isAlive()) return@showAllowedPicker
                 QuietNotificationsManager.setAllowed(context, selected)
             }
         }
@@ -91,6 +94,7 @@ object QuietListSheet {
 
     private fun showAllowedPicker(
         context: Context,
+        owner: LifecycleOwner,
         entries: List<Pair<String, String>>,
         preselected: Set<String>,
         onDone: (Set<String>) -> Unit,
@@ -112,11 +116,11 @@ object QuietListSheet {
             .customView(content)
             .option(context.getString(R.string.quiet_continue)) { onDone(adapter.selectedIds.toSet()) }
             .option(context.getString(android.R.string.cancel), dimmed = true) {}
-            .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true)
+            .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true).dismissOnDestroy(owner)
     }
 
     /** Shown every time the filter is turned on, before the system access screen. */
-    private fun showDisclosure(context: Context, onChanged: () -> Unit) {
+    private fun showDisclosure(context: Context, owner: LifecycleOwner, onChanged: () -> Unit) {
         val body = context.withRestrictedNote(context.getString(R.string.quiet_disclosure_body))
         val hasAccess = QuietNotificationsManager.hasAccess(context)
         BottomSheetMenu(context)
@@ -129,11 +133,12 @@ object QuietListSheet {
                 onChanged()
             }
             .option(context.getString(R.string.quiet_not_now), dimmed = true) {}
-            .show()
+            .show().dismissOnDestroy(owner)
     }
 
     /** Access revoked, or (with [starting]) granted but the system has not bound us yet. */
-    fun showNeedsAccess(context: Context, starting: Boolean, onChanged: () -> Unit) {
+    fun showNeedsAccess(fragment: Fragment, starting: Boolean, onChanged: () -> Unit) {
+        val context = fragment.context ?: return
         val body = context.getString(if (starting) R.string.quiet_starting else R.string.quiet_needs_access_body)
         BottomSheetMenu(context)
             .title(context.getString(R.string.quiet_notif))
@@ -144,7 +149,7 @@ object QuietListSheet {
             .option(context.getString(R.string.quiet_turn_off), dimmed = true) {
                 turnOff(context, onChanged)
             }
-            .show()
+            .show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     /** Turning off from settings or the sheet above: hidden notifications come back to the shade now. */
@@ -187,6 +192,6 @@ object QuietListSheet {
                 listener.dismissAll()
             }
         }
-        menu.show()
+        menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 }

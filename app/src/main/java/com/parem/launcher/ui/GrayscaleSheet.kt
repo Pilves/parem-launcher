@@ -33,7 +33,7 @@ object GrayscaleSheet {
 
     fun open(fragment: Fragment, onPair: () -> Unit, onChanged: () -> Unit) {
         val context = fragment.context ?: return
-        if (GrayscaleController.isGranted(context)) showToggles(context, onChanged)
+        if (GrayscaleController.isGranted(context)) showToggles(fragment, onChanged)
         else showGrant(fragment, onPair, onChanged)
     }
 
@@ -128,7 +128,7 @@ object GrayscaleSheet {
             GrayscaleController.setManual(context, true)
             context.showToast(R.string.grayscale_ready)
             onChanged()
-            showToggles(context, onChanged)
+            if (fragment.isAdded && fragment.view != null) showToggles(fragment, onChanged)
         }
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
@@ -145,7 +145,8 @@ object GrayscaleSheet {
         }
     }
 
-    private fun showToggles(context: Context, onChanged: () -> Unit) {
+    private fun showToggles(fragment: Fragment, onChanged: () -> Unit) {
+        val context = fragment.context ?: return
         val content = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
         fun toggle(label: Int, initial: Boolean, onToggle: (Boolean) -> Unit) {
             content.addView(SheetCheckRow(context).apply {
@@ -165,7 +166,7 @@ object GrayscaleSheet {
             .customView(content)
             .message(context.getString(R.string.grayscale_toggles_hint))
             .onDismiss { onChanged() }
-            .show()
+            .show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     /** Like BottomSheetMenu.option, but the sheet stays open so the grant poll keeps running. */
