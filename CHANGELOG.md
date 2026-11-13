@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Avoid repeating unchanged first-run tip layout work when returning home.
 - Show the correct default-home settings row after checking the current role.
 
 - Announce single-choice sheet rows as checked radio buttons without misleading On/Off states.

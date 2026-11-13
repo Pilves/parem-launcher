@@ -36,6 +36,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     private lateinit var viewModel: MainViewModel
 
     private var _binding: FragmentHomeBinding? = null
+    private var lastDefaultPromptVisible: Boolean? = null
     private val binding get() = _binding!!
     private var landscapeWidgetBottomPadding = 0
     private var homeAppsBottomPadding = 0
@@ -169,11 +170,16 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     private fun updateFirstRunTips() {
         val current = _binding ?: return
         val tips = current.firstRunTips
-        tips.text = listOfNotNull(
+        val text = listOfNotNull(
             getString(R.string.home_guidance_swipe).takeIf { prefs.homeGuidanceSwipe },
             getString(R.string.home_guidance_long_press).takeIf { prefs.homeGuidanceLongPress },
         ).joinToString("\n")
-        tips.isVisible = tips.text.isNotEmpty() && !current.setDefaultLauncher.isVisible
+        val defaultVisible = current.setDefaultLauncher.isVisible
+        val visible = text.isNotEmpty() && !defaultVisible
+        if (tips.text.toString() == text && tips.isVisible == visible && lastDefaultPromptVisible == defaultVisible) return
+        lastDefaultPromptVisible = defaultVisible
+        tips.text = text
+        tips.isVisible = visible
         val column = current.widgetScrollViewAbove?.parent as? ViewGroup ?: return
         val prompt = when {
             current.setDefaultLauncher.isVisible -> current.setDefaultLauncher
@@ -301,5 +307,6 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         clockController = null
         super.onDestroyView()
         _binding = null
+        lastDefaultPromptVisible = null
     }
 }

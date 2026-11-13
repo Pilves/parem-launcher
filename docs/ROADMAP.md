@@ -288,6 +288,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP39 | **Done** (PR #44). Default-home settings rows start hidden until their role is known | Settings layout, default-home UI tests and handoff | Both rows inflate hidden; the fresh-role search test waits for the correct row |
 | M6-WP34 | **Done** (PR #39). Keep app picker actions visible | `ui/PickerSheetLayout.kt`, picker layout test, changelog and handoff | Quiet, Focus and folder picker actions remain below the scrolling list in short windows |
 | M6-WP38 | **Done** (PR #43). Show selected app counts in folder and Focus parent sheets | `ui/CreateFolderDialog.kt`, `ui/FocusModeDialog.kt`, strings, tests and handoff | Counts show current selection, including retained unavailable apps, and update after picker edits |
+| M6-WP41 | **Done** (PR #46). **Todo**. Avoid repeated first-run tip layout work | `ui/HomeFragment.kt`, first-run instrumentation test, changelog and handoff | Unchanged tips and default-home prompt skip updates; changes and view recreation retain prompt clearance |
 
 ## Recurring (no id)
 
