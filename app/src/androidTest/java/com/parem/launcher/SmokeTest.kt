@@ -125,7 +125,7 @@ class SmokeTest {
     }
 
     @Test
-    fun drawerOpenWithoutSwipeDoesNotDismissSwipeGuidance() {
+    fun drawerOpenWithoutSwipeDismissesSwipeGuidance() {
         val prefs = Prefs(context)
         prefs.autoShowKeyboard = false
         prefs.homeGuidanceSwipe = true
@@ -137,11 +137,51 @@ class SmokeTest {
             fragment.showAppList(Constants.FLAG_LAUNCH_APP)
         }
         assertTrue(device.wait(Until.hasObject(By.res(searchId)), TIMEOUT))
-        assertTrue("non-swipe drawer open dismissed swipe guidance", prefs.homeGuidanceSwipe)
+        assertFalse("non-swipe drawer open did not dismiss swipe guidance", prefs.homeGuidanceSwipe)
+        device.pressBack()
+        assertTrue(device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+        prefs.homeGuidanceSwipe = true
+        openDrawer()
+        assertFalse("successful swipe did not dismiss swipe guidance", prefs.homeGuidanceSwipe)
+    }
+
+    @Test
+    fun appPickerDoesNotDismissDrawerGuidance() {
+        val prefs = Prefs(context)
+        prefs.autoShowKeyboard = false
+        prefs.homeGuidanceSwipe = true
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                .filterIsInstance<MainActivity>().single()
+            val host = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment)!!
+            val fragment = host.childFragmentManager.primaryNavigationFragment as com.parem.launcher.ui.HomeFragment
+            fragment.showAppList(Constants.FLAG_SET_CLOCK_APP)
+        }
+        assertTrue(device.wait(Until.hasObject(By.res(searchId)), TIMEOUT))
+        assertTrue("app picker dismissed drawer guidance", prefs.homeGuidanceSwipe)
+    }
+
+    @Test
+    fun settingsFromHomeAndDrawerDismissesLongPressGuidance() {
+        val prefs = Prefs(context)
+        prefs.autoShowKeyboard = false
+        val settings = By.res(context.resources.getResourceName(R.id.scrollView))
+        fun navigate(action: Int) = instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                .filterIsInstance<MainActivity>().single()
+            activity.findNavController(R.id.nav_host_fragment).navigate(action)
+        }
+        prefs.homeGuidanceLongPress = true
+        navigate(R.id.action_mainFragment_to_settingsFragment)
+        assertTrue("settings did not open from home", device.wait(Until.hasObject(settings), TIMEOUT))
+        assertFalse("settings from home did not dismiss guidance", prefs.homeGuidanceLongPress)
         device.pressBack()
         assertTrue(device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
         openDrawer()
-        assertFalse("successful swipe did not dismiss swipe guidance", prefs.homeGuidanceSwipe)
+        prefs.homeGuidanceLongPress = true
+        navigate(R.id.action_appListFragment_to_settingsFragment2)
+        assertTrue("settings did not open from drawer", device.wait(Until.hasObject(settings), TIMEOUT))
+        assertFalse("settings from drawer did not dismiss guidance", prefs.homeGuidanceLongPress)
     }
 
     @Test
