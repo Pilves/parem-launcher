@@ -6,11 +6,11 @@ Kowalski's design-engineering rules (how often a motion is seen, ease-out on ent
 feedback, momentum dismissal, keeping it subtle). Every web-specific idea has been translated into Android
 View-system terms. That means no CSS, no Compose and no new UI frameworks.
 
-Source: `origin/next` @ 3915b38. The UX capture was blocked because the tablet was locked, so I couldn't
+**Historical audit:** source `origin/next` @ 3915b38. This document records proposals at that snapshot, not current behavior. The current navigation graph uses `res/animator/fade_enter.xml` and `fade_exit.xml`; the old `res/anim/slide_*_top` and `fade_*` navigation files and the unused drawer row-stagger files are gone. The UX capture was blocked because the tablet was locked, so I couldn't
 use screenshots for motion. Everything below comes from reading the code, plus QA shot 10 for the sheet frame.
 Items already filed as M4-WP22..30 are skipped. So are sheet width (WP24) and the home menu peek state (WP25).
 
-## How Parem moves today (map)
+## How Parem moved at the audit snapshot (historical map)
 
 | Surface | Mechanism | Duration / curve | Gated by `skipAnimations()` |
 |---|---|---|---|
@@ -169,14 +169,14 @@ case it exists for (documented as "navigation to app list failed") or delete it.
 
 Files: `ui/HomeFragment.kt` `showAppList`.
 
-### 8. Drawer entry is busy for something opened dozens of times a day (medium, S)
-Emil's frequency rule says a surface opened 30+ times a day should be nearly instant. Today the drawer
+### 8. Drawer entry was busy at the audit snapshot (historical proposal)
+At the audit snapshot, Emil's frequency rule suggested a surface opened 30+ times a day should be nearly instant. The drawer
 fades in linearly over 200 ms while every row plays `item_anim_from_bottom`: a 20 % translate, **scaleY from
 110 %**, and a 12 ms stagger, with the IME appearing 100 ms in. Vertically stretching text glyphs looks
 cheap. The total settle time grows with the number of visible rows (about 380 ms for 15 rows), and the
 linear interpolator delays the moment of first response.
 
-**Android fix:**
+**Historical proposal (superseded):** the drawer row-stagger resources were not loaded and have since been removed.
 - `item_anim_from_bottom.xml`: delete the `<scale>`. Keep translate (`fromYDelta="12%"`) and alpha, 150 ms,
   `@android:interpolator/linear_out_slow_in`. In `layout_anim_from_bottom.xml`, use `android:delay="4%"`
   and consider `android:animationOrder="normal"` with a cap. Apple and Emil agree that stagger must never

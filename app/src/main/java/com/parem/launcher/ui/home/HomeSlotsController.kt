@@ -313,8 +313,6 @@ class HomeSlotsController(
      */
     fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String? = null, sourceView: View? = null, sourceBounds: android.graphics.Rect? = null) {
         val launchBounds = sourceBounds ?: sourceView?.let { view -> android.graphics.Rect().takeIf { view.getGlobalVisibleRect(it) } }
-        if (com.parem.launcher.BuildConfig.DEBUG && launchBounds != null)
-            android.util.Log.d("ParemNavigation", "Home launch bounds: $launchBounds")
         val ctx = fragment.context ?: return
         if (url != null) {
             val safeUrl = WebShortcut.normalize(url) ?: run {

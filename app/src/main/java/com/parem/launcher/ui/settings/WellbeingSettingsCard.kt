@@ -72,8 +72,6 @@ class WellbeingSettingsCard(
         binding.grayscaleRow?.setOnClickListener(this)
         binding.screenTimeLimitsRow?.setOnClickListener(this)
         binding.quietNotifRow?.setOnClickListener(this)
-        binding.quietNotifAllowedRow?.setOnClickListener(this)
-        binding.quietNotifSilentRow?.setOnClickListener(this)
     }
 
     override fun onClick(view: View) {
@@ -85,14 +83,6 @@ class WellbeingSettingsCard(
             })
             R.id.screenTimeLimitsRow -> showScreenTimeLimitsDialog()
             R.id.quietNotifRow -> onQuietNotifToggle()
-            R.id.quietNotifAllowedRow -> QuietListSheet.editAllowed(fragment, prefs, fragment::isBindingAlive)
-            R.id.quietNotifSilentRow -> {
-                viewModel.getAppList(true)
-                fragment.navigateFromSettings(
-                    R.id.action_settingsFragment_to_appListFragment,
-                    bundleOf(Constants.Key.FLAG to Constants.FLAG_PICK_SILENT_APP)
-                )
-            }
         }
     }
 
@@ -171,9 +161,6 @@ class WellbeingSettingsCard(
         binding.quietNotifToggle?.setTextColor(context.getColorFromAttr(
             if (state == State.NEEDS_ACCESS) R.attr.accentColor else R.attr.textColor))
         binding.quietNotifRow?.bindValueRow(binding.quietNotifToggle?.text)
-        binding.quietNotifAllowedRow?.bindValueRow(binding.quietNotifAllowed?.text)
-        binding.quietNotifSilentRow?.bindValueRow(binding.quietNotifSilent?.text)
-        binding.quietNotifRows?.visibility = View.GONE
         binding.quietNotifHint?.apply {
             when (state) {
                 State.OFF -> visibility = View.GONE

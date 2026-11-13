@@ -236,83 +236,6 @@
                             android:padding="8dp"
                             android:text="@string/off" />
                     </LinearLayout>
-                    <LinearLayout
-                        android:id="@+id/quietNotifRows"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-                        <LinearLayout
-                            android:id="@+id/quietNotifAllowedRow"
-                            android:minHeight="@dimen/touch_target_min"
-                            android:background="?attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:screenReaderFocusable="true"
-                            android:contentDescription="@string/quiet_allowed_apps"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:orientation="horizontal">
-                            <TextView
-                                android:importantForAccessibility="no"
-                                style="@style/TextSmall"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:layout_marginEnd="8dp"
-                                android:layout_weight="1"
-                                android:paddingVertical="8dp"
-                                android:text="@string/quiet_allowed_apps"
-                                android:textColor="?attr/textColor" />
-                            <TextView
-                                android:importantForAccessibility="no"
-                                android:id="@+id/quietNotifAllowed"
-                                style="@style/TextSmallBold"
-                                android:layout_width="0dp"
-                                android:layout_weight="1"
-                                android:layout_height="wrap_content"
-                                android:gravity="end|center_vertical"
-                                android:layout_marginEnd="4dp"
-                                android:padding="8dp"
-                                android:text="@string/configure" />
-                        </LinearLayout>
-                        <LinearLayout
-                            android:id="@+id/quietNotifSilentRow"
-                            android:minHeight="@dimen/touch_target_min"
-                            android:background="?attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:screenReaderFocusable="true"
-                            android:contentDescription="@string/quiet_make_silent"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:orientation="horizontal">
-                            <TextView
-                                android:importantForAccessibility="no"
-                                style="@style/TextSmall"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:layout_marginEnd="8dp"
-                                android:layout_weight="1"
-                                android:paddingVertical="8dp"
-                                android:text="@string/quiet_make_silent"
-                                android:textColor="?attr/textColor" />
-                            <TextView
-                                android:importantForAccessibility="no"
-                                android:id="@+id/quietNotifSilent"
-                                style="@style/TextSmallBold"
-                                android:layout_width="0dp"
-                                android:layout_weight="1"
-                                android:layout_height="wrap_content"
-                                android:gravity="end|center_vertical"
-                                android:layout_marginEnd="4dp"
-                                android:padding="8dp"
-                                android:text="@string/configure" />
-                        </LinearLayout>
-                    </LinearLayout>
                     <TextView
                         android:id="@+id/quietNotifHint"
                         style="@style/TextSmall"
@@ -853,7 +776,6 @@
                 android:orientation="vertical"
                 android:padding="0dp">
                 <com.parem.launcher.ui.MotionTextView
-                    android:id="@+id/tvGestures"
                     style="@style/TextLarge"
                     android:accessibilityHeading="true"
                     android:layout_width="wrap_content"
@@ -1294,7 +1216,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp">
                     <com.parem.launcher.ui.MotionTextView
-                        android:id="@+id/paremHiddenApps"
                         style="@style/TextLarge"
                         android:accessibilityHeading="true"
                         android:layout_width="wrap_content"
