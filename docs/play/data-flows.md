@@ -7,7 +7,7 @@ Evidence behind `web/privacy.html`, and the table the Play Data safety form is c
 - **Method:** source and resource reading, plus the live wallpaper list and Open-Meteo geocoder fetched from a desk machine. Nothing ran on a phone. Anything marked *platform default* is Android behaviour and was not observed as traffic.
 - **Re-check before each release.** Section 8 has the commands.
 
-Paths are relative to `app/src/main/java/com/parem/launcher/`, except `Manifest` (`app/src/main/AndroidManifest.xml`), `res/` (`app/src/main/res/`) and `fastlane/`, `docs/`, `web/` (repo root).
+Paths are relative to `app/src/main/java/com/parem/launcher/`, except `Manifest` (`app/src/main/AndroidManifest.xml`), `res/` (`app/src/main/res/`) and `fastlane/`, `docs/`, `web/` (repo root). `helper/adb/` and `helper/GrayscalePairing.kt` are under `app/src/full/java/com/parem/launcher/`; tests are under `app/src/test/`.
 
 ## 1. Flows that leave the phone
 
