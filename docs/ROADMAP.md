@@ -277,6 +277,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP22 | **Done** (PR #26). Label historical planning records and correct verified documentation contracts | Historical design records, archive/work split, selected handoff fragments, F-Droid draft and data-flow inventory | Source-backed corrections reviewed; audit coverage and remaining unverified claims recorded; handoff generated |
 
+| M6-WP32 | **Done** (PR #0). Synthetic quiet notification lifecycle fixture on disposable emulators | Instrumentation test, dedicated CI workflow and handoff | Shell fixture tests seeded snooze and release without touching physical devices; positive filtering remains unverified |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
