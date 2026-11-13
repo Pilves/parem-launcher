@@ -5,7 +5,6 @@ import android.graphics.Rect
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
@@ -55,7 +54,7 @@ class MotionTest {
         try {
             names.forEach { device.executeShellCommand("settings put global $it 1") }
             device.executeShellCommand("settings put global animator_duration_scale 0")
-            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            withExperimentalTaskCleanup { scenario ->
                 lateinit var row: FrameLayout
                 lateinit var content: View
                 scenario.onActivity { activity ->
@@ -100,7 +99,7 @@ class MotionTest {
         val originals = names.associateWith { device.executeShellCommand("settings get global $it").trim() }
         try {
             names.forEach { device.executeShellCommand("settings put global $it 1") }
-            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            withExperimentalTaskCleanup { scenario ->
                 lateinit var control: MotionTextView
                 val bounds = Rect()
                 scenario.onActivity { activity ->
@@ -141,7 +140,7 @@ class MotionTest {
         val original = device.executeShellCommand("settings get global animator_duration_scale").trim()
         try {
             device.executeShellCommand("settings put global animator_duration_scale 0")
-            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            withExperimentalTaskCleanup { scenario ->
                 lateinit var settingsRow: View
                 lateinit var settingsContent: View
                 lateinit var sheetRow: View
@@ -197,7 +196,7 @@ class MotionTest {
         val originals = names.associateWith { device.executeShellCommand("settings get global $it").trim() }
         try {
             names.forEach { device.executeShellCommand("settings put global $it 1") }
-            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            withExperimentalTaskCleanup { scenario ->
                 lateinit var dialog: Dialog
                 scenario.onActivity { activity ->
                     dialog = Dialog(activity)

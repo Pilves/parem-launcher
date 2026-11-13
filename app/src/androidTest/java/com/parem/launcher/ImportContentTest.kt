@@ -1,11 +1,7 @@
 package com.parem.launcher
 
 import android.content.Context
-import android.app.ActivityManager
-import android.os.SystemClock
-import android.util.Log
 import android.view.View
-import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.parem.launcher.data.Constants
@@ -17,7 +13,6 @@ import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -37,25 +32,11 @@ class ImportContentTest {
     }
 
     private fun homeSurvivesRestart() {
-        var taskId = -1
-        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+        withExperimentalTaskCleanup { scenario ->
             scenario.onActivity { assertNotNull("home was not created", it.findViewById<View>(R.id.homeAppsLayout)) }
             scenario.recreate()
-            scenario.onActivity {
-                assertNotNull("home did not survive recreation", it.findViewById<View>(R.id.homeAppsLayout))
-                taskId = it.taskId
-                Log.i("ImportTaskExperiment", "finishAndRemoveTask task=$taskId")
-                it.finishAndRemoveTask()
-            }
+            scenario.onActivity { assertNotNull("home did not survive recreation", it.findViewById<View>(R.id.homeAppsLayout)) }
         }
-        val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val deadline = SystemClock.elapsedRealtime() + 10_000
-        while (manager.appTasks.any { it.taskInfo.id == taskId } && SystemClock.elapsedRealtime() < deadline) {
-            SystemClock.sleep(100)
-        }
-        val removed = manager.appTasks.none { it.taskInfo.id == taskId }
-        Log.i("ImportTaskExperiment", "task=$taskId absentFromAppTasks=$removed")
-        assertTrue("experiment: task $taskId remained in appTasks", removed)
     }
 
     @Test fun malformedFolderContentsDoNotCrashHome() {
