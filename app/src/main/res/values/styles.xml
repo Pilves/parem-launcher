@@ -85,6 +85,16 @@
         <item name="android:textColorHint">?attr/textSecondaryColor</item>
     </style>
 
+    <style name="TextAppearance.Parem.SheetBody" parent="TextAppearance.Parem.Body">
+        <item name="android:fontFamily">?attr/mainFontFamily</item>
+    </style>
+    <style name="TextAppearance.Parem.SheetLabel" parent="TextAppearance.Parem.Label">
+        <item name="android:fontFamily">?attr/mainFontFamily</item>
+    </style>
+    <style name="TextAppearance.Parem.SheetCaption" parent="TextAppearance.Parem.Caption">
+        <item name="android:fontFamily">?attr/mainFontFamily</item>
+    </style>
+
     <style name="TextAppearance.Parem.Display">
         <item name="android:textSize">@dimen/time_size</item>
         <item name="android:fontFamily">?attr/mainFontFamily</item>

@@ -1,12 +1,11 @@
 package com.parem.launcher.ui
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.os.Process
-import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.widget.TextViewCompat
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.R
 import com.parem.launcher.data.AppModel
@@ -14,6 +13,7 @@ import com.parem.launcher.data.FolderApp
 import com.parem.launcher.data.FolderGroup
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.helper.isEinkDisplay
 import com.parem.launcher.helper.showToast
 
 /**
@@ -47,13 +47,13 @@ class CreateFolderDialog(
         // Folder name input
         val nameLabel = TextView(context).apply {
             text = context.getString(R.string.folder_name)
-            textSize = 14f
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetCaption)
             setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
         }
         container.addView(nameLabel)
 
         val nameInput = EditText(context).apply {
-            textSize = 16f
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetBody)
             setTextColor(context.getColorFromAttr(R.attr.textColor))
             setHintTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             hint = context.getString(R.string.folder_name_hint)
@@ -62,15 +62,6 @@ class CreateFolderDialog(
             setText(initial?.name.orEmpty())
         }
         container.addView(nameInput)
-
-        // App selection label
-        val appsLabel = TextView(context).apply {
-            text = context.getString(R.string.select_apps)
-            textSize = 14f
-            setTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
-            setPadding(0, 8.dpToPx(), 0, 4.dpToPx())
-        }
-        container.addView(appsLabel)
 
         // Selection is keyed per row and lives in the adapter's data, so it
         // survives filtering and row recycling; click order is preserved.
@@ -87,7 +78,27 @@ class CreateFolderDialog(
             initiallySelected = initialApps.keys,
         )
 
-        container.addAppPicker(pickerAdapter, searchPaddingLeft = 0, searchPaddingTop = 8.dpToPx())
+        container.addView(TextView(context).apply {
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetBody)
+            text = context.getString(R.string.select_apps)
+            setTextColor(context.getColorFromAttr(R.attr.textColor))
+            minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
+            setPadding(0, 12.dpToPx(), 0, 12.dpToPx())
+            setBackgroundResource(if (context.isEinkDisplay()) R.drawable.bg_eink_control else context.selectableBackgroundRes())
+            setOnClickListener {
+                pickerAdapter.filter("")
+                val pickerContent = LinearLayout(context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    addAppPicker(pickerAdapter)
+                }
+                val picker = BottomSheetMenu(context)
+                    .title(context.getString(R.string.select_apps))
+                    .customView(pickerContent)
+                    .option(context.getString(android.R.string.ok)) {}
+                    .show(resizeForKeyboard = true, scrollContent = false)
+                picker.dismissWithParent(dialog)
+            }
+        })
 
         // Websites sit beside the picked apps under the same 4-item cap;
         // unchecking one drops it
@@ -96,22 +107,18 @@ class CreateFolderDialog(
         val textColor = context.getColorFromAttr(R.attr.textColor)
         fun addWebsite(site: FolderApp) {
             websites.add(site)
-            websiteRows.addView(CheckBox(context).apply {
+            websiteRows.addView(SheetCheckRow(context).apply {
                 text = site.appName
-                textSize = 14f
-                setTextColor(textColor)
-                buttonTintList = ColorStateList.valueOf(textColor)
-                setPadding(8.dpToPx(), 2.dpToPx(), 0, 2.dpToPx())
-                isChecked = true
-                setOnCheckedChangeListener { box, _ ->
+                checked = true
+                setOnClickListener {
                     websites.remove(site)
-                    websiteRows.removeView(box)
+                    websiteRows.removeView(this)
                 }
             })
         }
         container.addView(TextView(context).apply {
             text = context.getString(R.string.add_website)
-            textSize = 14f
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetCaption)
             setTextColor(textColor)
             setPadding(0, 12.dpToPx(), 0, 4.dpToPx())
             setOnClickListener {

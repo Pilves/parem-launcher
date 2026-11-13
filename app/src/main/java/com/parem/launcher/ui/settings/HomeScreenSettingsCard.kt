@@ -98,7 +98,7 @@ class HomeScreenSettingsCard(
                 populateAppsNumOptions()
                 binding.appsNumSelectLayout.visibility = View.VISIBLE
             }
-            R.id.alignmentRow -> binding.alignmentSelectLayout.visibility = View.VISIBLE
+            R.id.alignmentRow -> showAlignmentPicker()
             R.id.alignmentLeft -> viewModel.updateHomeAlignment(leftGravity)
             R.id.alignmentCenter -> viewModel.updateHomeAlignment(Gravity.CENTER)
             R.id.alignmentRight -> viewModel.updateHomeAlignment(rightGravity)
@@ -108,7 +108,7 @@ class HomeScreenSettingsCard(
             R.id.dateTimeOff -> toggleDateTime(Constants.DateTime.OFF)
             R.id.dateOnly -> toggleDateTime(Constants.DateTime.DATE_ONLY)
 
-            R.id.widgetPlacementRow -> toggleWidgetPlacement()
+            R.id.widgetPlacementRow -> showWidgetPlacementPicker()
             R.id.showIconsRow -> toggleShowIcons()
             R.id.homeLayoutLockRow -> toggleHomeLayoutLock()
             R.id.sortByUsageLayout -> toggleSortByUsage()
@@ -345,13 +345,29 @@ class HomeScreenSettingsCard(
         binding.autoLaunchRow.bindSwitchRow(on)
     }
 
-    private fun toggleWidgetPlacement() {
-        prefs.widgetPlacement = if (prefs.widgetPlacement == Constants.WidgetPlacement.ABOVE)
-            Constants.WidgetPlacement.BELOW
-        else
-            Constants.WidgetPlacement.ABOVE
-        populateWidgetPlacement()
-        viewModel.refreshHome.postValue(false)
+    private fun showAlignmentPicker() {
+        val menu = BottomSheetMenu(context).title(context.getString(R.string.home_layout_alignment))
+        listOf(R.string.left to leftGravity, R.string.center to Gravity.CENTER, R.string.right to rightGravity).forEach { (label, gravity) ->
+            menu.option(context.getString(label), checked = prefs.homeAlignment == gravity) {
+                viewModel.updateHomeAlignment(gravity)
+            }
+        }
+        menu.option(context.getString(if (prefs.homeBottomAlignment) R.string.bottom_on else R.string.bottom_off), checked = prefs.homeBottomAlignment) {
+            updateHomeBottomAlignment()
+        }
+        menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)
+    }
+
+    private fun showWidgetPlacementPicker() {
+        val menu = BottomSheetMenu(context).title(context.getString(R.string.widget_placement))
+        listOf(R.string.above_apps to Constants.WidgetPlacement.ABOVE, R.string.below_apps to Constants.WidgetPlacement.BELOW).forEach { (label, placement) ->
+            menu.option(context.getString(label), checked = prefs.widgetPlacement == placement) {
+                prefs.widgetPlacement = placement
+                populateWidgetPlacement()
+                viewModel.refreshHome.postValue(false)
+            }
+        }
+        menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 
     private fun populateWidgetPlacement() {

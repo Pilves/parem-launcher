@@ -1,16 +1,14 @@
 package com.parem.launcher.ui
 
-import android.content.res.ColorStateList
 import android.graphics.Rect
 import android.text.InputType
-import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.ViewGroup
-import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.TextViewCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -24,7 +22,7 @@ import com.parem.launcher.helper.getColorFromAttr
  * backed by a RecyclerView so rows are recycled and filtering swaps the list
  * instead of toggling hundreds of inflated views.
  *
- * Selection lives in [selectedIds] — never in the CheckBox views — so it
+ * Selection lives in [selectedIds] — never in row views — so it
  * survives recycling and filtering; its iteration order is click order.
  * At most [maxSelected] entries can be checked; an excess check is rejected
  * by unchecking, matching the old inline pickers.
@@ -42,7 +40,7 @@ class AppPickerAdapter(
         val searchKey: SearchMatcher.LabelKey by lazy { SearchMatcher.key(label) }
     }
 
-    class Holder(val checkBox: CheckBox) : RecyclerView.ViewHolder(checkBox)
+    class Holder(val row: SheetCheckRow) : RecyclerView.ViewHolder(row)
 
     private val allEntries = entries.toList()
     private var visibleEntries = allEntries
@@ -59,41 +57,21 @@ class AppPickerAdapter(
     override fun getItemCount() = visibleEntries.size
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
-        // Same look as the old inline checkboxes — restructure, not redesign.
-        val checkBox = CheckBox(parent.context).apply {
-            textSize = 14f
-            setTextColor(textColor)
-            // Default widget tint is the Material accent, which clashes with
-            // the launcher's mono palette
-            buttonTintList = ColorStateList.valueOf(textColor)
-            setPadding(8.dpToPx(), 2.dpToPx(), 0, 2.dpToPx())
-            minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
-            layoutParams = RecyclerView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
-        return Holder(checkBox)
+        return Holder(SheetCheckRow(parent.context).apply {
+            layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        })
     }
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val entry = visibleEntries[position]
-        holder.checkBox.apply {
-            // A recycled row still carries the previous entry's listener; detach it
-            // before setting isChecked or that entry's selection would be mutated.
-            setOnCheckedChangeListener(null)
+        holder.row.apply {
             text = entry.label
-            isChecked = entry.id in selectedIds
-            setOnCheckedChangeListener { _, checked ->
-                if (checked) {
-                    if (selectedIds.size < maxSelected) selectedIds.add(entry.id)
-                    else {
-                        isChecked = false // cap reached: reject, as the old pickers did
-                        announceForAccessibility(context.getString(R.string.a11y_picker_cap, maxSelected))
-                    }
-                } else {
-                    selectedIds.remove(entry.id)
-                }
+            checked = entry.id in selectedIds
+            setOnClickListener {
+                if (entry.id in selectedIds) selectedIds.remove(entry.id)
+                else if (selectedIds.size < maxSelected) selectedIds.add(entry.id)
+                else announceForAccessibility(context.getString(R.string.a11y_picker_cap, maxSelected))
+                checked = entry.id in selectedIds
                 onSelectionChanged()
             }
         }
@@ -102,13 +80,12 @@ class AppPickerAdapter(
 
 /**
  * The search field plus fixed-height list every app-picker sheet shows. The
- * list height is fixed so rows recycle inside the sheet's scroller; the
- * padding parameters keep each sheet's existing inset.
+ * list is the sheet's only scroller; the padding parameters keep each sheet's inset.
  */
 fun LinearLayout.addAppPicker(adapter: AppPickerAdapter, searchPaddingLeft: Int = 8.dpToPx(), searchPaddingTop: Int = 4.dpToPx()) {
     addView(EditText(context).apply {
         hint = context.getString(R.string.search_apps)
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+        TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetBody)
         setTextColor(adapter.textColor)
         setHintTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
         background = null
@@ -143,7 +120,10 @@ fun LinearLayout.addAppPicker(adapter: AppPickerAdapter, searchPaddingLeft: Int 
             return super.onInterceptTouchEvent(e)
         }
     }.apply {
-        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 300.dpToPx())
+        layoutParams = LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            minOf(300.dpToPx(), resources.displayMetrics.heightPixels / 3),
+        )
         layoutManager = LinearLayoutManager(context)
         this.adapter = adapter
     })

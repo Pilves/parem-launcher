@@ -2,12 +2,11 @@ package com.parem.launcher.ui
 
 import android.content.Context
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.graphics.Typeface
 import android.view.View
-import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.widget.TextViewCompat
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -20,6 +19,7 @@ import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
+import com.parem.launcher.helper.isEinkDisplay
 import com.parem.launcher.helper.isParemDefault
 import com.parem.launcher.helper.showToast
 
@@ -84,13 +84,13 @@ object GrayscaleSheet {
         }
         content.addView(TextView(context).apply {
             text = context.getString(R.string.grayscale_grant_computer)
-            textSize = 16f
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetBody)
             setTextColor(context.getColorFromAttr(R.attr.textColor))
             setPadding(24.dpToPx(), 16.dpToPx(), 24.dpToPx(), 8.dpToPx())
         })
         val urlView = TextView(context).apply {
             text = shortUrl
-            textSize = 18f
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetBody)
             typeface = Typeface.MONOSPACE
             setTextIsSelectable(true)
             setTextColor(context.getColorFromAttr(R.attr.textColor))
@@ -146,20 +146,15 @@ object GrayscaleSheet {
     }
 
     private fun showToggles(context: Context, onChanged: () -> Unit) {
-        val textColor = context.getColorFromAttr(R.attr.textColor)
-        val content = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(16.dpToPx(), 0, 24.dpToPx(), 8.dpToPx())
-        }
-        fun toggle(label: Int, checked: Boolean, onToggle: (Boolean) -> Unit) {
-            content.addView(CheckBox(context).apply {
+        val content = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+        fun toggle(label: Int, initial: Boolean, onToggle: (Boolean) -> Unit) {
+            content.addView(SheetCheckRow(context).apply {
                 text = context.getString(label)
-                textSize = 16f
-                setTextColor(textColor)
-                buttonTintList = ColorStateList.valueOf(textColor)
-                setPadding(8.dpToPx(), 8.dpToPx(), 0, 8.dpToPx())
-                isChecked = checked
-                setOnCheckedChangeListener { _, on -> onToggle(on) }
+                checked = initial
+                setOnClickListener {
+                    checked = !checked
+                    onToggle(checked)
+                }
             })
         }
         toggle(R.string.grayscale_now, GrayscaleController.isManual(context)) { GrayscaleController.setManual(context, it) }
@@ -177,11 +172,10 @@ object GrayscaleSheet {
     private fun actionRow(context: Context, text: String, bold: Boolean = false, dimmed: Boolean = false, onClick: () -> Unit): View =
         TextView(context).apply {
             this.text = text
-            textSize = 16f
-            if (bold) setTypeface(null, Typeface.BOLD)
+            TextViewCompat.setTextAppearance(this, if (bold) R.style.TextAppearance_Parem_SheetLabel else R.style.TextAppearance_Parem_SheetBody)
             setTextColor(context.getColorFromAttr(if (dimmed) R.attr.primaryColorTrans50 else R.attr.textColor))
             setPadding(24.dpToPx(), 14.dpToPx(), 24.dpToPx(), 14.dpToPx())
-            setBackgroundResource(context.selectableBackgroundRes())
+            setBackgroundResource(if (context.isEinkDisplay()) R.drawable.bg_eink_control else context.selectableBackgroundRes())
             setOnClickListener { onClick() }
         }
 

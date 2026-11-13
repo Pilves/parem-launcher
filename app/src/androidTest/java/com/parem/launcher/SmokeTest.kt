@@ -31,7 +31,6 @@ import com.parem.launcher.ui.RecentHistoryAdapter
 import com.parem.launcher.ui.CreateFolderDialog
 import com.parem.launcher.ui.FocusModeDialog
 import com.parem.launcher.ui.dismissOnDestroy
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -48,6 +47,7 @@ import com.parem.launcher.helper.WallpaperWorker
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -504,6 +504,9 @@ class SmokeTest {
                     "example.$it" to "Example $it"
                 }).show().dismissOnDestroy(activity)
             }
+            val allowed = device.wait(Until.findObject(By.text(context.getString(R.string.focus_allowed_apps))), TIMEOUT)
+            assertNotNull("Focus allowed-app picker missing", allowed)
+            allowed.click()
             val search = device.wait(Until.findObject(By.clazz(EditText::class.java)
                 .text(context.getString(R.string.search_apps))), TIMEOUT)
             assertNotNull("Focus app search missing", search)
@@ -540,12 +543,6 @@ class SmokeTest {
     @Test
     fun folderPickerDragDownScrollsListInsteadOfClosingSheet() {
         var sheet: BottomSheetDialog? = null
-        var list: RecyclerView? = null
-        fun listOffset(): Int {
-            var offset = 0
-            instrumentation.runOnMainSync { offset = list!!.computeVerticalScrollOffset() }
-            return offset
-        }
         try {
             device.waitForIdle(TIMEOUT)
             // Outside touch mode the sheet would focus its name field and could raise
@@ -559,40 +556,27 @@ class SmokeTest {
                 }
                 sheet = CreateFolderDialog(activity, apps) { _, _ -> }.show().dismissOnDestroy(activity)
             }
+            val chooseApps = device.wait(Until.findObject(By.text(context.getString(R.string.select_apps))), TIMEOUT)
+            assertNotNull("Select apps row missing", chooseApps)
+            chooseApps.click()
             assertNotNull("Folder picker missing", device.wait(Until.findObject(By.text("Example 1")), TIMEOUT))
-            device.waitForIdle(TIMEOUT)
-            val bounds = Rect()
-            instrumentation.runOnMainSync {
-                fun find(view: View): RecyclerView? = view as? RecyclerView
-                    ?: (view as? ViewGroup)?.let { group ->
-                        (0 until group.childCount).firstNotNullOfOrNull { find(group.getChildAt(it)) }
-                    }
-                list = find(sheet!!.window!!.decorView)
-                // Visible part only, in screen coordinates: the swipes must start on the list
-                list!!.getGlobalVisibleRect(bounds)
-                val window = IntArray(2).also { list!!.rootView.getLocationOnScreen(it) }
-                bounds.offset(window[0], window[1])
-            }
+            val list = device.wait(Until.findObject(By.clazz(RecyclerView::class.java)), TIMEOUT)
+            assertNotNull("Folder app list missing", list)
+            val bounds = list.visibleBounds
             val x = bounds.centerX()
             val upper = bounds.top + bounds.height() / 5
             val lower = bounds.bottom - bounds.height() / 5
             device.swipe(x, lower, x, upper, 100)
             device.waitForIdle(TIMEOUT)
-            val scrolled = listOffset()
-            assertTrue("List did not scroll down; bounds=$bounds", scrolled > 0)
+            assertNull("List did not scroll down", device.findObject(By.text("Example 1")))
 
             device.swipe(x, upper, x, lower, 100)
             device.waitForIdle(TIMEOUT)
-            var showing = false
-            var state = -1
-            instrumentation.runOnMainSync {
-                showing = sheet!!.isShowing
-                state = sheet!!.behavior.state
-            }
-            assertTrue("Dragging the list down closed the sheet", showing)
-            assertEquals("Dragging the list down moved the sheet", BottomSheetBehavior.STATE_EXPANDED, state)
-            val after = listOffset()
-            assertTrue("List did not scroll back up: $scrolled -> $after", after < scrolled)
+            assertNotNull("Dragging down closed the picker or did not return to the top",
+                device.wait(Until.findObject(By.text("Example 1")), TIMEOUT))
+            var parentShowing = false
+            instrumentation.runOnMainSync { parentShowing = sheet!!.isShowing }
+            assertTrue("Parent sheet closed", parentShowing)
         } finally {
             instrumentation.runOnMainSync { sheet?.dismiss() }
         }

@@ -203,7 +203,7 @@ class ScreenTimeLimitDialog(
             picker = BottomSheetMenu(context)
                 .title(context.getString(R.string.add_another_app))
                 .customView(content)
-                .show(resizeForKeyboard = true)
+                .show(resizeForKeyboard = true, scrollContent = false)
         }
     }
 

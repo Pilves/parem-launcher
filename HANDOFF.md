@@ -267,6 +267,10 @@ per package; the rest of each of those fragments is still in
   Source checks preserve existing accessibility attributes; contrast evidence and the 90% scrim rationale are in docs/plans/2026-10-16-colour-implementation.md.
   Not verified: device screenshots, large-font fitting, keyboard/insets, TalkBack/D-pad and e-ink rendering; existing graph paint sizing is unchanged.
   Easy to get wrong: primaryColor still means monochrome home text and participates in theme checks; surface text must use textColor/textSecondaryColor.
+- **M4-WP52 (PR #20):** Sheet choices show current selections, use shared check rows and font roles, and Focus and folders open app selection in separate single-scroller sheets.
+  Contract: picker selections remain staged until Focus Save or Enable; unknown whitelist packages survive, and the five-app cap remains.
+  Not verified: Gradle or device behavior, including folder, Focus, quiet and limit picker scrolling, keyboard, accessibility, and e-ink; CI and device checks are required.
+  Easy to get wrong: app-picker selection lives in the adapter, survives filtering, and must not be saved merely by dismissing Focus.
 - **M4-WP53 (PR #0):** App and home menus use BottomSheetMenu: shared labelled app actions, a separate Home slot group, five background actions, local rename, Undo removal and Unlock refusal.
   Contract: home rename edits one slot; legacy drawer aliases apply only to personal-profile rows; work/private menus omit unsafe package-only settings; all app selections still use selectedApp.
   Contract: SlotSnapshot captures all home/swipe fields and FolderData; stale/superseded Undo cannot overwrite a newer slot; Material feedback has an instant local overlay under skipAnimations.

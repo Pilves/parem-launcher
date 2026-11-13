@@ -4,6 +4,7 @@ import android.content.Context
 import android.text.InputType
 import android.widget.EditText
 import android.widget.LinearLayout
+import androidx.core.widget.TextViewCompat
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.R
 import com.parem.launcher.helper.WebShortcut
@@ -31,7 +32,7 @@ class WebsiteDialog(
         menu.title(context.getString(R.string.add_website))
 
         fun input(hintRes: Int, type: Int) = EditText(context).apply {
-            textSize = 16f
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetBody)
             setTextColor(context.getColorFromAttr(R.attr.textColor))
             setHintTextColor(context.getColorFromAttr(R.attr.textSecondaryColor))
             hint = context.getString(hintRes)
