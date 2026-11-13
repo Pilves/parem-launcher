@@ -14,6 +14,8 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
@@ -55,39 +57,48 @@ class LockConsentLifecycleTest {
         val quietContinue = By.desc(context.getString(R.string.quiet_continue))
         val quietNotNow = By.desc(context.getString(R.string.quiet_not_now))
         try {
-            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-                fun openSettingsThen(open: (Fragment) -> Unit) {
-                    scenario.onActivity { activity ->
-                        val nav = activity.findNavController(R.id.nav_host_fragment)
-                        nav.navigate(R.id.action_mainFragment_to_settingsFragment)
-                        val host = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-                        host.childFragmentManager.executePendingTransactions()
-                        open(checkNotNull(host.childFragmentManager.primaryNavigationFragment))
-                    }
+            // Launch as HOME first. ActivityScenario's LAUNCHER intent creates a
+            // different standard task that HOME can destroy and replace.
+            check(device.pressHome()) { "initial HOME failed" }
+            check(device.wait(Until.hasObject(home), 10_000)) { "initial home not shown" }
+            lateinit var settingsFragment: Fragment
+            fun openSettingsThen(open: (Fragment) -> Unit) {
+                instrumentation.runOnMainSync {
+                    val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                        .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                    val nav = activity.findNavController(R.id.nav_host_fragment)
+                    nav.navigate(R.id.action_mainFragment_to_settingsFragment)
+                    val host = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+                    host.childFragmentManager.executePendingTransactions()
+                    settingsFragment = checkNotNull(host.childFragmentManager.primaryNavigationFragment)
+                    open(settingsFragment)
                 }
-                fun pressHomeAndCheckDismissed(vararg options: androidx.test.uiautomator.BySelector) {
-                    check(device.pressHome()) { "HOME failed" }
-                    check(device.wait(Until.hasObject(home), 10_000)) { "home not shown after HOME" }
-                    for (option in options) check(!device.hasObject(option)) { "sheet survived HOME: $option" }
-                }
-                openSettingsThen { fragment -> GrayscaleSheet.open(fragment, onPair = {}, onChanged = {}) }
-                check(device.wait(Until.hasObject(grayOption), 10_000)) { "grayscale toggles missing" }
-                pressHomeAndCheckDismissed(grayOption)
-
-                openSettingsThen { fragment -> QuietListSheet.showNeedsAccess(fragment, starting = false, onChanged = {}) }
-                check(device.wait(Until.hasObject(quietAccessOption), 10_000)) { "quiet access sheet missing" }
-                pressHomeAndCheckDismissed(quietAccessOption)
-
-                openSettingsThen { fragment -> QuietListSheet.startTurnOn(fragment, Prefs(context), { fragment.view != null }, {}) }
-                check(device.wait(Until.hasObject(quietContinue), 15_000)) { "quiet app picker missing" }
-                pressHomeAndCheckDismissed(quietContinue)
-
-                openSettingsThen { fragment -> QuietListSheet.startTurnOn(fragment, Prefs(context), { fragment.view != null }, {}) }
-                val continueButton = checkNotNull(device.wait(Until.findObject(quietContinue), 15_000)) { "quiet app picker missing" }
-                continueButton.click()
-                check(device.wait(Until.hasObject(quietNotNow), 10_000)) { "quiet disclosure missing" }
-                pressHomeAndCheckDismissed(quietNotNow)
             }
+            fun pressHomeAndCheckDismissed(vararg options: androidx.test.uiautomator.BySelector) {
+                check(device.pressHome()) { "HOME failed" }
+                check(device.wait(Until.hasObject(home), 10_000)) { "home not shown after HOME" }
+                instrumentation.runOnMainSync {
+                    check(settingsFragment.view == null) { "HOME did not destroy the Settings view" }
+                }
+                for (option in options) check(!device.hasObject(option)) { "sheet survived HOME: $option" }
+            }
+            openSettingsThen { fragment -> GrayscaleSheet.open(fragment, onPair = {}, onChanged = {}) }
+            check(device.wait(Until.hasObject(grayOption), 10_000)) { "grayscale toggles missing" }
+            pressHomeAndCheckDismissed(grayOption)
+
+            openSettingsThen { fragment -> QuietListSheet.showNeedsAccess(fragment, starting = false, onChanged = {}) }
+            check(device.wait(Until.hasObject(quietAccessOption), 10_000)) { "quiet access sheet missing" }
+            pressHomeAndCheckDismissed(quietAccessOption)
+
+            openSettingsThen { fragment -> QuietListSheet.startTurnOn(fragment, Prefs(context), { fragment.view != null }, {}) }
+            check(device.wait(Until.hasObject(quietContinue), 15_000)) { "quiet app picker missing" }
+            pressHomeAndCheckDismissed(quietContinue)
+
+            openSettingsThen { fragment -> QuietListSheet.startTurnOn(fragment, Prefs(context), { fragment.view != null }, {}) }
+            val continueButton = checkNotNull(device.wait(Until.findObject(quietContinue), 15_000)) { "quiet app picker missing" }
+            continueButton.click()
+            check(device.wait(Until.hasObject(quietNotNow), 10_000)) { "quiet disclosure missing" }
+            pressHomeAndCheckDismissed(quietNotNow)
         } finally {
             if (!grantedBefore) device.executeShellCommand("pm revoke ${context.packageName} android.permission.WRITE_SECURE_SETTINGS")
         }
