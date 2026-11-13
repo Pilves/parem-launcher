@@ -40,6 +40,8 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
+import com.parem.launcher.data.FolderApp
+import com.parem.launcher.data.FolderGroup
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.formattedTimeSpent
@@ -596,7 +598,7 @@ class SmokeTest {
                 .desc(context.getString(R.string.focus_25_min))), TIMEOUT)
             assertNotNull("Focus duration must expose a radio button", duration)
             assertTrue("Default duration must be checked", duration.isChecked)
-            val allowed = device.wait(Until.findObject(By.text(context.getString(R.string.focus_allowed_apps))), TIMEOUT)
+            val allowed = device.wait(Until.findObject(By.text(context.getString(R.string.picker_selected_count, context.getString(R.string.focus_allowed_apps), 0))), TIMEOUT)
             assertNotNull("Focus allowed-app picker missing", allowed)
             allowed.click()
             val search = device.wait(Until.findObject(By.clazz(EditText::class.java)
@@ -633,6 +635,64 @@ class SmokeTest {
     }
 
     @Test
+    fun folderSelectionCountTracksEditingAndRetainedHiddenApps() {
+        var sheet: BottomSheetDialog? = null
+        val user = android.os.Process.myUserHandle()
+        val visible = AppModel("Visible app", null, "example.visible", "Main", user = user)
+        val initial = FolderGroup("Test folder", listOf(
+            FolderApp("Visible app", "example.visible", "Main", user.toString()),
+            FolderApp("Hidden app", "example.hidden", "Main", user.toString()),
+        ))
+        fun count(n: Int) = context.getString(R.string.picker_selected_count, context.getString(R.string.select_apps), n)
+        try {
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                sheet = CreateFolderDialog(activity, listOf(visible), initial) { _, _ -> }.show().dismissOnDestroy(activity)
+            }
+            assertTrue("initial count must include retained hidden app", device.wait(Until.hasObject(By.text(count(2))), TIMEOUT))
+            device.findObject(By.text(count(2))).click()
+            assertTrue("visible app missing", device.wait(Until.hasObject(By.desc("Visible app")), TIMEOUT))
+            device.findObject(By.desc("Visible app")).click()
+            device.findObject(By.text(context.getString(android.R.string.ok))).click()
+            assertTrue("parent did not reflect removed app", device.wait(Until.hasObject(By.text(count(1))), TIMEOUT))
+            device.findObject(By.text(count(1))).click()
+            assertTrue(device.wait(Until.hasObject(By.desc("Visible app")), TIMEOUT))
+            device.findObject(By.desc("Visible app")).click()
+            device.findObject(By.text(context.getString(android.R.string.ok))).click()
+            assertTrue("parent did not reflect restored app", device.wait(Until.hasObject(By.text(count(2))), TIMEOUT))
+        } finally {
+            instrumentation.runOnMainSync { sheet?.dismiss() }
+        }
+    }
+
+    @Test
+    fun focusSelectionCountTracksChangesAndRetainedUnavailableApps() {
+        var sheet: BottomSheetDialog? = null
+        val previous = FocusModeManager.getWhitelist(context)
+        fun count(n: Int) = context.getString(R.string.picker_selected_count, context.getString(R.string.focus_allowed_apps), n)
+        try {
+            FocusModeManager.setWhitelist(context, setOf("example.visible", "example.hidden"))
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                sheet = FocusModeDialog(activity, listOf("example.visible" to "Visible app")).show().dismissOnDestroy(activity)
+            }
+            assertTrue("initial count must include unavailable app", device.wait(Until.hasObject(By.text(count(2))), TIMEOUT))
+            device.findObject(By.text(count(2))).click()
+            assertTrue(device.wait(Until.hasObject(By.desc("Visible app")), TIMEOUT))
+            device.findObject(By.desc("Visible app")).click()
+            device.findObject(By.text(context.getString(android.R.string.ok))).click()
+            assertTrue("parent did not reflect selection", device.wait(Until.hasObject(By.text(count(1))), TIMEOUT))
+            device.findObject(By.text(context.getString(R.string.save))).click()
+            assertEquals(setOf("example.hidden"), FocusModeManager.getWhitelist(context))
+        } finally {
+            instrumentation.runOnMainSync { sheet?.dismiss() }
+            FocusModeManager.setWhitelist(context, previous)
+        }
+    }
+
+    @Test
     fun folderPickerDragDownScrollsListInsteadOfClosingSheet() {
         var sheet: BottomSheetDialog? = null
         try {
@@ -648,7 +708,7 @@ class SmokeTest {
                 }
                 sheet = CreateFolderDialog(activity, apps) { _, _ -> }.show().dismissOnDestroy(activity)
             }
-            val chooseApps = device.wait(Until.findObject(By.text(context.getString(R.string.select_apps))), TIMEOUT)
+            val chooseApps = device.wait(Until.findObject(By.text(context.getString(R.string.picker_selected_count, context.getString(R.string.select_apps), 0))), TIMEOUT)
             assertNotNull("Select apps row missing", chooseApps)
             chooseApps.click()
             assertNotNull("Folder picker missing", device.wait(Until.findObject(By.text("Example 1")), TIMEOUT))
