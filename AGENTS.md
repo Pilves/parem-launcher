@@ -25,7 +25,7 @@ widgets or the lock path.
 ./gradlew compileFullDebugKotlin compilePlayDebugKotlin  # quick check
 ./gradlew testFullDebugUnitTest testPlayDebugUnitTest    # JVM suite (app/src/test — pure logic only)
 ./gradlew assembleFullDebug assemblePlayDebug            # before calling anything done
-node --test scripts/build-handoff.test.mjs  # harness scripts
+node --test scripts/build-handoff.test.mjs scripts/claim-wp.test.mjs  # harness scripts
 ```
 
 A pipeline like `./gradlew … | tail` reports tail's exit code — check
