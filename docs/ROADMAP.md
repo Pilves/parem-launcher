@@ -279,7 +279,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP32 | **Done** (PR #37). Synthetic quiet notification lifecycle fixture on disposable emulators | Instrumentation test, dedicated CI workflow and handoff | Shell fixture tests seeded snooze and release without touching physical devices; positive filtering remains unverified |
 | M6-WP35 | **Done** (PR #40). Correct audit follow-up documentation and redundant alias test | Operational docs, roadmap, listing draft, SettingsSearchTest, handoff | Workflow/check commands and notification wording match source; actual settings alias test remains |
 
-| M6-WP37 | **Done** (PR #0). Planned. Correct sheet radio accessibility state and avoid picker bind announcements | `BottomSheetMenu.kt`, `AppPickerAdapter.kt`, sheet accessibility instrumentation, handoff | Radio choices expose checked state without On/Off; binding does not announce unchanged picker data |
+| M6-WP37 | **Done** (PR #42). Planned. Correct sheet radio accessibility state and avoid picker bind announcements | `BottomSheetMenu.kt`, `AppPickerAdapter.kt`, sheet accessibility instrumentation, handoff | Radio choices expose checked state without On/Off; binding does not announce unchanged picker data |
 
 ## Recurring (no id)
 
