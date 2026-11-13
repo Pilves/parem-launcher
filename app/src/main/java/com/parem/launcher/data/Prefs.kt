@@ -27,6 +27,10 @@ class Prefs(context: Context) {
         private val FLOAT_PREF_KEYS = setOf("TEXT_SIZE_SCALE")
     }
 
+    private val HOME_GUIDANCE_INITIALIZED = "HOME_GUIDANCE_INITIALIZED"
+    private val HOME_GUIDANCE_NEW_INSTALL = "HOME_GUIDANCE_NEW_INSTALL"
+    private val HOME_GUIDANCE_SWIPE = "HOME_GUIDANCE_SWIPE"
+    private val HOME_GUIDANCE_LONG_PRESS = "HOME_GUIDANCE_LONG_PRESS"
     private val FIRST_OPEN = "FIRST_OPEN"
     private val FIRST_OPEN_TIME = "FIRST_OPEN_TIME"
     private val LOCK_MODE = "LOCK_MODE"
@@ -98,6 +102,23 @@ class Prefs(context: Context) {
     private var widgetHeightsCache: Map<Int, Int>? = null
     private var widgetProvidersCache: Map<Int, String>? = null
     private var usageStatsCache: Map<String, Long>? = null
+
+    fun initializeHomeGuidance() {
+        if (!prefs.contains(HOME_GUIDANCE_INITIALIZED)) prefs.edit {
+            putBoolean(HOME_GUIDANCE_INITIALIZED, true)
+            putBoolean(HOME_GUIDANCE_NEW_INSTALL, firstOpen)
+            putBoolean(HOME_GUIDANCE_SWIPE, firstOpen)
+            putBoolean(HOME_GUIDANCE_LONG_PRESS, firstOpen)
+        }
+    }
+
+    val homeGuidanceNewInstall get() = prefs.getBoolean(HOME_GUIDANCE_NEW_INSTALL, false)
+    var homeGuidanceSwipe: Boolean
+        get() = prefs.getBoolean(HOME_GUIDANCE_SWIPE, false)
+        set(value) = prefs.edit { putBoolean(HOME_GUIDANCE_SWIPE, value) }
+    var homeGuidanceLongPress: Boolean
+        get() = prefs.getBoolean(HOME_GUIDANCE_LONG_PRESS, false)
+        set(value) = prefs.edit { putBoolean(HOME_GUIDANCE_LONG_PRESS, value) }
 
     var firstOpen: Boolean
         get() = prefs.getBoolean(FIRST_OPEN, true)
@@ -520,6 +541,7 @@ class Prefs(context: Context) {
     // the first-time consent; ParemBackupAgent clears these after a restore.
     val deviceOnlyKeys = setOf(
         LOCK_SERVICE_CONNECTED, LOCK_SERVICE_OFF_EXPLAINED,
+        HOME_GUIDANCE_INITIALIZED, HOME_GUIDANCE_NEW_INSTALL, HOME_GUIDANCE_SWIPE, HOME_GUIDANCE_LONG_PRESS, SEARCH_HINT_OPENS,
         "FOCUS_MODE_ENABLED", "FOCUS_MODE_END_TIME", "FOCUS_SCHEDULE_SKIP_UNTIL",
         "GRAYSCALE_MANUAL", "GRAYSCALE_APPLIED", "GRAYSCALE_SUPPRESSED", "GRAYSCALE_LIMIT_OVERRIDE",
         "GRAYSCALE_LEFT_SINCE_OVERRIDE", "GRAYSCALE_PREV_ENABLED", "GRAYSCALE_PREV_MODE", "GRAYSCALE_APP_FG"

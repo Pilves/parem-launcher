@@ -38,6 +38,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private var landscapeWidgetBottomPadding = 0
+    private var homeAppsBottomPadding = 0
 
     internal var widgetController: HomeWidgetController? = null
         private set
@@ -61,6 +62,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         } ?: throw Exception("Invalid Activity")
         binding.mainLayout.padForSystemBars()
         landscapeWidgetBottomPadding = (binding.widgetScrollViewAbove?.parent as? ViewGroup)?.paddingBottom ?: 0
+        homeAppsBottomPadding = binding.homeAppsLayout.paddingBottom
 
         slotsController = HomeSlotsController(this, binding, prefs, viewModel)
         gesturesController = HomeGesturesController(this, binding, prefs, viewModel)
@@ -156,26 +158,46 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         return true
     }
 
+    internal fun acknowledgeHomeLongPress() {
+        if (prefs.homeGuidanceLongPress) {
+            prefs.homeGuidanceLongPress = false
+            updateFirstRunTips()
+        }
+    }
+
     private fun updateFirstRunTips() {
         val current = _binding ?: return
-        val tips = current.firstRunTips ?: return // Only the landscape layout has tips.
-        tips.isVisible = viewModel.firstOpen.value == true && !current.setDefaultLauncher.isVisible
+        val tips = current.firstRunTips
+        tips.text = listOfNotNull(
+            getString(R.string.home_guidance_swipe).takeIf { prefs.homeGuidanceSwipe },
+            getString(R.string.home_guidance_long_press).takeIf { prefs.homeGuidanceLongPress },
+        ).joinToString("\n")
+        tips.isVisible = tips.text.isNotEmpty() && !current.setDefaultLauncher.isVisible
         val column = current.widgetScrollViewAbove?.parent as? ViewGroup ?: return
         val prompt = when {
             current.setDefaultLauncher.isVisible -> current.setDefaultLauncher
             tips.isVisible -> tips
             else -> null
         }
+        fun reserve(height: Int) {
+            val apps = current.homeAppsLayout
+            val appPadding = maxOf(homeAppsBottomPadding, height)
+            val columnPadding = maxOf(landscapeWidgetBottomPadding, height)
+            val changed = apps.paddingBottom != appPadding || (column !== apps && column.paddingBottom != columnPadding)
+            if (apps.paddingBottom != appPadding) apps.setPadding(apps.paddingLeft, apps.paddingTop, apps.paddingRight, appPadding)
+            if (column !== apps && column.paddingBottom != columnPadding)
+                column.setPadding(column.paddingLeft, column.paddingTop, column.paddingRight, columnPadding)
+            if (changed) slotsController?.populateHomeScreen(false)
+        }
         if (prompt == null) {
-            column.setPadding(column.paddingLeft, column.paddingTop, column.paddingRight, landscapeWidgetBottomPadding)
+            reserve(0)
             return
         }
         prompt.doOnLayout {
             if (_binding !== current || !prompt.isVisible) return@doOnLayout
             val margin = (prompt.layoutParams as? ViewGroup.MarginLayoutParams)?.bottomMargin ?: 0
             val gap = (8 * resources.displayMetrics.density).toInt()
-            val reserved = maxOf(landscapeWidgetBottomPadding, prompt.height + margin + gap)
-            column.setPadding(column.paddingLeft, column.paddingTop, column.paddingRight, reserved)
+            reserve(prompt.height + margin + gap)
         }
     }
 
@@ -257,10 +279,14 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         )
         try {
             nav.navigate(R.id.action_mainFragment_to_appListFragment, args)
+            if (flag == Constants.FLAG_LAUNCH_APP) prefs.homeGuidanceSwipe = false
         } catch (e: Exception) {
             android.util.Log.w("ParemGesture", "drawer navigation failed", e)
             CrashReporter.reportNonFatal("HomeFragment: Navigation to app list failed, using fallback", e)
-            if (nav.currentDestination?.id == R.id.mainFragment) nav.navigate(R.id.appListFragment, args)
+            if (nav.currentDestination?.id == R.id.mainFragment) {
+                nav.navigate(R.id.appListFragment, args)
+                if (flag == Constants.FLAG_LAUNCH_APP) prefs.homeGuidanceSwipe = false
+            }
         }
     }
 

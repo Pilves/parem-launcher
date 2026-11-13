@@ -262,6 +262,10 @@ per package; the rest of each of those fragments is still in
   Contract: `Context.settingsPath(section)` builds a settings path from the section's title string; app names in format strings go through `BidiFormatter`; the home alignment pref still stores `Gravity.START`/`END`, and only the labels and picks flip under RTL.
   Not verified: Hebrew alignment and the toast length at 200% on a device (both in the device pass); no `<plurals>` were added because no listed string carries a counted noun; `ScreenTimeGraphText` bar labels still build "35m" from a literal, because the row does not list that file.
   Easy to get wrong: `android.icu` is absent on the JVM, so the de and ru expectations live in `SmokeTest`, and ICU's narrow strings can change with Android's CLDR version.
+- **M4-WP49 (PR #0):** Fresh installs get separate home swipe and long press guidance and a static drawer search tip; upgrades retain existing home layout and no new home prompts.
+  Contract: acknowledgements and the existing drawer-open count are device-only and excluded from export/import; first five launch opens show guidance, opens 6–20 show examples; no app seeding.
+  Not verified: device layout and large-font fitting, rotation/process death, TalkBack, first-run and upgrade/import behavior on a device; CI must run both flavours.
+  Easy to get wrong: preserve the independent acknowledgements and count across recreation; never reset them from imported preferences or count picker drawers.
 - **M4-WP50 (PR #0):** Width-based typography, tinted mono surfaces and moss-teal action roles now share theme resources; settings sections have no card plates.
   Contract: home text stays monochrome; e-ink overlays opaque monochrome roles; wallpaper dimming is independent; Material You remains deferred.
   Source checks preserve existing accessibility attributes; contrast evidence and the 90% scrim rationale are in docs/plans/2026-10-16-colour-implementation.md.

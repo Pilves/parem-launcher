@@ -263,6 +263,18 @@
         android:layout_height="match_parent"
         android:visibility="gone" />
 
+    <TextView
+        android:id="@+id/firstRunTips"
+        style="@style/TextOnWallpaper"
+        android:textAppearance="@style/TextAppearance.Parem.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="24dp"
+        android:gravity="center"
+        android:visibility="gone" />
+
     <!-- Set default launcher -->
     <TextView
         android:id="@+id/setDefaultLauncher"

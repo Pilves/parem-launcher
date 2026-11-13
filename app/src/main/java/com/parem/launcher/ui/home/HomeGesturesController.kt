@@ -265,6 +265,7 @@ class HomeGesturesController(
                     // haptic, so fire it ourselves — silence here feels broken
                     Haptics.longPress(binding.mainLayout)
                     showHomeLongPressMenu()
+                    fragment.acknowledgeHomeLongPress()
                 } catch (e: Exception) {
                     CrashReporter.reportNonFatal("HomeFragment: Failed to show home long press menu", e)
                 }

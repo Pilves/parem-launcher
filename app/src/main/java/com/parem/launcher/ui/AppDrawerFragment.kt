@@ -73,6 +73,7 @@ class AppDrawerFragment : BaseFragment() {
     private lateinit var recentAdapter: RecentHistoryAdapter
     private lateinit var linearLayoutManager: LinearLayoutManager
 
+    private var drawerOpenIndex: Int? = null
     private var flag = Constants.FLAG_LAUNCH_APP
     private var gestureLetter: Char? = null
     private var canRename = false
@@ -146,6 +147,11 @@ class AppDrawerFragment : BaseFragment() {
             if (savedInstanceState == null)
                 typedQuery = it.getString(Constants.Key.QUERY).orEmpty()
         }
+        if (flag == Constants.FLAG_LAUNCH_APP && drawerOpenIndex == null) {
+            drawerOpenIndex = savedInstanceState?.takeIf { it.containsKey("drawer_open_index") }?.getInt("drawer_open_index") ?: prefs.searchHintOpens.also {
+                if (it < SearchHints.MAX_OPENS) prefs.searchHintOpens = it + 1
+            }
+        }
         binding.root.padForSystemBars(ime = true)
         initViews()
         initSearch()
@@ -155,6 +161,14 @@ class AppDrawerFragment : BaseFragment() {
         loadContactsIfEnabled()
         loadShortcuts()
     }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        drawerOpenIndex?.let { outState.putInt("drawer_open_index", it) }
+    }
+
+    private fun showDrawerGuidance() = flag == Constants.FLAG_LAUNCH_APP &&
+        SearchHints.showGuidance(prefs.homeGuidanceNewInstall, drawerOpenIndex ?: SearchHints.MAX_OPENS)
 
     /** App shortcuts (M4-WP14): empty unless Parem is the default home. */
     private fun loadShortcuts() {
@@ -197,13 +211,13 @@ class AppDrawerFragment : BaseFragment() {
             binding.search.queryHint = getString(R.string.select_an_app)
         else if (flag == Constants.FLAG_LAUNCH_APP) {
             // The omnibox's only in-app mention: a different example each open, until it has sunk in
-            val opens = prefs.searchHintOpens
-            binding.search.queryHint = SearchHints.forOpen(opens, resources.getStringArray(R.array.omnibox_hints))
-            if (opens < SearchHints.MAX_OPENS) prefs.searchHintOpens = opens + 1
+            val opens = drawerOpenIndex ?: SearchHints.MAX_OPENS
+            binding.search.queryHint = if (showDrawerGuidance()) "" else SearchHints.forOpen(opens, resources.getStringArray(R.array.omnibox_hints))
         }
         try {
             searchTextView = binding.search.findViewById(R.id.search_src_text)
             searchTextView?.gravity = prefs.appLabelAlignment
+            searchTextView?.isCursorVisible = true
             // The rotating omnibox hint is an example, not a label; TalkBack needs the field's purpose
             searchTextView?.contentDescription = getString(R.string.search_apps)
         } catch (e: Exception) {
@@ -356,8 +370,10 @@ class AppDrawerFragment : BaseFragment() {
             is OmniboxMode.Setting -> getString(R.string.setting_hint, mode.title)
             OmniboxMode.None -> null
         }
+        val guidance = newText.isBlank() && showDrawerGuidance()
         if (tip != null) b.appDrawerTip.text = tip
-        b.appDrawerTip.visibility = if (tip != null) View.VISIBLE else View.GONE
+        else if (guidance) b.appDrawerTip.setText(R.string.drawer_guidance)
+        b.appDrawerTip.visibility = if (tip != null || guidance) View.VISIBLE else View.GONE
     }
 
     private fun refreshEmptyResultTip() {
@@ -380,6 +396,9 @@ class AppDrawerFragment : BaseFragment() {
                 searches -> getString(R.string.web_search_hint, query.trim())
                 else -> getString(R.string.no_apps_found)
             }
+            b.appDrawerTip.visibility = View.VISIBLE
+        } else if (query.isBlank() && showDrawerGuidance()) {
+            b.appDrawerTip.setText(R.string.drawer_guidance)
             b.appDrawerTip.visibility = View.VISIBLE
         } else {
             b.appDrawerTip.visibility = View.GONE
@@ -686,11 +705,9 @@ class AppDrawerFragment : BaseFragment() {
     }
 
     private fun initObservers() {
-        viewModel.firstOpen.observe(viewLifecycleOwner) {
-            if (it && flag == Constants.FLAG_LAUNCH_APP) {
-                binding.appDrawerTip.visibility = View.VISIBLE
-                binding.appDrawerTip.isSelected = true
-            }
+        if (showDrawerGuidance() && binding.search.query.isBlank()) {
+            binding.appDrawerTip.setText(R.string.drawer_guidance)
+            binding.appDrawerTip.visibility = View.VISIBLE
         }
         val wantSortByUsage = requireContext().appUsagePermissionGranted()
                 && prefs.appDrawerSortByUsage
