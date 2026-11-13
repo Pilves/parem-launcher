@@ -122,6 +122,26 @@ class SmokeTest {
     }
 
     @Test
+    fun drawerOpenWithoutSwipeDoesNotDismissSwipeGuidance() {
+        val prefs = Prefs(context)
+        prefs.autoShowKeyboard = false
+        prefs.homeGuidanceSwipe = true
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                .filterIsInstance<MainActivity>().single()
+            val host = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment)!!
+            val fragment = host.childFragmentManager.primaryNavigationFragment as com.parem.launcher.ui.HomeFragment
+            fragment.showAppList(Constants.FLAG_LAUNCH_APP)
+        }
+        assertTrue(device.wait(Until.hasObject(By.res(searchId)), TIMEOUT))
+        assertTrue("non-swipe drawer open dismissed swipe guidance", prefs.homeGuidanceSwipe)
+        device.pressBack()
+        assertTrue(device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+        openDrawer()
+        assertFalse("successful swipe did not dismiss swipe guidance", prefs.homeGuidanceSwipe)
+    }
+
+    @Test
     fun emptyHomeShowsOneHintAndKeepsFilledSlots() {
         val prefs = Prefs(context)
         device.executeShellCommand("mkdir -p $DIAG_DIR")

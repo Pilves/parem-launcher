@@ -250,7 +250,7 @@ class HomeGesturesController(
 
             override fun onSwipeUp() {
                 super.onSwipeUp()
-                fragment.showAppList(Constants.FLAG_LAUNCH_APP)
+                fragment.showAppList(Constants.FLAG_LAUNCH_APP, acknowledgeSwipe = true)
             }
 
             override fun onSwipeDown() {
@@ -313,7 +313,7 @@ class HomeGesturesController(
 
             override fun onSwipeUp() {
                 super.onSwipeUp()
-                fragment.showAppList(Constants.FLAG_LAUNCH_APP)
+                fragment.showAppList(Constants.FLAG_LAUNCH_APP, acknowledgeSwipe = true)
             }
 
             override fun onSwipeDown() {
