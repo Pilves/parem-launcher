@@ -857,13 +857,19 @@ class SmokeTest {
         openMenu()
         device.findObject(action).click()
         assertTrue(device.wait(Until.gone(action), TIMEOUT))
+        // BottomSheetMenu dismisses before invoking the selected action. Wait
+        // for that main-thread callback, not just for the dialog to disappear.
+        val endAtDismissal = sp.getLong("FOCUS_MODE_END_TIME", -1L)
+        instrumentation.waitForIdleSync()
         val end = sp.getLong("FOCUS_MODE_END_TIME", -1L)
-        assertTrue("quick focus did not start for 25 minutes", end in (before + 24 * 60_000L)..(System.currentTimeMillis() + 26 * 60_000L))
+        Log.i(TAG, "quick focus endAtDismissal=$endAtDismissal endAfterIdle=$end before=$before")
+        assertTrue("quick focus did not start for 25 minutes: before=$before end=$end", end in (before + 24 * 60_000L)..(System.currentTimeMillis() + 26 * 60_000L))
         FocusModeManager.enable(context, 120)
         val longerEnd = sp.getLong("FOCUS_MODE_END_TIME", -1L)
         openMenu()
         device.findObject(action).click()
         assertTrue(device.wait(Until.gone(action), TIMEOUT))
+        instrumentation.waitForIdleSync()
         assertEquals("quick focus shortened an active session", longerEnd, sp.getLong("FOCUS_MODE_END_TIME", -1L))
     }
 
