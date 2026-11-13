@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Organize settings into Calm, Home screen, Search, Gestures, Appearance and Backup and about.
+
 - Make drawer dismissal deliberate and navigation transitions seekable.
 - Show current choices consistently in sheets and use one scrolling list in app pickers.
 

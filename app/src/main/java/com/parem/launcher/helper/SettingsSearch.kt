@@ -6,7 +6,7 @@ package com.parem.launcher.helper
  */
 object SettingsSearch {
 
-    data class Row(val title: String, val anchor: Int)
+    data class Row(val title: String, val anchor: Int, val aliases: List<String> = emptyList())
 
     // Shorter queries are mostly the start of an app name; a settings tip on
     // every two-letter prefix would be noise.
@@ -24,12 +24,14 @@ object SettingsSearch {
         var best: Row? = null
         var bestScore = Int.MAX_VALUE
         for (row in rows) {
-            val key = SearchMatcher.key(row.title)
-            val score = when {
-                key.normalized.startsWith(flat) -> 0
-                wordsInOrder(tokens, key.words) -> 1
-                else -> continue
-            }
+            val score = (listOf(row.title) + row.aliases).mapNotNull { text ->
+                val key = SearchMatcher.key(text)
+                when {
+                    key.normalized.startsWith(flat) -> 0
+                    wordsInOrder(tokens, key.words) -> 1
+                    else -> null
+                }
+            }.minOrNull() ?: continue
             if (score < bestScore) {
                 best = row
                 bestScore = score

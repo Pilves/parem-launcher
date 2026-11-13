@@ -16,14 +16,13 @@ object SettingsSearchIndex {
 
     private val ROWS = listOf(
         R.string.hidden_apps to R.id.hiddenAppsCount,
-        R.string.set_as_default_launcher to R.id.setLauncher,
-        R.string.change_default_launcher to R.id.setLauncher,
+        R.string.settings_default_home to R.id.setLauncher,
         R.string.about_parem to R.id.aboutParem,
         R.string.export_settings to R.id.exportSettings,
         R.string.import_settings to R.id.importSettings,
         R.string.crash_reports to R.id.crashReportsToggle,
         R.string.apps_on_home_screen to R.id.homeAppsNum,
-        R.string.show_date_time to R.id.dateTime,
+        R.string.settings_clock_date to R.id.dateTime,
         R.string.home_layout_alignment to R.id.alignment,
         R.string.lock_home_layout to R.id.homeLayoutLockToggle,
         R.string.show_icons to R.id.showIconsToggle,
@@ -37,7 +36,7 @@ object SettingsSearchIndex {
         R.string.bold_font to R.id.boldFont,
         R.string.daily_wallpaper_update to R.id.dailyWallpaperUrl,
         R.string.dim_wallpaper to R.id.dimWallpaper,
-        R.string.notification_bar to R.id.statusBar,
+        R.string.settings_status_bar to R.id.statusBar,
         R.string.weather to R.id.weatherToggle,
         R.string.swipe_left_action to R.id.swipeLeftApp,
         R.string.swipe_right_action to R.id.swipeRightApp,
@@ -45,11 +44,12 @@ object SettingsSearchIndex {
         R.string.double_tap_action to R.id.doubleTapAction,
         R.string.auto_show_keyboard to R.id.autoShowKeyboard,
         R.string.gesture_letters to R.id.gestureLettersToggle,
-        R.string.usage_access to R.id.screenTimeOnOff,
+        R.string.settings_calm_section to R.id.screenTimeOnOff,
+        R.string.settings_screen_time_access to R.id.screenTimeOnOff,
         R.string.app_limits to R.id.screenTimeLimitsToggle,
         R.string.focus_mode to R.id.focusModeToggle,
         R.string.grayscale to R.id.grayscaleToggle,
-        R.string.quiet_notif to R.id.quietNotifToggle,
+        R.string.settings_quiet_notifications to R.id.quietNotifToggle,
         R.string.quiet_allowed_apps to R.id.quietNotifAllowed,
         R.string.quiet_make_silent to R.id.quietNotifSilent,
         R.string.github to R.id.github,
@@ -65,6 +65,19 @@ object SettingsSearchIndex {
             if (!context.appUsagePermissionGranted()) add(R.id.sortByUsage)
         }
         return ROWS.filter { it.second !in hidden }
-            .map { (title, anchor) -> SettingsSearch.Row(context.getString(title), anchor) }
+            .map { (title, anchor) ->
+                val aliasIds = when (title) {
+                    R.string.settings_default_home -> listOf(R.string.settings_set_default_home, R.string.set_as_default_launcher, R.string.change_default_launcher)
+                    R.string.settings_clock_date -> listOf(R.string.show_date_time)
+                    R.string.settings_status_bar -> listOf(R.string.notification_bar)
+                    R.string.settings_quiet_notifications -> listOf(R.string.quiet_notif)
+                    R.string.settings_calm_section -> listOf(R.string.wellbeing)
+                    R.string.settings_screen_time_access -> listOf(R.string.usage_access)
+                    else -> emptyList()
+                }
+                val aliases = aliasIds.map { context.getString(it) } +
+                    if (title == R.string.settings_calm_section) listOf("wellbeing", "digital wellbeing") else emptyList()
+                SettingsSearch.Row(context.getString(title), anchor, aliases)
+            }
     }
 }

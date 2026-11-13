@@ -65,10 +65,10 @@ class AppInfoSettingsCard(
     }
 
     private fun initClickListeners() {
-        binding.paremHiddenApps.setOnClickListener(this)
         binding.hiddenAppsRow.setOnClickListener(this)
         binding.appInfo.setOnClickListener(this)
         binding.setLauncher.setOnClickListener(this)
+        binding.setLauncherTop.setOnClickListener(this)
         binding.exportSettings?.setOnClickListener(this)
         binding.importSettings?.setOnClickListener(this)
         binding.aboutParem.setOnClickListener(this)
@@ -79,9 +79,9 @@ class AppInfoSettingsCard(
 
     private fun initObservers() {
         viewModel.isParemDefault.observe(fragment.viewLifecycleOwner) {
-            if (it) {
-                binding.setLauncher.text = context.getString(R.string.change_default_launcher)
-            }
+            binding.setLauncherTop.isVisible = !it
+            binding.setLauncher.isVisible = it
+            binding.setLauncher.text = context.getString(R.string.settings_default_home)
         }
         // Installed hidden apps, so the count agrees with the list it opens
         viewModel.hiddenApps.observe(fragment.viewLifecycleOwner) { it?.let { populateHiddenApps(it.size) } }
@@ -91,9 +91,9 @@ class AppInfoSettingsCard(
     override fun onClick(view: View) {
         fragment.resetOpenPickers(view.id)
         when (view.id) {
-            R.id.paremHiddenApps, R.id.hiddenAppsRow -> showHiddenApps()
+            R.id.hiddenAppsRow -> showHiddenApps()
             R.id.appInfo -> openAppInfo(context, Process.myUserHandle(), BuildConfig.APPLICATION_ID)
-            R.id.setLauncher -> viewModel.resetLauncherLiveData.call()
+            R.id.setLauncher, R.id.setLauncherTop -> viewModel.resetLauncherLiveData.call()
             R.id.exportSettings -> exportSettings()
             R.id.importSettings -> confirmImportSettings()
             R.id.aboutParem -> context.openUrl(Constants.URL_ABOUT_PAREM)

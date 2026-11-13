@@ -833,6 +833,40 @@ class SmokeTest {
     }
 
     @Test
+    fun defaultHomeSearchResolvesFreshRoleBeforeScrolling() {
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            // setUp made Parem the default; simulate a stale observation from before that change.
+            ViewModelProvider(activity)[MainViewModel::class.java].isParemDefault.value = false
+            activity.findNavController(R.id.nav_host_fragment).navigate(
+                R.id.action_mainFragment_to_settingsFragment,
+                bundleOf(Constants.Key.SETTING to R.id.setLauncher)
+            )
+        }
+        val target = By.res(context.resources.getResourceName(R.id.setLauncher))
+        assertTrue("search did not reach the current default-home row", device.wait(Until.hasObject(target), TIMEOUT))
+        assertFalse("non-default prompt remained visible", device.hasObject(By.res(context.resources.getResourceName(R.id.setLauncherTop))))
+    }
+
+    @Test
+    fun swipeDownSearchRevealsItsSetting() {
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            activity.findNavController(R.id.nav_host_fragment).navigate(
+                R.id.action_mainFragment_to_settingsFragment,
+                bundleOf(Constants.Key.SETTING to R.id.swipeDownAction)
+            )
+        }
+        val row = By.res(context.resources.getResourceName(R.id.flSwipeDown))
+        assertTrue("swipe-down search did not reveal its setting", device.wait(Until.hasObject(row), TIMEOUT))
+        device.findObject(row).click()
+        val picker = By.res(context.resources.getResourceName(R.id.swipeDownSelectLayout))
+        assertTrue("revealed swipe-down picker did not open", device.wait(Until.hasObject(picker), TIMEOUT))
+    }
+
+    @Test
     fun swipeDownRowStaysWhileItsPickerIsOpen() {
         device.waitForIdle(TIMEOUT)
         instrumentation.runOnMainSync {

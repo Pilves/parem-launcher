@@ -185,11 +185,11 @@ object FocusModeManager {
             is ActiveLabel.ScheduledUntil -> context.getString(
                 R.string.app_blocked_focus_scheduled,
                 formatScheduledEnd(context, label.epochMs),
-                context.settingsPath(R.string.wellbeing),
+                context.settingsPath(R.string.settings_calm_section),
             )
             ActiveLabel.ScheduledNoEnd -> context.getString(
                 R.string.app_blocked_focus_scheduled_no_end,
-                context.settingsPath(R.string.wellbeing),
+                context.settingsPath(R.string.settings_calm_section),
             )
             else -> null
         }
