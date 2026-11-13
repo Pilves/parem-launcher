@@ -41,8 +41,8 @@ class QuietNotificationFixtureTest {
     fun seededSnoozeCanBeReleasedOnAllowAndTurnOff() {
         // Never bind a listener or read notifications in the normal suite or on a physical device.
         assumeTrue(InstrumentationRegistry.getArguments().getString("quiet_fixture") == "true")
-        assumeTrue(Build.HARDWARE == "ranchu" || Build.PRODUCT.contains("sdk_gphone"))
-        assumeTrue(!QuietNotificationsManager.isEnabled(context) && !QuietNotificationsManager.hasAccess(context))
+        assertTrue("fixture must run on an emulator", Build.HARDWARE == "ranchu" || Build.PRODUCT.contains("sdk_gphone"))
+        assertTrue("fixture requires a disabled listener without access", !QuietNotificationsManager.isEnabled(context) && !QuietNotificationsManager.hasAccess(context))
         var key: String? = null
         try {
             QuietNotificationsManager.setEnabled(context, true)

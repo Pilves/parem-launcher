@@ -32,6 +32,7 @@ jobs:
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
+            set -e
             ./gradlew connectedPlayDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.QuietNotificationFixtureTest -Pandroid.testInstrumentationRunnerArguments.quiet_fixture=true
             ./gradlew connectedFullDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.QuietNotificationFixtureTest -Pandroid.testInstrumentationRunnerArguments.quiet_fixture=true
       - uses: actions/upload-artifact@v4
