@@ -62,18 +62,4 @@ class SettingsSearchTest {
         assertNull(match("spotify"))
         assertNull(match("eme"))
     }
-    @Test
-    fun legacyNamesMatchCanonicalTitleAndAnchor() {
-        val renamed = listOf(
-            Row("Calm", 1, listOf("Digital Wellbeing", "wellbeing")),
-            Row("Screen time access", 6, listOf("Usage access")),
-            Row("Clock and date", 2, listOf("Show date time")),
-            Row("Status bar", 3, listOf("Notification bar")),
-            Row("Quiet notifications", 4, listOf("Hide from shade, keep for later")),
-            Row("Default home app", 5, listOf("Set as default home", "Set as default launcher", "Change default launcher")),
-        )
-        for (row in renamed) for (oldName in row.aliases) {
-            assertEquals(oldName, row, SettingsSearch.match(oldName, renamed))
-        }
-    }
 }

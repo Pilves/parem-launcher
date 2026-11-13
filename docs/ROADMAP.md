@@ -33,7 +33,7 @@ work that needs Patric's hands (a device, a store console, a decision).
 4. Packages marked **design first** stop after a written proposal (in the PR
    or issue) and wait for Patric's sign-off before code.
 5. Done means the three `./gradlew` checks in `AGENTS.md`
-   and `node --test scripts/build-handoff.test.mjs` exit 0, plus the WP's own done criteria. State
+   and `node --test scripts/build-handoff.test.mjs scripts/claim-wp.test.mjs` exit 0, plus the WP's own done criteria. State
    what you did **not** verify — on-device behaviour especially.
 6. Closing a WP: add `docs/handoff/<WP-id>.md`, run
    `node scripts/build-handoff.mjs`, commit its output (`docs/handoff/README.md`).
@@ -272,14 +272,12 @@ subject to the audit notes and the product-owner brief.
 | M6-WP23 | **Done** (PR #22). Block web opens during Focus when no receiving app is identified | `helper/WebLaunchTarget.kt`, its JVM test, web-gate comments, CHANGELOG and handoff | Unknown or failed candidate lookup blocks only during Focus; known allowed default still opens; required CI checks pass |
 | M6-WP25 | **Done** (PR #24). Keep provisional handoff PR references synchronized | `scripts/build-handoff.mjs`, its test, roadmap and handoff fragment | Generator replaces a provisional PR #0 when its fragment gains a PR number; established markers and branch merges remain unchanged |
 | M6-WP27 | **Done** (PR #28). Retry daily wallpaper updates after a failed download or application without marking the new URL as applied | `helper/WallpaperWorker.kt`, wallpaper worker instrumentation test, CHANGELOG and handoff | A failed application retains the last applied URL; the same candidate can be attempted again and is stored only after success |
-
 | M6-WP29 | **Done** (PR #32). Protect a new claim from concurrent release cleanup | `scripts/claim-wp.sh`, its regression test, roadmap and handoff fragment | Cleanup deletes only the release marker it wrote; an interleaved claim survives |
 | M6-WP24 | **Done** (PR #23). Close lock disclosure sheets with their owning fragment views | `ui/LockConsentSheet.kt`, lock-sheet callers and instrumentation test, CHANGELOG, handoff | Dismissed on view destruction with existing consent and fallback semantics; device checks recorded |
-
 | M6-WP22 | **Done** (PR #26). Label historical planning records and correct verified documentation contracts | Historical design records, archive/work split, selected handoff fragments, F-Droid draft and data-flow inventory | Source-backed corrections reviewed; audit coverage and remaining unverified claims recorded; handoff generated |
 | M6-WP26 | **Done** (PR #27). Bound offline-emulator hangs while preserving failures and diagnostic artifacts | `scripts/run-instrumented.sh`, its node test, smoke workflow, handoff | Offline device does not stall all remaining phases; online failures still run remaining checks and fail; script tests pass |
-
 | M6-WP32 | **Done** (PR #37). Synthetic quiet notification lifecycle fixture on disposable emulators | Instrumentation test, dedicated CI workflow and handoff | Shell fixture tests seeded snooze and release without touching physical devices; positive filtering remains unverified |
+| M6-WP35 | **Done** (PR #40). Correct audit follow-up documentation and redundant alias test | Operational docs, roadmap, listing draft, SettingsSearchTest, handoff | Workflow/check commands and notification wording match source; actual settings alias test remains |
 
 ## Recurring (no id)
 

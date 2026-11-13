@@ -360,5 +360,6 @@ per package; the rest of each of those fragments is still in
 - **M6-WP27 (PR #28):** Daily wallpaper failures retain the previous applied URL so the same candidate can be retried.
 - **M6-WP29 (PR #32):** Claim release cleanup preserves a claim that arrives after the release marker.
 - **M6-WP32 (PR #37):** A disposable-emulator-only fixture exercises a synthetic notification's seeded quiet-list snooze and release through allowing its package and turning Quiet off.
+- **M6-WP35 (PR #40):** Operational checklists include the claim-script harness, and release-smoke and quiet-notification draft wording match their current behavior.
 
 <!-- handoff:end -->

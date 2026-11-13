@@ -77,7 +77,7 @@ view id (from the layout XML) across `ui/settings/`.
 ./gradlew compileFullDebugKotlin compilePlayDebugKotlin  # fast: does it compile
 ./gradlew testFullDebugUnitTest testPlayDebugUnitTest    # JVM tests (pure logic only)
 ./gradlew assembleFullDebug assemblePlayDebug            # debug APKs before calling anything done
-node --test scripts/build-handoff.test.mjs               # handoff generator harness
+node --test scripts/build-handoff.test.mjs scripts/claim-wp.test.mjs  # harness scripts
 ```
 
 Two rules that will bite you if skipped:

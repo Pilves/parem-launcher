@@ -13,7 +13,7 @@ Install JDK 17 and the Android SDK for API 36, then run:
 ./gradlew compileFullDebugKotlin compilePlayDebugKotlin
 ./gradlew testFullDebugUnitTest testPlayDebugUnitTest
 ./gradlew assembleFullDebug assemblePlayDebug
-node --test scripts/build-handoff.test.mjs
+node --test scripts/build-handoff.test.mjs scripts/claim-wp.test.mjs
 ```
 
 The APKs are under `app/build/outputs/apk/<flavour>/debug/`. Debug builds use a

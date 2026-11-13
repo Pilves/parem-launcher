@@ -1,8 +1,10 @@
 # Google Play listing: Parem Launcher v6.0.0
 
 This is the historical 6.0 listing draft, not verified current store copy. Its
-quiet-notification eight-hour return and mindful-pause usage-access statements,
-including the section 7 verification rows, are obsolete; check the current code and release before reusing any copy.
+quiet-notification and mindful-pause statements, including the section 7 verification
+rows, need review before reuse. Eligible notifications are snoozed for eight hours
+and may be hidden again while the filter remains on; release is best effort. Check
+the current code and release before reusing any copy.
 
 Prepared 2026-11-05 against `release/v6.0.0` at `0c95907`, rewritten the same
 day for Patric's positioning: "no bullshit minimal launcher", blunt and plain,

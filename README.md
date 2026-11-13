@@ -156,7 +156,7 @@ Parem is directed by Patrick and written by AI coding agents, building on [Olaun
 | Device tests | A smoke suite on every pull request, on phone, foldable and tablet emulators running Android 14, plus a tablet on Android 16 |
 | Upgrades | Every pull request builds v5.5.1, seeds it, upgrades in place and verifies the result |
 | Performance | A pull request fails if cold start, return to home, drawer scrolling or typing gets more than 20% worse than a pinned reference build, beyond a noise floor |
-| Release builds | Minified APKs of both flavours can be installed and smoke tested with the manual release-smoke workflow |
+| Release builds | Minified APKs of both flavours can be installed and smoke tested by the release-smoke workflow, run manually or on pushes to its configured branches |
 | Real hardware | The release build has been checked on a Nothing phone and a Samsung tablet |
 
 Runtime dependencies are Kotlin, AndroidX and Material Components. There are no Google Play Services, Firebase or analytics SDKs.
