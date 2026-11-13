@@ -373,5 +373,6 @@ per package; the rest of each of those fragments is still in
 - **M6-WP38 (PR #43):** Folder and Focus parent sheets show selected app counts that update as the child picker changes.
 - **M6-WP39 (PR #44):** Settings initially hides both default-home rows until their role state is observed.
 - **M6-WP40 (PR #45):** Unused settings views, first-open observer, debug log and drawer animation resources are removed; motion notes distinguish the old audit from current navigation.
+- **M6-WP41 (PR #0):** Home skips repeated first-run tip updates when their text, visibility and the default-home prompt are unchanged.
 
 <!-- handoff:end -->

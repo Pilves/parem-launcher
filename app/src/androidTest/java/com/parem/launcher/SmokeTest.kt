@@ -102,6 +102,86 @@ class SmokeTest {
     }
 
     @Test
+    fun firstRunTipsSkipUnchangedLayoutAndFollowPromptChanges() {
+        val prefs = Prefs(context)
+        val originalSwipe = prefs.homeGuidanceSwipe
+        val originalLongPress = prefs.homeGuidanceLongPress
+        fun activity() = ActivityLifecycleMonitorRegistry.getInstance()
+            .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+        fun setRole(value: Boolean) {
+            ViewModelProvider(activity())[MainViewModel::class.java].isParemDefault.value = value
+        }
+        fun tips() = activity().findViewById<android.widget.TextView>(R.id.firstRunTips)
+        try {
+            instrumentation.runOnMainSync {
+                prefs.homeGuidanceSwipe = true
+                prefs.homeGuidanceLongPress = true
+                setRole(true)
+            }
+            device.waitForIdle()
+            instrumentation.runOnMainSync {
+                assertTrue("tips should be visible", tips().isVisible)
+                assertFalse("tips must finish their first layout", tips().isLayoutRequested)
+                setRole(true)
+                assertFalse("unchanged tips requested layout", tips().isLayoutRequested)
+                prefs.homeGuidanceLongPress = false
+                setRole(true)
+                assertTrue("changed visible tips must request layout", tips().isLayoutRequested)
+            }
+            device.waitForIdle()
+            instrumentation.runOnMainSync {
+                prefs.homeGuidanceSwipe = false
+                setRole(true)
+            }
+            device.waitForIdle()
+            instrumentation.runOnMainSync {
+                assertFalse("cleared tips remain visible", tips().isVisible)
+                val apps = activity().findViewById<View>(R.id.homeAppsLayout)
+                assertFalse("home must finish layout", apps.isLayoutRequested)
+                setRole(true)
+                assertFalse("unchanged cleared tips requested layout", apps.isLayoutRequested)
+                setRole(false)
+            }
+            device.waitForIdle()
+            var bannerPadding = 0
+            instrumentation.runOnMainSync {
+                assertTrue("default prompt missing", activity().findViewById<View>(R.id.setDefaultLauncher).isVisible)
+                bannerPadding = activity().findViewById<View>(R.id.homeAppsLayout).paddingBottom
+                setRole(true)
+            }
+            device.waitForIdle()
+            instrumentation.runOnMainSync {
+                assertFalse("default prompt remains", activity().findViewById<View>(R.id.setDefaultLauncher).isVisible)
+                assertTrue("hidden prompt still reserves space", activity().findViewById<View>(R.id.homeAppsLayout).paddingBottom < bannerPadding)
+                prefs.homeGuidanceSwipe = true
+                prefs.homeGuidanceLongPress = true
+                setRole(true)
+            }
+            device.waitForIdle()
+            device.setOrientationLandscape()
+            assertTrue("home missing after rotation", device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+            device.waitForIdle()
+            instrumentation.runOnMainSync {
+                setRole(true)
+                assertTrue("tips missing after rotation", tips().isVisible)
+                assertEquals(context.getString(R.string.home_guidance_swipe) + "\n" + context.getString(R.string.home_guidance_long_press), tips().text.toString())
+            }
+            device.waitForIdle()
+            instrumentation.runOnMainSync {
+                val margin = (tips().layoutParams as ViewGroup.MarginLayoutParams).bottomMargin
+                val required = tips().height + margin + (8 * context.resources.displayMetrics.density).toInt()
+                assertTrue("rotated tips lack reserved space", activity().findViewById<View>(R.id.homeAppsLayout).paddingBottom >= required)
+            }
+        } finally {
+            device.setOrientationNatural()
+            instrumentation.runOnMainSync {
+                prefs.homeGuidanceSwipe = originalSwipe
+                prefs.homeGuidanceLongPress = originalLongPress
+            }
+        }
+    }
+
+    @Test
     fun drawerGuidanceCountsLaunchOpensNotRecreation() {
         val prefs = Prefs(context)
         context.getSharedPreferences(Prefs.PREFS_NAME, android.content.Context.MODE_PRIVATE).edit()
