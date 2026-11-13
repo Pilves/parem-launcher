@@ -366,7 +366,7 @@ per package; the rest of each of those fragments is still in
 - **M6-WP28 (PR #30):** Quiet notification access disclosure describes stored keys and timestamps, repeated snoozing, and best-effort release in all 18 translated locales.
 - **M6-WP29 (PR #32):** Claim release cleanup preserves a claim that arrives after the release marker.
 - **M6-WP32 (PR #37):** A disposable-emulator-only fixture exercises a synthetic notification's seeded quiet-list snooze and release through allowing its package and turning Quiet off.
-- **M6-WP34 (PR #0):** Quiet, Focus and folder app-picker action rows remain below the scrollable choices.
+- **M6-WP34 (PR #39):** Quiet, Focus and folder app-picker action rows remain below the scrollable choices.
 - **M6-WP35 (PR #40):** Operational checklists include the claim-script harness, and release-smoke and quiet-notification draft wording match their current behavior.
 - **M6-WP36 (PR #41):** Opening the app drawer or Settings dismisses its respective first-run home tip, including accessible navigation routes.
 - **M6-WP37 (PR #42):** Single-choice sheet rows expose radio checked state without a redundant On/Off description.
