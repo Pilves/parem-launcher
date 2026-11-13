@@ -95,6 +95,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
     override fun onResume() {
         super.onResume()
+        updateFirstRunTips()
         // Cancel any pending long-press timers from before the app was backgrounded
         widgetController?.cancelPendingLongPresses()
         // Before populating: the "All apps" row's visibility feeds slot fitting
@@ -268,7 +269,6 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         rename: Boolean = false,
         includeHiddenApps: Boolean = false,
         query: String? = null,
-        acknowledgeSwipe: Boolean = false,
     ) {
         val nav = findNavController()
         if (nav.currentDestination?.id != R.id.mainFragment) return
@@ -280,13 +280,13 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         )
         try {
             nav.navigate(R.id.action_mainFragment_to_appListFragment, args)
-            if (acknowledgeSwipe) prefs.homeGuidanceSwipe = false
+            if (flag == Constants.FLAG_LAUNCH_APP) prefs.homeGuidanceSwipe = false
         } catch (e: Exception) {
             android.util.Log.w("ParemGesture", "drawer navigation failed", e)
             CrashReporter.reportNonFatal("HomeFragment: Navigation to app list failed, using fallback", e)
             if (nav.currentDestination?.id == R.id.mainFragment) {
                 nav.navigate(R.id.appListFragment, args)
-                if (acknowledgeSwipe) prefs.homeGuidanceSwipe = false
+                if (flag == Constants.FLAG_LAUNCH_APP) prefs.homeGuidanceSwipe = false
             }
         }
     }

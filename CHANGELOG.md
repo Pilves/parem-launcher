@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Announce single-choice sheet rows as checked radio buttons without misleading On/Off states.
+- Dismiss first-run tips when the drawer or Settings is opened by any route.
 
 - Retry a daily wallpaper after its download or application fails.
 - Add 25-minute Focus and manual grayscale quick actions to the home menu and gestures.
