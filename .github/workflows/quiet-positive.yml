@@ -3,6 +3,14 @@ name: Quiet positive filtering fixture
 on:
   pull_request:
     branches: [master]
+    paths:
+      - app/src/main/java/com/parem/launcher/helper/notifications/**
+      - app/src/main/java/com/parem/launcher/ui/QuietListSheet.kt
+      - app/src/main/AndroidManifest.xml
+      - app/src/androidTest/java/com/parem/launcher/QuietPositiveFixtureTest.kt
+      - ci/quiet-fixture-app/**
+      - scripts/run-quiet-positive.sh
+      - .github/workflows/quiet-positive.yml
   workflow_dispatch:
 permissions:
   contents: read
@@ -33,15 +41,12 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-          script: |
-            set -e
-            adb install ci/quiet-fixture-app/build/outputs/apk/debug/*.apk
-            adb shell pm grant com.parem.quietfixture android.permission.POST_NOTIFICATIONS
-            ./gradlew connectedPlayDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.QuietPositiveFixtureTest -Pandroid.testInstrumentationRunnerArguments.quiet_positive_fixture=true
-            ./gradlew connectedFullDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.QuietPositiveFixtureTest -Pandroid.testInstrumentationRunnerArguments.quiet_positive_fixture=true
+          script: bash scripts/run-quiet-positive.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: quiet-positive-reports
-          path: app/build/reports/androidTests/
+          path: |
+            app/build/reports/androidTests/
+            app/build/quiet-positive-logcat.txt
           if-no-files-found: ignore

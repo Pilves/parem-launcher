@@ -6,6 +6,7 @@ import android.content.pm.LauncherApps
 import android.os.Build
 import android.os.Process
 import android.os.SystemClock
+import android.service.notification.NotificationListenerService
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
@@ -23,7 +24,8 @@ class QuietPositiveFixtureTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     private val fixture = "com.parem.quietfixture"
-    private val component = ComponentName(context, QuietNotificationListener::class.java).flattenToString()
+    private val componentName = ComponentName(context, QuietNotificationListener::class.java)
+    private val component = componentName.flattenToString()
     private fun listener() = QuietNotificationListener.instance
 
     private fun waitUntil(message: String, condition: () -> Boolean) {
@@ -50,7 +52,10 @@ class QuietPositiveFixtureTest {
         try {
             QuietNotificationsManager.setEnabled(context, true)
             device.executeShellCommand("cmd notification allow_listener $component")
-            waitUntil("listener did not bind") { QuietNotificationsManager.hasAccess(context) && listener() != null }
+            waitUntil("listener access was not granted") { QuietNotificationsManager.hasAccess(context) }
+            // A preceding flavor on this emulator may have requested unbind.
+            NotificationListenerService.requestRebind(componentName)
+            waitUntil("listener did not bind") { listener() != null }
 
             post("alert1")
             waitUntil("eligible fixture was not snoozed and tracked") {
@@ -78,6 +83,7 @@ class QuietPositiveFixtureTest {
             }
             val second = listener()!!.waiting().first { it.packageName == fixture && it.tag == "parem-quiet-alert2" }.key
             QuietNotificationsManager.turnOff(context)
+            waitUntil("old listener did not disconnect") { listener() == null }
             assertFalse("turnOff left listener enabled", QuietNotificationsManager.isEnabled(context))
             assertFalse("turnOff left released fixture tracked", second in QuietNotificationsManager.tracked(context).snoozedAt)
             // On this disposable emulator only, inspect system active keys after listener unbind.
@@ -85,8 +91,12 @@ class QuietPositiveFixtureTest {
         } finally {
             try {
                 // Disable first so cancel/repost cannot be filtered again during cleanup.
-                QuietNotificationsManager.turnOff(context)
-                device.executeShellCommand("am start -W -n $fixture/.FixtureActivity --es mode cancel")
+                try {
+                    QuietNotificationsManager.turnOff(context)
+                    waitUntil("listener did not disconnect during cleanup") { listener() == null }
+                } finally {
+                    device.executeShellCommand("am start -W -n $fixture/.FixtureActivity --es mode cancel")
+                }
             } finally {
                 try {
                     QuietNotificationsManager.setAllowed(context, emptySet())
