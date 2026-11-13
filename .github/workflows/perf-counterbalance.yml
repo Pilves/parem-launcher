@@ -1,10 +1,6 @@
 # Diagnostic experiment only; this does not replace or modify the smoke performance gate.
 name: Experimental counterbalanced performance measurements
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/perf-counterbalance.yml'
-      - 'scripts/perf-counterbalance.sh'
   workflow_dispatch:
     inputs:
       order:
