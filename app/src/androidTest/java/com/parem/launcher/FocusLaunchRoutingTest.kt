@@ -3,9 +3,7 @@ package com.parem.launcher
 import android.app.Activity
 import android.app.Instrumentation
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.os.PatternMatcher
 import android.os.Process
 import android.os.SystemClock
 import android.provider.AlarmClock
@@ -52,12 +50,14 @@ class FocusLaunchRoutingTest {
             "calendar fixture must be resolvable"
         }.activityInfo.packageName
         // Observe the actual date-route intent without depending on an external calendar's UI.
-        val filter = IntentFilter(Intent.ACTION_VIEW).apply {
-            addDataScheme("content")
-            addDataAuthority("com.android.calendar", null)
-            addDataPath("/time", PatternMatcher.PATTERN_PREFIX)
+        val monitor = object : Instrumentation.ActivityMonitor() {
+            override fun onStartActivity(intent: Intent): Instrumentation.ActivityResult? {
+                return if (intent.action == Intent.ACTION_VIEW && intent.data == CalendarContract.CONTENT_URI.buildUpon().appendPath("time").build())
+                    Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null)
+                else null
+            }
         }
-        val monitor = instrumentation.addMonitor(filter, Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null), true)
+        instrumentation.addMonitor(monitor)
         fun awaitLaunches(expected: Int) {
             val deadline = SystemClock.elapsedRealtime() + 5_000
             while (monitor.hits < expected && SystemClock.elapsedRealtime() < deadline) SystemClock.sleep(50)
