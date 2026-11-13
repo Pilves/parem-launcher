@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '22' }
-      - run: node --test scripts/build-handoff.test.mjs
+      - run: node --test scripts/build-handoff.test.mjs scripts/claim-wp.test.mjs
       - run: node scripts/build-handoff.mjs
       - name: Check generated documentation
         run: git diff --exit-code -- HANDOFF.md docs/ROADMAP.md
