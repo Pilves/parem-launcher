@@ -1,5 +1,9 @@
 # M3-WP7 — E-ink mode: skip animations on e-ink displays
 
+> Historical design record: status and instructions below describe the proposal
+> at the time. See [HANDOFF](../../HANDOFF.md), [ROADMAP](../ROADMAP.md) and
+> the current source for what was implemented and what remains.
+
 Status: proposal (design first, awaiting Patric). Upstream: `a9da9d4`, building on `fc5b37f` and `7e69731`.
 
 ## Problem

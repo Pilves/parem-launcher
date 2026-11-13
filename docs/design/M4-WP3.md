@@ -1,5 +1,9 @@
 # M4-WP3 — Scheduled focus (design proposal)
 
+> Historical design record: status and instructions below describe the proposal
+> at the time. See [HANDOFF](../../HANDOFF.md), [ROADMAP](../ROADMAP.md) and
+> the current source for what was implemented and what remains.
+
 Status: proposal, revision 2 (manager review addressed), awaiting Patric's sign-off. Branch base: `origin/chore/agent-harness`. No code changed, no gradle run.
 
 ## Problem
