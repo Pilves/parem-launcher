@@ -271,6 +271,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP20 | **Done** (PR #21). Correct verified documentation discrepancies and inventory remaining verification | Current operational docs, affected historical handoff fragments, `docs/handoff/M6-WP20.md` | Code-backed corrections reviewed; inventory records files and unverified claims; handoff generated |
 | M6-WP23 | **Done** (PR #22). Block web opens during Focus when no receiving app is identified | `helper/WebLaunchTarget.kt`, its JVM test, web-gate comments, CHANGELOG and handoff | Unknown or failed candidate lookup blocks only during Focus; known allowed default still opens; required CI checks pass |
 | M6-WP25 | **Done** (PR #24). Keep provisional handoff PR references synchronized | `scripts/build-handoff.mjs`, its test, roadmap and handoff fragment | Generator replaces a provisional PR #0 when its fragment gains a PR number; established markers and branch merges remain unchanged |
+| M6-WP27 | **Done** (PR #28). Retry daily wallpaper updates after a failed download or application without marking the new URL as applied | `helper/WallpaperWorker.kt`, wallpaper worker instrumentation test, CHANGELOG and handoff | A failed application retains the last applied URL; the same candidate can be attempted again and is stored only after success |
 
 | M6-WP29 | **Done** (PR #32). Protect a new claim from concurrent release cleanup | `scripts/claim-wp.sh`, its regression test, roadmap and handoff fragment | Cleanup deletes only the release marker it wrote; an interleaved claim survives |
 

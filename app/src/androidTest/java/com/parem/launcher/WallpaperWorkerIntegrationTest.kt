@@ -31,16 +31,17 @@ import kotlin.concurrent.thread
 @RunWith(AndroidJUnit4::class)
 class WallpaperWorkerIntegrationTest {
     @Test
-    fun enabledWorkerDownloadsAndAppliesWallpaperWithoutForegroundService() {
+    fun failedWallpaperIsRetriedAndAppliedWithoutForegroundService() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         device.executeShellCommand("cmd package set-home-activity ${context.packageName}/${MainActivity::class.java.name}")
         val prefs = Prefs(context)
         prefs.firstOpen = false
         prefs.dailyWallpaper = true
-        prefs.dailyWallpaperUrl = ""
+        prefs.dailyWallpaperUrl = "https://fixture.test/previous.png"
         prefs.firstOpenTime = System.currentTimeMillis()
         val manager = WorkManager.getInstance(context)
+        val failedRequest = OneTimeWorkRequestBuilder<WallpaperWorker>().build()
         val request = OneTimeWorkRequestBuilder<WallpaperWorker>().build()
         val wallpaper = WallpaperManager.getInstance(context)
         val previousId = wallpaper.getWallpaperId(WallpaperManager.FLAG_SYSTEM)
@@ -54,6 +55,22 @@ class WallpaperWorkerIntegrationTest {
                 }
             }
             try {
+                // The first image response is invalid. The previously applied URL
+                // must survive so a later attempt does not skip this same URL.
+                manager.enqueue(failedRequest).result.get()
+                val retryDeadline = SystemClock.elapsedRealtime() + 30_000
+                var retryScheduled = false
+                while (SystemClock.elapsedRealtime() < retryDeadline) {
+                    val info = manager.getWorkInfoById(failedRequest.id).get()
+                    retryScheduled = info != null && info.state == WorkInfo.State.ENQUEUED && info.runAttemptCount > 0
+                    if (retryScheduled) break
+                    SystemClock.sleep(100)
+                }
+                assertTrue("failed wallpaper was not scheduled to retry", retryScheduled)
+                assertEquals("failed apply replaced the previous URL",
+                    "https://fixture.test/previous.png", prefs.dailyWallpaperUrl)
+                manager.cancelWorkById(failedRequest.id).result.get()
+
                 manager.enqueue(request).result.get()
                 val deadline = SystemClock.elapsedRealtime() + 30_000
                 var state: WorkInfo.State? = null
@@ -64,11 +81,12 @@ class WallpaperWorkerIntegrationTest {
                 }
                 assertEquals("enabled WallpaperWorker did not complete", WorkInfo.State.SUCCEEDED, state)
                 assertTrue("wallpaper list was not requested", fixture.paths.contains("/wallpapers.json"))
-                assertTrue("wallpaper image was not requested", fixture.paths.contains("/image.png"))
+                assertEquals("wallpaper image was not retried", 2, fixture.paths.count { it == "/image.png" })
                 assertEquals("https://fixture.test/image.png", prefs.dailyWallpaperUrl)
                 assertNotEquals("system wallpaper did not change", previousId,
                     wallpaper.getWallpaperId(WallpaperManager.FLAG_SYSTEM))
             } finally {
+                manager.cancelWorkById(failedRequest.id).result.get()
                 manager.cancelWorkById(request.id).result.get()
                 prefs.dailyWallpaper = false
             }
@@ -80,6 +98,7 @@ class WallpaperWorkerIntegrationTest {
 private class LocalWallpaperServer : AutoCloseable {
     private val server = ServerSocket(0, 4, InetAddress.getByName("127.0.0.1"))
     val paths: MutableList<String> = Collections.synchronizedList(mutableListOf())
+    private var imageRequests = 0
     private val png = ByteArrayOutputStream().also { output ->
         Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888).apply {
             eraseColor(0xff42745b.toInt())
@@ -100,7 +119,7 @@ private class LocalWallpaperServer : AutoCloseable {
                         "\"0_$day\":{\"light\":\"https://fixture.test/image.png\",\"dark\":\"https://fixture.test/image.png\"}"
                     }
                     "{$entries}".toByteArray()
-                } else png
+                } else if (++imageRequests == 1) byteArrayOf(0) else png
                 it.getOutputStream().apply {
                     write("HTTP/1.1 200 OK\r\nContent-Length: ${body.size}\r\nConnection: close\r\n\r\n".toByteArray())
                     write(body)
