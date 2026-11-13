@@ -164,6 +164,7 @@ not past onboarding). `P=com.parem.launcher`; the release APK is the one
 under test, with Parem set as home and the screen unlocked:
 
 ```
+P=com.parem.launcher
 adb connect <tablet>:5555                      # Tailscale IP from the test-tablet note
 adb shell cmd package set-home-activity $P/com.parem.launcher.MainActivity
 # cold start: repeat 10x, take the median TotalTime
@@ -208,9 +209,10 @@ is a bug:
 Setup: release APK, Parem default home, and every background feature on —
 weather, scheduled or sunrise theme, daily wallpaper, a focus schedule with
 "grayscale during focus", quiet notifications, one grayscale-marked app, one
-app limit. Charge to full. Keep the phone unplugged for the whole run: USB
-charging resets the stats, so use wireless adb (or
-`adb shell dumpsys battery unplug`, and `dumpsys battery reset` afterwards).
+app limit. Charge to full. Physically unplug the phone for the whole run and
+use wireless adb. `adb shell dumpsys battery unplug` only simulates battery
+state; it does not disconnect charging and cannot substitute for an unplugged
+power-use measurement.
 
 - [ ] `adb shell dumpsys batterystats --reset`, then 24 h of ordinary use
       including: 30 min in the grayscale-marked app, a focus window that ends
@@ -329,8 +331,10 @@ These checks originated in the 6.0.0 final phone pass; adapt them to the current
 release and record any unavailable checks. Record the commit, APK SHA-256, flavour, version, device model and Android version,
 then record pass/fail, observed result and a screenshot or notes for every item.
 Run the steps once with `play` and once with `full`, on a physical phone. Debug
-APKs are for this early pass only; repeat on the actual signed release builds
-before release. Flavours have the same application ID: export settings and use a
+APKs are for this early pass only; repeat on signed release builds before
+release. The tag workflow produces the signed Full APK and a Play AAB, not an
+installable Play APK; obtain an installable Play build signed for the intended
+test route and record its provenance and certificate. Flavours have the same application ID: export settings and use a
 spare test device before uninstalling or replacing an incompatible signature.
 Do not clear the daily phone's data or change its wallpaper for this test.
 

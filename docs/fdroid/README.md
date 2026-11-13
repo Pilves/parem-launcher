@@ -56,9 +56,10 @@ signature onto its build with `apksigcopier` and runs `apksigner verify`,
 which also needs the ZIP layout to match. The release workflow builds with
 `assembleFullRelease` and lets AGP sign, so the layout is the plain AGP output on
 both sides. If a tag ever fails F-Droid's check while this script passes, the
-JDK is the first suspect: CI builds with Temurin 17. Pin the same major
-version in the recipe (`sudo:` installing `openjdk-17-jdk-headless`), and if
-that still differs, compare with `diffoscope` on the kept build directories.
+JDK is one possible cause: CI builds with Temurin 17. The draft recipe does not
+currently pin a JDK; verify the F-Droid build environment and, if needed, add
+a compatible JDK 17 setup to the recipe. If builds still differ, compare them
+with `diffoscope` on the kept build directories.
 
 ## Submitting (Patric)
 
