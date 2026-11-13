@@ -1,8 +1,10 @@
 package com.parem.launcher
 
+import android.Manifest
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.PackageManager
+import android.os.ParcelFileDescriptor
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.parem.launcher.data.Prefs
@@ -156,6 +158,50 @@ class PrefsRoundTripTest {
         assertFalse(sp.getBoolean(GrayscaleController.KEY_MANUAL, true))
         assertTrue(sp.getBoolean(GrayscaleController.KEY_SUPPRESSED, false))
         assertFalse(sp.getBoolean(GrayscaleController.KEY_ON_FOCUS, true))
+    }
+
+    @Test
+    fun quickGrayscaleOffRetainsSavedCorrectionWhenRestoreLosesAccess() {
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        fun shell(command: String): String = ParcelFileDescriptor.AutoCloseInputStream(
+            automation.executeShellCommand(command)
+        ).bufferedReader().use { it.readText().trim() }
+        val enabledKey = "accessibility_display_daltonizer_enabled"
+        val modeKey = "accessibility_display_daltonizer"
+        val previousEnabled = shell("settings get secure $enabledKey")
+        val previousMode = shell("settings get secure $modeKey")
+        fun restore(key: String, value: String) {
+            if (value == "null") shell("settings delete secure $key")
+            else shell("settings put secure $key $value")
+        }
+        try {
+            assertEquals(PackageManager.PERMISSION_DENIED, context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS))
+            shell("settings put secure $modeKey 0")
+            shell("settings put secure $enabledKey 1")
+            sp.edit().putBoolean(GrayscaleController.KEY_MANUAL, true)
+                .putBoolean(GrayscaleController.KEY_SUPPRESSED, false)
+                .putBoolean(GrayscaleController.KEY_APPLIED, true)
+                .putBoolean(GrayscaleController.KEY_PREV_ENABLED, true)
+                .putInt(GrayscaleController.KEY_PREV_MODE, 12)
+                .putBoolean(GrayscaleController.KEY_ON_FOCUS, false)
+                .putBoolean(GrayscaleController.KEY_ON_LIMIT, false)
+                .putBoolean(GrayscaleController.KEY_APP_FG, false).commit()
+            val revoked = object : ContextWrapper(context) {
+                var checks = 0
+                override fun checkSelfPermission(permission: String): Int =
+                    if (checks++ == 0) PackageManager.PERMISSION_GRANTED else PackageManager.PERMISSION_DENIED
+            }
+            assertFalse(GrayscaleController.toggleManualIfGranted(revoked))
+            assertTrue(sp.getBoolean(GrayscaleController.KEY_MANUAL, false))
+            assertTrue(sp.getBoolean(GrayscaleController.KEY_APPLIED, false))
+            assertTrue(sp.getBoolean(GrayscaleController.KEY_PREV_ENABLED, false))
+            assertEquals(12, sp.getInt(GrayscaleController.KEY_PREV_MODE, -1))
+            assertEquals("1", shell("settings get secure $enabledKey"))
+            assertEquals("0", shell("settings get secure $modeKey"))
+        } finally {
+            restore(modeKey, previousMode)
+            restore(enabledKey, previousEnabled)
+        }
     }
 
     @Test

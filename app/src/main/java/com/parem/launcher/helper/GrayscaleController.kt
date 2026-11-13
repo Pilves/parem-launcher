@@ -145,9 +145,10 @@ object GrayscaleController {
                 Action.NONE -> Unit
             }
         } catch (e: SecurityException) {
-            // Grant revoked: nothing Parem can write any more
+            // Keep the saved state if restoration failed: it can be retried after
+            // access returns. A failed application must not claim screen ownership.
             Log.w(TAG, "WRITE_SECURE_SETTINGS missing", e)
-            p.edit(commit = true) { clearApplied() }
+            if (action != Action.RESTORE) p.edit(commit = true) { clearApplied() }
             return
         }
         if (p.getBoolean(KEY_APPLIED, false) && onFocus && focusActive) scheduleFocusEnd(context)
