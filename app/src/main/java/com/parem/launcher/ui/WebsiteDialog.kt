@@ -9,6 +9,7 @@ import androidx.core.widget.TextViewCompat
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.R
 import com.parem.launcher.data.Constants
+import com.parem.launcher.helper.HomeLabel
 import com.parem.launcher.helper.WebShortcut
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
@@ -56,7 +57,13 @@ class WebsiteDialog(
                 context.showToast(context.getString(R.string.invalid_url))
                 return@option
             }
-            onSave(url, labelInput.text.toString().trim().ifBlank { WebShortcut.defaultLabel(url) })
+            val inputLabel = labelInput.text.toString().trim()
+            val label = if (HomeLabel.hasVisibleContent(inputLabel)) inputLabel else WebShortcut.defaultLabel(url)
+            if (!HomeLabel.hasVisibleContent(label)) {
+                labelInput.error = context.getString(R.string.app_menu_enter_name)
+                return@option
+            }
+            onSave(url, label)
             dialog.dismiss()
         }
 
