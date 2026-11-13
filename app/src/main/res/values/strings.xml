@@ -93,7 +93,6 @@
     <string name="system_default">System</string>
     <string name="dark">Dark</string>
     <string name="light">Light</string>
-    <string name="keyboard_message">The keyboard lets you search for and open apps. You can change this choice later.</string>
     <string name="app_usage_message">Parem counts screen time through Android\'s usage access: the total on the home screen, app limits, sort by usage and the weekly graph all depend on it.
         \n\nCounted on this phone. Parem sends these numbers nowhere and keeps them out of Android cloud backup. A phone-to-phone transfer you start can copy them to your new phone.</string>
     <string name="accessibility_service_description">Lets the double tap or swipe gesture lock your screen. The service only sees taps inside Parem, ignores all of them except its own invisible lock area, and cannot read your screen. Nothing it sees is stored or sent anywhere.</string>

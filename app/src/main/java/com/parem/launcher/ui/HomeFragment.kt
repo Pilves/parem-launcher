@@ -209,7 +209,6 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                 viewLifecycleOwner.lifecycleScope.launch { widgetController?.restoreWidgets() }
             }
         }
-        viewModel.firstOpen.observe(viewLifecycleOwner) { updateFirstRunTips() }
         viewModel.isParemDefault.observe(viewLifecycleOwner) {
             if (it != true) {
                 if (prefs.dailyWallpaper) {

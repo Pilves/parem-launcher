@@ -7,7 +7,7 @@ import java.io.File
 /**
  * Guards "every settings row is findable by its title": a row title (an
  * id-less TextView with a string, the convention in fragment_settings.xml)
- * missing from SettingsSearchIndex, or an index anchor the layout lacks,
+ * missing from SettingsSearchIndex, or an index anchor without a layout or virtual ID,
  * fails here instead of silently dropping out of the omnibox.
  */
 class SettingsSearchIndexTest {
@@ -37,9 +37,14 @@ class SettingsSearchIndexTest {
     }
 
     @Test
-    fun everyAnchorExistsInTheLayout() {
+    fun everyAnchorExistsInTheLayoutOrVirtualIds() {
         assertTrue("no index entries parsed", entries.isNotEmpty())
-        val missing = entries.map { it.second }.filter { "android:id=\"@+id/$it\"" !in layout }
-        assertTrue("anchors not in fragment_settings.xml: $missing", missing.isEmpty())
+        val ids = mainFile("res/values/ids.xml").readText()
+        val virtual = setOf("quietNotifAllowed", "quietNotifSilent")
+        assertTrue("missing virtual quiet search ID", virtual.all { "name=\"$it\"" in ids })
+        val settings = mainFile("java/com/parem/launcher/ui/SettingsFragment.kt").readText()
+        assertTrue("virtual quiet IDs must route through the quiet sheet", virtual.all { "anchorId == R.id.$it" in settings })
+        val missing = entries.map { it.second }.filter { "android:id=\"@+id/$it\"" !in layout && it !in virtual }
+        assertTrue("anchors not in fragment_settings.xml or virtual quiet IDs: $missing", missing.isEmpty())
     }
 }

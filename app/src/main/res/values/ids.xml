@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Virtual anchors route settings search to the matching quiet sheet control. -->
+    <item type="id" name="quietNotifAllowed" />
+    <item type="id" name="quietNotifSilent" />
+</resources>

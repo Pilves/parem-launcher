@@ -187,7 +187,10 @@ class BottomSheetMenu(private val context: Context) {
         return this
     }
 
-    /** A whole tappable row; input validation may opt out of automatic dismissal. */
+    /** A whole tappable row; input validation may opt out of automatic dismissal.
+     * When [onSourceBounds] is supplied, it replaces [onClick]; use [optionWithSource]
+     * for a source-aware action rather than passing both callbacks.
+     */
     fun option(
         text: String,
         dimmed: Boolean = false,

@@ -28,7 +28,7 @@ class SettingsRowsLayoutTest {
             val root = LayoutInflater.from(context).inflate(R.layout.fragment_settings, null)
             val rows = listOf(
                 R.id.screenTimeLayout, R.id.screenTimeLimitsRow, R.id.focusModeRow, R.id.grayscaleRow,
-                R.id.quietNotifRow, R.id.quietNotifAllowedRow, R.id.quietNotifSilentRow,
+                R.id.quietNotifRow,
                 R.id.homeAppsNumRow, R.id.dateTimeRow, R.id.alignmentRow, R.id.homeLayoutLockRow,
                 R.id.showIconsRow, R.id.widgetPlacementRow, R.id.weatherRow, R.id.autoShowKeyboardRow,
                 R.id.sortByUsageLayout, R.id.contactSearchLayout, R.id.hiddenAppsRow, R.id.autoLaunchRow,
