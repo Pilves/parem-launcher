@@ -9,6 +9,7 @@
 - Guide new users with independently dismissed home tips and a short, static drawer search tip.
 - Use checked choice sheets for settings, toggle the keyboard in one tap, and show access and app-limit state.
 - Organize settings into Calm, Home screen, Search, Gestures, Appearance and Backup and about.
+- Correct the quiet-notification access disclosure and snooze-return guidance.
 
 - Make drawer dismissal deliberate and navigation transitions seekable.
 - Show current choices consistently in sheets and use one scrolling list in app pickers.
