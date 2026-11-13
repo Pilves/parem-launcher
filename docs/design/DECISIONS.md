@@ -47,8 +47,10 @@ Recorded 2026-10-03 after the design/manager review round. These override the
   match launches the shortcut. Roadmap examples become "liked" / "incog".
 - **M4-WP15 quick actions.** "remind me" with only a time → labelled alarm, with
   a day → calendar event. Auto-launch is suppressed on keyword prefixes of 3+
-  characters. Omnibox features are discovered via a rotating hint in the empty
-  drawer (owned by WP15); v6.0.1 limits examples to the first 20 launch-drawer opens. Estonian keywords ship as drafted; Patric reviews.
+  characters. WP15 introduced rotating examples in the empty drawer; v6.0.1
+  limited them to the first 20 launch-drawer opens. WP49 added guidance for
+  new installs during the first five of those opens, in place of the examples.
+  Estonian keywords ship as drafted; Patric reviews.
 - **M4-WP18 lock fallback.** Accepted as designed incl. settings row + toast
   pointer. The fastlane admin sentence waits for Patric's wording.
 - **Owner review list (Patric):** Estonian quick-action keywords and all
@@ -65,7 +67,7 @@ Recorded 2026-10-03 after the design/manager review round. These override the
 - **Restricted-settings line (2026-11-05).** Reverses the M2-WP5 decision above for
   the Play channel: `play` drops the line, because Play installs don't need it and
   it tells a reviewer how to lift a platform control. `full` still shows it.
-- **Quiet notifications release, never cancel (2026-11-12, M6-WP18).** Overrides
+- **Quiet notifications release and deferred cancellation (2026-11-12, M6-WP18).** Overrides
   the M4-WP1 turn-off question. A listener's cancel is a no-op on a snoozed key,
   and the key swallows every later post from that conversation until it ends.
   Turning the filter off requests immediate release (a 1 ms re-snooze) for
@@ -75,4 +77,4 @@ Recorded 2026-10-03 after the design/manager review round. These override the
   The Keep/Dismiss sheet is gone. Opening a quiet-list item or
   "Dismiss all" no longer cancels or forgets the key: Parem records the item's
   `Notification.when`, hides it until the app posts a newer one under that key,
-  and cancels the unchanged item when it comes back at expiry.
+  and attempts to cancel the unchanged item when it comes back at expiry.
