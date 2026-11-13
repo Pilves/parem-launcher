@@ -3,6 +3,7 @@ package com.parem.launcher
 import android.content.ComponentName
 import android.os.Build
 import android.os.SystemClock
+import android.service.notification.NotificationListenerService
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
@@ -73,9 +74,14 @@ class QuietNotificationFixtureTest {
             QuietNotificationsManager.turnOff(context)
             assertFalse("turnOff left component enabled", QuietNotificationsManager.isEnabled(context))
             assertFalse("turnOff did not forget the released key", fixtureKey in QuietNotificationsManager.tracked(context).snoozedAt)
-            // Rebind only to inspect Android's repost. Shell has no launcher activity and is exempt.
+            // Observe the system independently: turnOff deliberately unbinds our listener.
+            waitUntil("fixture was not reposted after turnOff") {
+                device.executeShellCommand("cmd notification list").lineSequence().any { it.trim() == fixtureKey }
+            }
+            // Rebind only to remove our synthetic notification during cleanup.
             QuietNotificationsManager.setEnabled(context, true)
-            waitUntil("fixture was not reposted after turnOff") { active(fixtureKey) }
+            NotificationListenerService.requestRebind(ComponentName(context, QuietNotificationListener::class.java))
+            waitUntil("listener did not rebind for cleanup") { listener() != null }
         } finally {
             // Disposable CI emulator only; touch our synthetic tag and listener, never other keys.
             try {

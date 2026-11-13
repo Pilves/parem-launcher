@@ -33,11 +33,14 @@ jobs:
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
             set -e
+            trap 'adb logcat -d -v threadtime > app/build/quiet-fixture-logcat.txt || true' EXIT
             ./gradlew connectedPlayDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.QuietNotificationFixtureTest -Pandroid.testInstrumentationRunnerArguments.quiet_fixture=true
             ./gradlew connectedFullDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.QuietNotificationFixtureTest -Pandroid.testInstrumentationRunnerArguments.quiet_fixture=true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: quiet-fixture-reports
-          path: app/build/reports/androidTests/
+          path: |
+            app/build/reports/androidTests/
+            app/build/quiet-fixture-logcat.txt
           if-no-files-found: ignore
