@@ -322,6 +322,13 @@
     <string name="grayscale_now" translatable="false">Now</string>
     <string name="grayscale_during_focus" translatable="false">During focus</string>
     <string name="grayscale_after_limit" translatable="false">After a limit (until you come back to Parem)</string>
+    <string name="grayscale_restore_pending" translatable="false">Now is off. Parem cannot restore the previous color settings without access.</string>
+    <string name="grayscale_restore_access" translatable="false">Restore grayscale access</string>
+    <string name="grayscale_android_settings" translatable="false">Open Android accessibility settings</string>
+    <string name="grayscale_settings_unavailable" translatable="false">Open Accessibility settings in Android to change color correction.</string>
+    <string name="limit_usage_access_missing" translatable="false">Usage access is off. Parem cannot check this app’s daily limit.</string>
+    <string name="limit_usage_unavailable" translatable="false">Parem could not check this app’s daily limit.</string>
+    <string name="limit_settings_unavailable" translatable="false">Open Usage access in Android Settings.</string>
     <string name="grayscale_toggles_hint" translatable="false">When Parem’s grayscale triggers end, it tries to restore your previous color correction. If the screen stays gray, check Android Settings › Accessibility › Color correction.</string>
     <string name="grayscale_grant_title" translatable="false">Allow grayscale</string>
     <string name="grayscale_grant_body" translatable="false">Android lets an app switch the screen to grayscale only after a one-time permission given through developer tools. Parem uses it for grayscale and nothing else.\n\nTo get color back at any time, without Parem: Android Settings › Accessibility › Color correction.</string>

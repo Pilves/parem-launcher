@@ -12,7 +12,7 @@ import com.parem.launcher.helper.UsageEventFilter
  * [the documentation](https://codeberg.org/fynngodau/usageDirect/wiki/Event-log-wrapper-scenarios))
  * by seeking backwards through time and scanning for the open event.
  */
-class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManager) {
+class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManager, private val requireEvents: Boolean = false) {
 
     companion object {
         private const val SCAN_INTERVAL = 1000L * 60 * 60 * 24 // 24 hours
@@ -29,7 +29,10 @@ class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManag
      * Parse the lookback once for unmatched closes and event-free fallback checks.
      */
     private fun queryAndParseEvents(queryStart: Long): List<Event>? {
-        val usageEvents = usageStatsManager.queryEvents(queryStart - SCAN_INTERVAL, queryStart) ?: return null
+        val usageEvents = usageStatsManager.queryEvents(queryStart - SCAN_INTERVAL, queryStart) ?: run {
+            if (requireEvents) throw IllegalStateException("Usage lookback unavailable")
+            return null
+        }
         val result = mutableListOf<Event>()
         val e = UsageEvents.Event()
 

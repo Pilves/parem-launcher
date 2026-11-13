@@ -10,10 +10,10 @@ import com.parem.launcher.helper.convertEpochToMidnight
 import com.parem.launcher.helper.UsageEventFilter
 import kotlin.math.min
 
-class EventLogWrapper(context: Context) {
+class EventLogWrapper(context: Context, private val requireEvents: Boolean = false) {
     private val context: Context = context.applicationContext
     private val usageStatsManager by lazy { this.context.getSystemService("usagestats") as UsageStatsManager }
-    private val guardian = UnmatchedCloseEventGuardian(usageStatsManager)
+    private val guardian = UnmatchedCloseEventGuardian(usageStatsManager, requireEvents)
 
 
     /**
@@ -57,6 +57,7 @@ class EventLogWrapper(context: Context) {
         val events = usageStatsManager.queryEvents(queryStart, end)
         if (events == null) {
             Log.w("EventLogWrapper", "queryEvents returned null for range $queryStart..$end")
+            if (requireEvents) throw IllegalStateException("Usage events unavailable")
             return emptyList()
         }
 

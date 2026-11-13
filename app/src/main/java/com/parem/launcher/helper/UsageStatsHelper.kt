@@ -13,42 +13,26 @@ object UsageStatsHelper {
     // and limit checks run on every tap of a limited app — so the aggregated map
     // is cached briefly. 60s matches the enforcement granularity (limits are in
     // minutes).
-    @Volatile
-    private var cachedAt = 0L
+    private val cache = UsageReadCache()
 
-    // Local day (epoch day) the cached map belongs to: a map filled at 23:59:40
-    // is "today's" usage for 60 s only on the day it was scanned.
-    @Volatile
-    private var cachedDay = Long.MIN_VALUE
-
-    @Volatile
-    private var cachedUsage: Map<String, Long> = emptyMap()
-
-    /**
-     * Returns today's foreground usage per package in milliseconds. Single
-     * cached access point for today's scan — the home-screen total, the
-     * drawer's per-app times, and limit checks all share this one map.
-     * Must be called off the main thread.
-     */
-    fun getPerAppUsageToday(context: Context): Map<String, Long> {
-        if (!context.appUsagePermissionGranted()) return emptyMap()
-
-        val now = System.currentTimeMillis()
-        val today = LocalDate.now().toEpochDay()
-        if (isCacheStale(now, cachedAt, today, cachedDay)) {
-            cachedUsage = try {
-                val wrapper = EventLogWrapper(context)
-                val foregroundStats = wrapper.getForegroundStatsByRelativeDay(0)
-                wrapper.aggregateForegroundStats(foregroundStats)
+    /** Null means usage is unavailable, not zero. Must be called off the main thread. */
+    internal fun readToday(context: Context): UsageReadCache.Reading = cache.read(
+        System.currentTimeMillis(), LocalDate.now().toEpochDay(),
+        hasAccess = { context.appUsagePermissionGranted() },
+        query = {
+            try {
+                val wrapper = EventLogWrapper(context, requireEvents = true)
+                wrapper.aggregateForegroundStats(wrapper.getForegroundStatsByRelativeDay(0))
             } catch (e: Exception) {
                 CrashReporter.reportNonFatal("UsageStatsHelper", e)
-                emptyMap()
+                throw e
             }
-            cachedAt = now
-            cachedDay = today
-        }
-        return cachedUsage
-    }
+        },
+    )
+
+    /** Legacy display callers retain their empty fallback; launch gates use readToday. */
+    fun getPerAppUsageToday(context: Context): Map<String, Long> =
+        (readToday(context) as? UsageReadCache.Reading.Available)?.usage ?: emptyMap()
 
     /** Stale after 60 seconds, after a clock rollback, and at midnight: yesterday's total must never gate today's first launch. */
     fun isCacheStale(nowMs: Long, cachedAtMs: Long, today: Long, cachedDay: Long): Boolean =

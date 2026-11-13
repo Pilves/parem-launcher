@@ -102,6 +102,24 @@ object GrayscaleController {
         reconcile(context)
     }
 
+    /** Only the policy can establish that restoration is currently pending. */
+    fun restorationPendingWithoutAccess(context: Context): Boolean =
+        !isGranted(context) && restorationPending(context)
+
+    fun restorationPending(context: Context): Boolean {
+        val p = context.paremPrefs()
+        val desired = GrayscalePolicy.desired(
+            manual = p.getBoolean(KEY_MANUAL, false),
+            onFocus = p.getBoolean(KEY_ON_FOCUS, false),
+            focusActive = FocusModeManager.isActive(context),
+            onLimit = p.getBoolean(KEY_ON_LIMIT, false),
+            limitOverride = p.getBoolean(KEY_LIMIT_OVERRIDE, false),
+            appForeground = p.getBoolean(KEY_APP_FG, false),
+        )
+        return GrayscalePolicy.plan(desired, p.getBoolean(KEY_APPLIED, false),
+            p.getBoolean(KEY_SUPPRESSED, false), read(context.contentResolver)) == Action.RESTORE
+    }
+
     fun reconcile(context: Context) {
         val p = context.paremPrefs()
         val cr = context.contentResolver

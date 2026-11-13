@@ -19,10 +19,12 @@ import com.parem.launcher.helper.LaunchGate
 import com.parem.launcher.helper.appLabelOrNull
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.UsageStatsHelper
+import com.parem.launcher.helper.UsageReadCache
 import com.parem.launcher.helper.WebLaunchTarget
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.formattedTimeSpent
+import com.parem.launcher.helper.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -73,11 +75,41 @@ object BadHabitDialogs {
         val limitMinutes = AppLimitManager.getLimit(context, packageName)
         val pause = AppLimitManager.hasPause(context, packageName)
         scope.launch {
-            // A pause-only app has no limit to measure against
-            val usageMs = if (limitMinutes == null) 0L else withContext(Dispatchers.IO) {
-                UsageStatsHelper.getUsageForApp(context, packageName)
+            // A pause-only app has no limit to measure against.
+            val reading = if (limitMinutes == null) null else withContext(Dispatchers.IO) {
+                UsageStatsHelper.readToday(context)
             }
             if (!isActive()) return@launch
+            val checkedReading = if (reading != null && !context.appUsagePermissionGranted()) UsageReadCache.Reading.NoAccess else reading
+            if (checkedReading != null && checkedReading !is UsageReadCache.Reading.Available) {
+                var continued = false
+                lateinit var dialog: BottomSheetDialog
+                dialog = BottomSheetMenu(context)
+                    .message(context.getString(if (checkedReading is UsageReadCache.Reading.NoAccess)
+                        R.string.limit_usage_access_missing else R.string.limit_usage_unavailable))
+                    .option(context.getString(R.string.go_back)) {}
+                    .option(context.getString(R.string.usage_access_open_settings)) {
+                        try { context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
+                        catch (_: android.content.ActivityNotFoundException) { context.showToast(R.string.limit_settings_unavailable) }
+                    }
+                    .option(context.getString(R.string.open_anyway), dimmed = true, dismissOnClick = false) {
+                        continued = true
+                        dialog.dismiss()
+                        if (!isActive()) { onCancel(); return@option }
+                        if (pause) {
+                            val label = BidiFormatter.getInstance().unicodeWrap(appLabel(context, appName, packageName))
+                            showPause(context,
+                                question = context.getString(R.string.mindful_pause_question, label), note = null,
+                                waiting = { left -> context.getString(R.string.mindful_pause_wait, label, left) },
+                                ready = context.getString(R.string.mindful_pause_open, label),
+                                onProceed = { if (isActive()) open() else onCancel() }, onCancel = onCancel)
+                        } else open()
+                    }
+                    .onDismiss { if (!continued) onCancel() }
+                    .show()
+                return@launch
+            }
+            val usageMs = (checkedReading as? UsageReadCache.Reading.Available)?.usage?.get(packageName) ?: 0L
             val usageMinutes = usageMs / 60_000
             val overLimit = MindfulPause.isOverLimit(limitMinutes, usageMinutes)
             val label = BidiFormatter.getInstance().unicodeWrap(appLabel(context, appName, packageName))
