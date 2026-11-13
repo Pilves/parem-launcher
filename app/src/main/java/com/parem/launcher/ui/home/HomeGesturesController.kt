@@ -275,7 +275,10 @@ class HomeGesturesController(
                 super.onDoubleClick()
                 executeGestureAction(
                     DoubleTapActionManager.getAction(context),
-                    onLockDecline = { DoubleTapActionManager.setAction(context, Constants.GestureAction.NONE) },
+                    onLockDecline = {
+                        if (DoubleTapActionManager.getAction(context) == Constants.GestureAction.LOCK_SCREEN)
+                            DoubleTapActionManager.setAction(context, Constants.GestureAction.NONE)
+                    },
                 ) {
                     val packageName = DoubleTapActionManager.getAppPackage(context)
                     if (packageName.isNotEmpty())
@@ -348,8 +351,10 @@ class HomeGesturesController(
         executeGestureAction(
             if (isLeft) prefs.getEffectiveSwipeLeftAction() else prefs.getEffectiveSwipeRightAction(),
             onLockDecline = {
-                if (isLeft) prefs.swipeLeftAction = Constants.GestureAction.NONE
-                else prefs.swipeRightAction = Constants.GestureAction.NONE
+                if (isLeft && prefs.swipeLeftAction == Constants.GestureAction.LOCK_SCREEN)
+                    prefs.swipeLeftAction = Constants.GestureAction.NONE
+                else if (!isLeft && prefs.swipeRightAction == Constants.GestureAction.LOCK_SCREEN)
+                    prefs.swipeRightAction = Constants.GestureAction.NONE
             },
         ) {
             // Fallback for OPEN_APP action
@@ -413,7 +418,7 @@ class HomeGesturesController(
                             fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
                     },
                     onDecline = onDecline,
-                )
+                ).dismissOnDestroy(fragment.viewLifecycleOwner)
                 return
             }
             LockServiceCheck.Outcome.EXPLAIN_OFF -> {
@@ -429,7 +434,7 @@ class HomeGesturesController(
                     onUseAdmin = {
                         (fragment.activity as? MainActivity)?.let { requestLockAdmin(it) {} }
                     },
-                )
+                ).dismissOnDestroy(fragment.viewLifecycleOwner)
                 return
             }
             LockServiceCheck.Outcome.OFF_EXPLAINED -> {

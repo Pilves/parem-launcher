@@ -347,15 +347,56 @@ per package; the rest of each of those fragments is still in
   Easy to get wrong: QA accessibility tests need the QA package in an external XML filter override; production lock XML remains unchanged. Historical perf timings use a different workload; CI measures pinned 996ef0c on the same warmed emulator instead of weakening thresholds.
   Release: evidence and limitations are in docs/releases/v6.0.0-beta.2-validation.md; release notes include the accepted no-default-browser gap. The owner tags after accepting beta limitations; the agent has not tagged or published.
 - **M6-WP15 (PR #10):** Stale saved launcher entries recover through LauncherApps.getActivityList without duplicate non-fatal reports.
+  Contract: every launch attempt stays in the requested profile; recovery uses the returned componentName, and final start failures remain reportable.
+  Not verified: Vivaldi on the affected Nothing phone or work/private-profile launches on hardware.
+  Easy to get wrong: retrying a rejected component under Process.myUserHandle can open the wrong profile and cannot repair a missing launcher category.
 - **M6-WP16 (PR #14):** An uninstall started from the drawer menu now reloads the drawer from a live query when it completes, without waiting for the LauncherApps callback.
+  Contract: `uninstallIntent(pkg)` is ACTION_UNINSTALL_PACKAGE with EXTRA_RETURN_RESULT, launched through AppDrawerFragment's ActivityResult launcher passed as `AppMenu.show(uninstall = …)`; on RESULT_OK the drawer calls `PackageChangeTracker.invalidate()` and then the same reload as the app-menu callback.
+  RESULT_OK is set by the installer only after PackageManager's deletePackageX has returned (AOSP main, PIA v1 and v2); cancel is RESULT_CANCELED (v1) or RESULT_FIRST_USER (v2), failure is RESULT_FIRST_USER, and neither reloads.
+  Not verified: on any device, the Nothing Phone 4a / Android 17 repro, or OEM installers; changes made outside Parem still depend on the callback, and a result for a drawer closed meanwhile is dropped.
+  Easy to get wrong: reloading when Parem regains focus can run before removal and cache the old list under the new stamp; the for-result route also swaps the installer's toast and notification for its own progress dialog.
 - **M6-WP17 (PR #15):** A downward drag that starts in an app-picker list (folder, focus mode, quiet list, app limits) scrolls the list back up and no longer closes the sheet.
+  Contract: addAppPicker's RecyclerView withholds nested pre-scroll for dy < 0 and disallows ancestor intercept on ACTION_DOWN. WP52 later moved the picker heading, search, choices and actions into that RecyclerView with `fitPicker`, without the former outer NestedScrollView for these picker sheets.
+  Not verified: any physical device (the reporter's Nothing Phone 4a on Android 17 included), landscape on a phone, or the three pickers other than the folder sheet on screen; SmokeTest covers the folder sheet on emulators.
+  Historical cause: BottomSheetBehavior tracked the sheet's former outer NestedScrollView, so an inner scroller offering pre-scroll upward let the sheet take the drag before the list scrolled. Recheck drag behavior if changing the WP52 single-scroller layout.
 - **M6-WP18 (PR #17):** Quiet notifications release instead of cancelling: allowing an app or turning the filter off requests immediate release by re-snoozing Parem's reachable keys for 1 ms, and opening or dismissing a quiet-list item only marks it.
+  Contract: `helper/notifications/QuietKeys` holds the decisions with JVM tests (posted action: pass-through > dismissed-unchanged cancel > filter, a mark counting only within its key's snooze window; list visibility; prune; releasable keys; legacy decode); `quiet_keys` entries are `snoozed:<key>` → snooze time and `dismissed:<key>` → `Notification.when`, and the old `SNOOZED_KEYS` set migrates as snoozed now; `QuietNotificationsManager.setAllowed` releases newly allowed packages and `turnOff(context)` releases before unbinding; `onListenerConnected` releases keys of apps allowed while it was unbound; release attempts include reachable items the user opened or dismissed; Android may then return them to the shade.
+  Settles M4-WP1's open points from AOSP android16 source, not a device: a listener's cancel on a snoozed key is a no-op; a post on a snoozed key is merged into it and reaches neither shade nor listener; the expiry repost alerts before listeners see it; snoozes survive a reboot, but `getSnoozedNotifications` lists a key only after its app reposts.
+  Verified on a Nothing A069 (Android 16) with a test app posting on one key: a hidden post is snoozed 8 h and a second post on that key stays swallowed; ticking the app in Allowed apps releases it to the shade at once (the 1 ms re-snooze works); after Dismiss all the list is empty while the key stays snoozed, and a new post on it shows in the list again; turning off shows no question and returns the item to the shade. Not verified: the expiry cancel of a dismissed item, the reboot prune, the upgrade migration on a device, and whether a release alerts audibly; a key the system still holds after a reboot, before its app reposts, cannot be released, so turning off leaves it until its snooze ends.
+  Easy to get wrong: never cancel or forget a key that is still snoozed, or that conversation goes silent until expiry; the in-memory pass-through entry must exist before the release snooze, or a repost that lands while still bound is snoozed again.
 - **M6-WP19 (PR #18):** The roadmap now records v6.0.2 and the audited v6.1 priorities, with open M4 identifiers retained.
+  Contract at the roadmap truth-up: WP51 and WP49 were design first; WP54 followed WP55 and WP52; WP10 and WP65 were deferred. WP49 and WP51 have since received design approval; consult the roadmap for current package status.
+  Not verified: device behavior, screenshot automation, or builds on this documentation branch.
+  Easy to get wrong: move existing identifiers without renaming them, and regenerate the handoff rather than editing its generated block or Done markers.
 - **M6-WP20 (PR #21):** Operational documentation reflects verified current storage, test, onboarding, release and quiet-notification behavior; superseded handoff summaries identify later changes.
+  Contract: historical plans and release records retain their original context; the documentation inventory separately lists per-file coverage and unverified claims.
+  Not verified: every historical claim, live Play listing, published privacy page, remote links or physical-device behavior; full documentation audit remains open.
+  Easy to get wrong: M4-WP47 permits pause without a limit, M4-WP53 changed locked-layout feedback, and M4-WP63 merged the swipe listeners.
 - **M6-WP22 (PR #26):** Historical planning records are labeled and selected handoff contracts and wallpaper-host inventory reflect the checked source baseline.
+  Contract: old plans and release records remain historical; wallpaper hosts describe tracked source at a named commit, not a verified live endpoint.
+  Not verified: every historical claim, live wallpaper list, device behavior, lock-consent lifecycle and the empty web-candidate runtime case; the broader audit remains open.
+  Easy to get wrong: M6-WP23 supersedes the empty-candidate warning in M4-WP36; a pending lock-consent fix may likewise supersede the warning in M4-WP31.
 - **M6-WP23 (PR #22):** Web opens with no identifiable receiving app are blocked during Focus instead of leaving the intent unpinned.
+  Contract: WebLaunchTarget returns null when Focus is active and no allowed candidate exists, including an empty or failed lookup; without Focus it still returns the unpinned empty target; a known allowed default still works.
+  Not verified: Android device behavior when a candidate lookup fails or package visibility hides a handler; emulator and both-flavour CI are pending.
+  Easy to get wrong: an empty list means either no app or a failed lookup; neither may bypass Focus, but non-Focus chooser behavior is unchanged.
+- **M6-WP24 (PR #0):** Lock consent and service-off sheets close when their owning fragment view is destroyed.
+  Contract: dismissing undecided consent remains a decline; accepted consent and device-admin fallback remain distinct decisions.
+  Not verified: Android CI or hardware, including Home, Back, rotation and admin activation.
+  Easy to get wrong: the Settings decline can revert a pending gesture but must not overwrite a newer non-lock choice; never change the invisible lock view.
 - **M6-WP25 (PR #24):** The handoff generator updates provisional roadmap PR references when fragments gain a PR number.
+  Contract: only an exact Done PR #0 marker becomes its fragment's nonzero PR; established PR numbers and intentional PR #0 branch merges stay unchanged.
+  Verified: the node harness covers rows, headings, unrelated PR text and idempotence.
+  Not verified: CI execution on the final integration commit; no Gradle or device checks were run.
+  Easy to get wrong: keep fragment PR numbers accurate; a provisional marker is replaced automatically on the next generation.
 - **M6-WP27 (PR #28):** Daily wallpaper failures retain the previous applied URL so the same candidate can be retried.
+  Contract: WallpaperWorker writes DAILY_WALLPAPER_URL only after setWallpaper returns true; unchanged candidates are still skipped and the existing retry limits remain.
+  Verified: the instrumentation fixture exercises a failed image followed by a successful attempt; actual CI execution is pending.
+  Not verified: wallpaper failure/recovery on a physical device or OEM-specific partial system/lock wallpaper failures.
+  Easy to get wrong: writing the candidate before both wallpaper operations succeed makes a WorkManager retry treat the failed candidate as already applied.
 - **M6-WP29 (PR #32):** Claim release cleanup preserves a claim that arrives after the release marker.
+  Contract: release markers free the package; cleanup deletes only the marker it wrote using a lease.
+  Not verified: remote hosting permission behavior; the race test uses a local bare remote.
+  Easy to get wrong: deleting the ref without checking its expected tip can erase a new claimant.
 
 <!-- handoff:end -->
