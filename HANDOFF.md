@@ -377,6 +377,6 @@ per package; the rest of each of those fragments is still in
 - **M6-WP43 (PR #50):** Settings import bounds file size and JSON nesting and rejects out-of-range registered settings before applying any changes.
 - **M6-WP45 (PR #49):** Picker rows retain their checkbox accessibility semantics through filtering and RecyclerView rebinding.
 - **M6-WP46 (PR #48):** Pull requests run both flavor JVM suites, Node harness tests and the Play APK pairing check.
-- **M6-WP53 (PR #0):** Unavailable widgets retain their ID, order and height as removable, replaceable placeholders until they recover or the user removes them.
+- **M6-WP53 (PR #59):** Unavailable widgets retain their ID, order and height as removable, replaceable placeholders until they recover or the user removes them.
 
 <!-- handoff:end -->
