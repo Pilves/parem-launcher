@@ -274,6 +274,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP27 | **Done** (PR #28). Retry daily wallpaper updates after a failed download or application without marking the new URL as applied | `helper/WallpaperWorker.kt`, wallpaper worker instrumentation test, CHANGELOG and handoff | A failed application retains the last applied URL; the same candidate can be attempted again and is stored only after success |
 
 | M6-WP29 | **Done** (PR #32). Protect a new claim from concurrent release cleanup | `scripts/claim-wp.sh`, its regression test, roadmap and handoff fragment | Cleanup deletes only the release marker it wrote; an interleaved claim survives |
+| M6-WP24 | **Done** (PR #23). Close lock disclosure sheets with their owning fragment views | `ui/LockConsentSheet.kt`, lock-sheet callers and instrumentation test, CHANGELOG, handoff | Dismissed on view destruction with existing consent and fallback semantics; device checks recorded |
 
 | M6-WP22 | **Done** (PR #26). Label historical planning records and correct verified documentation contracts | Historical design records, archive/work split, selected handoff fragments, F-Droid draft and data-flow inventory | Source-backed corrections reviewed; audit coverage and remaining unverified claims recorded; handoff generated |
 
