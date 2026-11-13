@@ -23,6 +23,8 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
 import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.GestureLetterManager
+import com.parem.launcher.helper.FocusModeManager
+import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.Haptics
 import com.parem.launcher.helper.HomeAccessibilityActions
 import com.parem.launcher.helper.settingsPath
@@ -380,11 +382,30 @@ class HomeGesturesController(
             Constants.GestureAction.OPEN_CAMERA -> openCameraApp(context)
             Constants.GestureAction.TOGGLE_FLASHLIGHT -> toggleFlashlight()
             Constants.GestureAction.NONE -> { /* do nothing */ }
+            Constants.GestureAction.FOCUS_25_MIN -> startQuickFocus()
+            Constants.GestureAction.TOGGLE_GRAYSCALE -> toggleManualGrayscale()
             Constants.GestureAction.QUIET_LIST -> {
                 if (fragment.isAdded)
                     QuietListSheet.openFromGesture(fragment, prefs, isAlive = { fragment.view != null })
             }
         }
+    }
+
+    private fun startQuickFocus() {
+        if (FocusModeManager.isActive(context)) {
+            context.showToast(context.getString(R.string.quick_focus_already_active))
+            return
+        }
+        FocusModeManager.enable(context, 25)
+        GrayscaleController.reconcile(context)
+        context.showToast(context.getString(R.string.quick_focus_started))
+    }
+
+    private fun toggleManualGrayscale() {
+        val message = if (!GrayscaleController.toggleManualIfGranted(context)) R.string.quick_grayscale_needs_access
+        else if (GrayscaleController.isManual(context)) R.string.quick_grayscale_manual_on
+        else R.string.quick_grayscale_manual_off
+        context.showToast(context.getString(message))
     }
 
     private fun toggleFlashlight() {
@@ -466,7 +487,7 @@ class HomeGesturesController(
     }
 
     private fun showHomeLongPressMenu() {
-        BottomSheetMenu(context)
+        val menu = BottomSheetMenu(context)
             .title(context.getString(R.string.app_menu_home))
             .option(context.getString(R.string.a11y_all_apps)) {
                 if (fragment.isAlive) fragment.showAppList(Constants.FLAG_LAUNCH_APP)
@@ -484,9 +505,16 @@ class HomeGesturesController(
                     context.showToast(context.getString(R.string.app_menu_wallpaper_unavailable))
                 }
             }
-            .option(context.getString(R.string.settings)) {
-                if (fragment.isAlive) openSettings()
+            .option(context.getString(R.string.quick_focus_25)) {
+                if (fragment.isAlive) startQuickFocus()
             }
-            .show().dismissOnDestroy(fragment.viewLifecycleOwner)
+        if (GrayscaleController.isGranted(context)) {
+            menu.option(context.getString(R.string.quick_grayscale)) {
+                if (fragment.isAlive) toggleManualGrayscale()
+            }
+        }
+        menu.option(context.getString(R.string.settings)) {
+            if (fragment.isAlive) openSettings()
+        }.show().dismissOnDestroy(fragment.viewLifecycleOwner)
     }
 }

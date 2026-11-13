@@ -1,6 +1,10 @@
 package com.parem.launcher
 
+import android.Manifest
 import android.content.Context
+import android.content.ContextWrapper
+import android.content.pm.PackageManager
+import android.os.ParcelFileDescriptor
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.parem.launcher.data.Prefs
@@ -12,8 +16,11 @@ import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
+import org.junit.Assume.assumeTrue
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
+import com.parem.launcher.helper.GrayscaleController
+import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.FocusSchedule
 import com.parem.launcher.helper.ThemeScheduleManager
 import com.parem.launcher.helper.ThemeScheduleWorker
@@ -113,6 +120,90 @@ class PrefsRoundTripTest {
         FocusModeManager.pauseSchedule(context)
         assertFalse(FocusModeManager.isActive(context))
         assertTrue(sp.getLong("FOCUS_SCHEDULE_SKIP_UNTIL", 0) > System.currentTimeMillis())
+    }
+
+    @Test
+    fun calmGestureAssignmentsRoundTripAndOldExportsKeepDefaults() {
+        val prefs = Prefs(context)
+        prefs.swipeLeftAction = Constants.GestureAction.FOCUS_25_MIN
+        prefs.swipeRightAction = Constants.GestureAction.TOGGLE_GRAYSCALE
+        DoubleTapActionManager.setAction(context, Constants.GestureAction.TOGGLE_GRAYSCALE)
+        val exported = JSONObject(prefs.exportToJson().toString())
+        prefs.swipeLeftAction = Constants.GestureAction.NONE
+        prefs.swipeRightAction = Constants.GestureAction.NONE
+        DoubleTapActionManager.setAction(context, Constants.GestureAction.NONE)
+        prefs.importFromJson(exported)
+        assertEquals(Constants.GestureAction.FOCUS_25_MIN, prefs.getEffectiveSwipeLeftAction())
+        assertEquals(Constants.GestureAction.TOGGLE_GRAYSCALE, prefs.getEffectiveSwipeRightAction())
+        assertEquals(Constants.GestureAction.TOGGLE_GRAYSCALE, DoubleTapActionManager.getAction(context))
+
+        prefs.importFromJson(JSONObject().put("__parem_export_version", 1))
+        assertEquals(Constants.GestureAction.OPEN_APP, prefs.getEffectiveSwipeLeftAction())
+        assertEquals(Constants.GestureAction.OPEN_APP, prefs.getEffectiveSwipeRightAction())
+        assertEquals(Constants.GestureAction.LOCK_SCREEN, DoubleTapActionManager.getAction(context))
+    }
+
+    @Test
+    fun quickGrayscaleKeepsManualChoiceWhenAccessIsLost() {
+        sp.edit().putBoolean(GrayscaleController.KEY_MANUAL, false)
+            .putBoolean(GrayscaleController.KEY_SUPPRESSED, true)
+            .putBoolean(GrayscaleController.KEY_ON_FOCUS, false).commit()
+        fun contextWithGrantCheck(firstGranted: Boolean) = object : ContextWrapper(context) {
+            var checks = 0
+            override fun checkSelfPermission(permission: String): Int =
+                if (checks++ == 0 && firstGranted) PackageManager.PERMISSION_GRANTED
+                else PackageManager.PERMISSION_DENIED
+        }
+        assertFalse(GrayscaleController.toggleManualIfGranted(contextWithGrantCheck(false)))
+        assertFalse(GrayscaleController.toggleManualIfGranted(contextWithGrantCheck(true)))
+        assertFalse(sp.getBoolean(GrayscaleController.KEY_MANUAL, true))
+        assertTrue(sp.getBoolean(GrayscaleController.KEY_SUPPRESSED, false))
+        assertFalse(sp.getBoolean(GrayscaleController.KEY_ON_FOCUS, true))
+    }
+
+    @Test
+    fun quickGrayscaleOffRetainsSavedCorrectionWhenRestoreLosesAccess() {
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        fun shell(command: String): String = ParcelFileDescriptor.AutoCloseInputStream(
+            automation.executeShellCommand(command)
+        ).bufferedReader().use { it.readText().trim() }
+        assumeTrue("requires a disposable Android emulator", shell("getprop ro.kernel.qemu") == "1")
+        val enabledKey = "accessibility_display_daltonizer_enabled"
+        val modeKey = "accessibility_display_daltonizer"
+        val previousEnabled = shell("settings get secure $enabledKey")
+        val previousMode = shell("settings get secure $modeKey")
+        fun restore(key: String, value: String) {
+            if (value == "null") shell("settings delete secure $key")
+            else shell("settings put secure $key $value")
+        }
+        try {
+            assertEquals(PackageManager.PERMISSION_DENIED, context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS))
+            shell("settings put secure $modeKey 0")
+            shell("settings put secure $enabledKey 1")
+            sp.edit().putBoolean(GrayscaleController.KEY_MANUAL, true)
+                .putBoolean(GrayscaleController.KEY_SUPPRESSED, false)
+                .putBoolean(GrayscaleController.KEY_APPLIED, true)
+                .putBoolean(GrayscaleController.KEY_PREV_ENABLED, true)
+                .putInt(GrayscaleController.KEY_PREV_MODE, 12)
+                .putBoolean(GrayscaleController.KEY_ON_FOCUS, false)
+                .putBoolean(GrayscaleController.KEY_ON_LIMIT, false)
+                .putBoolean(GrayscaleController.KEY_APP_FG, false).commit()
+            val revoked = object : ContextWrapper(context) {
+                var checks = 0
+                override fun checkSelfPermission(permission: String): Int =
+                    if (checks++ == 0) PackageManager.PERMISSION_GRANTED else PackageManager.PERMISSION_DENIED
+            }
+            assertFalse(GrayscaleController.toggleManualIfGranted(revoked))
+            assertTrue(sp.getBoolean(GrayscaleController.KEY_MANUAL, false))
+            assertTrue(sp.getBoolean(GrayscaleController.KEY_APPLIED, false))
+            assertTrue(sp.getBoolean(GrayscaleController.KEY_PREV_ENABLED, false))
+            assertEquals(12, sp.getInt(GrayscaleController.KEY_PREV_MODE, -1))
+            assertEquals("1", shell("settings get secure $enabledKey"))
+            assertEquals("0", shell("settings get secure $modeKey"))
+        } finally {
+            restore(modeKey, previousMode)
+            restore(enabledKey, previousEnabled)
+        }
     }
 
     @Test

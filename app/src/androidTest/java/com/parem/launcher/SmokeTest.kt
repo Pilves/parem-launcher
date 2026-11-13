@@ -44,6 +44,8 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.formattedTimeSpent
 import com.parem.launcher.helper.AppOpenCounter
+import com.parem.launcher.helper.FocusModeManager
+import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.WallpaperWorker
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -833,6 +835,50 @@ class SmokeTest {
                 Rect.intersects(banner.visibleBounds, widgetWithBanner.visibleBounds))
         } finally {
             device.setOrientationNatural()
+        }
+    }
+
+    @Test
+    fun homeQuickFocusStartsWithoutShorteningAnActiveSession() {
+        val sp = context.getSharedPreferences(Prefs.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+        try {
+            FocusModeManager.setScheduleEnabled(context, false)
+            FocusModeManager.disable(context)
+            val action = By.desc(context.getString(R.string.quick_focus_25))
+            fun openMenu() {
+                val x = device.displayWidth - 20
+                val y = device.displayHeight / 2
+                assertTrue("long press injection failed", device.swipe(x, y, x, y, 150))
+                assertTrue("home quick action missing", device.wait(Until.hasObject(action), TIMEOUT))
+                if (!GrayscaleController.isGranted(context)) {
+                    assertFalse("grayscale offered without grant", device.hasObject(By.desc(context.getString(R.string.quick_grayscale))))
+                }
+            }
+            val before = System.currentTimeMillis()
+            openMenu()
+            device.findObject(action).click()
+            assertTrue(device.wait(Until.gone(action), TIMEOUT))
+            // The menu dismisses before its callback runs; wait for its state change.
+            val endAtDismissal = sp.getLong("FOCUS_MODE_END_TIME", -1L)
+            val deadline = SystemClock.uptimeMillis() + TIMEOUT
+            while (SystemClock.uptimeMillis() < deadline &&
+                (!sp.getBoolean("FOCUS_MODE_ENABLED", false) || sp.getLong("FOCUS_MODE_END_TIME", -1L) <= 0L)) {
+                SystemClock.sleep(50)
+            }
+            val end = sp.getLong("FOCUS_MODE_END_TIME", -1L)
+            val enabled = sp.getBoolean("FOCUS_MODE_ENABLED", false)
+            Log.i(TAG, "quick focus endAtDismissal=$endAtDismissal end=$end enabled=$enabled before=$before")
+            assertTrue("quick focus did not start for 25 minutes: before=$before endAtDismissal=$endAtDismissal end=$end enabled=$enabled",
+                enabled && end in (before + 24 * 60_000L)..(System.currentTimeMillis() + 26 * 60_000L))
+            FocusModeManager.enable(context, 120)
+            val longerEnd = sp.getLong("FOCUS_MODE_END_TIME", -1L)
+            openMenu()
+            device.findObject(action).click()
+            assertTrue(device.wait(Until.gone(action), TIMEOUT))
+            instrumentation.waitForIdleSync()
+            assertEquals("quick focus shortened an active session", longerEnd, sp.getLong("FOCUS_MODE_END_TIME", -1L))
+        } catch (e: AssertionError) {
+            throw AssertionError("${e.message}\n${screenDiagnostics()}", e)
         }
     }
 

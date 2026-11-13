@@ -17,6 +17,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentSettingsBinding
 import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.GestureLetterManager
+import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.appLabelOrNull
 import com.parem.launcher.helper.isAccessServiceEnabled
 import com.parem.launcher.helper.notifications.QuietNotificationsManager
@@ -173,6 +174,8 @@ class GesturesSettingsCard(
         Constants.GestureAction.TOGGLE_FLASHLIGHT -> R.string.flashlight
         Constants.GestureAction.NONE -> R.string.none
         Constants.GestureAction.QUIET_LIST -> R.string.quiet_list
+        Constants.GestureAction.FOCUS_25_MIN -> R.string.quick_focus_25
+        Constants.GestureAction.TOGGLE_GRAYSCALE -> R.string.quick_grayscale
         else -> null
     }
 
@@ -236,6 +239,10 @@ class GesturesSettingsCard(
         // Offered only once the filter has been turned on; the gesture itself still handles Off
         (context.getString(R.string.quiet_list) to Constants.GestureAction.QUIET_LIST).takeIf {
             QuietNotificationsManager.state(context) != QuietNotificationsManager.State.OFF
+        },
+        context.getString(R.string.quick_focus_25) to Constants.GestureAction.FOCUS_25_MIN,
+        (context.getString(R.string.quick_grayscale) to Constants.GestureAction.TOGGLE_GRAYSCALE).takeIf {
+            GrayscaleController.isGranted(context)
         },
         context.getString(R.string.none) to Constants.GestureAction.NONE,
     )

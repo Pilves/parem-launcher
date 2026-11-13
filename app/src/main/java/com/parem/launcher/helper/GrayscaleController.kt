@@ -77,6 +77,21 @@ object GrayscaleController {
         reconcile(context)
     }
 
+    /** Restore the manual choice if access disappears while a quick action runs. */
+    fun toggleManualIfGranted(context: Context): Boolean {
+        if (!isGranted(context)) return false
+        val p = context.paremPrefs()
+        val previousManual = p.getBoolean(KEY_MANUAL, false)
+        val previousSuppressed = p.getBoolean(KEY_SUPPRESSED, false)
+        setManual(context, !previousManual)
+        if (isGranted(context)) return true
+        p.edit(commit = true) {
+            putBoolean(KEY_MANUAL, previousManual)
+            putBoolean(KEY_SUPPRESSED, previousSuppressed)
+        }
+        return false
+    }
+
     fun setOnFocus(context: Context, on: Boolean) {
         context.paremPrefs().edit(commit = true) { putBoolean(KEY_ON_FOCUS, on) }
         reconcile(context)
@@ -130,9 +145,10 @@ object GrayscaleController {
                 Action.NONE -> Unit
             }
         } catch (e: SecurityException) {
-            // Grant revoked: nothing Parem can write any more
+            // Keep the saved state if restoration failed: it can be retried after
+            // access returns. A failed application must not claim screen ownership.
             Log.w(TAG, "WRITE_SECURE_SETTINGS missing", e)
-            p.edit(commit = true) { clearApplied() }
+            if (action != Action.RESTORE) p.edit(commit = true) { clearApplied() }
             return
         }
         if (p.getBoolean(KEY_APPLIED, false) && onFocus && focusActive) scheduleFocusEnd(context)

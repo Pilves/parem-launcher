@@ -53,6 +53,8 @@ object Constants {
         const val NONE = 6
         // Swipe left/right only; the double-tap picker never offers it
         const val QUIET_LIST = 7
+        const val FOCUS_25_MIN = 8
+        const val TOGGLE_GRAYSCALE = 9
     }
 
     val CLOCK_APP_PACKAGES = arrayOf(
