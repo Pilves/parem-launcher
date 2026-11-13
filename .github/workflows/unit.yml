@@ -1,0 +1,27 @@
+name: Unit tests
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test harness scripts
+        run: node --test scripts/*.test.mjs
+      - name: Test both flavors and build Play APK
+        run: ./gradlew testFullDebugUnitTest testPlayDebugUnitTest assemblePlayDebug
+      - name: Check Play APK
+        run: scripts/check-play-build.sh app/build/outputs/apk/play/debug/app-play-debug.apk
