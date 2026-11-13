@@ -58,10 +58,12 @@ class WidgetProviderFixtureTest {
         var first = -1
         var second = -1
         var pending = -1
+        var originalActivity: MainActivity? = null
         try {
             check(device.pressHome())
             check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
             onHome { activity ->
+                originalActivity = activity
                 first = activity.appWidgetHost.allocateAppWidgetId()
                 second = activity.appWidgetHost.allocateAppWidgetId()
                 assertTrue(activity.appWidgetManager.bindAppWidgetIdIfAllowed(first, plain))
@@ -112,9 +114,13 @@ class WidgetProviderFixtureTest {
             checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.EditText")), 20_000)).text = "configurable"
             checkNotNull(device.wait(Until.findObject(By.text("Parem configurable fixture")), 20_000)).click()
             assertTrue("actual configure activity did not launch", device.wait(Until.hasObject(By.text("Parem fixture configuration")), 15_000))
+            instrumentation.runOnMainSync {
+                Log.i("WidgetFixture", "before HOME: pending=${originalActivity?.pendingWidgetOp} saved=${prefs.getWidgetIdList()}")
+            }
             assertTrue(device.pressHome())
             assertTrue(device.wait(Until.hasObject(unavailable), 10_000))
             onHome { activity ->
+                Log.i("WidgetFixture", "after HOME: sameActivity=${activity === originalActivity} pending=${activity.pendingWidgetOp} saved=${prefs.getWidgetIdList()}")
                 val operation = checkNotNull(activity.pendingWidgetOp)
                 assertEquals(2, operation.getInt("stage"))
                 assertEquals(first, operation.getInt("replaceId"))
