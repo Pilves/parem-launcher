@@ -59,13 +59,14 @@ class WallpaperWorkerIntegrationTest {
                 // must survive so a later attempt does not skip this same URL.
                 manager.enqueue(failedRequest).result.get()
                 val retryDeadline = SystemClock.elapsedRealtime() + 30_000
-                var attempts = 0
+                var retryScheduled = false
                 while (SystemClock.elapsedRealtime() < retryDeadline) {
-                    attempts = manager.getWorkInfoById(failedRequest.id).get()?.runAttemptCount ?: 0
-                    if (attempts > 0) break
+                    val info = manager.getWorkInfoById(failedRequest.id).get()
+                    retryScheduled = info != null && info.state == WorkInfo.State.ENQUEUED && info.runAttemptCount > 0
+                    if (retryScheduled) break
                     SystemClock.sleep(100)
                 }
-                assertTrue("failed wallpaper was not scheduled to retry", attempts > 0)
+                assertTrue("failed wallpaper was not scheduled to retry", retryScheduled)
                 assertEquals("failed apply replaced the previous URL",
                     "https://fixture.test/previous.png", prefs.dailyWallpaperUrl)
                 manager.cancelWorkById(failedRequest.id).result.get()
