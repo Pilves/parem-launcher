@@ -41,7 +41,7 @@
     <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="home_guidance_swipe" translatable="false">Swipe up for apps</string>
-    <string name="home_guidance_long_press" translatable="false">Long press anywhere for settings</string>
+    <string name="home_guidance_long_press" translatable="false">Long press the background for settings</string>
     <string name="drawer_guidance" translatable="false">Type an app name to search</string>
     <string name="app_drawer_tips">Tip: Start typing an app name to auto-launch it</string>
     <string name="google_search_hint" translatable="false">↵  Google: %1$s</string>
