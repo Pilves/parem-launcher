@@ -356,6 +356,7 @@ per package; the rest of each of those fragments is still in
 - **M6-WP23 (PR #22):** Web opens with no identifiable receiving app are blocked during Focus instead of leaving the intent unpinned.
 - **M6-WP24 (PR #23):** Lock consent and service-off sheets close when their owning fragment view stops or is destroyed.
 - **M6-WP25 (PR #24):** The handoff generator updates provisional roadmap PR references when fragments gain a PR number.
+- **M6-WP26 (PR #27):** Smoke CI bounds each test/performance phase and diagnostic adb command, and stops later phases if the emulator is unavailable after failure.
 - **M6-WP27 (PR #28):** Daily wallpaper failures retain the previous applied URL so the same candidate can be retried.
 - **M6-WP29 (PR #32):** Claim release cleanup preserves a claim that arrives after the release marker.
 - **M6-WP32 (PR #37):** A disposable-emulator-only fixture exercises a synthetic notification's seeded quiet-list snooze and release through allowing its package and turning Quiet off.
