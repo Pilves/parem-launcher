@@ -1,6 +1,6 @@
 ---
 wp: M4-WP9
-pr: 0
+pr: 36
 date: 2026-11-13
 ---
 Estonian resource drafts cover launcher and full-build setup text, with pending notification and grayscale copy tracked for integration.

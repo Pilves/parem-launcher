@@ -89,7 +89,7 @@ per package; the rest of each of those fragments is still in
   Contract: `helper/LockServiceCheck.decide(enabled, bound, connectedBefore, offExplained, adminActive)` returns `LOCK | LOCK_ADMIN | CONSENT | EXPLAIN_OFF | OFF_EXPLAINED`; prefs `LOCK_SERVICE_CONNECTED` (set by the service on connect) and `LOCK_SERVICE_OFF_EXPLAINED` are export-excluded on purpose.
   Not verified: that Advanced Protection revokes the service (sourced from press coverage of Android 17, not developer.android.com); the flow on a device.
   Easy to get wrong: importing `LOCK_SERVICE_CONNECTED` would turn a fresh phone's first-time consent into "your service was turned off", so keep it excluded; `EXPLAIN_OFF` cancel keeps `LOCK_SCREEN` stored, unlike M2-WP5's decline, because here Android undid the user's choice.
-- **M4-WP9 (PR #0):** Estonian resource drafts cover launcher and full-build setup text, with pending notification and grayscale copy tracked for integration.
+- **M4-WP9 (PR #36):** Estonian resource drafts cover launcher and full-build setup text, with pending notification and grayscale copy tracked for integration.
   Contract: the `et` resource configuration and locale picker entry are present; existing resource names and format arguments remain unchanged.
   Not verified: final dependency wording, both build flavors, native review, spoken accessibility and an Estonian device walk.
   Easy to get wrong: PR30 and PR33 change copy, and other existing locales still have substantial English fallback; do not claim complete translation before reconciliation.
