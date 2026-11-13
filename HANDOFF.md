@@ -274,6 +274,10 @@ per package; the rest of each of those fragments is still in
   Not verified: tablet/work-profile menus, actual TalkBack speech, e-ink, folder Undo and real-world motion quality.
   Easy to get wrong: successful home selection clears FolderData, cancellation does not; FolderManager checks stored JSON before reusing its parsed cache; Website/CreateFolder expose dialogs so callers dismiss them with the fragment view.
   Scope: minimal summary/check/group APIs and checked/no-limit picker choices landed here; global typography/width tokens, shared timing targets, settings redesign and predictive-back motion remain WP50/51/52/55.
+- **M4-WP55 (PR #19):** Drawer dismissal now requires a deliberate pull and release, navigation avoids duplicate drawers, and navigation transitions use seekable animators.
+  Contract: top-edge drag crosses 64dp for haptic and release; flings and cancelled drags do not dismiss; app launch bounds use the tapped label when available.
+  Not verified: Gradle and the Android runtime; owner must test phone and tablet gestures, predictive back, animation scale zero, and e-ink.
+  Easy to get wrong: preserve the drag/release distinction and screen-coordinate bounds across delayed launch gates; do not animate the list on skipAnimations.
 - **M4-WP56 (PR #0):** Gesture letters use an Android-free shape matcher instead of exact eight-direction sequences; the same ten supported letters and existing app mappings remain.
   Contract: GestureLetterRecognizer.recognize(List<Point>) resamples 64 equal-distance points, normalizes size/position, compares forward/reversed strokes within ±15 degrees and rejects weak or ambiguous matches; O supports different start points.
   The overlay includes batched MotionEvent samples, thins long strokes rather than truncating their ends, resets candidate state on down, and cancels recognition on multitouch.

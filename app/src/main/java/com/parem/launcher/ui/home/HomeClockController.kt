@@ -148,7 +148,7 @@ class HomeClockController(
         }
     }
 
-    fun openClockApp() {
+    fun openClockApp(sourceView: android.view.View) {
         if (prefs.clockAppPackage.isBlank())
             openAlarmApp(context)
         else
@@ -156,11 +156,12 @@ class HomeClockController(
                 "Clock",
                 prefs.clockAppPackage,
                 prefs.clockAppClassName,
-                prefs.clockAppUser
+                prefs.clockAppUser,
+                sourceView = sourceView
             )
     }
 
-    fun openCalendarApp() {
+    fun openCalendarApp(sourceView: android.view.View) {
         if (prefs.calendarAppPackage.isBlank())
             openCalendar(context)
         else
@@ -168,7 +169,8 @@ class HomeClockController(
                 "Calendar",
                 prefs.calendarAppPackage,
                 prefs.calendarAppClassName,
-                prefs.calendarAppUser
+                prefs.calendarAppUser,
+                sourceView = sourceView
             )
     }
 

@@ -26,6 +26,8 @@ import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import androidx.recyclerview.widget.RecyclerView
 import com.parem.launcher.ui.AppDrawerAdapter
+import com.parem.launcher.ui.BottomSheetMenu
+import com.parem.launcher.ui.RecentHistoryAdapter
 import com.parem.launcher.ui.CreateFolderDialog
 import com.parem.launcher.ui.FocusModeDialog
 import com.parem.launcher.ui.dismissOnDestroy
@@ -315,7 +317,7 @@ class SmokeTest {
         lateinit var adapter: AppDrawerAdapter
         instrumentation.runOnMainSync {
             adapter = AppDrawerAdapter(Constants.FLAG_LAUNCH_APP, android.view.Gravity.START,
-                appClickListener = { clicks.incrementAndGet() }, appLongPressListener = {})
+                appClickListener = { _, _ -> clicks.incrementAndGet() }, appLongPressListener = {})
             adapter.onFilterCommitted = { query ->
                 if (query == "Alpha Fixture") {
                     // Queue Enter first. The adapter posts its auto-launch after this callback.
@@ -374,6 +376,68 @@ class SmokeTest {
     @Test
     fun swipeUpOpensDrawer() {
         openDrawer()
+    }
+
+    @Test
+    fun recentAppTapPassesItsLabelAsLaunchSource() {
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            val app = AppModel("Recent Fixture", null, "fixture.recent", null, false, android.os.Process.myUserHandle())
+            var clickedApp: AppModel? = null
+            var clickedView: View? = null
+            val adapter = RecentHistoryAdapter(android.view.Gravity.START,
+                onApp = { model, view -> clickedApp = model; clickedView = view }, onQuery = {})
+            adapter.submit(listOf(RecentHistoryAdapter.Row.App(app)))
+            val parent = RecyclerView(activity).apply { layoutManager = androidx.recyclerview.widget.LinearLayoutManager(activity) }
+            val holder = adapter.onCreateViewHolder(parent, 1)
+            adapter.onBindViewHolder(holder, 1)
+            holder.itemView.performClick()
+            assertEquals(app, clickedApp)
+            assertTrue("recent app label was not passed as launch source", clickedView === holder.itemView)
+        }
+    }
+
+    @Test
+    fun sheetOptionCapturesLabelBoundsBeforeDismissal() {
+        val done = CountDownLatch(1)
+        var bounds: Rect? = null
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            BottomSheetMenu(activity).optionWithSource("Fixture source") {
+                bounds = it
+                done.countDown()
+            }.show()
+        }
+        val row = device.wait(Until.findObject(By.desc("Fixture source")), TIMEOUT)
+        assertNotNull("sheet row was not shown", row)
+        row!!.click()
+        assertTrue("sheet action was not invoked", done.await(5, TimeUnit.SECONDS))
+        assertTrue("label bounds were not captured before dismissal", bounds?.isEmpty == false)
+    }
+
+    @Test
+    fun drawerClosesAfterPullPastThresholdWithReleaseVelocity() {
+        Prefs(context).autoShowKeyboard = false
+        openDrawer()
+        val bounds = Rect()
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            val list = activity.findViewById<RecyclerView>(R.id.recyclerView)
+            list.scrollToPosition(0)
+            assertTrue("drawer list has no visible bounds", list.getGlobalVisibleRect(bounds))
+        }
+        device.waitForIdle()
+        val density = context.resources.displayMetrics.density
+        val startY = bounds.top + (12 * density).toInt()
+        val endY = minOf(bounds.bottom - 1, startY + (190 * density).toInt())
+        assertTrue("drawer list too short for pull test", endY - startY > 100 * density)
+        // 100 steps is approximately 500 ms; ACTION_UP retains fling velocity.
+        device.swipe(bounds.centerX(), startY, bounds.centerX(), endY, 100)
+        assertTrue("drawer stayed open after a threshold pull", device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+        assertFalse("drawer search remained visible", device.hasObject(By.res(searchId)))
     }
 
     @Test

@@ -287,7 +287,7 @@ class HomeSlotsController(
         homeAppViews.forEach { it.visibility = View.GONE }
     }
 
-    fun homeAppClicked(location: Int) {
+    fun homeAppClicked(location: Int, sourceView: View? = null) {
         if (folderManager.isFolderSlot(location)) {
             toggleFolderExpansion(location)
             return
@@ -300,7 +300,8 @@ class HomeSlotsController(
             prefs.getHomeAppPackage(location),
             prefs.getHomeAppActivityClassName(location),
             prefs.getHomeAppUser(location),
-            prefs.getHomeAppUrl(location).ifEmpty { null }
+            prefs.getHomeAppUrl(location).ifEmpty { null },
+            sourceView
         )
     }
 
@@ -310,7 +311,10 @@ class HomeSlotsController(
      * the mindful pause apply to all of them. A website slot is gated on the
      * app that handles its URL, not on its empty package.
      */
-    fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String? = null) {
+    fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String? = null, sourceView: View? = null, sourceBounds: android.graphics.Rect? = null) {
+        val launchBounds = sourceBounds ?: sourceView?.let { view -> android.graphics.Rect().takeIf { view.getGlobalVisibleRect(it) } }
+        if (com.parem.launcher.BuildConfig.DEBUG && launchBounds != null)
+            android.util.Log.d("ParemNavigation", "Home launch bounds: $launchBounds")
         val ctx = fragment.context ?: return
         if (url != null) {
             val safeUrl = WebShortcut.normalize(url) ?: run {
@@ -328,7 +332,7 @@ class HomeSlotsController(
         BadHabitDialogs.gateLaunch(
             ctx, fragment.viewLifecycleOwner.lifecycleScope, { fragment.isAdded },
             appName, packageName,
-            open = { openApp(appName, packageName, activityClassName, userString, url) },
+            open = { openApp(appName, packageName, activityClassName, userString, url, launchBounds) },
         )
     }
 
@@ -341,7 +345,7 @@ class HomeSlotsController(
         )
     }
 
-    private fun openApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String?) {
+    private fun openApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String?, sourceBounds: android.graphics.Rect? = null) {
         viewModel.selectedApp(
             AppModel(
                 appName,
@@ -352,7 +356,7 @@ class HomeSlotsController(
                 getUserHandleFromString(context, userString),
                 url
             ),
-            Constants.FLAG_LAUNCH_APP
+            Constants.FLAG_LAUNCH_APP, sourceBounds = sourceBounds
         )
     }
 
@@ -362,8 +366,8 @@ class HomeSlotsController(
 
         val menu = BottomSheetMenu(context).title(folder.name)
         for (app in folder.apps) {
-            menu.option(app.appName) {
-                launchApp(app.appName, app.packageName, app.activityClassName, app.userString, app.url.ifEmpty { null })
+            menu.optionWithSource(app.appName) { bounds ->
+                launchApp(app.appName, app.packageName, app.activityClassName, app.userString, app.url.ifEmpty { null }, sourceBounds = bounds)
             }
         }
         menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)

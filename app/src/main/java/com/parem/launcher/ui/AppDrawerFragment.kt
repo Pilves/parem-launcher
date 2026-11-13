@@ -5,6 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
+import android.graphics.Canvas
+import android.widget.EdgeEffect
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,7 +20,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.Recycler
 import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -46,10 +49,11 @@ import com.parem.launcher.helper.HiddenLabelLoad
 import com.parem.launcher.helper.PackageChangeTracker
 import com.parem.launcher.helper.getHiddenAppsForSearch
 import com.parem.launcher.helper.hideKeyboard
-import com.parem.launcher.helper.isEinkDisplay
+import com.parem.launcher.helper.skipAnimations
 import com.parem.launcher.helper.openSearch
 import com.parem.launcher.helper.privateProfile
 import com.parem.launcher.helper.privateSpaceEntryHidden
+import com.parem.launcher.helper.DrawerPull
 import com.parem.launcher.helper.DrawerRows
 import com.parem.launcher.helper.padForSystemBars
 import com.parem.launcher.helper.showKeyboard
@@ -461,7 +465,8 @@ class AppDrawerFragment : BaseFragment() {
         }
     }
 
-    private fun onAppClick(app: AppModel) {
+    private fun onAppClick(app: AppModel, sourceView: View? = null) {
+        val sourceBounds = sourceView?.let { view -> android.graphics.Rect().takeIf { view.getGlobalVisibleRect(it) } }
         if (!isAdded) return
         if (app.isPrivateHeader()) {
             val locked = isQuietMode(app.user)
@@ -479,12 +484,12 @@ class AppDrawerFragment : BaseFragment() {
         if (app.appPackage.isEmpty())
             return
         if ((flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
-            && checkBadHabitAndLaunch(app)
+            && checkBadHabitAndLaunch(app, sourceBounds)
         ) {
             // Bad habit check is handling launch asynchronously
         } else {
             recordLaunch(app)
-            viewModel.selectedApp(app, flag, gestureLetter)
+            viewModel.selectedApp(app, flag, gestureLetter, sourceBounds)
             if (flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
                 findNavController().popBackStack(R.id.mainFragment, false)
             else
@@ -540,7 +545,7 @@ class AppDrawerFragment : BaseFragment() {
         adapter = AppDrawerAdapter(
             flag,
             prefs.appLabelAlignment,
-            appClickListener = { onAppClick(it) },
+            appClickListener = { app, view -> onAppClick(app, view) },
             appLongPressListener = { app ->
                 if (isAdded && _binding != null) {
                     _binding?.search?.hideKeyboard()
@@ -598,24 +603,78 @@ class AppDrawerFragment : BaseFragment() {
             }
         }
 
-        linearLayoutManager = object : LinearLayoutManager(requireContext()) {
-            override fun scrollVerticallyBy(
-                dx: Int,
-                recycler: Recycler,
-                state: RecyclerView.State,
-            ): Int {
-                val scrollRange = super.scrollVerticallyBy(dx, recycler, state)
-                val overScroll = dx - scrollRange
-                val rv = _binding?.recyclerView ?: return scrollRange
-                if (overScroll < -10 && rv.scrollState == RecyclerView.SCROLL_STATE_DRAGGING)
-                    if (isAdded) findNavController().popBackStack()
-                return scrollRange
+        linearLayoutManager = LinearLayoutManager(requireContext())
+        val recycler = binding.recyclerView
+        var released = false
+        recycler.addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                when (e.actionMasked) {
+                    MotionEvent.ACTION_DOWN, MotionEvent.ACTION_CANCEL -> released = false
+                    MotionEvent.ACTION_UP -> released = true
+                }
+                return false
+            }
+        })
+        recycler.setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_UP -> released = true
+                MotionEvent.ACTION_CANCEL -> released = false
+            }
+            false
+        }
+        recycler.overScrollMode = View.OVER_SCROLL_ALWAYS
+        recycler.edgeEffectFactory = object : RecyclerView.EdgeEffectFactory() {
+            override fun createEdgeEffect(view: RecyclerView, direction: Int): EdgeEffect {
+                if (direction != DIRECTION_TOP) {
+                    if (!view.context.skipAnimations()) return super.createEdgeEffect(view, direction)
+                    return object : EdgeEffect(view.context) {
+                        override fun draw(canvas: Canvas): Boolean = false
+                    }
+                }
+                return object : EdgeEffect(view.context) {
+                    private val threshold = 64f * resources.displayMetrics.density
+                    private val pullState = DrawerPull(threshold)
+                    private fun pull(delta: Float) {
+                        if (view.scrollState != RecyclerView.SCROLL_STATE_DRAGGING) return
+                        if (pullState.pull(delta * view.height)) {
+                            view.performHapticFeedback(
+                                if (android.os.Build.VERSION.SDK_INT >= 34) HapticFeedbackConstants.GESTURE_THRESHOLD_ACTIVATE
+                                else HapticFeedbackConstants.CLOCK_TICK
+                            )
+                        }
+                        if (!view.context.skipAnimations()) {
+                            view.animate().cancel()
+                            view.translationY = (pullState.distance * 0.35f).coerceAtMost(threshold)
+                        }
+                    }
+                    override fun onPull(deltaDistance: Float) = pull(deltaDistance)
+                    override fun onPull(deltaDistance: Float, displacement: Float) = pull(deltaDistance)
+                    override fun onPullDistance(deltaDistance: Float, displacement: Float): Float {
+                        val before = pullState.distance
+                        pull(deltaDistance)
+                        return if (view.height > 0) (pullState.distance - before) / view.height else 0f
+                    }
+                    override fun isFinished(): Boolean = pullState.distance <= 0f
+                    override fun getDistance(): Float = if (view.height > 0) pullState.distance / view.height else 0f
+                    // RecyclerView flings on ACTION_UP before releasing its glows.
+                    // Keep the finger's distance until onRelease makes the decision;
+                    // an ordinary fling has no pull distance to dismiss with.
+                    override fun onAbsorb(velocity: Int) = Unit
+                    override fun onRelease() {
+                        val close = pullState.release(released)
+                        released = false
+                        if (view.context.skipAnimations()) view.translationY = 0f
+                        else view.animate().translationY(0f).setDuration(150).start()
+                        if (close && isAdded && _binding != null) findNavController().popBackStack()
+                    }
+                    override fun draw(canvas: Canvas): Boolean = false
+                }
             }
         }
 
         recentAdapter = RecentHistoryAdapter(
             prefs.appLabelAlignment,
-            onApp = { onAppClick(it) },
+            onApp = { app, view -> onAppClick(app, view) },
             onQuery = { _binding?.search?.setQuery(it, false) },
         )
 
@@ -624,9 +683,6 @@ class AppDrawerFragment : BaseFragment() {
         scrollListener = getRecyclerViewOnScrollListener()
         binding.recyclerView.addOnScrollListener(scrollListener!!)
         binding.recyclerView.itemAnimator = null
-        // The glow isn't an animator, so no system scale removes it; on e-ink it forces a partial refresh
-        if (requireContext().isEinkDisplay())
-            binding.recyclerView.overScrollMode = View.OVER_SCROLL_NEVER
     }
 
     private fun initObservers() {
@@ -850,7 +906,7 @@ class AppDrawerFragment : BaseFragment() {
      * Returns true if the app has a limit or pause and the launch gate (mindful pause /
      * limit warning) is handling it, false if we should proceed with normal launch.
      */
-    private fun checkBadHabitAndLaunch(appModel: AppModel): Boolean {
+    private fun checkBadHabitAndLaunch(appModel: AppModel, sourceBounds: android.graphics.Rect?): Boolean {
         val ctx = context ?: return false
         if (!AppLimitManager.isGated(ctx, appModel.appPackage)) return false
         BadHabitDialogs.gateLaunch(
@@ -859,7 +915,7 @@ class AppDrawerFragment : BaseFragment() {
             open = {
                 if (isAdded) {
                     recordLaunch(appModel)
-                    viewModel.selectedApp(appModel, flag)
+                    viewModel.selectedApp(appModel, flag, sourceBounds = sourceBounds)
                     findNavController().popBackStack(R.id.mainFragment, false)
                 }
             },

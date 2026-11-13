@@ -129,8 +129,10 @@ class BottomSheetMenu(private val context: Context) {
         dismissOnClick: Boolean = true,
         destructive: Boolean = false,
         primaryAction: Boolean = false,
+        onSourceBounds: ((android.graphics.Rect?) -> Unit)? = null,
         onClick: () -> Unit,
     ): BottomSheetMenu {
+        lateinit var sourceLabel: TextView
         val row = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -167,15 +169,16 @@ class BottomSheetMenu(private val context: Context) {
                 }
             })
             setOnClickListener {
+                val bounds = if (onSourceBounds != null) android.graphics.Rect().takeIf { sourceLabel.getGlobalVisibleRect(it) } else null
                 if (dismissOnClick) dialog.dismiss()
-                onClick()
+                if (onSourceBounds != null) onSourceBounds(bounds) else onClick()
             }
         }
         val labels = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
         }
-        labels.addView(TextView(context).apply {
+        sourceLabel = TextView(context).apply {
             TextViewCompat.setTextAppearance(this, if (primaryAction) R.style.TextAppearance_Parem_Label else R.style.TextAppearance_Parem_Body)
             this.text = text
             setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
@@ -186,7 +189,8 @@ class BottomSheetMenu(private val context: Context) {
                 else -> R.attr.textColor
             }))
             setTypeface(typeface, if (checked == true) Typeface.BOLD else Typeface.NORMAL)
-        })
+        }
+        labels.addView(sourceLabel)
         if (summary != null) labels.addView(TextView(context).apply {
             TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_Caption)
             this.text = summary
@@ -205,6 +209,10 @@ class BottomSheetMenu(private val context: Context) {
         container.addView(row)
         return this
     }
+
+    /** Captures the label bounds before the sheet is dismissed. */
+    fun optionWithSource(text: String, onClick: (android.graphics.Rect?) -> Unit): BottomSheetMenu =
+        option(text, onSourceBounds = onClick) {}
 
     fun gap(): BottomSheetMenu = customView(View(context).apply {
         layoutParams = LinearLayout.LayoutParams(1, context.resources.getDimensionPixelSize(R.dimen.section_gap))
