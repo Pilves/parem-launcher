@@ -30,8 +30,10 @@ the current policy before submission. This is separate from F-Droid’s policy.
 
 ## Anti-features
 
-`NonFreeNet`: daily wallpapers come from Unsplash, Pexels, Reddit and imgbox
-(picked from `web/wallpapers.json` on the project's GitHub Pages site) and currency rates from the ECB, none a free-software service. Both run only after the user opts in
+`NonFreeNet`: daily wallpapers are downloaded from third-party hosts picked
+from the project's GitHub Pages list, and currency rates come from the ECB.
+The tracked wallpaper list at 2026-11-13 names Unsplash and Pexels; the live list
+was not checked and can change. These services are not free-software services. Both run only after the user opts in
 (daily wallpapers toggle, typing a currency conversion). Weather uses
 Open-Meteo, which is AGPL open source, so it does not count. Nothing else
 goes online: web search and the GitHub link open in the browser.
