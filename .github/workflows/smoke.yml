@@ -51,8 +51,8 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Perf script tests
-        run: node --test scripts/perf-budget.test.mjs
+      - name: Harness script tests
+        run: node --test scripts/perf-budget.test.mjs scripts/run-instrumented.test.mjs
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
