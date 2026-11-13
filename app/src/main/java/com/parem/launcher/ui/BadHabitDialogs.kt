@@ -63,10 +63,9 @@ object BadHabitDialogs {
         open: () -> Unit,
         onCancel: () -> Unit = {},
     ) {
-        val focus = FocusModeManager.isActive(context)
         val allowed = FocusModeManager.isAppAllowed(context, packageName)
         val gated = AppLimitManager.isGated(context, packageName)
-        when (LaunchGate.decide(focus, allowed, gated, false, false)) {
+        when (LaunchGate.decide(allowed, gated, false, false)) {
             LaunchGate.Decision.BLOCK -> { FocusModeManager.showBlocked(context); return }
             LaunchGate.Decision.OPEN -> if (!gated) { open(); return }
             else -> Unit
@@ -94,7 +93,7 @@ object BadHabitDialogs {
                     }
                 }
             }
-            when (LaunchGate.decide(FocusModeManager.isActive(context), FocusModeManager.isAppAllowed(context, packageName), true, pause, overLimit)) {
+            when (LaunchGate.decide(FocusModeManager.isAppAllowed(context, packageName), true, pause, overLimit)) {
                 LaunchGate.Decision.BLOCK -> FocusModeManager.showBlocked(context)
                 LaunchGate.Decision.OPEN -> open()
                 LaunchGate.Decision.LIMIT_WARNING ->
@@ -154,7 +153,7 @@ object BadHabitDialogs {
     fun gateIntent(context: Context, scope: CoroutineScope, isActive: () -> Boolean, intent: Intent, onFailure: () -> Unit = {}) {
         gateWebOpen(context, scope, isActive, intent) { packageName ->
             if (!isActive()) return@gateWebOpen
-            if (FocusModeManager.isActive(context) && (packageName.isEmpty() || !FocusModeManager.isAppAllowed(context, packageName))) {
+            if (!FocusModeManager.isAppAllowed(context, packageName)) {
                 FocusModeManager.showBlocked(context)
                 return@gateWebOpen
             }

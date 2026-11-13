@@ -8,8 +8,9 @@ object LaunchGate {
     fun knownTarget(componentPackage: String?, intentPackage: String?): String? =
         componentPackage?.takeIf { it.isNotBlank() } ?: intentPackage?.takeIf { it.isNotBlank() }
 
-    fun decide(focusActive: Boolean, allowed: Boolean, gated: Boolean, hasPause: Boolean, overLimit: Boolean): Decision = when {
-        focusActive && !allowed -> Decision.BLOCK
+    /** [allowed] is the authoritative current Focus check; never combine separate snapshots. */
+    fun decide(allowed: Boolean, gated: Boolean, hasPause: Boolean, overLimit: Boolean): Decision = when {
+        !allowed -> Decision.BLOCK
         !gated -> Decision.OPEN
         hasPause -> Decision.PAUSE
         overLimit -> Decision.LIMIT_WARNING
