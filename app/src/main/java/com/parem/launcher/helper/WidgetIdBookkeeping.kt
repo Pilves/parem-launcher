@@ -7,18 +7,20 @@ package com.parem.launcher.helper
  */
 object WidgetIdBookkeeping {
 
-    /**
-     * WIDGET_IDS after a restore pass: valid widgets stay, invalid ones stay only
-     * while a rebind is still possible (provider known), order preserved. Keeping
-     * the old ID in the list is what lets a later restore ask again after the
-     * rebind dialog was interrupted.
-     */
-    fun idsToKeep(ids: List<Int>, valid: Set<Int>, restorable: Set<Int>): List<Int> =
-        ids.filter { it in valid || it in restorable }
+    /** A failed provider query is unknown, just like a null result. */
+    fun <T> queryOrUnknown(query: () -> T?, onFailure: (Exception) -> Unit): T? =
+        try { query() } catch (e: Exception) { onFailure(e); null }
 
-    /** WIDGET_IDS with a rebound widget's new ID in the old one's position. */
-    fun replaceId(ids: List<Int>, oldId: Int, newId: Int): List<Int> =
-        if (oldId in ids) ids.map { if (it == oldId) newId else it } else ids + newId
+    /** All saved widgets, including temporarily unavailable ones, occupy capacity. */
+    fun canAdd(ids: List<Int>): Boolean = ids.size < 6
+
+    /** A swap never appends when its original target has been removed. */
+    fun replaceId(ids: List<Int>, oldId: Int, newId: Int): List<Int>? =
+        if (oldId in ids) ids.map { if (it == oldId) newId else it } else null
+
+    /** A legacy saved index cannot safely identify the original target after reorder. */
+    fun pendingTarget(savedId: Int?, legacyIndex: Int): Int =
+        savedId ?: if (legacyIndex >= 0) -2 else -1
 
     /**
      * Host IDs nothing refers to: not on the home screen and not the one
