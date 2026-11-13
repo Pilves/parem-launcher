@@ -656,7 +656,10 @@ class AppDrawerFragment : BaseFragment() {
                     }
                     override fun isFinished(): Boolean = pullState.distance <= 0f
                     override fun getDistance(): Float = if (view.height > 0) pullState.distance / view.height else 0f
-                    override fun onAbsorb(velocity: Int) { pullState.release(false) }
+                    // RecyclerView flings on ACTION_UP before releasing its glows.
+                    // Keep the finger's distance until onRelease makes the decision;
+                    // an ordinary fling has no pull distance to dismiss with.
+                    override fun onAbsorb(velocity: Int) = Unit
                     override fun onRelease() {
                         val close = pullState.release(released)
                         released = false

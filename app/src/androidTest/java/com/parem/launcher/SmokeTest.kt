@@ -377,6 +377,29 @@ class SmokeTest {
     }
 
     @Test
+    fun drawerClosesAfterPullPastThresholdWithReleaseVelocity() {
+        Prefs(context).autoShowKeyboard = false
+        openDrawer()
+        val bounds = Rect()
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            val list = activity.findViewById<RecyclerView>(R.id.recyclerView)
+            list.scrollToPosition(0)
+            assertTrue("drawer list has no visible bounds", list.getGlobalVisibleRect(bounds))
+        }
+        device.waitForIdle()
+        val density = context.resources.displayMetrics.density
+        val startY = bounds.top + (12 * density).toInt()
+        val endY = minOf(bounds.bottom - 1, startY + (190 * density).toInt())
+        assertTrue("drawer list too short for pull test", endY - startY > 100 * density)
+        // 100 steps is approximately 500 ms; ACTION_UP retains fling velocity.
+        device.swipe(bounds.centerX(), startY, bounds.centerX(), endY, 100)
+        assertTrue("drawer stayed open after a threshold pull", device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+        assertFalse("drawer search remained visible", device.hasObject(By.res(searchId)))
+    }
+
+    @Test
     fun omniboxLaunchesApp() {
         openDrawer()
         // R.id.search is the SearchView container; setText only works on its inner field
