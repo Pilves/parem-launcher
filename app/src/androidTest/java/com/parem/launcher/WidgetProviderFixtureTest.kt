@@ -9,6 +9,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import androidx.test.uiautomator.By
+import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
@@ -82,7 +83,18 @@ class WidgetProviderFixtureTest {
             assertEquals(110, prefs.getWidgetHeight(second))
 
             assertTrue(device.executeShellCommand("pm install -r /data/local/tmp/parem-widget-fixture.apk").contains("Success"))
-            device.findObjects(unavailable)[0].click()
+            // Reinstall dispatches provider changes that can rebuild the placeholder view.
+            val clickDeadline = SystemClock.elapsedRealtime() + 10_000
+            var clicked = false
+            while (!clicked && SystemClock.elapsedRealtime() < clickDeadline) {
+                val firstPlaceholder = device.findObjects(unavailable).firstOrNull()
+                if (firstPlaceholder != null) try {
+                    firstPlaceholder.click()
+                    clicked = true
+                } catch (_: StaleObjectException) { }
+                if (!clicked) SystemClock.sleep(100)
+            }
+            assertTrue("first unavailable widget could not be opened after reinstall", clicked)
             checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.swap_widget))), 10_000)).click()
             checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.EditText")), 20_000)).text = "configurable"
             checkNotNull(device.wait(Until.findObject(By.text("Parem configurable fixture")), 20_000)).click()
