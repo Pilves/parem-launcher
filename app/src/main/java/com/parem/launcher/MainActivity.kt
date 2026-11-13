@@ -81,11 +81,13 @@ class MainActivity : AppCompatActivity() {
         // into the activity's override, which bypassed AppCompat DayNight and made
         // checkTheme() recreate() the activity in a loop whenever Parem's fixed theme
         // disagreed with the system dark mode (home showed only the wallpaper).
+        val prefs = Prefs(context)
+        prefs.initializeTextSize()
         val delta = Configuration()
         // Parem's step rides on top of the system font size; it never replaces it (DESIGN.md 3.1)
         delta.fontScale = TextScale.effective(
             context.resources.configuration.fontScale,
-            TextScale.nearestStep(Prefs(context).textSizeScale)
+            TextScale.nearestStep(prefs.textSizeScale)
         )
         super.attachBaseContext(context.createConfigurationContext(delta))
     }

@@ -158,7 +158,7 @@ class AppearanceSettingsCard(
 
     private fun showTextSizePicker() {
         val menu = BottomSheetMenu(context).title(context.getString(R.string.text_size))
-        listOf(R.string.text_size_smaller to TextScale.SMALLER, R.string.text_size_default to TextScale.DEFAULT,
+        listOf(R.string.text_size_smaller to TextScale.SMALLER, R.string.text_size_medium to TextScale.DEFAULT,
             R.string.text_size_large to TextScale.LARGE, R.string.text_size_larger to TextScale.LARGER).forEach { (label, step) ->
             menu.option(context.getString(label), checked = TextScale.nearestStep(prefs.textSizeScale) == step, singleChoice = true) {
                 updateTextSizeScale(step)
@@ -180,7 +180,7 @@ class AppearanceSettingsCard(
                 TextScale.SMALLER -> R.string.text_size_smaller
                 TextScale.LARGE -> R.string.text_size_large
                 TextScale.LARGER -> R.string.text_size_larger
-                else -> R.string.text_size_default
+                else -> R.string.text_size_medium
             }
         )
         binding.textSizeRow.bindValueRow(binding.textSizeValue.text)
