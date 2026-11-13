@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Cancel widget configuration without adding or replacing a widget.
+
 - Show unavailable widgets as removable placeholders instead of opening empty bind dialogs.
 
 - Preserve picker checkbox accessibility after filtering and recycling rows.

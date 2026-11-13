@@ -30,6 +30,7 @@ import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.HomeKeyInput
 import com.parem.launcher.helper.NightModeChange
 import com.parem.launcher.helper.TextScale
+import com.parem.launcher.helper.WidgetOperationResult
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.isDarkThemeOn
 import com.parem.launcher.helper.isParemDefault
@@ -67,7 +68,7 @@ class MainActivity : AppCompatActivity() {
     // process death under the system dialog must still finish or cancel the widget
     var pendingWidgetOp: Bundle? = null
     // A result that arrived while no HomeFragment was up to take it
-    var pendingWidgetResult: Boolean? = null
+    var pendingWidgetResult: WidgetOperationResult? = null
 
     var onAdminResult: ((Boolean) -> Unit)? = null
 
@@ -102,8 +103,10 @@ class MainActivity : AppCompatActivity() {
         pendingWidgetOp = savedInstanceState?.getBundle("pendingWidgetOp")
         // recreate() makes a new instance, so the cap only holds if it survives in state
         themeCheckRetries = savedInstanceState?.getInt("themeCheckRetries") ?: 0
-        pendingWidgetResult = savedInstanceState?.takeIf { it.containsKey("pendingWidgetResult") }
-            ?.getBoolean("pendingWidgetResult")
+        pendingWidgetResult = savedInstanceState?.getBundle("pendingWidgetResultV2")?.let {
+            WidgetOperationResult(it.getInt("source"), it.getInt("stage"), it.getInt("id"),
+                if (it.containsKey("returnedId")) it.getInt("returnedId") else null, it.getBoolean("success"))
+        }
         super.onCreate(savedInstanceState)
         nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         if (prefs.boldFont) theme.applyStyle(R.style.BoldFontOverlay, true)
@@ -120,13 +123,13 @@ class MainActivity : AppCompatActivity() {
         bindWidgetLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            deliverWidgetResult(result.resultCode == Activity.RESULT_OK)
+            deliverWidgetResult(WidgetOperationResult.BIND, result.resultCode == Activity.RESULT_OK, result.data)
         }
 
         configureWidgetLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            deliverWidgetResult(result.resultCode == Activity.RESULT_OK)
+            deliverWidgetResult(WidgetOperationResult.CONFIGURE, result.resultCode == Activity.RESULT_OK, result.data)
         }
 
         enableAdminLauncher = registerForActivityResult(
@@ -186,17 +189,27 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         outState.putBundle("pendingWidgetOp", pendingWidgetOp)
         outState.putInt("themeCheckRetries", themeCheckRetries)
-        pendingWidgetResult?.let { outState.putBoolean("pendingWidgetResult", it) }
+        pendingWidgetResult?.let { result -> outState.putBundle("pendingWidgetResultV2", Bundle().apply {
+            putInt("source", result.source); putInt("stage", result.operationStage); putInt("id", result.operationId)
+            result.returnedId?.let { putInt("returnedId", it) }; putBoolean("success", result.success)
+        }) }
     }
 
     private fun homeFragment(): HomeFragment? =
         supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
             ?.childFragmentManager?.primaryNavigationFragment as? HomeFragment
 
-    private fun deliverWidgetResult(success: Boolean) {
+    private fun deliverWidgetResult(source: Int, success: Boolean, data: Intent?) {
+        val op = pendingWidgetOp ?: return
+        if (pendingWidgetResult != null || !op.containsKey("stage") || !op.containsKey("widgetId")) return
+        val returnedId = data?.takeIf { it.hasExtra(AppWidgetManager.EXTRA_APPWIDGET_ID) }
+            ?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+            ?.takeIf { it != AppWidgetManager.INVALID_APPWIDGET_ID }
+        val result = WidgetOperationResult(source, op.getInt("stage"), op.getInt("widgetId"), returnedId, success)
+        if (!result.matches(op.getInt("stage"), op.getInt("widgetId"))) return
         val controller = homeFragment()?.widgetController
-        if (controller != null) controller.onPendingWidgetResult(success)
-        else pendingWidgetResult = success
+        if (controller != null) controller.onPendingWidgetResult(result)
+        else pendingWidgetResult = result
     }
 
     // AppWidgetHost.startAppWidgetConfigureActivityForResult (the only way to configure a
@@ -206,7 +219,7 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CONFIGURE_PROFILE_WIDGET)
-            deliverWidgetResult(resultCode == Activity.RESULT_OK)
+            deliverWidgetResult(WidgetOperationResult.CONFIGURE, resultCode == Activity.RESULT_OK, data)
     }
 
     override fun onDestroy() {

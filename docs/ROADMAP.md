@@ -296,6 +296,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP53 | **Done** (PR #59). **Todo**. Preserve unavailable widgets without empty bind dialogs | Widget host reconciliation, placeholder, swap safety, tests, changelog and handoff | Unknown provider state preserves saved ID and exposes explicit removal; swaps retain their original target |
 
+| M6-WP56 | **Done** (PR #0). **Todo**. Respect cancelled widget configuration | Widget result handling, companion fixture, tests and handoff | Cancel releases only the unsaved allocation and preserves existing widgets |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict

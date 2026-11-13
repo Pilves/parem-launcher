@@ -15,8 +15,13 @@ public class ConfigureWidget extends Activity {
     private final BroadcastReceiver complete = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             int id = getIntent().getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
-            Log.i("WidgetFixtureLifecycle", "broadcast complete: RESULT_OK");
-            ConfigureWidget.this.setResult(RESULT_OK, new Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id));
+            if ("com.parem.widgetfixture.CANCEL".equals(intent.getAction())) {
+                Log.i("WidgetFixtureLifecycle", "broadcast cancel: RESULT_CANCELED");
+                ConfigureWidget.this.setResult(RESULT_CANCELED); // Android may return null data on cancellation.
+            } else {
+                Log.i("WidgetFixtureLifecycle", "broadcast complete: RESULT_OK");
+                ConfigureWidget.this.setResult(RESULT_OK, new Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id));
+            }
             finish();
         }
     };
@@ -28,7 +33,9 @@ public class ConfigureWidget extends Activity {
         TextView label = new TextView(this);
         label.setText("Parem fixture configuration");
         setContentView(label);
-        registerReceiver(complete, new IntentFilter("com.parem.widgetfixture.COMPLETE"));
+        IntentFilter filter = new IntentFilter("com.parem.widgetfixture.COMPLETE");
+        filter.addAction("com.parem.widgetfixture.CANCEL");
+        registerReceiver(complete, filter);
     }
 
     @Override protected void onStop() {

@@ -143,4 +143,82 @@ class WidgetProviderFixtureTest {
             device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
         }
     }
+    @Test
+    fun actualCancelWithNullDataKeepsSwapTargetAfterHomeAndRecreation() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("widget_fixture") == "true")
+        assumeTrue(BuildConfig.DEBUG && context.packageName == "com.parem.launcher.debug")
+        assumeTrue(Build.HARDWARE == "ranchu" || Build.PRODUCT.contains("sdk_gphone"))
+        check(device.executeShellCommand("getprop ro.kernel.qemu").trim() == "1")
+        check(device.executeShellCommand("pm path $fixture").contains("package:"))
+        val prefs = Prefs(context)
+        prefs.firstOpen = false
+        prefs.onboardingVersionSeen = Constants.ONBOARDING_VERSION
+        device.executeShellCommand("cmd package set-home-activity ${context.packageName}/${MainActivity::class.java.name}")
+        device.executeShellCommand("appwidget grantbind --package ${context.packageName} --user 0")
+        var first = -1
+        var second = -1
+        var pending = -1
+        var oldActivity: MainActivity? = null
+        try {
+            check(device.pressHome())
+            check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
+            onHome { activity ->
+                first = activity.appWidgetHost.allocateAppWidgetId()
+                second = activity.appWidgetHost.allocateAppWidgetId()
+                prefs.setWidgetIdList(listOf(first, second))
+                prefs.setWidgetProvider(first, plain.flattenToString())
+                prefs.setWidgetProvider(second, plain.flattenToString())
+                prefs.setWidgetHeight(first, 101)
+                prefs.setWidgetHeight(second, 111)
+                home(activity).widgetController!!.requestReconcile(force = true)
+            }
+            val unavailable = By.desc(context.getString(R.string.widget_unavailable))
+            assertTrue(device.wait(Until.hasObject(unavailable), 10_000))
+            device.findObjects(unavailable).first().click()
+            checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.swap_widget))), 10_000)).click()
+            checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.EditText")), 20_000)).text = "configurable"
+            checkNotNull(device.wait(Until.findObject(By.text("Parem configurable fixture")), 20_000)).click()
+            assertTrue(device.wait(Until.hasObject(By.text("Parem fixture configuration")), 15_000))
+            assertTrue(device.pressHome())
+            assertTrue(device.wait(Until.hasObject(unavailable), 10_000))
+            onHome { activity ->
+                val operation = checkNotNull(activity.pendingWidgetOp)
+                assertEquals(2, operation.getInt("stage"))
+                assertEquals(first, operation.getInt("replaceId"))
+                pending = operation.getInt("widgetId")
+                oldActivity = activity
+                activity.recreate()
+            }
+            val recreateDeadline = SystemClock.elapsedRealtime() + 15_000
+            var recreated = false
+            while (!recreated && SystemClock.elapsedRealtime() < recreateDeadline) {
+                instrumentation.runOnMainSync {
+                    recreated = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                        .filterIsInstance<MainActivity>().any { it !== oldActivity }
+                }
+                if (!recreated) SystemClock.sleep(100)
+            }
+            assertTrue("home activity did not recreate", recreated)
+            assertTrue(device.wait(Until.hasObject(unavailable), 15_000))
+            onHome { assertEquals(pending, it.pendingWidgetOp?.getInt("widgetId")) }
+            device.executeShellCommand("am broadcast -a $fixture.CANCEL -p $fixture")
+            val deadline = SystemClock.elapsedRealtime() + 15_000
+            var stillAllocated = true
+            while (stillAllocated && SystemClock.elapsedRealtime() < deadline) {
+                onHome { stillAllocated = pending in it.appWidgetHost.appWidgetIds }
+                if (stillAllocated) SystemClock.sleep(100)
+            }
+            assertFalse("cancelled allocation was not released", stillAllocated)
+            assertEquals(listOf(first, second), prefs.getWidgetIdList())
+            val fresh = Prefs(context)
+            assertEquals(101, fresh.getWidgetHeight(first))
+            assertEquals(111, fresh.getWidgetHeight(second))
+            assertEquals(plain.flattenToString(), fresh.getAllWidgetProviders()[first])
+            assertEquals(plain.flattenToString(), fresh.getAllWidgetProviders()[second])
+            onHome { assertEquals(null, it.pendingWidgetOp) }
+        } finally {
+            device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
+        }
+    }
+
 }

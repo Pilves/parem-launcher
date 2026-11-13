@@ -31,6 +31,7 @@ import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
 import com.parem.launcher.helper.WidgetIdBookkeeping
+import com.parem.launcher.helper.WidgetOperationResult
 import com.parem.launcher.helper.WidgetPickerLabels
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
@@ -142,14 +143,15 @@ class HomeWidgetController(
     }
 
     /** Bind/configure dialog result for the saved pending op, from MainActivity. */
-    fun onPendingWidgetResult(success: Boolean) {
+    fun onPendingWidgetResult(result: WidgetOperationResult) {
         val mainActivity = mainActivity ?: return
+        val op = mainActivity.pendingWidgetOp ?: return
+        if (!result.matches(op.getInt(PendingOp.STAGE), op.getInt(PendingOp.WIDGET_ID))) return
         if (!isActive() || isRestoringWidgets) {
             // Let the in-flight snapshot finish before applying a pending result.
-            mainActivity.pendingWidgetResult = success
+            if (mainActivity.pendingWidgetResult == null) mainActivity.pendingWidgetResult = result
             return
         }
-        val op = mainActivity.pendingWidgetOp ?: return
         mainActivity.pendingWidgetOp = null
         val widgetId = op.getInt(PendingOp.WIDGET_ID)
         // Old process-state bundles recorded only an index. It may now refer to
@@ -165,17 +167,22 @@ class HomeWidgetController(
             requestReconcile()
             return
         }
+        // Cancel can return no data and must never query the provider or replace an existing widget.
+        if (op.getInt(PendingOp.STAGE) == PendingOp.CONFIGURE && !result.success) {
+            releasePendingWidget(widgetId)
+            return
+        }
         // A framework failure is not evidence that the pending widget is gone.
         val info = try { mainActivity.appWidgetManager.getAppWidgetInfo(widgetId) }
         catch (e: Exception) {
             CrashReporter.reportNonFatal("HomeWidgetController: pending widget info failed", e)
             mainActivity.pendingWidgetOp = op
-            mainActivity.pendingWidgetResult = success
+            mainActivity.pendingWidgetResult = result
             return
         }
         when (op.getInt(PendingOp.STAGE)) {
             PendingOp.BIND -> {
-                if (success && info != null) {
+                if (result.success && info != null) {
                     onWidgetBound(widgetId, info, replaceId)
                 } else {
                     releasePendingWidget(widgetId)
@@ -183,7 +190,6 @@ class HomeWidgetController(
                 }
             }
             PendingOp.CONFIGURE -> {
-                // A cancelled configure still leaves a usable widget when the provider kept it bound
                 if (info != null) finishWidgetSetup(widgetId, info, replaceId)
                 else releasePendingWidget(widgetId)
             }
