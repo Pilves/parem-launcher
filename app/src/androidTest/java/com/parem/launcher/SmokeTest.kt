@@ -97,6 +97,51 @@ class SmokeTest {
     }
 
     @Test
+    fun drawerGuidanceCountsLaunchOpensNotRecreation() {
+        val prefs = Prefs(context)
+        context.getSharedPreferences(Prefs.PREFS_NAME, android.content.Context.MODE_PRIVATE).edit()
+            .putBoolean("HOME_GUIDANCE_NEW_INSTALL", true)
+            .putInt("SEARCH_HINT_OPENS", 4).commit()
+        prefs.autoShowKeyboard = false
+        openDrawer()
+        fun tip() = By.res(context.resources.getResourceName(R.id.appDrawerTip)).text(context.getString(R.string.drawer_guidance))
+        assertTrue("fifth-open tip missing", device.wait(Until.hasObject(tip()), TIMEOUT))
+        assertEquals(5, prefs.searchHintOpens)
+        instrumentation.runOnMainSync {
+            ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                .filterIsInstance<MainActivity>().single().recreate()
+        }
+        assertTrue("drawer missing after recreation", device.wait(Until.hasObject(By.res(searchId)), TIMEOUT))
+        assertEquals("recreation counted as another open", 5, prefs.searchHintOpens)
+        assertTrue("fifth-open tip lost on recreation", device.wait(Until.hasObject(tip()), TIMEOUT))
+        device.pressBack()
+        assertTrue(device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+        openDrawer()
+        assertEquals(6, prefs.searchHintOpens)
+        assertFalse("tip survived into examples", device.hasObject(tip()))
+    }
+
+    @Test
+    fun drawerOpenWithoutSwipeDoesNotDismissSwipeGuidance() {
+        val prefs = Prefs(context)
+        prefs.autoShowKeyboard = false
+        prefs.homeGuidanceSwipe = true
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                .filterIsInstance<MainActivity>().single()
+            val host = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment)!!
+            val fragment = host.childFragmentManager.primaryNavigationFragment as com.parem.launcher.ui.HomeFragment
+            fragment.showAppList(Constants.FLAG_LAUNCH_APP)
+        }
+        assertTrue(device.wait(Until.hasObject(By.res(searchId)), TIMEOUT))
+        assertTrue("non-swipe drawer open dismissed swipe guidance", prefs.homeGuidanceSwipe)
+        device.pressBack()
+        assertTrue(device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+        openDrawer()
+        assertFalse("successful swipe did not dismiss swipe guidance", prefs.homeGuidanceSwipe)
+    }
+
+    @Test
     fun emptyHomeShowsOneHintAndKeepsFilledSlots() {
         val prefs = Prefs(context)
         device.executeShellCommand("mkdir -p $DIAG_DIR")
@@ -665,10 +710,8 @@ class SmokeTest {
             instrumentation.runOnMainSync {
                 val activity = ActivityLifecycleMonitorRegistry.getInstance()
                     .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
-                ViewModelProvider(activity)[MainViewModel::class.java].apply {
-                    firstOpen.value = true
-                    isParemDefault.value = false
-                }
+                Prefs(context).apply { homeGuidanceSwipe = true; homeGuidanceLongPress = true }
+                ViewModelProvider(activity)[MainViewModel::class.java].isParemDefault.value = false
             }
             val banner = By.res(context.resources.getResourceName(R.id.setDefaultLauncher))
             val tips = By.res(context.resources.getResourceName(R.id.firstRunTips))
@@ -753,10 +796,8 @@ class SmokeTest {
             instrumentation.runOnMainSync {
                 val activity = ActivityLifecycleMonitorRegistry.getInstance()
                     .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
-                ViewModelProvider(activity)[MainViewModel::class.java].apply {
-                    firstOpen.value = true
-                    isParemDefault.value = true
-                }
+                Prefs(context).apply { homeGuidanceSwipe = true; homeGuidanceLongPress = true }
+                ViewModelProvider(activity)[MainViewModel::class.java].isParemDefault.value = true
             }
             val tips = device.wait(Until.findObject(By.res(context.resources.getResourceName(R.id.firstRunTips))), TIMEOUT)
             assertNotNull("first-run tips missing with widget", tips)

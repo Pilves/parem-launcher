@@ -58,11 +58,7 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="4dp"
-        android:ellipsize="marquee"
         android:freezesText="true"
-        android:marqueeRepeatLimit="marquee_forever"
-        android:maxLines="1"
-        android:scrollHorizontally="true"
         android:text="@string/app_drawer_tips"
         android:visibility="gone" />
 

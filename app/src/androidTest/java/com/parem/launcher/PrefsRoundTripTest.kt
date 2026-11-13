@@ -48,6 +48,40 @@ class PrefsRoundTripTest {
     }
 
     @Test
+    fun guidanceIsLocalAndImportCannotRestoreIt() {
+        sp.edit().clear().commit()
+        val prefs = Prefs(context)
+        prefs.initializeHomeGuidance()
+        assertTrue(prefs.homeGuidanceSwipe)
+        assertTrue(prefs.homeGuidanceLongPress)
+        prefs.homeGuidanceSwipe = false
+        prefs.homeGuidanceLongPress = false
+        prefs.searchHintOpens = 8
+        val exported = prefs.exportToJson()
+        assertFalse(exported.has("HOME_GUIDANCE_SWIPE"))
+        assertFalse(exported.has("SEARCH_HINT_OPENS"))
+        exported.put("HOME_GUIDANCE_SWIPE", true)
+        exported.put("HOME_GUIDANCE_LONG_PRESS", true)
+        exported.put("SEARCH_HINT_OPENS", 0)
+        exported.put("FIRST_OPEN", true)
+        prefs.importFromJson(exported)
+        prefs.initializeHomeGuidance()
+        assertFalse(prefs.homeGuidanceSwipe)
+        assertFalse(prefs.homeGuidanceLongPress)
+        assertEquals(8, prefs.searchHintOpens)
+    }
+
+    @Test
+    fun existingInstallDoesNotAcquireHomeGuidance() {
+        sp.edit().clear().putBoolean("FIRST_OPEN", false).commit()
+        val prefs = Prefs(context)
+        prefs.initializeHomeGuidance()
+        assertFalse(prefs.homeGuidanceNewInstall)
+        assertFalse(prefs.homeGuidanceSwipe)
+        assertFalse(prefs.homeGuidanceLongPress)
+    }
+
+    @Test
     fun pauseOnlyAppSurvivesExportAndImport() {
         val prefs = Prefs(context)
         AppLimitManager.setLimit(context, "example.pause", 30)

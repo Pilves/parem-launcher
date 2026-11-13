@@ -93,6 +93,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         prefs = Prefs(this)
+        prefs.initializeHomeGuidance()
         // First-run default only: forcing it every launch would undo a dark-theme choice
         // on e-ink (and on any misdetected phone)
         if (isEinkDisplay() && !prefs.hasAppTheme) prefs.appTheme = AppCompatDelegate.MODE_NIGHT_NO

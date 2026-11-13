@@ -8,6 +8,15 @@ class SearchHintsTest {
     private val hints = arrayOf("2+2", "timer 10m", "5 km to mi")
 
     @Test
+    fun guidanceOccupiesOnlyFirstFiveOpensForNewInstalls() {
+        assertEquals(true, SearchHints.showGuidance(true, 0))
+        assertEquals(true, SearchHints.showGuidance(true, 4))
+        assertEquals(false, SearchHints.showGuidance(true, 5))
+        assertEquals(false, SearchHints.showGuidance(false, 0))
+        assertEquals(false, SearchHints.showGuidance(true, 20))
+    }
+
+    @Test
     fun rotatesThroughTheExamples() {
         assertEquals("2+2", SearchHints.forOpen(0, hints))
         assertEquals("timer 10m", SearchHints.forOpen(1, hints))

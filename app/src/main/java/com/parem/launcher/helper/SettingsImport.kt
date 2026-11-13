@@ -3,6 +3,7 @@ package com.parem.launcher.helper
 /** Validate and convert export values before changing any preferences. */
 object SettingsImport {
     private val booleans = setOf(
+        "HOME_GUIDANCE_INITIALIZED", "HOME_GUIDANCE_NEW_INSTALL", "HOME_GUIDANCE_SWIPE", "HOME_GUIDANCE_LONG_PRESS",
         "FIRST_OPEN", "LOCK_MODE", "CRASH_REPORTS_ENABLED", "OMNIBOX_HISTORY_ENABLED",
         "AUTO_LAUNCH_SINGLE_MATCH", "AUTO_SHOW_KEYBOARD", "KEYBOARD_MESSAGE", "DAILY_WALLPAPER",
         "DIM_WALLPAPER", "HOME_BOTTOM_ALIGNMENT", "HOME_LAYOUT_LOCKED", "STATUS_BAR",

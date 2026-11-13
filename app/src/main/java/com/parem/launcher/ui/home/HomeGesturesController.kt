@@ -250,7 +250,7 @@ class HomeGesturesController(
 
             override fun onSwipeUp() {
                 super.onSwipeUp()
-                fragment.showAppList(Constants.FLAG_LAUNCH_APP)
+                fragment.showAppList(Constants.FLAG_LAUNCH_APP, acknowledgeSwipe = true)
             }
 
             override fun onSwipeDown() {
@@ -265,6 +265,7 @@ class HomeGesturesController(
                     // haptic, so fire it ourselves — silence here feels broken
                     Haptics.longPress(binding.mainLayout)
                     showHomeLongPressMenu()
+                    fragment.acknowledgeHomeLongPress()
                 } catch (e: Exception) {
                     CrashReporter.reportNonFatal("HomeFragment: Failed to show home long press menu", e)
                 }
@@ -312,7 +313,7 @@ class HomeGesturesController(
 
             override fun onSwipeUp() {
                 super.onSwipeUp()
-                fragment.showAppList(Constants.FLAG_LAUNCH_APP)
+                fragment.showAppList(Constants.FLAG_LAUNCH_APP, acknowledgeSwipe = true)
             }
 
             override fun onSwipeDown() {

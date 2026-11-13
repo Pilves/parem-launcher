@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Guide new users with independently dismissed home tips and a short, static drawer search tip.
 - Organize settings into Calm, Home screen, Search, Gestures, Appearance and Backup and about.
 
 - Make drawer dismissal deliberate and navigation transitions seekable.
