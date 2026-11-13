@@ -311,10 +311,10 @@ class HomeSlotsController(
      * the mindful pause apply to all of them. A website slot is gated on the
      * app that handles its URL, not on its empty package.
      */
-    fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String? = null, sourceView: View? = null) {
-        val sourceBounds = sourceView?.let { android.graphics.Rect().also { bounds -> it.getGlobalVisibleRect(bounds) } }
-        if (com.parem.launcher.BuildConfig.DEBUG && sourceBounds != null)
-            android.util.Log.d("ParemNavigation", "Home launch bounds: $sourceBounds")
+    fun launchApp(appName: String, packageName: String, activityClassName: String?, userString: String, url: String? = null, sourceView: View? = null, sourceBounds: android.graphics.Rect? = null) {
+        val launchBounds = sourceBounds ?: sourceView?.let { view -> android.graphics.Rect().takeIf { view.getGlobalVisibleRect(it) } }
+        if (com.parem.launcher.BuildConfig.DEBUG && launchBounds != null)
+            android.util.Log.d("ParemNavigation", "Home launch bounds: $launchBounds")
         val ctx = fragment.context ?: return
         if (url != null) {
             val safeUrl = WebShortcut.normalize(url) ?: run {
@@ -332,7 +332,7 @@ class HomeSlotsController(
         BadHabitDialogs.gateLaunch(
             ctx, fragment.viewLifecycleOwner.lifecycleScope, { fragment.isAdded },
             appName, packageName,
-            open = { openApp(appName, packageName, activityClassName, userString, url, sourceBounds) },
+            open = { openApp(appName, packageName, activityClassName, userString, url, launchBounds) },
         )
     }
 
@@ -366,8 +366,8 @@ class HomeSlotsController(
 
         val menu = BottomSheetMenu(context).title(folder.name)
         for (app in folder.apps) {
-            menu.option(app.appName) {
-                launchApp(app.appName, app.packageName, app.activityClassName, app.userString, app.url.ifEmpty { null })
+            menu.optionWithSource(app.appName) { bounds ->
+                launchApp(app.appName, app.packageName, app.activityClassName, app.userString, app.url.ifEmpty { null }, sourceBounds = bounds)
             }
         }
         menu.show().dismissOnDestroy(fragment.viewLifecycleOwner)

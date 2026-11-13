@@ -466,7 +466,7 @@ class AppDrawerFragment : BaseFragment() {
     }
 
     private fun onAppClick(app: AppModel, sourceView: View? = null) {
-        val sourceBounds = sourceView?.let { android.graphics.Rect().also { bounds -> it.getGlobalVisibleRect(bounds) } }
+        val sourceBounds = sourceView?.let { view -> android.graphics.Rect().takeIf { view.getGlobalVisibleRect(it) } }
         if (!isAdded) return
         if (app.isPrivateHeader()) {
             val locked = isQuietMode(app.user)
@@ -674,7 +674,7 @@ class AppDrawerFragment : BaseFragment() {
 
         recentAdapter = RecentHistoryAdapter(
             prefs.appLabelAlignment,
-            onApp = { onAppClick(it) },
+            onApp = { app, view -> onAppClick(app, view) },
             onQuery = { _binding?.search?.setQuery(it, false) },
         )
 

@@ -113,8 +113,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             // accessibility event MyAccessibilityService matches (by contentDescription) to
             // perform GLOBAL_ACTION_LOCK_SCREEN. See HomeGesturesController.lockPhone().
             R.id.lock -> {}
-            R.id.clock -> clockController?.openClockApp()
-            R.id.date -> clockController?.openCalendarApp()
+            R.id.clock -> clockController?.openClockApp(view)
+            R.id.date -> clockController?.openCalendarApp(view)
             R.id.setDefaultLauncher -> viewModel.resetLauncherLiveData.call()
             R.id.tvScreenTime -> clockController?.openScreenTimeDigitalWellbeing()
 

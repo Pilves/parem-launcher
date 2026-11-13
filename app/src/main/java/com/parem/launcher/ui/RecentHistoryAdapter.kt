@@ -16,7 +16,7 @@ import com.parem.launcher.helper.dpToPx
  */
 class RecentHistoryAdapter(
     private val labelGravity: Int,
-    private val onApp: (AppModel) -> Unit,
+    private val onApp: (AppModel, View) -> Unit,
     private val onQuery: (String) -> Unit,
 ) : RecyclerView.Adapter<RecentHistoryAdapter.ViewHolder>() {
 
@@ -55,7 +55,7 @@ class RecentHistoryAdapter(
         when (val row = rows[position - 1]) {
             is Row.App -> {
                 title.text = row.app.appLabel
-                title.setOnClickListener { onApp(row.app) }
+                title.setOnClickListener { onApp(row.app, title) }
             }
             is Row.Query -> {
                 title.text = title.context.getString(R.string.search_history_query, row.text.trim())

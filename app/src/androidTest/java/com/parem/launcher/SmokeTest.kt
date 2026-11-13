@@ -26,6 +26,8 @@ import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import androidx.recyclerview.widget.RecyclerView
 import com.parem.launcher.ui.AppDrawerAdapter
+import com.parem.launcher.ui.BottomSheetMenu
+import com.parem.launcher.ui.RecentHistoryAdapter
 import com.parem.launcher.ui.CreateFolderDialog
 import com.parem.launcher.ui.FocusModeDialog
 import com.parem.launcher.ui.dismissOnDestroy
@@ -374,6 +376,44 @@ class SmokeTest {
     @Test
     fun swipeUpOpensDrawer() {
         openDrawer()
+    }
+
+    @Test
+    fun recentAppTapPassesItsLabelAsLaunchSource() {
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            val app = AppModel("Recent Fixture", null, "fixture.recent", null, false, android.os.Process.myUserHandle())
+            var clickedApp: AppModel? = null
+            var clickedView: View? = null
+            val adapter = RecentHistoryAdapter(android.view.Gravity.START,
+                onApp = { model, view -> clickedApp = model; clickedView = view }, onQuery = {})
+            adapter.submit(listOf(RecentHistoryAdapter.Row.App(app)))
+            val holder = adapter.onCreateViewHolder(RecyclerView(activity), 1)
+            adapter.onBindViewHolder(holder, 1)
+            holder.itemView.performClick()
+            assertEquals(app, clickedApp)
+            assertTrue("recent app label was not passed as launch source", clickedView === holder.itemView)
+        }
+    }
+
+    @Test
+    fun sheetOptionCapturesLabelBoundsBeforeDismissal() {
+        val done = CountDownLatch(1)
+        var bounds: Rect? = null
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+            BottomSheetMenu(activity).optionWithSource("Fixture source") {
+                bounds = it
+                done.countDown()
+            }.show()
+        }
+        val row = device.wait(Until.findObject(By.desc("Fixture source")), TIMEOUT)
+        assertNotNull("sheet row was not shown", row)
+        row!!.click()
+        assertTrue("sheet action was not invoked", done.await(5, TimeUnit.SECONDS))
+        assertTrue("label bounds were not captured before dismissal", bounds?.isEmpty == false)
     }
 
     @Test
