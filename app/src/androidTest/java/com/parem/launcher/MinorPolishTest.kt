@@ -73,7 +73,7 @@ class MinorPolishTest {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             assertTrue(device.wait(Until.hasObject(By.res(context.packageName, "homeAppsLayout")), 10_000))
             scenario.onActivity { it.findNavController(R.id.nav_host_fragment).navigate(R.id.action_mainFragment_to_settingsFragment) }
-            assertTrue(device.wait(Until.hasObject(By.res(context.packageName, "swipeLeftRow")), 10_000))
+            assertTrue(device.wait(Until.hasObject(By.res(context.packageName, "scrollView")), 10_000))
             val action = context.getString(R.string.open_app)
             for ((row, name) in listOf(R.id.swipeLeftRow to "Camera", R.id.swipeRightRow to "Phone")) {
                 scenario.onActivity { it.findViewById<View>(row).performClick() }
