@@ -525,6 +525,8 @@ class HomeWidgetController(
         val ids = prefs.getWidgetIdList()
         if (widgetId !in ids) return
         ids.remove(widgetId)
+        // Older failed migrations may still carry the legacy marker.
+        if (prefs.widgetId == widgetId) prefs.widgetId = -1
         mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
         prefs.removeWidgetProvider(widgetId)
         prefs.removeWidgetHeight(widgetId)

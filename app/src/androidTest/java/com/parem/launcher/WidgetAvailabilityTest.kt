@@ -97,6 +97,43 @@ class WidgetAvailabilityTest {
     }
 
     @Test
+    fun failedLegacyLookupAndRemovalCannotResurrectWidget() {
+        prepare()
+        val prefs = Prefs(context)
+        try {
+            check(device.pressHome())
+            check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                val id = activity.appWidgetHost.allocateAppWidgetId()
+                prefs.widgetIds = ""
+                prefs.widgetId = id
+                val result = runCatching { prefs.migrateWidgetWithProviderLookup { throw IllegalStateException("lookup unavailable") } }
+                assertTrue("test did not exercise a throwing provider lookup", result.isFailure)
+                assertEquals(listOf(id), prefs.getWidgetIdList())
+                assertEquals("failed lookup left legacy marker", -1, prefs.widgetId)
+                // Repair the stale-marker state that older versions could leave.
+                prefs.widgetId = id
+                home(activity).widgetController!!.requestReconcile(force = true)
+            }
+            val unavailable = By.desc(context.getString(R.string.widget_unavailable))
+            val placeholder = checkNotNull(device.wait(Until.findObject(unavailable), 10_000))
+            placeholder.click()
+            checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.remove_widget))), 10_000)).click()
+            assertTrue("explicit removal left the ID", prefs.getWidgetIdList().isEmpty())
+            assertEquals("explicit removal left the stale legacy marker", -1, prefs.widgetId)
+            assertTrue(device.pressHome())
+            device.waitForIdle()
+            SystemClock.sleep(500)
+            assertTrue("removed legacy widget reappeared", prefs.getWidgetIdList().isEmpty())
+            assertFalse("removed legacy placeholder reappeared", device.hasObject(unavailable))
+        } finally {
+            device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
+        }
+    }
+
+    @Test
     fun homeWhileConfigurePendingCannotStartAnotherWidgetOperation() {
         prepare()
         val prefs = Prefs(context)
