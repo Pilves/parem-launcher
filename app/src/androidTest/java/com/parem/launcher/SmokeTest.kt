@@ -677,7 +677,9 @@ class SmokeTest {
         field.click()
         field.text = "Settings"
         // Filtering and list submission are asynchronous. Do not submit an old row.
-        val settingsRow = By.res(context.resources.getResourceName(R.id.appTitle)).text("Settings")
+        // Newly installed apps carry the existing decorative star in their row label.
+        val settingsRow = By.res(context.resources.getResourceName(R.id.appTitle))
+            .text(java.util.regex.Pattern.compile("^Settings(?: ✦)?$"))
         val ready = device.wait(Until.hasObject(By.pkg(SETTINGS_PKG).depth(0)), 500L)
             || device.wait(Until.hasObject(settingsRow), TIMEOUT)
         if (ready && device.currentPackageName != SETTINGS_PKG) device.pressEnter()
