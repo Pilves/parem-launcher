@@ -14,6 +14,9 @@ object WidgetIdBookkeeping {
     /** All saved widgets, including temporarily unavailable ones, occupy capacity. */
     fun canAdd(ids: List<Int>): Boolean = ids.size < 6
 
+    /** A pending ID can be released only while it is not saved on home. */
+    fun canReleasePending(savedIds: List<Int>, pendingId: Int): Boolean = pendingId !in savedIds
+
     /** A swap never appends when its original target has been removed. */
     fun replaceId(ids: List<Int>, oldId: Int, newId: Int): List<Int>? =
         if (oldId in ids) ids.map { if (it == oldId) newId else it } else null

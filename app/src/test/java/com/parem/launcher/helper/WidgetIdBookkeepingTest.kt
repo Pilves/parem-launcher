@@ -26,6 +26,12 @@ class WidgetIdBookkeepingTest {
     }
 
     @Test
+    fun pendingReleaseNeverDeletesASavedWidget() {
+        assertFalse(WidgetIdBookkeeping.canReleasePending(listOf(1, 2), 2))
+        assertTrue(WidgetIdBookkeeping.canReleasePending(listOf(1, 2), 3))
+    }
+
+    @Test
     fun replaceId_keepsPosition() {
         assertEquals(listOf(1, 20, 3), WidgetIdBookkeeping.replaceId(listOf(1, 2, 3), oldId = 2, newId = 20))
     }

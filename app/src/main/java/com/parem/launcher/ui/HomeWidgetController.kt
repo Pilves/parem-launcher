@@ -161,7 +161,7 @@ class HomeWidgetController(
         if (op.getInt(PendingOp.STAGE) == PendingOp.RESTORE_BIND) {
             // A restore bind started by an older version cannot prove the old
             // widget's profile. Release only the newly allocated pending ID.
-            mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+            releasePendingWidget(widgetId)
             requestReconcile()
             return
         }
@@ -178,16 +178,22 @@ class HomeWidgetController(
                 if (success && info != null) {
                     onWidgetBound(widgetId, info, replaceId)
                 } else {
-                    mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+                    releasePendingWidget(widgetId)
                     context.showToast(context.getString(R.string.widget_bind_permission_denied))
                 }
             }
             PendingOp.CONFIGURE -> {
                 // A cancelled configure still leaves a usable widget when the provider kept it bound
                 if (info != null) finishWidgetSetup(widgetId, info, replaceId)
-                else mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+                else releasePendingWidget(widgetId)
             }
         }
+    }
+
+    /** A stale result must not release an ID that is already saved on home. */
+    private fun releasePendingWidget(widgetId: Int) {
+        if (WidgetIdBookkeeping.canReleasePending(prefs.getWidgetIdList(), widgetId))
+            mainActivity?.appWidgetHost?.deleteAppWidgetId(widgetId)
     }
 
     private suspend fun restoreWidgets(force: Boolean) {
@@ -801,7 +807,7 @@ class HomeWidgetController(
             val mainActivity = mainActivity ?: return
 
             if (replaceId != -1 && replaceId !in prefs.getWidgetIdList()) {
-                mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+                releasePendingWidget(widgetId)
                 return
             }
             if (providerInfo.configure != null) {
@@ -837,12 +843,14 @@ class HomeWidgetController(
         try {
             val mainActivity = mainActivity ?: return
             val ids = prefs.getWidgetIdList()
+            // A duplicate or stale result must not replace or delete a saved widget.
+            if (widgetId in ids) return
 
             if (replaceId != -1) {
                 val replaced = WidgetIdBookkeeping.replaceId(ids, replaceId, widgetId)
                 if (replaced == null) {
                     // The original swap target disappeared while the system dialog was open.
-                    mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
+                    releasePendingWidget(widgetId)
                     return
                 }
                 prefs.setWidgetIdList(replaced)
