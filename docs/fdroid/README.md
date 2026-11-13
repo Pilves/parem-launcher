@@ -7,8 +7,10 @@ submission is claimed here. If F-Droid accepts that same signing certificate,
 updates can move between GitHub and F-Droid. The Play build may have a
 different signing certificate; because the application ID is the same, moving
 between channels with different keys requires exporting settings, uninstalling,
-installing the other build and importing settings. IzzyOnDroid is excluded by
-its policy on LLM-generated code.
+installing the other build and importing settings. IzzyOnDroid’s [inclusion policy](https://izzyondroid.org/docs/general/AppInclusionPolicy/#ai-policy)
+says applications created fully or partly with generative AI will most likely be
+rejected and that vibe-coded apps will be rejected (checked 2026-11-13); verify
+the current policy before submission. This is separate from F-Droid’s policy.
 
 ## What the repo already satisfies
 
