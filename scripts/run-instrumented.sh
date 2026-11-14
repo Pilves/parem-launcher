@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+if [[ ${PAREM_INCIDENT_MONITORED:-} != 1 ]]; then exec bash scripts/ci-emulator-run.sh com.parem.launcher.debug bash "$0" "$@"; fi
 # Disposable CI emulator only. With a run count, repeats the drawer tests in
 # fresh processes to measure a failure rate; without one, runs both suites.
 set -uo pipefail

@@ -57,6 +57,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: minified-release-${{ matrix.flavour }}-logs
-          path: app/build/reports/minified-release/
+          path: |
+            app/build/reports/minified-release/
+            app/build/ci-incidents/
           if-no-files-found: warn
           retention-days: 14

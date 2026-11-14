@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+if [[ ${PAREM_INCIDENT_MONITORED:-} != 1 ]]; then exec bash scripts/ci-emulator-run.sh com.parem.launcher.debug bash "$0" "$@"; fi
 set -euo pipefail
 # This script runs only on the disposable CI emulator.
 ./gradlew assemblePlayDebugAndroidTest

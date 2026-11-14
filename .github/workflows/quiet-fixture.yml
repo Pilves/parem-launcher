@@ -10,6 +10,7 @@ on:
       - app/src/androidTest/java/com/parem/launcher/QuietNotificationFixtureTest.kt
       - scripts/run-quiet-fixture.sh
       - .github/workflows/quiet-fixture.yml
+      - scripts/ci-emulator-run.sh
   workflow_dispatch:
 permissions:
   contents: read
@@ -46,4 +47,5 @@ jobs:
           path: |
             app/build/reports/androidTests/
             app/build/quiet-fixture-logcat.txt
+            app/build/ci-incidents/
           if-no-files-found: ignore

@@ -43,6 +43,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: released-export-capture
-          path: capture/
+          path: |
+            capture/
+            app/build/ci-incidents/
           if-no-files-found: error
           retention-days: 30

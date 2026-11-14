@@ -19,7 +19,7 @@ function run(state, stress = false, hangDiagnostic = false, playResult = 1) {
     chmodSync(join(root, 'bin/adb'), 0o755);
     chmodSync(join(root, 'bin/timeout'), 0o755);
     const result = spawnSync('bash', ['scripts/run-instrumented.sh', stress ? '2' : '0', 'true'], {
-      cwd: root, env: { ...process.env, PATH: `${join(root, 'bin')}:${process.env.PATH}`, TEST_DEVICE_STATE: state, TEST_HANG_DIAGNOSTIC: hangDiagnostic ? 'yes' : 'no', TEST_PLAY_RESULT: String(playResult) }, encoding: 'utf8', timeout: 15000,
+      cwd: root, env: { ...process.env, PATH: `${join(root, 'bin')}:${process.env.PATH}`, TEST_DEVICE_STATE: state, TEST_HANG_DIAGNOSTIC: hangDiagnostic ? 'yes' : 'no', TEST_PLAY_RESULT: String(playResult), PAREM_INCIDENT_MONITORED: '1' }, encoding: 'utf8', timeout: 15000,
     });
     return { result, phases: readFileSync(join(root, 'phases'), 'utf8'), timeouts: readFileSync(join(root, 'timeouts'), 'utf8') };
   } finally {

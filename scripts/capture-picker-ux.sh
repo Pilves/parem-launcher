@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+if [[ ${PAREM_INCIDENT_MONITORED:-} != 1 ]]; then exec bash scripts/ci-emulator-run.sh com.parem.launcher.debug bash "$0" "$@"; fi
 # Disposable CI emulator only: capture real picker routes at both font scales and IME states.
 set -euo pipefail
 out=app/build/picker-ux

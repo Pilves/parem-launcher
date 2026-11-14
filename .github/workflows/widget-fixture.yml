@@ -14,6 +14,7 @@ on:
       - scripts/build-widget-fixture.sh
       - scripts/run-widget-fixture.sh
       - .github/workflows/widget-fixture.yml
+      - scripts/ci-emulator-run.sh
   workflow_dispatch:
 permissions:
   contents: read
@@ -52,6 +53,7 @@ jobs:
           path: |
             app/build/reports/androidTests/
             app/build/widget-fixture-logcat.txt
+            app/build/ci-incidents/
             app/build/widget-fixture-failure.png
             app/build/widget-home-failure.*
           if-no-files-found: ignore
