@@ -40,6 +40,7 @@ internal class WidgetPickerOverflow(
         val shouldScrollChrome = container.height - fixed < chrome + minListHeight
         if (shouldScrollChrome == inHeader) return
         val hadFocus = search.hasFocus()
+        android.util.Log.i("WidgetOverflowDiag", "update should=$shouldScrollChrome hadFocus=$hadFocus container=${container.height} first=${list.firstVisiblePosition}")
         if (shouldScrollChrome) {
             container.removeView(title)
             container.removeView(search)
@@ -62,11 +63,12 @@ internal class WidgetPickerOverflow(
         var remaining = 240
         val reveal = object : Runnable {
             override fun run() {
-                if (!inHeader || !list.isAttachedToWindow || remaining-- <= 0) return
+                if (!inHeader || !list.isAttachedToWindow || remaining-- <= 0) { android.util.Log.i("WidgetOverflowDiag", "stop inHeader=$inHeader attached=${list.isAttachedToWindow} remaining=$remaining"); return }
+                if (remaining % 30 == 0 || remaining > 237) android.util.Log.i("WidgetOverflowDiag", "step first=${list.firstVisiblePosition} top=${list.getChildAt(0)?.top} height=${list.height} attached=${search.isAttachedToWindow} focused=${search.hasFocus()}")
                 val first = list.getChildAt(0)
                 if (list.firstVisiblePosition == 0 && first != null && first.top >= list.paddingTop) {
                     if (restoreFocus && search.isAttachedToWindow) {
-                        search.requestFocus()
+                        android.util.Log.i("WidgetOverflowDiag", "requestFocus returned=${search.requestFocus()} focused=${search.hasFocus()}")
                         search.requestRectangleOnScreen(android.graphics.Rect(0, 0, search.width, search.height), true)
                     }
                     return
