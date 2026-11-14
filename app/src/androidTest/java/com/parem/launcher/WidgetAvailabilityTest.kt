@@ -87,6 +87,8 @@ class WidgetAvailabilityTest {
             placeholder.click()
             val remove = device.wait(Until.findObject(By.desc(context.getString(R.string.remove_widget))), 10_000)
             checkNotNull(remove) { "placeholder removal action missing" }.click()
+            val removalDeadline = SystemClock.elapsedRealtime() + 10_000
+            while (prefs.getWidgetIdList().isNotEmpty() && SystemClock.elapsedRealtime() < removalDeadline) SystemClock.sleep(50)
             assertTrue("saved widget was not removed", prefs.getWidgetIdList().isEmpty())
             val afterRemoval = Prefs(context) // Its in-memory maps are independent of the controller's.
             assertFalse("provider mapping was not removed", afterRemoval.getAllWidgetProviders().containsKey(widgetId))
@@ -121,6 +123,8 @@ class WidgetAvailabilityTest {
             val placeholder = checkNotNull(device.wait(Until.findObject(unavailable), 10_000))
             placeholder.click()
             checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.remove_widget))), 10_000)).click()
+            val removalDeadline = SystemClock.elapsedRealtime() + 10_000
+            while (prefs.getWidgetIdList().isNotEmpty() && SystemClock.elapsedRealtime() < removalDeadline) SystemClock.sleep(50)
             assertTrue("explicit removal left the ID", prefs.getWidgetIdList().isEmpty())
             assertEquals("explicit removal left the stale legacy marker", -1, prefs.widgetId)
             assertTrue(device.pressHome())
