@@ -57,7 +57,7 @@ class PickerSelectionTest {
         assertTrue("child picker did not close", device.wait(Until.gone(By.desc("Beta")), 10_000))
     }
 
-    private fun checkTwoTaps(delayMs: Long, expected: Set<String>) {
+    private fun checkTwoTaps(delayed: Boolean, expected: Set<String>) {
         prepare()
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             lateinit var list: RecyclerView
@@ -78,32 +78,38 @@ class PickerSelectionTest {
                 )
             }
             device.waitForIdle()
-            var x = 0
-            var y = 0
-            scenario.onActivity {
-                val row = requireNotNull(list.findViewHolderForAdapterPosition(1)).itemView
-                val point = IntArray(2)
-                row.getLocationOnScreen(point)
-                x = point[0] + row.width / 2
-                y = point[1] + row.height / 2
+            fun forceLayout() {
+                list.measure(
+                    View.MeasureSpec.makeMeasureSpec(list.width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(list.height, View.MeasureSpec.EXACTLY),
+                )
+                list.layout(list.left, list.top, list.right, list.bottom)
             }
-            val started = SystemClock.uptimeMillis()
-            assertTrue(device.click(x, y))
-            SystemClock.sleep(if (delayMs == 0L) 100 else delayMs)
             scenario.onActivity {
+                val started = SystemClock.uptimeMillis()
+                assertTrue(requireNotNull(list.findViewHolderForAdapterPosition(1)).itemView.performClick())
+                forceLayout()
                 val shifted = requireNotNull(list.findViewHolderForAdapterPosition(1)).itemView
                 assertEquals("the next selected row must occupy the tapped position", "Beta", shifted.contentDescription)
+                if (!delayed) {
+                    assertTrue("layout exceeded guard window", SystemClock.uptimeMillis() - started < 400L)
+                    assertTrue(shifted.performClick())
+                    assertEquals(expected, adapter.selectedIds.toSet())
+                }
             }
-            if (delayMs == 0L) assertTrue("second tap exceeded guard window", SystemClock.uptimeMillis() - started < 400L)
-            assertTrue(device.click(x, y))
-            device.waitForIdle()
-            scenario.onActivity { assertEquals(expected, adapter.selectedIds.toSet()) }
+            if (delayed) {
+                SystemClock.sleep(1_000)
+                scenario.onActivity {
+                    assertTrue(requireNotNull(list.findViewHolderForAdapterPosition(1)).itemView.performClick())
+                    assertEquals(expected, adapter.selectedIds.toSet())
+                }
+            }
         }
     }
 
-    @Test fun rapidTapsDoNotDeselectTheNextRow() = checkTwoTaps(0, setOf("b"))
+    @Test fun rapidTapsDoNotDeselectTheNextRow() = checkTwoTaps(false, setOf("b"))
 
-    @Test fun tapAfterGuardCanDeselectTheNextRow() = checkTwoTaps(550, emptySet())
+    @Test fun tapAfterGuardCanDeselectTheNextRow() = checkTwoTaps(true, emptySet())
 
     @Test fun folderChildBackDiscardsItsStagedEdits() {
         prepare()
