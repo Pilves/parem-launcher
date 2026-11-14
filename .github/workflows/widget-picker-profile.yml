@@ -8,6 +8,7 @@ on:
       - app/src/main/java/com/parem/launcher/helper/WidgetPickerLabels.kt
       - app/src/androidTest/java/com/parem/launcher/WidgetPickerProfileTest.kt
       - app/src/androidTest/java/com/parem/launcher/WidgetPickerCaptureTest.kt
+      - app/src/androidTest/java/com/parem/launcher/WidgetPickerGeneratedPreviewTest.kt
       - app/src/androidTest/java/com/parem/launcher/WidgetPickerOverflowTest.kt
       - scripts/widget-picker-profile/**
       - .github/workflows/widget-picker-profile.yml
@@ -35,7 +36,7 @@ jobs:
       - name: Measure and capture real picker on disposable emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: 36
           profile: pixel_6
           target: google_apis
           arch: x86_64

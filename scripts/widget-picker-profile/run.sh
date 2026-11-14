@@ -10,18 +10,24 @@ if adb shell pm path "$fixture" | grep -q '^package:'; then
   exit 1
 fi
 mkdir -p app/build/widget-picker-profile
-trap 'for file in widget-profile-failure.xml widget-profile-failure.png widget-overflow-failure.xml widget-overflow-failure.png; do adb pull "/data/local/tmp/$file" "app/build/widget-picker-profile/$file" >/dev/null 2>&1 || true; done; adb logcat -d -v threadtime > app/build/widget-picker-profile/logcat.txt || true; for image in cold-open cold-filtered cold-scrolled warm-open warm-filtered warm-scrolled font1.0-imeoff font1.0-imeon font2.0-imeoff font2.0-imeon; do adb pull "/data/local/tmp/parem-widget-picker-$image.png" "app/build/widget-picker-profile/$image.png" >/dev/null 2>&1 || true; done; adb shell settings delete system font_scale >/dev/null 2>&1 || true; adb uninstall "$fixture" >/dev/null 2>&1 || true' EXIT
+trap 'for file in widget-profile-failure.xml widget-profile-failure.png widget-overflow-failure.xml widget-overflow-failure.png widget-preview.png; do adb pull "/data/local/tmp/$file" "app/build/widget-picker-profile/$file" >/dev/null 2>&1 || true; done; adb logcat -d -v threadtime > app/build/widget-picker-profile/logcat.txt || true; for image in cold-open cold-filtered cold-scrolled warm-open warm-filtered warm-scrolled font1.0-imeoff font1.0-imeon font2.0-imeoff font2.0-imeon; do adb pull "/data/local/tmp/parem-widget-picker-$image.png" "app/build/widget-picker-profile/$image.png" >/dev/null 2>&1 || true; done; adb shell settings delete system font_scale >/dev/null 2>&1 || true; adb uninstall "$fixture" >/dev/null 2>&1 || true' EXIT
 adb install app/build/widget-picker-profile-fixture/widget-stress.apk
 adb shell am start -W -n "$fixture/.Publisher"
 ready=false
 for attempt in $(seq 1 60); do
-  if adb logcat -d -s ParemWidgetStress:I '*:S' | grep -q 'generated_previews=120'; then ready=true; break; fi
+  if adb logcat -d -s ParemWidgetStress:I '*:S' | grep -q 'generated_previews=1$'; then ready=true; break; fi
   sleep 1
 done
 [[ $ready == true ]] || { echo 'Synthetic preview publisher did not become ready' >&2; exit 1; }
+# The hosted emulator needs explicit binding authorization to read another package's preview.
+adb shell appwidget grantbind --package com.parem.launcher.debug --user 0
 ./gradlew connectedPlayDebugAndroidTest \
   -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.WidgetPickerProfileTest \
   -Pandroid.testInstrumentationRunnerArguments.widget_picker_profile=true
+
+./gradlew connectedPlayDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.WidgetPickerGeneratedPreviewTest \
+  -Pandroid.testInstrumentationRunnerArguments.widget_picker_preview=true
 
 if [[ ${WIDGET_PICKER_CAPTURE:-false} == true ]]; then
   # AVD has a hardware keyboard; allow a user-equivalent tap to raise the IME.

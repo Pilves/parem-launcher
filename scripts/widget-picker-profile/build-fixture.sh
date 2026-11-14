@@ -9,7 +9,7 @@ src="$out/src/com/parem/widgetstress"
 res="$out/res"
 mkdir -p "$src" "$res/layout" "$res/xml" "$res/drawable" "$out/classes" "$out/dex"
 cat > "$res/layout/widget.xml" <<'XML'
-<TextView xmlns:android="http://schemas.android.com/apk/res/android" android:id="@android:id/text1" android:layout_width="match_parent" android:layout_height="match_parent" android:text="Synthetic preview" android:gravity="center" android:background="#325a66" android:textColor="#ffffff" />
+<Button xmlns:android="http://schemas.android.com/apk/res/android" android:id="@android:id/button1" android:layout_width="match_parent" android:layout_height="match_parent" android:text="Synthetic preview" android:gravity="center" android:focusable="true" android:background="#325a66" android:textColor="#ffffff" />
 XML
 cat > "$res/xml/provider.xml" <<'XML'
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android" android:minWidth="120dp" android:minHeight="100dp" android:initialLayout="@layout/widget" android:previewLayout="@layout/widget" android:previewImage="@drawable/preview" android:resizeMode="horizontal|vertical" android:widgetCategory="home_screen" />
@@ -24,7 +24,7 @@ XML
 done
 manifest="$out/AndroidManifest.xml"
 cat > "$manifest" <<'XML'
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.parem.widgetstress"><uses-sdk android:minSdkVersion="29" android:targetSdkVersion="35" /><application android:label="Parem stress widgets" android:theme="@android:style/Theme.Material.Light.NoActionBar"><activity android:name=".Publisher" android:exported="true" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.parem.widgetstress"><uses-sdk android:minSdkVersion="29" android:targetSdkVersion="35" /><application android:label="Parem stress widgets" android:theme="@android:style/Theme.Material.Light.NoActionBar"><activity android:name=".Publisher" android:exported="true" /><receiver android:name=".Sentinel" android:exported="true" />
 XML
 for i in $(seq -w 0 119); do
   icon=""
@@ -42,6 +42,8 @@ printf '</application></manifest>\n' >> "$manifest"
 cat > "$src/Publisher.java" <<'JAVA'
 package com.parem.widgetstress;
 import android.app.Activity;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProviderInfo;
 import android.content.ComponentName;
@@ -58,10 +60,12 @@ public final class Publisher extends Activity {
         new Thread(new Runnable() { @Override public void run() {
             int ok = 0;
             if (android.os.Build.VERSION.SDK_INT >= 35) {
-                for (int i = 0; i < 120; i++) {
+                for (int i = 0; i < 1; i++) {
                     String suffix = String.format(java.util.Locale.ROOT, "%03d", i);
                     RemoteViews views = new RemoteViews(getPackageName(), layout);
-                    views.setTextViewText(android.R.id.text1, "Synthetic preview " + suffix);
+                    views.setTextViewText(android.R.id.button1, "Synthetic preview " + suffix);
+                    Intent sentinel = new Intent().setClassName(getPackageName(), getPackageName() + ".Sentinel");
+                    views.setOnClickPendingIntent(android.R.id.button1, PendingIntent.getBroadcast(Publisher.this, 0, sentinel, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
                     boolean published = false;
                     long deadline = android.os.SystemClock.elapsedRealtime() + 30000;
                     while (!published && android.os.SystemClock.elapsedRealtime() < deadline) {
@@ -83,6 +87,16 @@ public final class Publisher extends Activity {
             runOnUiThread(new Runnable() { @Override public void run() { result.setText("Published " + publishedCount + " generated previews"); } });
         } }).start();
     }
+}
+JAVA
+cat > "$src/Sentinel.java" <<'JAVA'
+package com.parem.widgetstress;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
+public final class Sentinel extends BroadcastReceiver {
+    @Override public void onReceive(Context context, Intent intent) { Log.i("ParemPreviewSentinel", "FIRED"); }
 }
 JAVA
 "$tools/aapt2" compile --dir "$res" -o "$out/resources.zip"

@@ -18,6 +18,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.RemoteViews
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.widget.doAfterTextChanged
@@ -578,6 +579,7 @@ class HomeWidgetController(
                 val header: String,
                 val widgetLabel: String,
                 val provider: AppWidgetProviderInfo,
+                val preview: RemoteViews?,
             )
             val allEntries = withContext(Dispatchers.IO) {
                 val myUser = Process.myUserHandle()
@@ -604,7 +606,7 @@ class HomeWidgetController(
                     val isOtherProfile = provider.profile != myUser
                     val header = if (isOtherProfile) pm.getUserBadgedLabel(appName, provider.profile).toString()
                     else appName
-                    WidgetEntry(appName, isOtherProfile, header, provider.loadLabel(pm), provider)
+                    WidgetEntry(appName, isOtherProfile, header, provider.loadLabel(pm), provider, loadGeneratedPreview(provider))
                 }.sortedWith(
                     compareBy<WidgetEntry, String>(String.CASE_INSENSITIVE_ORDER) { it.appName }
                         .thenBy { it.isOtherProfile }
@@ -671,6 +673,8 @@ class HomeWidgetController(
             val textColor = context.getColorFromAttr(R.attr.primaryColor)
             val headerColor = textColor
             var currentItems = buildItems("")
+            // RemoteViews inflation is not free; keep each applied preview for the dialog's lifetime
+            val previewViews = HashMap<AppWidgetProviderInfo, View?>()
             val adapter = object : android.widget.BaseAdapter() {
                 override fun getCount() = currentItems.size
                 override fun getItem(position: Int) = currentItems[position]
@@ -693,14 +697,51 @@ class HomeWidgetController(
                         return textView
                     }
 
-                    val textView = (convertView as? TextView) ?: TextView(context)
+                    val row = (convertView as? android.widget.LinearLayout)
+                        ?: android.widget.LinearLayout(context).apply {
+                            orientation = android.widget.LinearLayout.VERTICAL
+                            // A preview Button is explicitly focusable, and AbsListView skips the item
+                            // click for rows with explicit focusables; touch interception can't fix that
+                            descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+                            addView(TextView(context))
+                            // Swallow touches so a preview's own click intents never fire; the row click still lands
+                            addView(object : FrameLayout(context) {
+                                override fun onInterceptTouchEvent(ev: MotionEvent?) = true
+                            }.apply {
+                                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+                                setPadding(24.dpToPx(), 0, 16.dpToPx(), 8.dpToPx())
+                            })
+                        }
+                    val textView = row.getChildAt(0) as TextView
                     textView.text = item.first
                     textView.textSize = 16f
                     textView.setTextColor(textColor)
-                    textView.minimumHeight = 48.dpToPx()
-                    textView.gravity = Gravity.CENTER_VERTICAL
-                    textView.setPadding(24.dpToPx(), 4.dpToPx(), 16.dpToPx(), 4.dpToPx())
-                    return textView
+                    textView.setPadding(24.dpToPx(), 8.dpToPx(), 16.dpToPx(), 8.dpToPx())
+
+                    val previewFrame = row.getChildAt(1) as FrameLayout
+                    previewFrame.removeAllViews()
+                    val previewView = entry.preview?.let { preview ->
+                        previewViews.getOrPut(entry.provider) {
+                            try {
+                                preview.apply(context, previewFrame)
+                            } catch (e: Exception) {
+                                Log.w("HomeWidgetController", "preview apply failed", e)
+                                null
+                            }
+                        }
+                    }
+                    if (previewView != null) {
+                        (previewView.parent as? ViewGroup)?.removeView(previewView)
+                        // minHeight is the provider's px size; clamp so one tall widget can't flood the list
+                        val height = entry.provider.minHeight.coerceIn(48.dpToPx(), 160.dpToPx())
+                        previewFrame.addView(previewView, FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT, height
+                        ))
+                        previewFrame.visibility = View.VISIBLE
+                    } else {
+                        previewFrame.visibility = View.GONE
+                    }
+                    return row
                 }
             }
             listView.adapter = adapter
@@ -774,6 +815,19 @@ class HomeWidgetController(
             cells(if (targetCells) provider.targetCellWidth else 0, provider.minWidth),
             cells(if (targetCells) provider.targetCellHeight else 0, provider.minHeight),
         )
+    }
+
+    /** Android 15+ generated preview for the home-screen category, or null when the provider has none. */
+    private fun loadGeneratedPreview(provider: AppWidgetProviderInfo): RemoteViews? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return null
+        val category = AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN
+        if (provider.generatedPreviewCategories and category == 0) return null
+        return try {
+            mainActivity?.appWidgetManager?.getWidgetPreview(provider.provider, provider.profile, category)
+        } catch (e: Exception) {
+            Log.w("HomeWidgetController", "generated preview unavailable for ${provider.provider}", e)
+            null
+        }
     }
 
     private fun bindWidget(providerInfo: AppWidgetProviderInfo, replaceId: Int = -1) {
