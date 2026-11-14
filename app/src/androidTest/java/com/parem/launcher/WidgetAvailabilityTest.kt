@@ -308,4 +308,100 @@ class WidgetAvailabilityTest {
         }
     }
 
+    @Test
+    fun cancelledConfigureAndRestoredBooleanPreserveSwapAndDropNewId() {
+        prepare()
+        val prefs = Prefs(context)
+        try {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                var original = -1
+                var replacement = -1
+                scenario.onActivity { activity ->
+                    original = activity.appWidgetHost.allocateAppWidgetId()
+                    replacement = activity.appWidgetHost.allocateAppWidgetId()
+                    prefs.setWidgetIdList(listOf(original))
+                    prefs.setWidgetHeight(original, 177)
+                    prefs.setWidgetProvider(original, provider.flattenToString())
+                    activity.pendingWidgetOp = Bundle().apply {
+                        putInt("stage", 2); putInt("widgetId", replacement); putInt("replaceId", original)
+                    }
+                    activity.pendingWidgetResult = false // Legacy deferred Boolean saved across recreation.
+                }
+                scenario.recreate()
+                val deadline = SystemClock.elapsedRealtime() + 10_000
+                var allocated = true
+                while (allocated && SystemClock.elapsedRealtime() < deadline) {
+                    scenario.onActivity { allocated = replacement in it.appWidgetHost.appWidgetIds }
+                    if (allocated) SystemClock.sleep(50)
+                }
+                assertFalse("cancelled replacement still allocated", allocated)
+                assertEquals(listOf(original), prefs.getWidgetIdList())
+                val fresh = Prefs(context)
+                assertEquals(177, fresh.getWidgetHeight(original))
+                assertEquals(provider.flattenToString(), fresh.getAllWidgetProviders()[original])
+                scenario.onActivity { assertTrue(original in it.appWidgetHost.appWidgetIds) }
+            }
+        } finally {
+            device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
+        }
+    }
+
+    @Test
+    fun cancelledConfigureAddReleasesOnlyUnsavedNewId() {
+        prepare()
+        val prefs = Prefs(context)
+        try {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                var pending = -1
+                scenario.onActivity { activity ->
+                    pending = activity.appWidgetHost.allocateAppWidgetId()
+                    activity.pendingWidgetOp = Bundle().apply {
+                        putInt("stage", 2); putInt("widgetId", pending); putInt("replaceId", -1)
+                    }
+                    home(activity).widgetController!!.onPendingWidgetResult(false)
+                }
+                val deadline = SystemClock.elapsedRealtime() + 10_000
+                var allocated = true
+                while (allocated && SystemClock.elapsedRealtime() < deadline) {
+                    scenario.onActivity { allocated = pending in it.appWidgetHost.appWidgetIds }
+                    if (allocated) SystemClock.sleep(50)
+                }
+                assertTrue(prefs.getWidgetIdList().isEmpty())
+                assertFalse("cancelled add still allocated", allocated)
+            }
+        } finally {
+            device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
+        }
+    }
+
+    @Test
+    fun cancelledConfigureNeverReleasesAnAlreadySavedId() {
+        prepare()
+        val prefs = Prefs(context)
+        try {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                var saved = -1
+                scenario.onActivity { activity ->
+                    saved = activity.appWidgetHost.allocateAppWidgetId()
+                    prefs.setWidgetIdList(listOf(saved))
+                    activity.pendingWidgetOp = Bundle().apply {
+                        putInt("stage", 2); putInt("widgetId", saved); putInt("replaceId", -1)
+                    }
+                    home(activity).widgetController!!.onPendingWidgetResult(false)
+                }
+                val deadline = SystemClock.elapsedRealtime() + 10_000
+                var pending = true
+                while (pending && SystemClock.elapsedRealtime() < deadline) {
+                    scenario.onActivity { pending = it.pendingWidgetOp != null }
+                    if (pending) SystemClock.sleep(50)
+                }
+                assertFalse("cancel result was not processed", pending)
+                assertEquals(listOf(saved), prefs.getWidgetIdList())
+                scenario.onActivity { assertTrue(saved in it.appWidgetHost.appWidgetIds) }
+            }
+        } finally {
+            device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
+        }
+    }
+
 }

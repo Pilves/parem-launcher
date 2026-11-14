@@ -308,6 +308,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP42 | **Done** (PR #47). **Todo**. Settle instrumentation tasks before orchestrator clears package data | Android test listener, runner arguments and handoff | Listener waits for target and test-package task teardown; precursor counts compared across CI emulator legs |
 
+| M6-WP56 | **Done** (PR #61). **Todo**. Respect cancelled widget configuration | Widget result handling, companion fixture, tests and handoff | Cancel releases only the unsaved allocation and preserves existing widgets |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
