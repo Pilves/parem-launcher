@@ -12,6 +12,7 @@ import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.FolderApp
 import com.parem.launcher.data.FolderGroup
+import com.parem.launcher.helper.HomeLabel
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.isEinkDisplay
@@ -151,7 +152,7 @@ class CreateFolderDialog(
                     FolderApp(it.appLabel, it.appPackage, it.activityClassName ?: "", it.user.toString())
                 }
             } + websites
-            if (folderName.isEmpty() || selectedApps.isEmpty()) {
+            if (!HomeLabel.hasVisibleContent(folderName) || selectedApps.isEmpty()) {
                 context.showToast(context.getString(R.string.folder_needs_name_and_app))
                 return@option
             }

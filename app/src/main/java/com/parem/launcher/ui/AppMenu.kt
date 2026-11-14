@@ -15,6 +15,7 @@ import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.MainViewModel
+import com.parem.launcher.helper.HomeLabel
 import com.parem.launcher.R
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
@@ -150,7 +151,7 @@ object AppMenu {
         fun save() {
             if (!fragment.isAdded || fragment.view == null) return
             val value = input.text.toString().trim()
-            if (value.isEmpty()) { input.error = context.getString(R.string.app_menu_enter_name); return }
+            if (value.isEmpty() || (onHome && !HomeLabel.hasVisibleContent(value))) { input.error = context.getString(R.string.app_menu_enter_name); return }
             onSave(value)
             input.hideKeyboard()
             dialog.dismiss()
