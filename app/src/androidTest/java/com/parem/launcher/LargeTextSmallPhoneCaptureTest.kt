@@ -1,6 +1,9 @@
 package com.parem.launcher
 
 import android.os.SystemClock
+import android.util.Log
+import android.view.View
+import androidx.navigation.fragment.NavHostFragment
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -47,7 +50,21 @@ class LargeTextSmallPhoneCaptureTest {
         }
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { assertEquals(TextScale.LARGE, Prefs(it).textSizeScale, 0.001f) }
-            assertNotNull("first onboarding screen missing", waitFor(R.id.homeScreen))
+            val firstScreen = waitFor(R.id.homeScreen)
+            if (firstScreen == null) {
+                // Capture before ActivityScenario closes the screen on assertion failure.
+                runCatching { device.executeShellCommand("uiautomator dump $out/onboarding-failure.xml") }
+                runCatching { capture("onboarding-failure") }
+                runCatching {
+                    scenario.onActivity { activity ->
+                        val screen = activity.findViewById<View>(R.id.homeScreen)
+                        val host = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
+                        val prefs = Prefs(activity)
+                        Log.e("LargeTextCapture", "missing homeScreen: package=${device.currentPackageName} locales=${activity.resources.configuration.locales} firstOpen=${prefs.firstOpen} onboardingSeen=${prefs.onboardingVersionSeen} destination=${host?.navController?.currentDestination?.id} screenPresent=${screen != null} screenVisible=${screen?.visibility} screenShown=${screen?.isShown} screenAttached=${screen?.isAttachedToWindow}")
+                    }
+                }.onFailure { Log.e("LargeTextCapture", "could not inspect missing screen", it) }
+            }
+            assertNotNull("first onboarding screen missing", firstScreen)
             capture("onboarding-home")
             clickAfterScrolling(R.id.btnNotNow)
             assertNotNull("Calm onboarding screen missing", waitFor(R.id.calmScreen))

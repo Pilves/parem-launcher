@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lock_consent_restricted">Kui lüliti on hall: Rakenduse teave › menüü › Luba piiratud seaded.</string>
+    <string name="onboarding_row_grayscale_caption">Ühekordne seadistamine, umbes 2 min</string>
+</resources>
