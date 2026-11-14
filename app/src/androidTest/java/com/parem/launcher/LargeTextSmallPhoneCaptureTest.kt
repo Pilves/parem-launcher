@@ -3,6 +3,8 @@ package com.parem.launcher
 import android.os.SystemClock
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
 import androidx.navigation.fragment.NavHostFragment
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -30,6 +32,7 @@ class LargeTextSmallPhoneCaptureTest {
         val context = instrumentation.targetContext
         check(context.getSharedPreferences(Prefs.PREFS_NAME, 0).edit().clear().commit())
         val device = UiDevice.getInstance(instrumentation)
+        device.executeShellCommand("appops set ${context.packageName} GET_USAGE_STATS allow")
         val out = "/data/local/tmp/parem-large"
         device.executeShellCommand("mkdir -p $out")
         fun capture(name: String) { device.executeShellCommand("screencap -p $out/$name.png") }
@@ -75,6 +78,30 @@ class LargeTextSmallPhoneCaptureTest {
             clickAfterScrolling(R.id.btnNotNow)
             assertNotNull("Calm onboarding screen missing", waitFor(R.id.calmScreen))
             capture("onboarding-calm-top")
+            scenario.onActivity { activity ->
+                activity.findViewById<View>(R.id.featureGuideToggle).performClick()
+                activity.findViewById<ViewGroup>(R.id.featureGuideRows).getChildAt(0).performClick()
+            }
+            assertTrue("home guide missing", device.wait(Until.hasObject(By.textContains("Swipe up: all apps.")), 10_000))
+            capture("guide-home")
+            device.pressBack()
+            scenario.onActivity { activity ->
+                activity.findViewById<ViewGroup>(R.id.featureGuideRows).getChildAt(1).performClick()
+            }
+            assertTrue("search guide missing", device.wait(Until.hasObject(By.textContains("Swipe up and type.")), 10_000))
+            capture("guide-search")
+            device.pressBack()
+            scenario.onActivity { activity ->
+                val rows = activity.findViewById<ViewGroup>(R.id.calmRows)
+                val label = activity.getString(R.string.onboarding_row_slow_down)
+                val row = (0 until rows.childCount).map { rows.getChildAt(it) }.first {
+                    it.findViewById<TextView>(R.id.rowLabel)?.text?.toString() == label
+                }
+                row.performClick()
+            }
+            assertTrue("slow down sheet missing", device.wait(Until.hasObject(By.textContains("Mindful pause asks why")), 10_000))
+            capture("slow-down")
+            device.pressBack()
             clickAfterScrolling(R.id.btnDone)
             assertNotNull("home missing", waitFor(R.id.homeAppsLayout))
             scenario.onActivity { activity ->
