@@ -171,7 +171,7 @@ class PermissionLossGateTest {
         try {
             device.executeShellCommand("appops set ${context.packageName} GET_USAGE_STATS ignore")
             device.executeShellCommand("cmd package set-home-activity ${context.packageName}/${MainActivity::class.java.name}")
-            check(device.pressHome())
+            pressHomeAndAwaitParem()
             check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
             lateinit var source: Fragment
             instrumentation.runOnMainSync {
@@ -200,7 +200,7 @@ class PermissionLossGateTest {
                 assertTrue(device.wait(Until.hasObject(question), 10_000))
                 question
             } else warning
-            check(device.pressHome())
+            pressHomeAndAwaitParem()
             check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
             instrumentation.runOnMainSync { check(source.view == null) { "HOME did not destroy the source view" } }
             assertTrue("sheet survived its screen", device.wait(Until.gone(visibleSheet), 10_000))

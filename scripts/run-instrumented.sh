@@ -36,7 +36,10 @@ collect_diagnostics() {
 
 if [ "${runs:-0}" -le 0 ]; then
   status=0
-  if ! timeout --kill-after=10s 15m ./gradlew connectedPlayDebugAndroidTest; then
+  if timeout --kill-after=10s 15m ./gradlew connectedPlayDebugAndroidTest; then
+    :
+  else
+    play_result=$?
     status=1
     capture_failure play
     cp -r app/build/reports/androidTests/connected "$diag_out/play-failure-report" 2>/dev/null || true
@@ -45,6 +48,17 @@ if [ "${runs:-0}" -le 0 ]; then
       echo 'Emulator unavailable after Play tests; skipping remaining phases and failing.' >&2
       collect_diagnostics
       exit 1
+    fi
+    if [ "$play_result" -eq 124 ] || [ "$play_result" -eq 137 ]; then
+      # A timed-out Gradle client can leave device instrumentation running.
+      # Stop it before Full reinstalls the orchestrator and test-services APKs.
+      for package in androidx.test.orchestrator androidx.test.services; do
+        if ! timeout --kill-after=2s 8s adb shell am force-stop "$package"; then
+          echo "Unable to stop $package after Play timeout; skipping Full and failing." >&2
+          collect_diagnostics
+          exit 1
+        fi
+      done
     fi
   fi
   if ! timeout --kill-after=10s 15m ./gradlew connectedFullDebugAndroidTest; then
