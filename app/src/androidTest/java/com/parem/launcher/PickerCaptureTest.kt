@@ -86,6 +86,10 @@ class PickerCaptureTest {
         }
         if (shown != wantIme) runCatching { saveFailureEvidence() }
         val searchFocused = device.findObject(By.clazz("android.widget.EditText"))?.isFocused
+        if (name == "limit" && wantIme) {
+            assertTrue("single-choice picker search must hold input focus when the keyboard is open",
+                device.wait(Until.hasObject(By.clazz("android.widget.EditText").focused(true)), 5_000))
+        }
         assertTrue("IME state not verified: wanted=$wantIme observed=$shown $keyboardConfig searchFocused=$searchFocused autoShow=${Prefs(context).autoShowKeyboard}", shown == wantIme)
         val imePackage = device.executeShellCommand("settings get secure default_input_method").trim().substringBefore('/')
         assertTrue("default IME package missing", imePackage.isNotBlank() && imePackage != "null")
@@ -93,10 +97,8 @@ class PickerCaptureTest {
             else device.wait(Until.gone(By.pkg(imePackage)), 15_000)
         if (!imeWindowVisible) runCatching { saveFailureEvidence() }
         assertTrue("IME accessibility window did not reach requested visibility: wanted=$wantIme package=$imePackage", imeWindowVisible)
-        val action = when (name) {
-            "focus", "folder", "quiet" -> context.getString(R.string.quiet_continue)
-            else -> null
-        }
+        val action = if (name.startsWith("focus") || name == "folder" || name == "quiet")
+            context.getString(R.string.quiet_continue) else null
         if (action != null) assertTrue("picker action not visible above IME: $action",
             device.wait(Until.hasObject(By.desc(action)), 5_000))
         device.waitForIdle()
@@ -131,6 +133,7 @@ class PickerCaptureTest {
         prepare()
         try {
             focus()
+            if (args.getString("picker_font") == "2.0" && args.getString("picker_ime") == "on") focusAtCap()
             folder()
             quiet()
             appLimit()
@@ -151,6 +154,32 @@ class PickerCaptureTest {
             scenario.onActivity { FocusModeDialog(it, apps.map { app -> app.appPackage to app.appLabel }).show() }
             clickTextPrefix(context.getString(R.string.focus_allowed_apps))
             capture("focus")
+        }
+    }
+
+    private fun focusAtCap() {
+        val apps = runBlocking { getAppsList(context, Prefs(context), includeRegularApps = true) }
+            .distinctBy { it.appPackage }.filter { it.appPackage.isNotEmpty() }
+        assertTrue("capture needs at least six launcher apps", apps.size >= 6)
+        FocusModeManager.disable(context)
+        FocusModeManager.setWhitelist(context, apps.take(5).map { it.appPackage }.toSet())
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { FocusModeDialog(it, apps.map { app -> app.appPackage to app.appLabel }).show() }
+            clickTextPrefix(context.getString(R.string.focus_allowed_apps))
+            val count = context.getString(R.string.picker_section_selected, 5)
+            assertTrue("five selected apps not shown", device.wait(Until.hasObject(By.text(count)), 10_000))
+            capture("focus-max")
+            val list = checkNotNull(device.findObject(By.clazz("androidx.recyclerview.widget.RecyclerView")))
+            var foundAll = device.hasObject(By.text(context.getString(R.string.a11y_all_apps)))
+            repeat(8) {
+                if (!foundAll) {
+                    list.scroll(Direction.DOWN, 0.8f)
+                    foundAll = device.wait(Until.hasObject(By.text(context.getString(R.string.a11y_all_apps))), 1_000)
+                }
+            }
+            assertTrue("All apps must be reachable after five selected apps", foundAll)
+            assertTrue("Continue must remain reachable after scrolling", device.hasObject(By.desc(context.getString(R.string.quiet_continue))))
+            capture("focus-max-scrolled")
         }
     }
 
