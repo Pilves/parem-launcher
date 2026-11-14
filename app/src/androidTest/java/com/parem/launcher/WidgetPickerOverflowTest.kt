@@ -35,12 +35,13 @@ class WidgetPickerOverflowTest {
             val title = View(context).apply { layoutParams = LinearLayout.LayoutParams(100, 45) }
             val search = View(context).apply { layoutParams = LinearLayout.LayoutParams(100, 60) }
             val list = ListView(context).apply { layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f) }
+            list.addFooterView(View(context).apply { minimumHeight = 24 }, null, false)
             list.adapter = ArrayAdapter(context, android.R.layout.simple_list_item_1, (0..19).map { "Widget $it" })
             container.addView(handle)
             container.addView(title)
             container.addView(search)
             container.addView(list)
-            val chrome = installWidgetPickerChrome(container, title, search, list, 30, 24)
+            val chrome = installWidgetPickerChrome(container, title, search, 30, 24)
             fun layout(height: Int) {
                 container.measure(View.MeasureSpec.makeMeasureSpec(240, View.MeasureSpec.EXACTLY),
                     View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
@@ -58,7 +59,7 @@ class WidgetPickerOverflowTest {
             assertSame("search remains in scrollable chrome", chrome, (search.parent as View).parent)
             assertTrue("short chrome and list both need space", chrome.height > 0 && list.height > 0)
             assertTrue("both ends of chrome must be scrollable", chrome.canScrollVertically(1))
-            assertEquals("all provider rows remain addressable", 20, list.count)
+            assertEquals("all provider rows and nonselectable spacer remain addressable", 21, list.count)
 
             layout(200)
             assertTrue("list room is restored", list.height >= 30)
@@ -96,6 +97,7 @@ class WidgetPickerOverflowTest {
                     }
                     list = ListView(activity).apply {
                         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
+                        addFooterView(View(activity).apply { minimumHeight = dp(24) }, null, false)
                     }
                     val adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1, (0..19).map { "Provider $it" })
                     list.adapter = adapter
@@ -110,7 +112,7 @@ class WidgetPickerOverflowTest {
                     container.addView(list)
                     dialog = Dialog(activity)
                     dialog.setContentView(container)
-                    installWidgetPickerChrome(container, title, search, list, dp(48), dp(24))
+                    installWidgetPickerChrome(container, title, search, dp(48), dp(24))
                     dialog.show()
                     dialog.window!!.setLayout(500, 500)
                 }
@@ -132,6 +134,9 @@ class WidgetPickerOverflowTest {
                         device.wait(Until.hasObject(By.clazz(EditText::class.java).focused(true)), 10_000))
                     val field = checkNotNull(device.findObject(By.clazz(EditText::class.java).focused(true)))
                     assertTrue("focused search is not visible", field.visibleBounds.height() > 0)
+                    val shortRow = device.wait(Until.findObject(By.res("android", "text1")), 10_000)
+                        ?: throw AssertionError("provider row missing in short window")
+                    assertTrue("provider row has no visible height in short window", shortRow.visibleBounds.height() > 0)
                     field.text = "Provider 7"
                     scenario.onActivity { dialog.window!!.setLayout(500, 500) }
                     val row = device.wait(Until.findObject(By.res("android", "text1").text("Provider 7")), 10_000)

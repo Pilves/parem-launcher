@@ -665,7 +665,9 @@ class HomeWidgetController(
             }
             searchRow.addView(searchField, android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             searchRow.addView(clear)
-            val listView = android.widget.ListView(context)
+            val listView = android.widget.ListView(context).apply {
+                addFooterView(View(context).apply { minimumHeight = 24.dpToPx() }, null, false)
+            }
             val textColor = context.getColorFromAttr(R.attr.primaryColor)
             val headerColor = textColor
             var currentItems = buildItems("")
@@ -743,7 +745,7 @@ class HomeWidgetController(
                 .dismissOnDestroy(fragment.viewLifecycleOwner)
             val pickerContainer = searchRow.parent as android.widget.LinearLayout
             val titleView = pickerContainer.getChildAt(pickerContainer.indexOfChild(searchRow) - 1)
-            installWidgetPickerChrome(pickerContainer, titleView, searchRow, listView, 48.dpToPx(), 24.dpToPx())
+            installWidgetPickerChrome(pickerContainer, titleView, searchRow, 48.dpToPx(), 24.dpToPx())
             dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
                 android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
             dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.let { sheet ->
