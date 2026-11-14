@@ -187,7 +187,17 @@ class FocusLaunchRoutingTest {
                             val choice = device.wait(Until.findObject(By.text(label)), 2_000) ?: continue
                             Log.i("CameraResolverTrace", "intended label=$label package=${handler.activityInfo.packageName}")
                             traceChooser("before", choice)
-                            choice.click()
+                            val lookupDeadline = SystemClock.uptimeMillis() + 5_000
+                            var clickable: UiObject2? = null
+                            while (clickable == null && SystemClock.uptimeMillis() < lookupDeadline) {
+                                try {
+                                    var node = device.findObject(By.text(label))
+                                    while (node != null && !node.isClickable) node = node.parent
+                                    clickable = node
+                                } catch (_: StaleObjectException) { }
+                                if (clickable == null) SystemClock.sleep(100)
+                            }
+                            checkNotNull(clickable) { "camera chooser row is not clickable" }.click()
                             traceChooser("after", choice)
                             selected = handler.activityInfo.packageName
                             break
