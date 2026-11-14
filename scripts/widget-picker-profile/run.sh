@@ -37,3 +37,6 @@ if [[ ${WIDGET_PICKER_CAPTURE:-false} == true ]]; then
     done
   done
 fi
+
+./gradlew connectedPlayDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.WidgetPickerOverflowTest
