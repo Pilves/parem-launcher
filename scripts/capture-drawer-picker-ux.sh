@@ -19,8 +19,13 @@ for font in 1.0 2.0; do
       -Pandroid.testInstrumentationRunnerArguments.drawer_picker_ime="$ime"
   done
 done
-
 adb pull /data/local/tmp/parem-drawer-picker-captures/. "$out/"
+for font in 1.0 2.0; do
+  for ime in off on; do
+    test -s "$out/ux-pick2-hidden-menu-font$font-ime$ime.png"
+  done
+  test -s "$out/ux-pick2-ordinary-font$font-imeon.png"
+done
 for route in assignment hidden; do
   for font in 1.0 2.0; do
     for ime in off on; do

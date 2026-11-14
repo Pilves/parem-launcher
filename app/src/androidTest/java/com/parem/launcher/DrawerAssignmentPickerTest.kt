@@ -13,6 +13,8 @@ import androidx.test.uiautomator.Until
 import com.parem.launcher.data.AppModel
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
+import com.parem.launcher.helper.AppLimitManager
+import com.parem.launcher.helper.FocusModeManager
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -94,13 +96,13 @@ class DrawerAssignmentPickerTest {
         }
     }
 
-    private fun ActivityScenario<MainActivity>.open(flag: Int) = onActivity { activity ->
+    private fun ActivityScenario<MainActivity>.open(flag: Int, app: AppModel = fixture) = onActivity { activity ->
         val model = ViewModelProvider(activity)[MainViewModel::class.java]
-        if (flag == Constants.FLAG_HIDDEN_APPS) model.hiddenApps.value = listOf(fixture)
+        if (flag == Constants.FLAG_HIDDEN_APPS) model.hiddenApps.value = listOf(app)
         activity.findNavController(R.id.nav_host_fragment).navigate(
             R.id.appListFragment, bundleOf(Constants.Key.FLAG to flag, Constants.Key.LETTER to 'A')
         )
-        if (flag != Constants.FLAG_HIDDEN_APPS) model.appList.value = listOf(fixture)
+        if (flag != Constants.FLAG_HIDDEN_APPS) model.appList.value = listOf(app)
     }
 
     @Test fun assignmentUsesSearchAndOneTapStillAssignsHomeSlot() {
@@ -223,13 +225,100 @@ class DrawerAssignmentPickerTest {
     }
 
     @Test fun hiddenAppTapOpensManagementInsteadOfLaunching() {
+        val app = launchFixture
+        val hiddenKey = com.parem.launcher.helper.AppListRebuilder.hiddenKey(app.appPackage, app.user.toString())
+        Prefs(context).hiddenApps = mutableSetOf(hiddenKey)
         ActivityScenario.launch(MainActivity::class.java).useWithEvidence { scenario ->
-            scenario.open(Constants.FLAG_HIDDEN_APPS)
+            scenario.open(Constants.FLAG_HIDDEN_APPS, app)
             assertTrue(device.wait(Until.hasObject(By.res(context.packageName, "drawerPickerTitle")
                 .text(context.getString(R.string.hidden_apps))), timeout))
-            assertTrue(device.wait(Until.hasObject(By.text("Picker Fixture")), timeout))
-            device.findObject(By.text("Picker Fixture")).click()
-            assertTrue(device.wait(Until.hasObject(By.text(context.getString(R.string.app_menu_show))), timeout))
+            assertTrue(device.wait(Until.hasObject(By.text("Hidden Launch Fixture")), timeout))
+            device.findObject(By.text("Hidden Launch Fixture")).click()
+            val open = checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.open_app))), timeout))
+            val info = checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.a11y_app_info))), timeout))
+            val show = checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.app_menu_show))), timeout))
+            assertTrue("Uninstall action missing", device.hasObject(By.desc(context.getString(R.string.app_menu_uninstall))))
+            assertTrue("Open must precede existing actions", open.visibleBounds.top < info.visibleBounds.top && info.visibleBounds.top < show.visibleBounds.top)
+            show.click()
+            val deadline = android.os.SystemClock.elapsedRealtime() + timeout
+            while (hiddenKey in Prefs(context).hiddenApps && android.os.SystemClock.elapsedRealtime() < deadline) android.os.SystemClock.sleep(50)
+            assertFalse("Show did not remove the hidden key", hiddenKey in Prefs(context).hiddenApps)
+        }
+    }
+
+    private val launchFixture get() = AppModel("Hidden Launch Fixture", null,
+        instrumentation.context.packageName, LaunchGateFixtureActivity::class.java.name, false, Process.myUserHandle())
+
+    private fun openHiddenMenu(scenario: ActivityScenario<MainActivity>) {
+        scenario.open(Constants.FLAG_HIDDEN_APPS, launchFixture)
+        checkNotNull(device.wait(Until.findObject(By.text("Hidden Launch Fixture")), timeout)).click()
+        assertTrue(device.wait(Until.hasObject(By.desc(context.getString(R.string.open_app))), timeout))
+    }
+
+    @Test fun hiddenOpenLaunchesTheChosenApp() {
+        FocusModeManager.disable(context)
+        ActivityScenario.launch(MainActivity::class.java).useWithEvidence { scenario ->
+            openHiddenMenu(scenario)
+            checkNotNull(device.findObject(By.desc(context.getString(R.string.open_app)))).click()
+            assertTrue("hidden app did not open", device.wait(Until.hasObject(By.text("Camera fixture activity is open")), timeout))
+            device.pressBack()
+        }
+    }
+
+    @Test fun hiddenOpenIsBlockedByFocus() {
+        FocusModeManager.setWhitelist(context, emptySet())
+        FocusModeManager.enable(context, 30)
+        try {
+            assertFalse(FocusModeManager.isAppAllowed(context, launchFixture.appPackage))
+            ActivityScenario.launch(MainActivity::class.java).useWithEvidence { scenario ->
+                openHiddenMenu(scenario)
+                checkNotNull(device.findObject(By.desc(context.getString(R.string.open_app)))).click()
+                assertTrue("blocked route did not return home", device.wait(Until.hasObject(By.res(context.packageName, "homeAppsLayout")), timeout))
+                assertFalse("Focus allowed the hidden app", device.wait(Until.hasObject(By.text("Camera fixture activity is open")), 2_000))
+                assertEquals(context.packageName, device.currentPackageName)
+            }
+        } finally { FocusModeManager.disable(context) }
+    }
+
+    @Test fun hiddenOpenStillRequiresMindfulPause() {
+        FocusModeManager.disable(context)
+        AppLimitManager.setPauseOnly(context, launchFixture.appPackage)
+        try {
+            ActivityScenario.launch(MainActivity::class.java).useWithEvidence { scenario ->
+                openHiddenMenu(scenario)
+                checkNotNull(device.findObject(By.desc(context.getString(R.string.open_app)))).click()
+                assertTrue("hidden Open skipped mindful pause", device.wait(Until.hasObject(
+                    By.text(context.getString(R.string.mindful_pause_question, "Hidden Launch Fixture"))), timeout))
+                assertFalse(device.hasObject(By.text("Camera fixture activity is open")))
+            }
+        } finally { AppLimitManager.removeLimit(context, launchFixture.appPackage) }
+    }
+
+    @Test fun hiddenOpenStillChecksItsAppLimit() {
+        assumeTrue("disposable emulator only", android.os.Build.HARDWARE == "ranchu" || android.os.Build.PRODUCT.contains("sdk_gphone"))
+        FocusModeManager.disable(context)
+        AppLimitManager.setLimit(context, launchFixture.appPackage, 15)
+        try {
+            device.executeShellCommand("appops set ${context.packageName} GET_USAGE_STATS ignore")
+            ActivityScenario.launch(MainActivity::class.java).useWithEvidence { scenario ->
+                openHiddenMenu(scenario)
+                checkNotNull(device.findObject(By.desc(context.getString(R.string.open_app)))).click()
+                assertTrue("hidden Open skipped the limit check", device.wait(Until.hasObject(
+                    By.text(context.getString(R.string.limit_usage_access_missing))), timeout))
+                assertFalse(device.hasObject(By.text("Camera fixture activity is open")))
+            }
+        } finally {
+            AppLimitManager.removeLimit(context, launchFixture.appPackage)
+            device.executeShellCommand("appops set ${context.packageName} GET_USAGE_STATS default")
+        }
+    }
+
+    @Test fun ordinaryDrawerLongPressDoesNotOfferOpen() {
+        ActivityScenario.launch(MainActivity::class.java).useWithEvidence { scenario ->
+            scenario.open(Constants.FLAG_LAUNCH_APP)
+            checkNotNull(device.wait(Until.findObject(By.text("Picker Fixture")), timeout)).longClick()
+            assertTrue(device.wait(Until.hasObject(By.desc(context.getString(R.string.a11y_app_info))), timeout))
+            assertFalse(device.hasObject(By.desc(context.getString(R.string.open_app))))
         }
     }
 

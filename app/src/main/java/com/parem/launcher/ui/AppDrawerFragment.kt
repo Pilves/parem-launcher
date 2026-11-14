@@ -607,6 +607,11 @@ class AppDrawerFragment : BaseFragment() {
             showAppMenu(app)
             return
         }
+        launchSelectedApp(app, sourceBounds)
+    }
+
+    private fun launchSelectedApp(app: AppModel, sourceBounds: android.graphics.Rect?) {
+        if (!isAdded || _binding == null) return
         if ((flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
             && checkBadHabitAndLaunch(app, sourceBounds)
         ) {
@@ -669,6 +674,7 @@ class AppDrawerFragment : BaseFragment() {
         if (!isAdded || _binding == null) return
         binding.search.hideKeyboard()
         AppMenu.show(this, app, prefs, viewModel, hidden = flag == Constants.FLAG_HIDDEN_APPS,
+            onOpen = if (flag == Constants.FLAG_HIDDEN_APPS) ({ launchSelectedApp(app, null) }) else null,
             uninstall = uninstallLauncher) { reloadAfterMenuChange() }
     }
 

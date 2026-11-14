@@ -49,6 +49,7 @@ class DrawerPickerCaptureTest {
             .filter { it.appPackage.isNotEmpty() && it.appLabel.isNotBlank() && it.user == android.os.Process.myUserHandle() }
             .distinctBy { it.appPackage }
         assertTrue("capture requires at least three launcher apps", apps.size >= 3)
+        var hiddenInputType: Int? = null
         for ((name, flag) in listOf("assignment" to Constants.FLAG_SET_HOME_APP_1, "hidden" to Constants.FLAG_HIDDEN_APPS)) {
             if (flag == Constants.FLAG_SET_HOME_APP_1) {
                 Prefs(context).apply {
@@ -85,6 +86,9 @@ class DrawerPickerCaptureTest {
                         Until.hasObject(By.res(context.packageName, "drawerPickerCurrent").textContains(apps.first().appLabel)), 15_000))
                     val searchId = context.resources.getResourceName(androidx.appcompat.R.id.search_src_text)
                     val field = checkNotNull(device.wait(Until.findObject(By.res(searchId)), 15_000))
+                    if (flag == Constants.FLAG_HIDDEN_APPS) scenario.onActivity { activity ->
+                        hiddenInputType = activity.findViewById<android.widget.TextView>(androidx.appcompat.R.id.search_src_text).inputType
+                    }
                     if (!wantIme) {
                         assertFalse("IME-off preference was not applied", Prefs(context).autoShowKeyboard)
                         assertFalse("IME-off picker should not focus search on entry", field.isFocused)
@@ -128,6 +132,18 @@ class DrawerPickerCaptureTest {
                         assertTrue("explicit tap should open keyboard", tapShown)
                         assertTrue("IME window missing after tap", device.wait(Until.hasObject(By.pkg(imePackage)), 15_000))
                     }
+                    if (flag == Constants.FLAG_HIDDEN_APPS) {
+                        device.pressBack()
+                        assertTrue("keyboard did not dismiss", device.wait(Until.gone(By.pkg(imePackage)), 15_000))
+                        checkNotNull(device.wait(Until.findObject(By.res(context.packageName, "appTitle")
+                            .textStartsWith(apps.first().appLabel)), 15_000)).click()
+                        val open = checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.open_app))), 15_000))
+                        val info = checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.a11y_app_info))), 15_000))
+                        assertTrue("Open must be the first action", open.visibleBounds.top < info.visibleBounds.top)
+                        val menu = File(requireNotNull(context.getExternalFilesDir(null)), "ux-pick2-hidden-menu-font$font-ime$ime.png")
+                        assertTrue("menu screenshot failed", device.takeScreenshot(menu))
+                        device.executeShellCommand("cp ${menu.absolutePath} /data/local/tmp/parem-drawer-picker-captures/${menu.name}")
+                    }
                 } catch (failure: Throwable) {
                     try {
                         saveFailureEvidence(name, font, ime)
@@ -136,6 +152,28 @@ class DrawerPickerCaptureTest {
                     }
                     throw failure
                 }
+            }
+        }
+        if (wantIme) {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                scenario.onActivity { activity ->
+                    activity.findNavController(R.id.nav_host_fragment).navigate(
+                        R.id.appListFragment, bundleOf(Constants.Key.FLAG to Constants.FLAG_LAUNCH_APP)
+                    )
+                }
+                val searchId = context.resources.getResourceName(androidx.appcompat.R.id.search_src_text)
+                val field = checkNotNull(device.wait(Until.findObject(By.res(searchId)), 15_000))
+                scenario.onActivity { activity ->
+                    val ordinaryInputType = activity.findViewById<android.widget.TextView>(androidx.appcompat.R.id.search_src_text).inputType
+                    assertTrue("ordinary drawer and hidden picker input types differ", hiddenInputType == ordinaryInputType)
+                }
+                field.click()
+                val imePackage = device.executeShellCommand("settings get secure default_input_method").trim().substringBefore('/')
+                assertTrue("ordinary drawer IME missing", device.wait(Until.hasObject(By.pkg(imePackage)), 15_000))
+                device.waitForIdle()
+                val file = File(requireNotNull(context.getExternalFilesDir(null)), "ux-pick2-ordinary-font$font-imeon.png")
+                assertTrue("ordinary drawer screenshot failed", device.takeScreenshot(file))
+                device.executeShellCommand("cp ${file.absolutePath} /data/local/tmp/parem-drawer-picker-captures/${file.name}")
             }
         }
     }
