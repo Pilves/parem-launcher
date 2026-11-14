@@ -4,13 +4,17 @@ import android.content.ComponentName
 import android.os.Build
 import android.os.SystemClock
 import android.util.Log
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.navigation.fragment.NavHostFragment
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import androidx.test.uiautomator.By
-import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
@@ -22,6 +26,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.util.Collections
+import java.util.IdentityHashMap
 
 /** Runs only in the dedicated disposable-emulator workflow with a synthetic companion APK. */
 @RunWith(AndroidJUnit4::class)
@@ -41,6 +47,41 @@ class WidgetProviderFixtureTest {
     private fun home(activity: MainActivity): HomeFragment {
         val host = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         return host.childFragmentManager.primaryNavigationFragment as HomeFragment
+    }
+
+    /** Test-only observers: placeholders have no production touch listener; container has no hierarchy listener. */
+    private fun tracePlaceholders(activity: MainActivity, prefs: Prefs) {
+        val seen = Collections.newSetFromMap(IdentityHashMap<View, Boolean>())
+        fun stamp() = "uptime=${SystemClock.uptimeMillis()} elapsed=${SystemClock.elapsedRealtime()}"
+        fun observe(wrapper: View) {
+            val label = (wrapper as? FrameLayout)?.getChildAt(0) as? TextView ?: return
+            if (label.text != context.getString(R.string.widget_unavailable) || !seen.add(label)) return
+            val id = wrapper.tag
+            val identity = System.identityHashCode(label)
+            fun state() = "id=$id view=$identity attached=${label.isAttachedToWindow} pressed=${label.isPressed} ids=${prefs.getWidgetIdList()} ${stamp()}"
+            Log.i("WidgetTouchTrace", "observe ${state()}")
+            label.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) { Log.i("WidgetTouchTrace", "attach ${state()}") }
+                override fun onViewDetachedFromWindow(v: View) { Log.i("WidgetTouchTrace", "detach ${state()}") }
+            })
+            label.setOnTouchListener { _, event ->
+                Log.i("WidgetTouchTrace", "touch ${MotionEvent.actionToString(event.actionMasked)} eventUptime=${event.eventTime} downUptime=${event.downTime} ${state()}")
+                false // Observe only; retain normal TextView click handling.
+            }
+        }
+        for (containerId in listOf(R.id.widgetContainerAbove, R.id.widgetContainerBelow)) {
+            val container = activity.findViewById<ViewGroup>(containerId) ?: continue
+            for (i in 0 until container.childCount) observe(container.getChildAt(i))
+            container.setOnHierarchyChangeListener(object : ViewGroup.OnHierarchyChangeListener {
+                override fun onChildViewAdded(parent: View, child: View) {
+                    Log.i("WidgetTouchTrace", "add wrapper=${System.identityHashCode(child)} id=${child.tag} ${stamp()}")
+                    observe(child)
+                }
+                override fun onChildViewRemoved(parent: View, child: View) {
+                    Log.i("WidgetTouchTrace", "remove wrapper=${System.identityHashCode(child)} id=${child.tag} ${stamp()}")
+                }
+            })
+        }
     }
 
     @Test
@@ -87,20 +128,12 @@ class WidgetProviderFixtureTest {
             assertEquals(100, prefs.getWidgetHeight(first))
             assertEquals(110, prefs.getWidgetHeight(second))
 
+            // Start observers before reinstall, so a rebuild around the one tap is visible.
+            onHome { tracePlaceholders(it, prefs) }
             assertTrue(device.executeShellCommand("pm install -r /data/local/tmp/parem-widget-fixture.apk").contains("Success"))
-            // Reinstall dispatches provider changes that can rebuild the placeholder view.
-            val clickDeadline = SystemClock.elapsedRealtime() + 10_000
-            var clicked = false
-            while (!clicked && SystemClock.elapsedRealtime() < clickDeadline) {
-                val firstPlaceholder = device.findObjects(unavailable).firstOrNull()
-                if (firstPlaceholder != null) try {
-                    Log.i("WidgetFixture", "placeholder bounds=${firstPlaceholder.visibleBounds} enabled=${firstPlaceholder.isEnabled} clickable=${firstPlaceholder.isClickable}")
-                    firstPlaceholder.click()
-                    clicked = true
-                } catch (_: StaleObjectException) { }
-                if (!clicked) SystemClock.sleep(100)
-            }
-            assertTrue("first unavailable widget could not be opened after reinstall", clicked)
+            val target = checkNotNull(device.findObjects(unavailable).firstOrNull()) { "first placeholder missing after reinstall" }
+            Log.i("WidgetTouchTrace", "single tap bounds=${target.visibleBounds} uptime=${SystemClock.uptimeMillis()} elapsed=${SystemClock.elapsedRealtime()}")
+            target.click()
             val swap = device.wait(Until.findObject(By.desc(context.getString(R.string.swap_widget))), 10_000)
             if (swap == null) {
                 try {
