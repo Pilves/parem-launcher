@@ -30,7 +30,7 @@ class WidgetPickerOverflowTest {
     @Test fun shortWindowMovesChromeIntoTheSingleScrollableListAndRestoresIt() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             val context = InstrumentationRegistry.getInstrumentation().targetContext
-            val container = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+            val container = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL; setPadding(0, 12, 0, 24) }
             val handle = View(context).apply { layoutParams = LinearLayout.LayoutParams(100, 10) }
             val title = View(context).apply { layoutParams = LinearLayout.LayoutParams(100, 45) }
             val search = View(context).apply { layoutParams = LinearLayout.LayoutParams(100, 60) }
@@ -40,7 +40,7 @@ class WidgetPickerOverflowTest {
             container.addView(title)
             container.addView(search)
             container.addView(list)
-            val chrome = installWidgetPickerChrome(container, title, search, 30)
+            val chrome = installWidgetPickerChrome(container, title, search, list, 30, 24)
             fun layout(height: Int) {
                 container.measure(View.MeasureSpec.makeMeasureSpec(240, View.MeasureSpec.EXACTLY),
                     View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
@@ -62,7 +62,7 @@ class WidgetPickerOverflowTest {
 
             layout(200)
             assertTrue("list room is restored", list.height >= 30)
-            assertSame(list, container.getChildAt(2))
+            assertSame(list, container.getChildAt(1))
         }
     }
     @Test fun nonTouchResizeKeepsSearchReachableAndSelectionCorrect() {
@@ -79,7 +79,12 @@ class WidgetPickerOverflowTest {
                 lateinit var list: ListView
                 lateinit var container: LinearLayout
                 scenario.onActivity { activity ->
-                    container = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+                    val density = activity.resources.displayMetrics.density
+                    fun dp(value: Int) = (value * density).toInt()
+                    container = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL; setPadding(0, dp(12), 0, dp(24)) }
+                    val handle = View(activity).apply {
+                        layoutParams = LinearLayout.LayoutParams(dp(32), dp(4)).apply { bottomMargin = dp(16) }
+                    }
                     val title = TextView(activity).apply {
                         text = "Widget picker test"
                         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 110)
@@ -99,12 +104,13 @@ class WidgetPickerOverflowTest {
                         val item = adapter.getItem(position)
                         if (item != null) selected.set(item)
                     }
+                    container.addView(handle)
                     container.addView(title)
                     container.addView(search)
                     container.addView(list)
                     dialog = Dialog(activity)
                     dialog.setContentView(container)
-                    installWidgetPickerChrome(container, title, search, 120)
+                    installWidgetPickerChrome(container, title, search, list, dp(48), dp(24))
                     dialog.show()
                     dialog.window!!.setLayout(500, 500)
                 }

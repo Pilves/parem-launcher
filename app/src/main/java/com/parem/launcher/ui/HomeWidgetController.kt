@@ -743,7 +743,7 @@ class HomeWidgetController(
                 .dismissOnDestroy(fragment.viewLifecycleOwner)
             val pickerContainer = searchRow.parent as android.widget.LinearLayout
             val titleView = pickerContainer.getChildAt(pickerContainer.indexOfChild(searchRow) - 1)
-            installWidgetPickerChrome(pickerContainer, titleView, searchRow, 48.dpToPx())
+            installWidgetPickerChrome(pickerContainer, titleView, searchRow, listView, 48.dpToPx(), 24.dpToPx())
             dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
                 android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
             dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.let { sheet ->
