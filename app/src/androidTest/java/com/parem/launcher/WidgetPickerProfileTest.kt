@@ -5,7 +5,6 @@ import android.os.Build
 import android.os.Debug
 import android.os.SystemClock
 import android.util.Log
-import java.io.File
 import androidx.navigation.fragment.NavHostFragment
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -57,10 +56,8 @@ class WidgetPickerProfileTest {
             }
             val list = device.wait(Until.findObject(By.clazz("android.widget.ListView")), 30_000)
                 ?: run {
-                    context.getExternalFilesDir(null)?.let { directory ->
-                        runCatching { device.dumpWindowHierarchy(File(directory, "widget-profile-failure.xml")) }
-                        runCatching { device.takeScreenshot(File(directory, "widget-profile-failure.png")) }
-                    }
+                    runCatching { device.executeShellCommand("uiautomator dump /data/local/tmp/widget-profile-failure.xml") }
+                    runCatching { device.executeShellCommand("screencap -p /data/local/tmp/widget-profile-failure.png") }
                     throw AssertionError("widget picker list did not appear")
                 }
             val openMs = SystemClock.elapsedRealtime() - start

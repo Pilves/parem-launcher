@@ -12,7 +12,6 @@ import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import java.util.concurrent.atomic.AtomicReference
-import java.io.File
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
@@ -140,14 +139,8 @@ class WidgetPickerOverflowTest {
                         if (!movedIntoHeader) android.os.SystemClock.sleep(50)
                     }
                     assertTrue("short-window layout did not move search into the header", movedIntoHeader)
-                    val focused = device.wait(Until.hasObject(By.clazz(EditText::class.java).focused(true)), 10_000)
-                    if (!focused) {
-                        context.getExternalFilesDir(null)?.let { directory ->
-                            runCatching { device.dumpWindowHierarchy(File(directory, "widget-overflow-failure.xml")) }
-                            runCatching { device.takeScreenshot(File(directory, "widget-overflow-failure.png")) }
-                        }
-                    }
-                    assertTrue("search was not reachable with input focus after shrinking", focused)
+                    assertTrue("search was not reachable with input focus after shrinking",
+                        device.wait(Until.hasObject(By.clazz(EditText::class.java).focused(true)), 10_000))
                     val field = checkNotNull(device.findObject(By.clazz(EditText::class.java).focused(true)))
                     assertTrue("focused search is not visible", field.visibleBounds.height() > 0)
                     field.text = "Provider 7"
@@ -158,6 +151,10 @@ class WidgetPickerOverflowTest {
                     val deadline = android.os.SystemClock.elapsedRealtime() + 5_000
                     while (selected.get() == null && android.os.SystemClock.elapsedRealtime() < deadline) android.os.SystemClock.sleep(50)
                     assertEquals("Provider 7", selected.get())
+                } catch (failure: Throwable) {
+                    runCatching { device.executeShellCommand("uiautomator dump /data/local/tmp/widget-overflow-failure.xml") }
+                    runCatching { device.executeShellCommand("screencap -p /data/local/tmp/widget-overflow-failure.png") }
+                    throw failure
                 } finally {
                     scenario.onActivity { dialog.dismiss() }
                 }
