@@ -2,6 +2,7 @@ package com.parem.launcher.ui
 
 import android.content.Context
 import android.graphics.Rect
+import android.os.SystemClock
 import android.text.InputType
 import android.view.Gravity
 import android.view.MotionEvent
@@ -43,6 +44,7 @@ class AppPickerAdapter(
     private val allEntries = AppPickerSections.ordered(entries.map { AppPickerSections.Entry(it.id, it.label) })
     private var query = ""
     private var rows: List<Row> = emptyList()
+    private var lastSelectionAt: Long? = null
     val selectedIds = LinkedHashSet<String>(initiallySelected)
 
     init { rebuild() }
@@ -123,6 +125,9 @@ class AppPickerAdapter(
                     view.bindChecked(entry.id in selectedIds)
                 } else (view as TextView).text = entry.label
                 view.setOnClickListener {
+                    val now = SystemClock.uptimeMillis()
+                    if (!singleChoice && lastSelectionAt?.let { now - it < 400L } == true)
+                        return@setOnClickListener
                     if (entry.id in selectedIds) selectedIds.remove(entry.id)
                     else if (selectedIds.size < maxSelected) selectedIds.add(entry.id)
                     else {
@@ -130,6 +135,7 @@ class AppPickerAdapter(
                         else view.announceForAccessibility(view.context.getString(R.string.a11y_picker_cap, maxSelected))
                         return@setOnClickListener
                     }
+                    if (!singleChoice) lastSelectionAt = now
                     if (view is SheetCheckRow) view.checked = entry.id in selectedIds
                     rebuild()
                     notifyDataSetChanged()

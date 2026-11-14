@@ -5,6 +5,7 @@
 ## v6.1.0 — 2026-11-14
 
 - Shorter first-run and guide text.
+- Prevent rapid taps from changing the next app in multi-select pickers.
 
 - Make widgets easier to find with app grouping, search and size labels.
 
