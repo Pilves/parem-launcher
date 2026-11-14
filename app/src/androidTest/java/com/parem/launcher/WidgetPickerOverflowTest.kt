@@ -152,7 +152,13 @@ class WidgetPickerOverflowTest {
                     while (selected.get() == null && android.os.SystemClock.elapsedRealtime() < deadline) android.os.SystemClock.sleep(50)
                     assertEquals("Provider 7", selected.get())
                 } catch (failure: Throwable) {
-                    runCatching { device.executeShellCommand("uiautomator dump /data/local/tmp/widget-overflow-failure.xml") }
+                    scenario.onActivity {
+                        val rect = android.graphics.Rect()
+                        val visible = search.getGlobalVisibleRect(rect)
+                        android.util.Log.i("WidgetOverflowDiag", "failure visible=$visible rect=$rect attached=${search.isAttachedToWindow} focused=${search.hasFocus()} first=${list.firstVisiblePosition} childtop=${list.getChildAt(0)?.top} listheight=${list.height} searchheight=${search.height} headerheight=${header.height}")
+                    }
+                    runCatching { device.dumpWindowHierarchy(java.io.File(context.filesDir, "widget-overflow-failure.xml")) }
+                    runCatching { device.executeShellCommand("run-as com.parem.launcher.debug cat files/widget-overflow-failure.xml > /data/local/tmp/widget-overflow-failure.xml") }
                     runCatching { device.executeShellCommand("screencap -p /data/local/tmp/widget-overflow-failure.png") }
                     throw failure
                 } finally {
