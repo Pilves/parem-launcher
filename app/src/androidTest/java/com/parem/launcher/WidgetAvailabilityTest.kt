@@ -4,6 +4,8 @@ import android.content.ComponentName
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
+import android.view.View
+import android.view.ViewGroup
 import androidx.navigation.fragment.NavHostFragment
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,9 +21,11 @@ import com.parem.launcher.ui.HomeFragment
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertSame
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(AndroidJUnit4::class)
 class WidgetAvailabilityTest {
@@ -238,4 +242,74 @@ class WidgetAvailabilityTest {
             device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
         }
     }
+    @Test
+    fun forcedRefreshKeepsUnavailablePlaceholderAndRefreshesValidWidget() {
+        prepare()
+        val prefs = Prefs(context)
+        var unavailableId = -1
+        var validId = -1
+        var placeholder: View? = null
+        var validWrapper: View? = null
+        try {
+            check(device.pressHome())
+            check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
+            fun onHome(block: (MainActivity) -> Unit) = instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                block(activity)
+            }
+            fun wrapper(activity: MainActivity, id: Int): View? =
+                listOf(R.id.widgetContainerAbove, R.id.widgetContainerBelow)
+                    .mapNotNull { activity.findViewById<ViewGroup>(it)?.findViewWithTag<View>(id) }.firstOrNull()
+            onHome { activity ->
+                unavailableId = activity.appWidgetHost.allocateAppWidgetId()
+                validId = activity.appWidgetHost.allocateAppWidgetId()
+                assertTrue(activity.appWidgetManager.bindAppWidgetIdIfAllowed(validId, provider))
+                prefs.setWidgetIdList(listOf(unavailableId, validId))
+                prefs.setWidgetHeight(unavailableId, 173)
+                prefs.setWidgetHeight(validId, 187)
+                home(activity).widgetController!!.requestReconcile(force = true)
+            }
+            val deadline = SystemClock.elapsedRealtime() + 10_000
+            while ((placeholder == null || validWrapper == null) && SystemClock.elapsedRealtime() < deadline) {
+                onHome { activity -> placeholder = wrapper(activity, unavailableId); validWrapper = wrapper(activity, validId) }
+                if (placeholder == null || validWrapper == null) SystemClock.sleep(50)
+            }
+            checkNotNull(placeholder) { "unavailable placeholder missing" }
+            checkNotNull(validWrapper) { "valid widget missing" }
+            val oldPlaceholder = checkNotNull(placeholder)
+            val oldValid = validWrapper
+            val detachments = AtomicInteger()
+            onHome { activity ->
+                oldPlaceholder.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                    override fun onViewAttachedToWindow(v: View) = Unit
+                    override fun onViewDetachedFromWindow(v: View) { detachments.incrementAndGet() }
+                })
+                home(activity).widgetController!!.requestReconcile(force = true)
+            }
+            val refreshDeadline = SystemClock.elapsedRealtime() + 10_000
+            var refreshed = false
+            while (!refreshed && SystemClock.elapsedRealtime() < refreshDeadline) {
+                onHome { activity ->
+                    refreshed = wrapper(activity, validId)?.let { it !== oldValid } == true
+                    if (refreshed) {
+                        assertSame("forced refresh replaced the unchanged placeholder", oldPlaceholder, wrapper(activity, unavailableId))
+                        assertEquals("placeholder detached during refresh", 0, detachments.get())
+                        assertTrue("placeholder is not attached", oldPlaceholder.isAttachedToWindow)
+                    }
+                }
+                if (!refreshed) SystemClock.sleep(50)
+            }
+            assertTrue("valid widget was not refreshed", refreshed)
+            assertEquals(listOf(unavailableId, validId), prefs.getWidgetIdList())
+            assertEquals(173, prefs.getWidgetHeight(unavailableId))
+            assertEquals(187, prefs.getWidgetHeight(validId))
+            val node = checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.widget_unavailable))), 10_000))
+            node.click()
+            assertTrue("retained placeholder no longer opens its menu", device.wait(Until.hasObject(By.desc(context.getString(R.string.swap_widget))), 10_000))
+        } finally {
+            device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
+        }
+    }
+
 }

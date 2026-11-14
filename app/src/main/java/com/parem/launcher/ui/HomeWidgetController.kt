@@ -235,20 +235,30 @@ class HomeWidgetController(
             val signature = ids.map { id -> id to infos[id]?.second }
             if (!force && renderedWidgets == signature && renderedAbove == above) return
             val container = getActiveContainer() ?: return
+            // A forced provider refresh must not detach an unchanged placeholder
+            // while a user is touching it. Valid widget views still refresh.
+            val sameSlots = renderedAbove == above && container.childCount == ids.size && ids.indices.all {
+                container.getChildAt(it) is FrameLayout && container.getChildAt(it).tag == ids[it]
+            }
             cancelPendingLongPresses()
             widgetGestureDetectors.clear()
-            container.removeAllViews()
+            if (!sameSlots) container.removeAllViews()
             var failedToRender = false
-            for (id in ids) {
+            for ((index, id) in ids.withIndex()) {
                 val info = infos[id]?.first
-                if (info == null) addUnavailableWidget(id)
+                val old = if (sameSlots) container.getChildAt(index) as? FrameLayout else null
+                if (info == null && old?.getChildAt(0) is TextView) continue
+                if (old != null) container.removeViewAt(index)
+                if (info == null) addUnavailableWidget(id, index)
                 else try {
                     val view = activity.appWidgetHost.createView(context.applicationContext, id, info)
-                    addWidgetToContainer(view, id)
+                    addWidgetToContainer(view, id, index)
                 } catch (e: Exception) {
                     CrashReporter.reportNonFatal("HomeWidgetController: widget view failed for id=$id", e)
                     failedToRender = true
-                    addUnavailableWidget(id)
+                    // A partially added wrapper must not duplicate this slot.
+                    if (container.getChildAt(index)?.tag == id) container.removeViewAt(index)
+                    addUnavailableWidget(id, index)
                 }
             }
             renderedWidgets = if (failedToRender) null else signature
@@ -272,7 +282,7 @@ class HomeWidgetController(
             .forEach { mainActivity.appWidgetHost.deleteAppWidgetId(it) }
     }
 
-    private fun addUnavailableWidget(widgetId: Int) {
+    private fun addUnavailableWidget(widgetId: Int, index: Int = -1) {
         val container = getActiveContainer() ?: return
         val height = (prefs.getWidgetHeight(widgetId) * context.resources.displayMetrics.density).toInt()
         val wrapper = FrameLayout(context).apply {
@@ -289,10 +299,10 @@ class HomeWidgetController(
             setOnClickListener { showWidgetOptionsDialog(widgetId) }
             setOnLongClickListener { showWidgetOptionsDialog(widgetId); true }
         }, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
-        container.addView(wrapper)
+        container.addView(wrapper, index)
     }
 
-    private fun addWidgetToContainer(hostView: android.appwidget.AppWidgetHostView, widgetId: Int) {
+    private fun addWidgetToContainer(hostView: android.appwidget.AppWidgetHostView, widgetId: Int, index: Int = -1) {
         val container = getActiveContainer() ?: return
         val scrollView = getActiveScrollView() ?: return
 
@@ -422,7 +432,7 @@ class HomeWidgetController(
         }
         wrapper.addView(resizeHandle)
 
-        container.addView(wrapper)
+        container.addView(wrapper, index)
 
         wrapper.post {
             if (!isActive()) return@post
