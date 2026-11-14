@@ -72,7 +72,7 @@ class WidgetPickerCaptureTest {
                 checkNotNull(device.findObject(By.text(context.getString(R.string.search_history_clear)))).click()
                 val refreshedSearch = checkNotNull(device.findObject(By.clazz("android.widget.EditText")))
                 refreshedSearch.text = "Stress widget 000"
-                val row = device.wait(Until.findObject(By.textStartsWith("Stress widget 000")), 10_000)
+                val row = device.wait(Until.findObject(By.clazz("android.widget.TextView").textStartsWith("Stress widget 000")), 10_000)
                     ?: throw AssertionError("synthetic widget row missing")
                 assertTrue("widget row has no size: ${row.text}", row.text.contains("×"))
                 row.click()
