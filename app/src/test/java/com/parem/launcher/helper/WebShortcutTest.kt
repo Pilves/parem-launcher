@@ -7,6 +7,18 @@ import org.junit.Test
 class WebShortcutTest {
 
     @Test
+    fun newInputRejectsSchemesWhileRetainingSupportedHostPortsAndStoredUrls() {
+        assertNull(WebShortcut.normalizeInput("tel:123456"))
+        assertNull(WebShortcut.normalizeInput("sms:1234"))
+        assertNull(WebShortcut.normalizeInput("printer:8080"))
+        assertEquals("https://example.com:8080/x", WebShortcut.normalizeInput("example.com:8080/x"))
+        assertEquals("https://localhost:3000", WebShortcut.normalizeInput("localhost:3000"))
+        assertEquals("https://jõgi.ee:8443/x", WebShortcut.normalizeInput("jõgi.ee:8443/x"))
+        assertEquals("http://printer:8080", WebShortcut.normalizeInput("http://printer:8080"))
+        assertEquals("https://printer:8080", WebShortcut.normalize("printer:8080"))
+    }
+
+    @Test
     fun normalize_addsHttpsWhenNoScheme() {
         assertEquals("https://example.com", WebShortcut.normalize("example.com"))
     }

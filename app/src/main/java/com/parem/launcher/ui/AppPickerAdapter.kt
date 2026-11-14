@@ -83,7 +83,10 @@ class AppPickerAdapter(
  * moves the search, heading and actions into the list so there is one scroller;
  * padding parameters keep each sheet's inset.
  */
-fun LinearLayout.addAppPicker(adapter: AppPickerAdapter, searchPaddingLeft: Int = 8.dpToPx(), searchPaddingTop: Int = 4.dpToPx()) {
+fun LinearLayout.addAppPicker(adapter: AppPickerAdapter) {
+    val inset = resources.getDimensionPixelSize(R.dimen.sheet_padding_horizontal)
+    val startInset = (inset - paddingStart).coerceAtLeast(0)
+    val endInset = (inset - paddingEnd).coerceAtLeast(0)
     addView(EditText(context).apply {
         hint = context.getString(R.string.search_apps)
         TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetBody)
@@ -92,7 +95,7 @@ fun LinearLayout.addAppPicker(adapter: AppPickerAdapter, searchPaddingLeft: Int 
         background = null
         inputType = InputType.TYPE_CLASS_TEXT
         isSingleLine = true
-        setPadding(searchPaddingLeft, searchPaddingTop, 0, 8.dpToPx())
+        setPaddingRelative(startInset, 4.dpToPx(), endInset, 8.dpToPx())
         doAfterTextChanged { adapter.filter(it?.toString() ?: "") }
         viewTreeObserver.addOnGlobalLayoutListener {
             if (hasFocus() && ViewCompat.getRootWindowInsets(this)

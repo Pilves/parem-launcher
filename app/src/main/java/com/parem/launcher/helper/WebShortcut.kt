@@ -6,6 +6,21 @@ import java.net.URI
 /** URL handling for website shortcuts on home slots and in folders. Android-free. */
 object WebShortcut {
 
+    /** Validate newly entered shortcuts without changing how stored URLs open. */
+    fun normalizeInput(input: String): String? {
+        val trimmed = input.trim()
+        val prefix = Regex("^([A-Za-z][A-Za-z0-9+.-]*):(.+)$").find(trimmed)
+        if (prefix != null) {
+            val name = prefix.groupValues[1]
+            if (!name.equals("http", true) && !name.equals("https", true)) {
+                val hostWithPort = (name.equals("localhost", true) || '.' in name) &&
+                    Regex("^\\d+(?:[/?#]|$)").containsMatchIn(prefix.groupValues[2])
+                if (!hostWithPort) return null
+            }
+        }
+        return normalize(trimmed)
+    }
+
     /**
      * Returns a launchable http(s) URL for what the user typed, or null.
      * A missing scheme becomes https; any other scheme (javascript:, intent:,

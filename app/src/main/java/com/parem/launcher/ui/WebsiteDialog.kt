@@ -51,7 +51,7 @@ class WebsiteDialog(
         container.addView(labelInput)
 
         menu.customView(container).option(context.getString(R.string.save), dismissOnClick = false) {
-            val url = WebShortcut.normalize(urlInput.text.toString())
+            val url = WebShortcut.normalizeInput(urlInput.text.toString())
             if (url == null) {
                 context.showToast(context.getString(R.string.invalid_url))
                 return@option

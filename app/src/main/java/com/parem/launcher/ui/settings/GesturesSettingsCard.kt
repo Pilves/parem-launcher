@@ -198,7 +198,10 @@ class GesturesSettingsCard(
             if (prefs.swipeRightEnabled) prefs.getEffectiveSwipeRightAction() else Constants.GestureAction.NONE
         }
         for ((label, actionValue) in gestureActionChoices()) {
-            menu.option(label, checked = actionValue == selected, singleChoice = true) {
+            val summary = if (actionValue == Constants.GestureAction.OPEN_APP && selected == actionValue)
+                (if (isLeft) binding.swipeLeftApp.text else binding.swipeRightApp.text).toString()
+            else null
+            menu.option(label, summary = summary, checked = actionValue == selected, singleChoice = true) {
                 val previous = if (isLeft) prefs.swipeLeftAction else prefs.swipeRightAction
                 if (isLeft) {
                     prefs.swipeLeftAction = actionValue
