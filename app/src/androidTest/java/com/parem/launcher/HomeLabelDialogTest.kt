@@ -1,6 +1,11 @@
 package com.parem.launcher
 
+import android.graphics.Rect
+import android.os.SystemClock
+import android.util.Log
 import android.view.View
+import android.view.WindowInsets
+import android.view.accessibility.AccessibilityNodeInfo
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.test.core.app.ActivityScenario
@@ -22,6 +27,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.File
 import java.util.concurrent.atomic.AtomicReference
 
 @RunWith(AndroidJUnit4::class)
@@ -54,19 +60,76 @@ class HomeLabelDialogTest {
                     saved.set(it)
                 }
             }
-            var input = requireNotNull(device.wait(Until.findObject(By.clazz(EditText::class.java)), 10_000))
-            input.text = "\u200B\u200B"
-            requireNotNull(device.findObject(By.desc(context.getString(R.string.save)))).click()
-            device.waitForIdle()
-            assertNull("invisible input must not be saved", saved.get())
-            assertEquals("Old label", prefs.getHomeAppName(1))
-            input = requireNotNull(device.findObject(By.clazz(EditText::class.java)))
-            val visible = "👩‍👩‍👧‍👦"
-            input.text = visible
-            requireNotNull(device.findObject(By.desc(context.getString(R.string.save)))).click()
-            assertTrue("visible name was not saved", device.wait(Until.gone(By.clazz(EditText::class.java)), 5_000))
-            assertEquals(visible, saved.get())
-            assertEquals(visible, prefs.getHomeAppName(1))
+            try {
+                // Wait for the real IME and stable, unobscured Save bounds before a single tap.
+                fun readySave(): androidx.test.uiautomator.UiObject2 {
+                    val deadline = SystemClock.elapsedRealtime() + 15_000
+                    var previous: Rect? = null
+                    var stable = 0
+                    while (SystemClock.elapsedRealtime() < deadline) {
+                        var imeVisible = false
+                        var imeBottom = 0
+                        scenario.onActivity { activity ->
+                            val insets = activity.window.decorView.rootWindowInsets
+                            imeVisible = insets?.isVisible(WindowInsets.Type.ime()) == true
+                            imeBottom = insets?.getInsets(WindowInsets.Type.ime())?.bottom ?: 0
+                        }
+                        val save = device.findObject(By.desc(context.getString(R.string.save)))
+                        val bounds = save?.visibleBounds
+                        val clear = save != null && save.isEnabled && save.isClickable && bounds != null && !bounds.isEmpty && bounds.bottom <= device.displayHeight - imeBottom
+                        stable = if (imeVisible && clear && bounds == previous) stable + 1 else 0
+                        if (stable >= 2) {
+                            val fresh = device.findObject(By.desc(context.getString(R.string.save)))
+                            if (fresh != null && fresh.isEnabled && fresh.isClickable && fresh.visibleBounds == bounds) return fresh
+                        }
+                        previous = bounds?.let(::Rect)
+                        SystemClock.sleep(100)
+                    }
+                    error("IME and unobscured Save did not settle")
+                }
+                fun fieldError(node: AccessibilityNodeInfo?): CharSequence? {
+                    if (node == null) return null
+                    if (node.className == EditText::class.java.name && node.error != null) return node.error
+                    for (i in 0 until node.childCount) fieldError(node.getChild(i))?.let { return it }
+                    return null
+                }
+                var input = requireNotNull(device.wait(Until.findObject(By.clazz(EditText::class.java)), 10_000))
+                readySave()
+                input = requireNotNull(device.findObject(By.clazz(EditText::class.java)))
+                input.text = "\u200B\u200B"
+                readySave().click()
+                val errorDeadline = SystemClock.elapsedRealtime() + 10_000
+                var error: CharSequence? = null
+                while (error == null && SystemClock.elapsedRealtime() < errorDeadline) {
+                    error = instrumentation.uiAutomation.windows.firstNotNullOfOrNull { fieldError(it.root) }
+                    if (error == null) SystemClock.sleep(100)
+                }
+                assertEquals(context.getString(R.string.app_menu_enter_name), error?.toString())
+                assertNull("invisible input must not be saved", saved.get())
+                assertEquals("Old label", prefs.getHomeAppName(1))
+                input = requireNotNull(device.wait(Until.findObject(By.clazz(EditText::class.java)), 10_000))
+                val visible = "👩‍👩‍👧‍👦"
+                input.text = visible
+                readySave().click()
+                assertTrue("visible name was not saved", device.wait(Until.gone(By.clazz(EditText::class.java)), 5_000))
+                assertEquals(visible, saved.get())
+                assertEquals(visible, prefs.getHomeAppName(1))
+            } catch (failure: Throwable) {
+                val directory = requireNotNull(context.getExternalFilesDir(null))
+                runCatching { device.dumpWindowHierarchy(File(directory, "home-label-failure.xml")) }
+                runCatching { device.takeScreenshot(File(directory, "home-label-failure.png")) }
+                runCatching {
+                    device.executeShellCommand("mkdir -p /data/local/tmp/parem-diag")
+                    device.executeShellCommand("cp ${directory.absolutePath}/home-label-failure.* /data/local/tmp/parem-diag/")
+                }
+                runCatching {
+                    scenario.onActivity { activity ->
+                        val insets = activity.window.decorView.rootWindowInsets
+                        Log.e("HomeLabelTest", "failure: windowFocus=${activity.hasWindowFocus()} activityAttached=${activity.window.decorView.isAttachedToWindow} ime=${insets?.isVisible(WindowInsets.Type.ime())} windows=${instrumentation.uiAutomation.windows.map { it.root?.className }}", failure)
+                    }
+                }
+                throw failure
+            }
         }
     }
 
