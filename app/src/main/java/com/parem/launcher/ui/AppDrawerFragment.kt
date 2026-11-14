@@ -32,6 +32,10 @@ import com.parem.launcher.helper.AppOpenCounter
 import com.parem.launcher.helper.ContactMatcher
 import com.parem.launcher.helper.ContactSearchManager
 import com.parem.launcher.helper.SearchHints
+import com.parem.launcher.helper.PickerKeyboardPolicy
+import com.parem.launcher.helper.DrawerPickerSelection
+import com.parem.launcher.helper.DoubleTapActionManager
+import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
 import com.parem.launcher.helper.CurrencyRates
@@ -88,6 +92,7 @@ class AppDrawerFragment : BaseFragment() {
     private var reapplyQueryOnReload = false
     private var scrollListener: RecyclerView.OnScrollListener? = null
     private var searchTextView: TextView? = null
+    private var resultAnnouncement: Runnable? = null
     private var cachedIsCjkKeyboard: Boolean? = null
 
     // Omnibox state: the search field doubles as an omnibox. Exactly one mode is
@@ -206,12 +211,89 @@ class AppDrawerFragment : BaseFragment() {
         }
     }
 
+    private fun savedPickerSelection(): DrawerPickerSelection.Identity? {
+        fun key(pkg: String, activity: String?, user: String?) =
+            DrawerPickerSelection.Identity(pkg, activity, user).takeIf { pkg.isNotBlank() }
+        val context = context ?: return null
+        return when (flag) {
+            in Constants.FLAG_SET_HOME_APP_1..Constants.FLAG_SET_HOME_APP_8 ->
+                if (prefs.getHomeAppUrl(flag).isNotEmpty()) null else key(
+                    prefs.getHomeAppPackage(flag), prefs.getHomeAppActivityClassName(flag), prefs.getHomeAppUser(flag))
+            Constants.FLAG_SET_SWIPE_LEFT_APP -> key(prefs.appPackageSwipeLeft, prefs.appActivityClassNameSwipeLeft, prefs.appUserSwipeLeft)
+            Constants.FLAG_SET_SWIPE_RIGHT_APP -> key(prefs.appPackageSwipeRight, prefs.appActivityClassNameSwipeRight, prefs.appUserSwipeRight)
+            Constants.FLAG_SET_CLOCK_APP -> key(prefs.clockAppPackage, prefs.clockAppClassName, prefs.clockAppUser)
+            Constants.FLAG_SET_CALENDAR_APP -> key(prefs.calendarAppPackage, prefs.calendarAppClassName, prefs.calendarAppUser)
+            Constants.FLAG_SET_DOUBLE_TAP_APP -> key(DoubleTapActionManager.getAppPackage(context),
+                DoubleTapActionManager.getAppActivity(context), DoubleTapActionManager.getAppUser(context))
+            Constants.FLAG_SET_GESTURE_LETTER_APP -> gestureLetter?.let { letter ->
+                GestureLetterManager.getMapping(context, letter)?.let { (pkg, activity, user) -> key(pkg, activity, user) }
+            }
+            else -> null
+        }
+    }
+
+    private fun showCurrentPickerSelection(apps: List<AppModel>) {
+        val b = _binding ?: return
+        if (flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS) return
+        // The shared app list may contain Private Space entries; apply the same
+        // consumer-side gate as the picker adapter before displaying any label.
+        val visibleApps = DrawerRows.gate(apps, isLaunchDrawer = false) { it.isPrivate }
+        val identities = visibleApps.map { DrawerPickerSelection.Identity(it.appPackage, it.activityClassName, it.user.toString()) }
+        val app = DrawerPickerSelection.uniqueIndex(savedPickerSelection(), identities, android.os.Process.myUserHandle().toString())?.let(visibleApps::get)
+        if (app == null) {
+            b.drawerPickerCurrent.visibility = View.GONE
+            return
+        }
+        val label = androidx.core.text.BidiFormatter.getInstance().unicodeWrap(app.appLabel)
+        val profileLabel = if (app.user != android.os.Process.myUserHandle())
+            "$label · ${getString(R.string.a11y_work_profile)}" else label
+        b.drawerPickerCurrent.text = getString(R.string.picker_current_app, profileLabel)
+        b.drawerPickerCurrent.visibility = View.VISIBLE
+    }
+
     private fun initViews() {
-        if (flag == Constants.FLAG_HIDDEN_APPS)
-            binding.search.queryHint = getString(R.string.hidden_apps)
-        else if (flag in Constants.FLAG_SET_HOME_APP_1..Constants.FLAG_SET_CALENDAR_APP)
-            binding.search.queryHint = getString(R.string.select_an_app)
-        else if (flag == Constants.FLAG_LAUNCH_APP) {
+        if (flag != Constants.FLAG_LAUNCH_APP) {
+            // Keep the search reachable when a short IME window cannot fit all chrome.
+            val chrome = DrawerPickerChrome(requireContext())
+            val content = android.widget.LinearLayout(requireContext()).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+            }
+            // Landscape animates root child removal, which otherwise leaves the
+            // old parent attached while the new chrome tries to adopt the views.
+            val transition = binding.root.layoutTransition
+            binding.root.layoutTransition = null
+            try {
+                listOf(binding.drawerPickerTitle, binding.drawerPickerCurrent, binding.drawerSearchRow, binding.appDrawerTip).forEach { child ->
+                    binding.root.removeView(child)
+                    content.addView(child)
+                }
+                chrome.addView(content)
+                binding.root.addView(chrome, 0, android.widget.LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                ))
+            } finally {
+                binding.root.layoutTransition = transition
+            }
+            binding.drawerPickerTitle.setText(
+                if (flag == Constants.FLAG_HIDDEN_APPS) R.string.hidden_apps else R.string.select_app
+            )
+            binding.drawerPickerTitle.visibility = View.VISIBLE
+            (binding.drawerSearchRow.layoutParams as android.view.ViewGroup.MarginLayoutParams).let {
+                it.topMargin = (8 * resources.displayMetrics.density).toInt()
+                binding.drawerSearchRow.layoutParams = it
+            }
+            (binding.recyclerView.layoutParams as android.view.ViewGroup.MarginLayoutParams).let {
+                it.topMargin = (8 * resources.displayMetrics.density).toInt()
+                binding.recyclerView.layoutParams = it
+            }
+            binding.search.queryHint = getString(R.string.search_apps)
+            binding.search.findViewById<android.widget.ImageView>(androidx.appcompat.R.id.search_close_btn)?.apply {
+                setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+                contentDescription = getString(R.string.picker_clear_search)
+                minimumWidth = resources.getDimensionPixelSize(R.dimen.touch_target_min)
+                minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
+            }
+        } else {
             // The omnibox's only in-app mention: a different example each open, until it has sunk in
             val opens = drawerOpenIndex ?: SearchHints.MAX_OPENS
             binding.search.queryHint = if (showDrawerGuidance()) "" else SearchHints.forOpen(opens, resources.getStringArray(R.array.omnibox_hints))
@@ -390,7 +472,9 @@ class AppDrawerFragment : BaseFragment() {
         // Picker drawers only pick an app, so a tip there must not promise a search
         val searches = flag == Constants.FLAG_LAUNCH_APP
         val bang = searches && query.startsWith("!") && query.length > 1
-        if (bang || (adapter.itemCount == 0 && query.isNotBlank())) {
+        val noRows = if (searches) adapter.itemCount == 0
+            else adapter.currentList.none { it.appPackage.isNotEmpty() }
+        if (bang || (noRows && (query.isNotBlank() || !searches))) {
             b.appDrawerTip.text = when {
                 hiddenHintShown -> getString(R.string.hidden_apps_hint)
                 searches && !HiddenAppHint.canSearchWeb(query, currentHiddenLabels()) -> getString(R.string.no_apps_found)
@@ -405,6 +489,21 @@ class AppDrawerFragment : BaseFragment() {
         } else {
             b.appDrawerTip.visibility = View.GONE
         }
+    }
+
+    private fun announcePickerResults(query: String) {
+        val field = searchTextView ?: return
+        resultAnnouncement?.let(field::removeCallbacks)
+        resultAnnouncement = null
+        if (query.isBlank()) return
+        val count = adapter.currentList.count { it.appPackage.isNotEmpty() }
+        val announcement = Runnable {
+            if (isAdded && _binding != null && field.isAttachedToWindow && binding.search.query.toString() == query) {
+                field.announceForAccessibility(getString(R.string.picker_result_count, count))
+            }
+        }
+        resultAnnouncement = announcement
+        field.postDelayed(announcement, 300)
     }
 
     private fun currentHiddenLabels(): List<String>? =
@@ -504,6 +603,15 @@ class AppDrawerFragment : BaseFragment() {
         }
         if (app.appPackage.isEmpty())
             return
+        if (flag == Constants.FLAG_HIDDEN_APPS) {
+            showAppMenu(app)
+            return
+        }
+        launchSelectedApp(app, sourceBounds)
+    }
+
+    private fun launchSelectedApp(app: AppModel, sourceBounds: android.graphics.Rect?) {
+        if (!isAdded || _binding == null) return
         if ((flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS)
             && checkBadHabitAndLaunch(app, sourceBounds)
         ) {
@@ -562,18 +670,20 @@ class AppDrawerFragment : BaseFragment() {
         viewModel.getHiddenApps()
     }
 
+    private fun showAppMenu(app: AppModel) {
+        if (!isAdded || _binding == null) return
+        binding.search.hideKeyboard()
+        AppMenu.show(this, app, prefs, viewModel, hidden = flag == Constants.FLAG_HIDDEN_APPS,
+            onOpen = if (flag == Constants.FLAG_HIDDEN_APPS) ({ launchSelectedApp(app, null) }) else null,
+            uninstall = uninstallLauncher) { reloadAfterMenuChange() }
+    }
+
     private fun initAdapter() {
         adapter = AppDrawerAdapter(
             flag,
             prefs.appLabelAlignment,
             appClickListener = { app, view -> onAppClick(app, view) },
-            appLongPressListener = { app ->
-                if (isAdded && _binding != null) {
-                    _binding?.search?.hideKeyboard()
-                    AppMenu.show(this, app, prefs, viewModel, hidden = flag == Constants.FLAG_HIDDEN_APPS,
-                        uninstall = uninstallLauncher) { reloadAfterMenuChange() }
-                }
-            }
+            appLongPressListener = { app -> showAppMenu(app) }
         )
         adapter.onFilterCommitted = onFilterCommitted@{ query ->
             if (_binding?.search?.query?.toString() == query) {
@@ -593,6 +703,7 @@ class AppDrawerFragment : BaseFragment() {
                     }
                 }
                 refreshEmptyResultTip()
+                if (flag != Constants.FLAG_LAUNCH_APP) announcePickerResults(query)
                 resumePendingSubmit()
             }
         }
@@ -741,6 +852,7 @@ class AppDrawerFragment : BaseFragment() {
             }
             viewModel.appList.observe(viewLifecycleOwner) {
                 it?.let { appModels ->
+                    showCurrentPickerSelection(appModels)
                     adapter.setAppList(appModels.toMutableList())
                     refreshRecent()
                     if (typedQuery.isNotEmpty()) {
@@ -848,7 +960,7 @@ class AppDrawerFragment : BaseFragment() {
                             _binding?.search?.hideKeyboard()
                         else if (!recyclerView.canScrollVertically(-1))
                             // A d-pad focused row reaching the top keeps its focus
-                            if (!onTop && isRemoving.not() && recyclerView.focusedChild == null)
+                            if (flag == Constants.FLAG_LAUNCH_APP && !onTop && isRemoving.not() && recyclerView.focusedChild == null)
                                 _binding?.search?.showKeyboard(prefs.autoShowKeyboard)
                     }
                 }
@@ -951,9 +1063,35 @@ class AppDrawerFragment : BaseFragment() {
     override fun onStart() {
         super.onStart()
         cachedIsCjkKeyboard = null
-        binding.search.showKeyboard(prefs.autoShowKeyboard)
-        // Further typing must land in the field even with keyboard auto-show off
-        if (typedQuery.isNotEmpty()) binding.search.requestFocus()
+        if (flag == Constants.FLAG_LAUNCH_APP) {
+            binding.search.showKeyboard(prefs.autoShowKeyboard)
+            // Further typing must land in the field even with keyboard auto-show off
+            if (typedQuery.isNotEmpty()) binding.search.requestFocus()
+        } else {
+            val config = resources.configuration
+            val mode = PickerKeyboardPolicy.decide(
+                touchExploration = isScreenReaderOn(),
+                autoShow = prefs.autoShowKeyboard,
+                hardwareKeyboard = config.keyboard != android.content.res.Configuration.KEYBOARD_NOKEYS &&
+                    config.hardKeyboardHidden != android.content.res.Configuration.HARDKEYBOARDHIDDEN_YES,
+            )
+            when (mode) {
+                PickerKeyboardPolicy.Mode.LEAVE_FOCUS, PickerKeyboardPolicy.Mode.FOCUS_ONLY -> {
+                    binding.root.isFocusableInTouchMode = true
+                    binding.root.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                    binding.root.requestFocus()
+                }
+                PickerKeyboardPolicy.Mode.FOCUS_AND_SHOW -> searchTextView?.let { field ->
+                    field.requestFocus()
+                    field.postDelayed({
+                        if (isAdded && _binding != null && field.isAttachedToWindow && field.hasFocus()) {
+                            val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                            imm.showSoftInput(field, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+                        }
+                    }, 100)
+                }
+            }
+        }
     }
 
     override fun onStop() {
@@ -967,6 +1105,8 @@ class AppDrawerFragment : BaseFragment() {
         scrollListener?.let { binding.recyclerView.removeOnScrollListener(it) }
         scrollListener = null
         pendingSubmit = null
+        resultAnnouncement?.let { searchTextView?.removeCallbacks(it) }
+        resultAnnouncement = null
         searchTextView = null
         super.onDestroyView()
         _binding = null

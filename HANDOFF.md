@@ -398,6 +398,7 @@ per package; the rest of each of those fragments is still in
 - **M6-WP58 (PR #64):** Widget reconciliation sweeps orphan host IDs on the first scan and on forced refreshes, not every ordinary return home.
 - **M6-WP59 (PR #62):** Instrumented permission-loss HOME checks verify the actual launcher state, and a timed-out Play run cannot overlap Full or performance phases.
 - **M6-WP60 (PR #65):** A raw published v6.0.2 export is checked through the bounded reader and registered preference-type validator in both JVM flavors.
+- **M6-WP61 (PR #66):** Drawer assignment and hidden-app management routes have a titled, searchable picker with the drawer keyboard policy: on entry, auto-show off, hardware keyboard, or TalkBack leaves search unfocused; users tap to search.
 - **M6-WP63 (PR #67):** Disposable CI emulator test and fixture scripts suppress system error dialogs and check Parem crash/ANR events.
 - **M6-WP64 (PR #68):** Minified release smoke scrolls to settings export and import by resource id before clicking them.
 - **M6-WP66 (PR #69):** Smoke CI allows 30 minutes per Play and Full instrumentation phase; performance retains 22 minutes.

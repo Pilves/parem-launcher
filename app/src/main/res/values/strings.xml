@@ -485,7 +485,9 @@
     <string name="quick_grayscale_manual_on">Manual grayscale on</string>
     <string name="quick_grayscale_manual_off">Manual grayscale off; automatic grayscale may still be active</string>
     <string name="picker_selected_count">%1$s · %2$d selected</string>
-    <string name="picker_section_selected" translatable="false">Selected (%1$d)</string>
-    <string name="picker_no_other_apps_match" translatable="false">No other apps match</string>
-    <string name="picker_result_count" translatable="false">%1$d apps shown</string>
+    <string name="picker_section_selected">Selected (%1$d)</string>
+    <string name="picker_no_other_apps_match">No other apps match</string>
+    <string name="picker_result_count">%1$d apps shown</string>
+    <string name="picker_current_app">Current: %1$s</string>
+    <string name="picker_clear_search">Clear search</string>
 </resources>

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Clarify app assignment and hidden-app management pickers, including gated Open for hidden apps.
+
 - Avoid enumerating orphaned widget IDs on every ordinary return home.
 - Clarify grayscale restore guidance and correct an Estonian schedule hint.
 - Make app selection easier to search and review before saving.

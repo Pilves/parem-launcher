@@ -47,6 +47,7 @@ object AppMenu {
         viewModel: MainViewModel,
         homeSlot: Int? = null,
         hidden: Boolean = false,
+        onOpen: (() -> Unit)? = null,
         homeActions: ((BottomSheetMenu) -> Unit)? = null,
         // Owned by the caller so the installer's result reaches it; only the drawer offers Uninstall
         uninstall: ActivityResultLauncher<Intent>? = null,
@@ -60,6 +61,9 @@ object AppMenu {
         val isHidden = hidden || hiddenKey in prefs.hiddenApps || app.appPackage in prefs.hiddenApps
         val pause = AppLimitManager.hasPause(context, app.appPackage)
         val menu = BottomSheetMenu(context).title(BidiFormatter.getInstance().unicodeWrap(app.appLabel))
+        if (hidden && onOpen != null) menu.option(context.getString(R.string.open_app)) {
+            if (fragment.isAlive) onOpen()
+        }
         val actions = AppMenuPolicy.actions(personal, app.isPrivate, hidden, homeSlot != null,
             AppLimitManager.isGated(context, app.appPackage), personal && !context.isSystemApp(app.appPackage))
         for (action in actions) when (action) {
