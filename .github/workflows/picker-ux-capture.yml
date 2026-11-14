@@ -1,6 +1,21 @@
 name: Picker UX captures
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'app/src/main/java/com/parem/launcher/ui/AppPickerAdapter.kt'
+      - 'app/src/main/java/com/parem/launcher/ui/PickerSheetLayout.kt'
+      - 'app/src/main/java/com/parem/launcher/ui/BottomSheetMenu.kt'
+      - 'app/src/main/java/com/parem/launcher/ui/CreateFolderDialog.kt'
+      - 'app/src/main/java/com/parem/launcher/ui/FocusModeDialog.kt'
+      - 'app/src/main/java/com/parem/launcher/ui/QuietListSheet.kt'
+      - 'app/src/main/java/com/parem/launcher/ui/ScreenTimeLimitDialog.kt'
+      - 'app/src/main/java/com/parem/launcher/helper/AppPickerSections.kt'
+      - 'app/src/main/java/com/parem/launcher/helper/PickerKeyboardPolicy.kt'
+      - 'app/src/androidTest/java/com/parem/launcher/PickerCaptureTest.kt'
+      - 'scripts/capture-picker-ux.sh'
+      - '.github/workflows/picker-ux-capture.yml'
 permissions:
   contents: read
 jobs:
