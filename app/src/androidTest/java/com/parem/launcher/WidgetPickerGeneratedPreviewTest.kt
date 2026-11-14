@@ -95,7 +95,16 @@ class WidgetPickerGeneratedPreviewTest {
             try {
                 service.flags = originalFlags and android.accessibilityservice.AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS.inv()
                 automation.serviceInfo = service
-                assertFalse("preview descendants must be hidden from accessibility", device.hasObject(By.textStartsWith("Synthetic preview")))
+                assertEquals("diagnostic include-nonimportant flag remained set", 0,
+                    automation.serviceInfo.flags and android.accessibilityservice.AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS)
+                val root = checkNotNull(automation.rootInActiveWindow) { "active accessibility root missing" }
+                fun hasText(node: android.view.accessibility.AccessibilityNodeInfo, text: String): Boolean {
+                    if (node.text?.toString()?.startsWith(text) == true) return true
+                    return (0 until node.childCount).any { index -> node.getChild(index)?.let { hasText(it, text) } == true }
+                }
+                assertTrue("fixture group absent from accessibility tree", hasText(root, "Parem stress widgets"))
+                assertTrue("widget row absent from accessibility tree", hasText(root, "Stress widget 000"))
+                assertFalse("preview descendants must be hidden from accessibility", hasText(root, "Synthetic preview"))
             } finally {
                 service.flags = originalFlags
                 automation.serviceInfo = service
