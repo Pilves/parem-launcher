@@ -89,7 +89,10 @@ class DrawerPickerCaptureTest {
                         assertFalse("IME-off preference was not applied", Prefs(context).autoShowKeyboard)
                         assertFalse("IME-off picker should not focus search on entry", field.isFocused)
                     }
-                    if (wantIme && hardware) field.click()
+                    if (wantIme && hardware) {
+                        assertFalse("hardware keyboard should not focus picker search on entry", field.isFocused)
+                        field.click()
+                    }
                     val deadline = SystemClock.elapsedRealtime() + 15_000
                     var shown: Boolean? = null
                     while (SystemClock.elapsedRealtime() < deadline) {
