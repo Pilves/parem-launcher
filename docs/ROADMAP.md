@@ -323,6 +323,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP64 | **Done** (PR #68). **Todo**. Scroll to settings actions in minified release smoke | Release smoke driver and diagnostics, handoff | Both minified flavors exercise export/import by resource id and preserve failure evidence |
 
+| M6-WP66 | **Done** (PR #69). **Todo**. Give larger instrumented suites enough CI time | Smoke phase limits, workflow timeout, harness assertions and handoff | Play and Full each have 30 minutes, perf remains 22; perf job has appropriate setup margin |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
