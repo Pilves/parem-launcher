@@ -59,14 +59,22 @@ class PickerCaptureTest {
             kotlin.math.abs(context.resources.configuration.fontScale - font.toFloat()) < 0.05f)
         var activityScale = 0f
         var keyboardConfig = ""
+        var hardwareKeyboard = false
         instrumentation.runOnMainSync {
             val config = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
                 .filterIsInstance<MainActivity>().single().resources.configuration
             activityScale = config.fontScale
             keyboardConfig = "keyboard=${config.keyboard} hardKeyboardHidden=${config.hardKeyboardHidden}"
+            hardwareKeyboard = config.keyboard != android.content.res.Configuration.KEYBOARD_NOKEYS &&
+                config.hardKeyboardHidden != android.content.res.Configuration.HARDKEYBOARDHIDDEN_YES
         }
         assertTrue("activity font scale not applied: $activityScale", kotlin.math.abs(activityScale - font.toFloat()) < 0.05f)
         val wantIme = args.getString("picker_ime") == "on"
+        if (wantIme && hardwareKeyboard) {
+            // A visible hardware keyboard intentionally suppresses auto-show;
+            // an explicit tap still lets us capture the software IME layout.
+            checkNotNull(device.findObject(By.clazz("android.widget.EditText"))).click()
+        }
         val deadline = SystemClock.elapsedRealtime() + 15_000
         var shown: Boolean? = null
         while (SystemClock.elapsedRealtime() < deadline) {
@@ -76,13 +84,7 @@ class PickerCaptureTest {
             if (shown == wantIme) break
             SystemClock.sleep(100)
         }
-        if (shown != wantIme) {
-            val dir = File(requireNotNull(context.getExternalFilesDir(null)), "picker-capture-failure").apply { mkdirs() }
-            device.takeScreenshot(File(dir, "failure.png"))
-            device.dumpWindowHierarchy(File(dir, "hierarchy.xml"))
-            device.executeShellCommand("mkdir -p /data/local/tmp/parem-picker-captures")
-            device.executeShellCommand("cp ${dir.absolutePath}/* /data/local/tmp/parem-picker-captures/")
-        }
+        if (shown != wantIme) runCatching { saveFailureEvidence() }
         val searchFocused = device.findObject(By.clazz("android.widget.EditText"))?.isFocused
         assertTrue("IME state not verified: wanted=$wantIme observed=$shown $keyboardConfig searchFocused=$searchFocused autoShow=${Prefs(context).autoShowKeyboard}", shown == wantIme)
         val action = when (name) {
@@ -107,15 +109,30 @@ class PickerCaptureTest {
                 row = device.wait(Until.findObject(By.textStartsWith(text)), 1_000)
             }
         }
+        if (row == null) runCatching { saveFailureEvidence() }
         checkNotNull(row) { "row missing: $text" }.click()
+    }
+
+    private fun saveFailureEvidence() {
+        val dir = File(context.filesDir, "picker-capture-failure").apply { mkdirs() }
+        device.dumpWindowHierarchy(File(dir, "hierarchy.xml"))
+        device.executeShellCommand("mkdir -p /data/local/tmp/parem-picker-captures")
+        device.executeShellCommand("screencap -p /data/local/tmp/parem-picker-captures/failure.png")
+        device.executeShellCommand("run-as ${context.packageName} cat files/picker-capture-failure/hierarchy.xml > /data/local/tmp/parem-picker-captures/hierarchy.xml")
     }
 
     @Test fun captureAllRoutes() {
         prepare()
-        focus()
-        folder()
-        quiet()
-        appLimit()
+        try {
+            focus()
+            folder()
+            quiet()
+            appLimit()
+        } catch (failure: Throwable) {
+            val recorded = File(context.filesDir, "picker-capture-failure/hierarchy.xml")
+            if (!recorded.exists()) try { saveFailureEvidence() } catch (diagnostic: Exception) { failure.addSuppressed(diagnostic) }
+            throw failure
+        }
     }
 
     private fun focus() {
