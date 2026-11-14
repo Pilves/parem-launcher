@@ -19,6 +19,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.File
 
 /** Separate capture workflow configures a disposable 320dp-wide emulator. */
 @RunWith(AndroidJUnit4::class)
@@ -53,7 +54,7 @@ class LargeTextSmallPhoneCaptureTest {
             val firstScreen = waitFor(R.id.homeScreen)
             if (firstScreen == null) {
                 // Capture before ActivityScenario closes the screen on assertion failure.
-                runCatching { device.executeShellCommand("uiautomator dump $out/onboarding-failure.xml") }
+                runCatching { device.dumpWindowHierarchy(File("$out/onboarding-failure.xml")) }
                 runCatching { capture("onboarding-failure") }
                 runCatching {
                     scenario.onActivity { activity ->
