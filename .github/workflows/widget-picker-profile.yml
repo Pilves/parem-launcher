@@ -48,6 +48,7 @@ jobs:
           name: widget-picker-profile-${{ github.run_id }}
           path: |
             app/build/widget-picker-profile/
+            app/build/ci-incidents/
             app/build/reports/androidTests/
           if-no-files-found: error
           retention-days: 30
