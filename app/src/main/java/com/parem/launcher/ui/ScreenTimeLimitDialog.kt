@@ -189,7 +189,7 @@ class ScreenTimeLimitDialog(
                 .map { AppPickerAdapter.Entry(it.appPackage, it.appLabel) }
             lateinit var picker: BottomSheetDialog
             lateinit var adapter: AppPickerAdapter
-            adapter = AppPickerAdapter(context.getColorFromAttr(R.attr.textColor), maxSelected = 1, entries = entries) {
+            adapter = AppPickerAdapter(context.getColorFromAttr(R.attr.textColor), maxSelected = 1, entries = entries, singleChoice = true) {
                 adapter.selectedIds.firstOrNull()?.let { packageName ->
                     picker.dismiss()
                     onPicked(packageName)
@@ -201,7 +201,7 @@ class ScreenTimeLimitDialog(
                 addAppPicker(adapter)
             }
             picker = BottomSheetMenu(context)
-                .title(context.getString(R.string.add_another_app))
+                .title(context.getString(R.string.select_app))
                 .customView(content)
                 .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true)
         }

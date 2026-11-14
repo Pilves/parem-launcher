@@ -4,11 +4,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.LinearLayout
+import androidx.core.widget.NestedScrollView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.parem.launcher.ui.makePickerScroller
+import com.parem.launcher.helper.dpToPx
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -47,32 +49,48 @@ class PickerSheetLayoutTest {
             sheet.addView(cancel)
 
             sheet.makePickerScroller()
-            assertEquals(3, sheet.childCount)
-            assertSame(list, sheet.getChildAt(0))
-            assertSame(action, sheet.getChildAt(1))
-            assertSame(cancel, sheet.getChildAt(2))
-            assertEquals(21, list.adapter!!.itemCount) // header and 20 choices; actions are pinned
-            sheet.measure(
-                View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(240, View.MeasureSpec.EXACTLY),
-            )
-            sheet.layout(0, 0, 200, 240)
+            assertEquals(5, sheet.childCount)
+            assertSame(title, sheet.getChildAt(0))
+            assertSame(content, sheet.getChildAt(1))
+            assertSame(list, sheet.getChildAt(2))
+            assertSame(action, sheet.getChildAt(3))
+            assertSame(cancel, sheet.getChildAt(4))
+            assertEquals(20, list.adapter!!.itemCount) // search and actions stay outside the single list
+            val wrapper = NestedScrollView(context).apply {
+                isFillViewport = true
+                addView(sheet)
+            }
+            fun measure(height: Int) {
+                wrapper.measure(
+                    View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY),
+                )
+                wrapper.layout(0, 0, 200, height)
+            }
+            val fixedHeight = 35 + 40 + 35 + 35
+            val minimumList = 48.dpToPx()
+            val normalHeight = fixedHeight + minimumList + 80
+            measure(normalHeight)
             assertTrue("the list must contain more choices than fit", list.canScrollVertically(1))
-            assertTrue("the list must have room for choices", list.height > 75)
+            assertTrue("the list must have room for choices", list.height >= minimumList)
             assertEquals("the action must be visible before scrolling", list.bottom, action.top)
-            assertEquals(240, cancel.bottom)
+            assertEquals(normalHeight, cancel.bottom)
             assertEquals("the action must span the picker width", list.width, action.width)
             assertEquals("search must span the picker width", list.width, search.width)
+            assertTrue("normal layout must not need outer scrolling", !wrapper.canScrollVertically(1))
 
-            // A wrap-content dialog supplies an AT_MOST height, not always EXACTLY.
-            sheet.measure(
-                View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(240, View.MeasureSpec.AT_MOST),
-            )
-            sheet.layout(0, 0, 200, sheet.measuredHeight)
-            assertTrue("list must retain space under a dialog height limit", list.height > 75)
-            assertTrue("last action must remain inside the dialog", cancel.bottom <= sheet.height)
+            // Fixed rows alone exceed this viewport: scrolling must reveal both
+            // ends, while the bounded app list retains its own scroll behavior.
+            val overflowHeight = fixedHeight - 20
+            measure(overflowHeight)
+            assertTrue("overflow must be scrollable", wrapper.canScrollVertically(1))
+            assertTrue("list must remain bounded and usable", list.height >= minimumList)
             assertTrue("long list must remain scrollable", list.canScrollVertically(1))
+            wrapper.scrollTo(0, sheet.height - wrapper.height)
+            assertTrue("last action must be reachable", cancel.bottom - wrapper.scrollY <= wrapper.height)
+            wrapper.scrollTo(0, 0)
+            assertTrue("title must be reachable", title.top >= wrapper.scrollY)
+
         }
     }
 }

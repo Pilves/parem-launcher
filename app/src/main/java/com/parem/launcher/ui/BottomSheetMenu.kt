@@ -10,6 +10,7 @@ import android.content.res.ColorStateList
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.LinearLayout
 import android.widget.ImageView
@@ -310,6 +311,40 @@ class BottomSheetMenu(private val context: Context) {
         return this
     }
 
+    /** Multi-choice pickers keep both actions visible above the keyboard. */
+    fun pickerActions(onContinue: () -> Unit): BottomSheetMenu {
+        val actions = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(horizontalPadding, 0, horizontalPadding, 0)
+        }
+        fun action(label: String, primary: Boolean, click: () -> Unit) = TextView(context).apply {
+            text = label
+            contentDescription = label
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_Parem_SheetBody)
+            setTextColor(context.getColorFromAttr(if (primary) R.attr.accentColor else R.attr.textColor))
+            gravity = Gravity.CENTER
+            minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
+            setBackgroundResource(if (context.isEinkDisplay()) R.drawable.bg_eink_control else context.selectableBackgroundRes())
+            isFocusable = true
+            ViewCompat.setScreenReaderFocusable(this, true)
+            ViewCompat.setAccessibilityDelegate(this, object : AccessibilityDelegateCompat() {
+                override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                    super.onInitializeAccessibilityNodeInfo(host, info)
+                    info.className = android.widget.Button::class.java.name
+                }
+            })
+            setOnClickListener { click() }
+            Motion.press(this)
+            motionRows += this
+        }
+        actions.addView(action(context.getString(android.R.string.cancel), false) { dialog.dismiss() },
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        actions.addView(action(context.getString(R.string.quiet_continue), true) { dialog.dismiss(); onContinue() },
+            LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        container.addView(actions)
+        return this
+    }
+
     fun onDismiss(action: () -> Unit): BottomSheetMenu {
         dialog.setOnDismissListener { action() }
         return this
@@ -321,7 +356,10 @@ class BottomSheetMenu(private val context: Context) {
         // taller sheets (screen-time graph + top apps) exceed the screen, and
         // the default landscape peek opens sheets half-hidden. Short menus are
         // unaffected — they still open at content height.
-        val content = if (scrollContent) androidx.core.widget.NestedScrollView(context).apply {
+        val content = if (scrollContent || fitPicker) androidx.core.widget.NestedScrollView(context).apply {
+            // Fill the sheet normally; if fixed picker rows exceed its height, the
+            // bounded list and controls can scroll together instead of clipping.
+            isFillViewport = fitPicker
             addView(container)
         } else container
         // Edge-to-edge dialog window: keep the last row above the navigation bar
@@ -342,7 +380,48 @@ class BottomSheetMenu(private val context: Context) {
         if (resizeForKeyboard) dialog.window?.setSoftInputMode(
             android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
         )
+        if (fitPicker) {
+            // The picker owns one list with fixed title/search and action rows.
+            dialog.window?.setSoftInputMode(
+                android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
+                    android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN,
+            )
+        }
+        val pickerMode = if (fitPicker) {
+            val accessibility = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as android.view.accessibility.AccessibilityManager
+            com.parem.launcher.helper.PickerKeyboardPolicy.decide(
+                touchExploration = accessibility.isTouchExplorationEnabled,
+                autoShow = com.parem.launcher.data.Prefs(context).autoShowKeyboard,
+                hardwareKeyboard = context.resources.configuration.let { config ->
+                    config.keyboard != android.content.res.Configuration.KEYBOARD_NOKEYS &&
+                        config.hardKeyboardHidden != android.content.res.Configuration.HARDKEYBOARDHIDDEN_YES
+                },
+            ).also { mode ->
+                if (mode == com.parem.launcher.helper.PickerKeyboardPolicy.Mode.LEAVE_FOCUS) {
+                    container.isFocusableInTouchMode = true
+                    container.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                    container.requestFocus()
+                }
+            }
+        } else null
         dialog.show()
+        if (fitPicker) {
+            dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.let { sheet ->
+                sheet.layoutParams = sheet.layoutParams.apply { height = ViewGroup.LayoutParams.MATCH_PARENT }
+            }
+            val search = container.findViewWithTag<android.widget.EditText>("parem_picker_search")
+            if (search != null && pickerMode != com.parem.launcher.helper.PickerKeyboardPolicy.Mode.LEAVE_FOCUS) {
+                search.requestFocus()
+                if (pickerMode == com.parem.launcher.helper.PickerKeyboardPolicy.Mode.FOCUS_AND_SHOW) {
+                    search.postDelayed({
+                        if (dialog.isShowing && search.isAttachedToWindow && search.hasFocus()) {
+                            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                            imm.showSoftInput(search, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+                        }
+                    }, 100)
+                }
+            }
+        }
         Motion.watchWindow(dialog, R.style.ParemSheetWindowAnimation)
         Motion.stagger(motionRows)
         return dialog

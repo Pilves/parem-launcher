@@ -813,12 +813,12 @@ class SmokeTest {
             device.findObject(By.text(count(2))).click()
             assertTrue("visible app missing", device.wait(Until.hasObject(By.desc("Visible app")), TIMEOUT))
             device.findObject(By.desc("Visible app")).click()
-            device.findObject(By.text(context.getString(android.R.string.ok))).click()
+            device.findObject(By.desc(context.getString(R.string.quiet_continue))).click()
             assertTrue("parent did not reflect removed app", device.wait(Until.hasObject(By.text(count(1))), TIMEOUT))
             device.findObject(By.text(count(1))).click()
             assertTrue(device.wait(Until.hasObject(By.desc("Visible app")), TIMEOUT))
             device.findObject(By.desc("Visible app")).click()
-            device.findObject(By.text(context.getString(android.R.string.ok))).click()
+            device.findObject(By.desc(context.getString(R.string.quiet_continue))).click()
             assertTrue("parent did not reflect restored app", device.wait(Until.hasObject(By.text(count(2))), TIMEOUT))
         } finally {
             instrumentation.runOnMainSync { sheet?.dismiss() }
@@ -841,7 +841,7 @@ class SmokeTest {
             device.findObject(By.text(count(2))).click()
             assertTrue(device.wait(Until.hasObject(By.desc("Visible app")), TIMEOUT))
             device.findObject(By.desc("Visible app")).click()
-            device.findObject(By.text(context.getString(android.R.string.ok))).click()
+            device.findObject(By.desc(context.getString(R.string.quiet_continue))).click()
             assertTrue("parent did not reflect selection", device.wait(Until.hasObject(By.text(count(1))), TIMEOUT))
             val save = device.wait(Until.findObject(By.clazz("android.widget.Button")
                 .desc(context.getString(R.string.save))), TIMEOUT)

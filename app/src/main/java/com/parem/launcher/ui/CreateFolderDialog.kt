@@ -74,6 +74,7 @@ class CreateFolderDialog(
         val appsById = apps.associateBy(::rowId)
         // By ID, not via the list: a hidden app is not offered but must survive an edit
         val initialApps = initial?.apps.orEmpty().filter { it.url.isEmpty() }.associateBy(::savedRowId)
+        val websites = mutableListOf<FolderApp>()
         lateinit var selectAppsRow: TextView
         lateinit var pickerAdapter: AppPickerAdapter
         pickerAdapter = AppPickerAdapter(
@@ -96,15 +97,25 @@ class CreateFolderDialog(
             setPadding(0, 12.dpToPx(), 0, 12.dpToPx())
             setBackgroundResource(if (context.isEinkDisplay()) R.drawable.bg_eink_control else context.selectableBackgroundRes())
             setOnClickListener {
-                pickerAdapter.filter("")
+                val staged = AppPickerAdapter(
+                    textColor = context.getColorFromAttr(R.attr.textColor),
+                    maxSelected = (MAX_ITEMS - websites.size).coerceAtLeast(0),
+                    entries = apps.map { AppPickerAdapter.Entry(rowId(it), it.appLabel) },
+                    initiallySelected = pickerAdapter.selectedIds,
+                    onLimitReached = { it.showToast(it.getString(R.string.folder_full)) },
+                )
                 val pickerContent = LinearLayout(context).apply {
                     orientation = LinearLayout.VERTICAL
-                    addAppPicker(pickerAdapter)
+                    addAppPicker(staged)
                 }
                 val picker = BottomSheetMenu(context)
                     .title(context.getString(R.string.select_apps))
                     .customView(pickerContent)
-                    .option(context.getString(android.R.string.ok)) {}
+                    .pickerActions {
+                        pickerAdapter.replaceSelection(staged.selectedIds)
+                        selectAppsRow.text = context.getString(R.string.picker_selected_count,
+                            context.getString(R.string.select_apps), pickerAdapter.selectedIds.size)
+                    }
                     .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true)
                 picker.dismissWithParent(dialog)
             }
@@ -113,7 +124,6 @@ class CreateFolderDialog(
 
         // Websites sit beside the picked apps under the same 4-item cap;
         // unchecking one drops it
-        val websites = mutableListOf<FolderApp>()
         val websiteRows = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
         val textColor = context.getColorFromAttr(R.attr.textColor)
         fun addWebsite(site: FolderApp) {
