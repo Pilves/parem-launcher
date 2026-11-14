@@ -1,0 +1,56 @@
+# Separate synthetic provider: never install/uninstall a real app or a physical device.
+name: Widget provider fixture
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - app/src/main/java/com/parem/launcher/MainActivity.kt
+      - app/src/main/java/com/parem/launcher/ui/HomeFragment.kt
+      - app/src/main/java/com/parem/launcher/ui/HomeWidgetController.kt
+      - app/src/main/java/com/parem/launcher/helper/WidgetIdBookkeeping.kt
+      - app/src/main/java/com/parem/launcher/data/Prefs.kt
+      - app/src/androidTest/java/com/parem/launcher/WidgetProviderFixtureTest.kt
+      - scripts/widget-fixture/**
+      - scripts/build-widget-fixture.sh
+      - scripts/run-widget-fixture.sh
+      - .github/workflows/widget-fixture.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fixture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Build the disposable companion APK
+        run: bash scripts/build-widget-fixture.sh
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Exercise actual provider removal and configuration
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          profile: pixel_6
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: bash scripts/run-widget-fixture.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: widget-fixture-reports
+          path: |
+            app/build/reports/androidTests/
+            app/build/widget-fixture-logcat.txt
+            app/build/widget-fixture-failure.png
+          if-no-files-found: ignore

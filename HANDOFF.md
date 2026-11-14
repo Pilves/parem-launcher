@@ -382,5 +382,6 @@ per package; the rest of each of those fragments is still in
 - **M6-WP48 (PR #53):** Swipe choices show the current app, home setup taps are debounced and picker search follows sheet insets.
 - **M6-WP51 (PR #56):** Grayscale toggles and Quiet sheets close when their owning fragment view is destroyed.
 - **M6-WP52 (PR #57):** Screen-time freshness checks treat future timestamps as stale after a clock rollback.
+- **M6-WP53 (PR #59):** Unavailable widgets retain their ID, order and height as removable, replaceable placeholders until they recover or the user removes them.
 
 <!-- handoff:end -->

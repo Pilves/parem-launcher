@@ -1,0 +1,16 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.parem.widgetfixture">
+    <uses-sdk android:minSdkVersion="29" android:targetSdkVersion="32" />
+    <application android:label="Parem widget fixture" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <receiver android:name=".PlainWidget" android:exported="true" android:label="Parem plain fixture">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/plain_widget" />
+        </receiver>
+        <receiver android:name=".ConfiguredWidget" android:exported="true" android:label="Parem configurable fixture">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/configured_widget" />
+        </receiver>
+        <activity android:name=".ConfigureWidget" android:exported="true" android:label="Parem fixture configuration">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" /></intent-filter>
+        </activity>
+    </application>
+</manifest>

@@ -302,6 +302,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP48 | **Done** (PR #53). **Todo**. Correct small gesture, website, onboarding and picker inconsistencies | Gesture choices, website input, onboarding and picker search | Current swipe app is visible, non-web input rejected, home setup is debounced and picker search is inset |
 
+| M6-WP53 | **Done** (PR #59). **Todo**. Preserve unavailable widgets without empty bind dialogs | Widget host reconciliation, placeholder, swap safety, tests, changelog and handoff | Unknown provider state preserves saved ID and exposes explicit removal; swaps retain their original target |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
