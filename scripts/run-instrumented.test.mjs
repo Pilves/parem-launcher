@@ -27,11 +27,11 @@ function run(state, stress = false, hangDiagnostic = false, playResult = 1) {
   }
 }
 
-test('normal Play, Full and performance phases have a 22 minute limit', () => {
+test('Play and Full have a 30 minute limit; performance remains at 22', () => {
   const { result, timeouts } = run('device', false, false, 0);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(timeouts, /--kill-after=10s 22m \.\/gradlew connectedPlayDebugAndroidTest/);
-  assert.match(timeouts, /--kill-after=10s 22m \.\/gradlew connectedFullDebugAndroidTest/);
+  assert.match(timeouts, /--kill-after=10s 30m \.\/gradlew connectedPlayDebugAndroidTest/);
+  assert.match(timeouts, /--kill-after=10s 30m \.\/gradlew connectedFullDebugAndroidTest/);
   assert.match(timeouts, /--kill-after=10s 22m bash scripts\/perf-compare\.sh/);
 });
 
