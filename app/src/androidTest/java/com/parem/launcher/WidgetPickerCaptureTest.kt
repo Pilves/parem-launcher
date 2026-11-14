@@ -78,7 +78,7 @@ class WidgetPickerCaptureTest {
                 row.click()
                 val selectionDeadline = SystemClock.elapsedRealtime() + 5_000
                 while (selected.get() == null && SystemClock.elapsedRealtime() < selectionDeadline) SystemClock.sleep(50)
-                assertEquals("com.parem.widgetstress/.Provider000", selected.get())
+                assertEquals(android.content.ComponentName("com.parem.widgetstress", "com.parem.widgetstress.Provider000").flattenToString(), selected.get())
             } else {
                 device.pressBack()
                 if (!device.wait(Until.gone(By.clazz("android.widget.ListView")), 1_000)) device.pressBack()
