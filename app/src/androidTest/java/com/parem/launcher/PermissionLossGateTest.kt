@@ -17,6 +17,7 @@ import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.AppLimitManager
+import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.ui.BadHabitDialogs
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.CountDownLatch
@@ -69,6 +70,48 @@ class PermissionLossGateTest {
             device.executeShellCommand("appops set ${context.packageName} GET_USAGE_STATS default")
         }
     }
+    @Test fun focusActivatedAtUsageWarningBlocksOpenAnyway() = focusBlocksUnknownUsageContinuation(false)
+    @Test fun focusActivatedDuringPauseBlocksProceed() = focusBlocksUnknownUsageContinuation(true)
+
+    private fun focusBlocksUnknownUsageContinuation(pause: Boolean) {
+        assumeTrue("disposable emulator only", Build.HARDWARE == "ranchu" || Build.PRODUCT.contains("sdk_gphone"))
+        Prefs(context).apply { firstOpen = false; onboardingVersionSeen = Constants.ONBOARDING_VERSION }
+        val launches = AtomicInteger()
+        FocusModeManager.disable(context)
+        FocusModeManager.setWhitelist(context, emptySet())
+        AppLimitManager.setLimit(context, pkg, 15)
+        AppLimitManager.setPause(context, pkg, pause)
+        try {
+            device.executeShellCommand("appops set ${context.packageName} GET_USAGE_STATS ignore")
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                scenario.onActivity { activity ->
+                    BadHabitDialogs.gateLaunch(activity, activity.lifecycleScope, { !activity.isFinishing }, "Fixture", pkg,
+                        open = { launches.incrementAndGet() })
+                }
+                val warning = By.text(context.getString(R.string.limit_usage_access_missing))
+                assertTrue(device.wait(Until.hasObject(warning), 10_000))
+                if (pause) {
+                    checkNotNull(device.findObject(By.desc(context.getString(R.string.open_anyway)))).click()
+                    val ready = context.getString(R.string.mindful_pause_open, "Fixture")
+                    assertTrue("pause did not finish", device.wait(Until.hasObject(By.text(ready)), 12_000))
+                    FocusModeManager.enable(context, 30)
+                    checkNotNull(device.findObject(By.text(ready))).click()
+                    assertTrue(device.wait(Until.gone(By.text(ready)), 10_000))
+                } else {
+                    FocusModeManager.enable(context, 30)
+                    checkNotNull(device.findObject(By.desc(context.getString(R.string.open_anyway)))).click()
+                    assertTrue(device.wait(Until.gone(warning), 10_000))
+                }
+                instrumentation.waitForIdleSync()
+                assertEquals("Focus must block the delayed continuation", 0, launches.get())
+            }
+        } finally {
+            FocusModeManager.disable(context)
+            AppLimitManager.removeLimit(context, pkg)
+            device.executeShellCommand("appops set ${context.packageName} GET_USAGE_STATS default")
+        }
+    }
+
     @Test fun pauseOnlyDoesNotAskForUsageAccess() {
         assumeTrue("disposable emulator only", Build.HARDWARE == "ranchu" || Build.PRODUCT.contains("sdk_gphone"))
         Prefs(context).apply { firstOpen = false; onboardingVersionSeen = Constants.ONBOARDING_VERSION }

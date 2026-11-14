@@ -151,9 +151,6 @@ object GrayscaleSheet {
         }
     }
 
-<<<<<<< HEAD
-    private fun showToggles(fragment: Fragment, onChanged: () -> Unit) {
-=======
     private fun showRestoreWarning(fragment: Fragment, onPair: () -> Unit, onChanged: () -> Unit) {
         val context = fragment.context ?: return
         BottomSheetMenu(context)
@@ -171,7 +168,6 @@ object GrayscaleSheet {
     }
 
     private fun showToggles(fragment: Fragment, onPair: () -> Unit, onChanged: () -> Unit) {
->>>>>>> 427ebd04 (Explain unavailable grayscale and app limit checks)
         val context = fragment.context ?: return
         val content = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
         fun toggle(label: Int, initial: Boolean, onToggle: (Boolean) -> Unit) {
