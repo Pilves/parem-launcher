@@ -32,6 +32,8 @@ class WidgetPickerProfileTest {
         assumeTrue(InstrumentationRegistry.getArguments().getString("widget_picker_profile") == "true")
         assumeTrue(BuildConfig.DEBUG && Build.VERSION.SDK_INT >= 35)
         assumeTrue(device.executeShellCommand("getprop ro.kernel.qemu").trim() == "1")
+        // Parem is installed here; authorize this disposable emulator's fixture host.
+        device.executeShellCommand("appwidget grantbind --package ${context.packageName} --user 0")
         Prefs(context).apply { firstOpen = false; onboardingVersionSeen = Constants.ONBOARDING_VERSION; autoShowKeyboard = false }
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             var providers = 0
