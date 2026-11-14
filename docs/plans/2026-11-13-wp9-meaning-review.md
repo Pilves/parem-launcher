@@ -41,3 +41,5 @@ The approved `quiet_disclosure_body` remains unchanged and describes “vaikne l
 - `full`: 2 resource entries retained, 15 removed for base-English fallback: `grayscale_grant_computer`, `grayscale_grant_wifi`, `grayscale_pair_code_hint`, `grayscale_pair_done`, `grayscale_pair_enter_code`, `grayscale_pair_err_code`, `grayscale_pair_err_connect`, `grayscale_pair_err_generic`, `grayscale_pair_err_not_found`, `grayscale_pair_err_refused`, `grayscale_pair_needs_notif`, `grayscale_pair_notif_text`, `grayscale_pair_notif_title`, `grayscale_pair_start`, `grayscale_pair_working`.
 
 After #54 renamed the text-size choice to `text_size_medium` (Medium), the obsolete Estonian `text_size_default` entry was removed. `text_size_medium` uses the existing base-English, nontranslatable label; no new translation was guessed.
+
+After #60, its new base-English, nontranslatable permission-warning strings also fall back unchanged: `grayscale_restore_pending`, `grayscale_restore_access`, `grayscale_android_settings`, `grayscale_settings_unavailable`, `limit_usage_access_missing`, `limit_usage_unavailable` and `limit_settings_unavailable`. No translations were guessed.
