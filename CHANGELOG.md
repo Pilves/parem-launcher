@@ -4,6 +4,8 @@
 
 - Refresh screen time after the device clock moves backwards.
 - Close grayscale and quiet notification sheets when their screen is dismissed.
+- Cancel widget configuration without adding or replacing a widget.
+
 - Show unavailable widgets as removable placeholders instead of opening empty bind dialogs.
 - Prevent invisible-only home, folder and website labels from creating inaccessible slots.
 - Protect quick-action prefixes and settings searches while allowing matching app-name prefixes to auto-launch.

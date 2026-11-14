@@ -165,6 +165,11 @@ class HomeWidgetController(
             requestReconcile()
             return
         }
+        // A cancelled configure may return no data; release the new allocation without querying its provider.
+        if (op.getInt(PendingOp.STAGE) == PendingOp.CONFIGURE && !success) {
+            releasePendingWidget(widgetId)
+            return
+        }
         // A framework failure is not evidence that the pending widget is gone.
         val info = try { mainActivity.appWidgetManager.getAppWidgetInfo(widgetId) }
         catch (e: Exception) {
@@ -183,7 +188,6 @@ class HomeWidgetController(
                 }
             }
             PendingOp.CONFIGURE -> {
-                // A cancelled configure still leaves a usable widget when the provider kept it bound
                 if (info != null) finishWidgetSetup(widgetId, info, replaceId)
                 else releasePendingWidget(widgetId)
             }

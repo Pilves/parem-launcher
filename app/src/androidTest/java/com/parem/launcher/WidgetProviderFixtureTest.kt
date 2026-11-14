@@ -162,4 +162,68 @@ class WidgetProviderFixtureTest {
             device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
         }
     }
+    @Test
+    fun homeCancelsRealConfigurationAndPreservesSwapTarget() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("widget_fixture") == "true")
+        assumeTrue(BuildConfig.DEBUG && context.packageName == "com.parem.launcher.debug")
+        assumeTrue(Build.HARDWARE == "ranchu" || Build.PRODUCT.contains("sdk_gphone"))
+        check(device.executeShellCommand("getprop ro.kernel.qemu").trim() == "1")
+        check(device.executeShellCommand("pm path $fixture").contains("package:"))
+        val prefs = Prefs(context)
+        prefs.firstOpen = false
+        prefs.onboardingVersionSeen = Constants.ONBOARDING_VERSION
+        device.executeShellCommand("cmd package set-home-activity ${context.packageName}/${MainActivity::class.java.name}")
+        device.executeShellCommand("appwidget grantbind --package ${context.packageName} --user 0")
+        var first = -1
+        var second = -1
+        var pending = -1
+        lateinit var owner: MainActivity
+        try {
+            check(device.pressHome())
+            check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
+            onHome { activity ->
+                owner = activity
+                first = activity.appWidgetHost.allocateAppWidgetId()
+                second = activity.appWidgetHost.allocateAppWidgetId()
+                prefs.setWidgetIdList(listOf(first, second))
+                prefs.setWidgetProvider(first, plain.flattenToString())
+                prefs.setWidgetProvider(second, plain.flattenToString())
+                prefs.setWidgetHeight(first, 101)
+                prefs.setWidgetHeight(second, 111)
+                home(activity).widgetController!!.requestReconcile(force = true)
+            }
+            val unavailable = By.desc(context.getString(R.string.widget_unavailable))
+            assertTrue(device.wait(Until.hasObject(unavailable), 10_000))
+            device.findObjects(unavailable).first().click()
+            checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.swap_widget))), 10_000)).click()
+            checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.EditText")), 20_000)).text = "configurable"
+            checkNotNull(device.wait(Until.findObject(By.text("Parem configurable fixture")), 20_000)).click()
+            assertTrue(device.wait(Until.hasObject(By.text("Parem fixture configuration")), 15_000))
+            instrumentation.runOnMainSync {
+                val operation = checkNotNull(owner.pendingWidgetOp)
+                assertEquals(2, operation.getInt("stage"))
+                assertEquals(first, operation.getInt("replaceId"))
+                pending = operation.getInt("widgetId")
+            }
+            assertTrue(device.pressHome())
+            assertTrue(device.wait(Until.hasObject(unavailable), 15_000))
+            val deadline = SystemClock.elapsedRealtime() + 15_000
+            var allocated = true
+            while (allocated && SystemClock.elapsedRealtime() < deadline) {
+                onHome { allocated = pending in it.appWidgetHost.appWidgetIds }
+                if (allocated) SystemClock.sleep(100)
+            }
+            assertFalse("HOME-cancelled configure allocation remains", allocated)
+            assertEquals(listOf(first, second), prefs.getWidgetIdList())
+            val fresh = Prefs(context)
+            assertEquals(101, fresh.getWidgetHeight(first))
+            assertEquals(111, fresh.getWidgetHeight(second))
+            assertEquals(plain.flattenToString(), fresh.getAllWidgetProviders()[first])
+            assertEquals(plain.flattenToString(), fresh.getAllWidgetProviders()[second])
+            onHome { assertEquals(null, it.pendingWidgetOp) }
+        } finally {
+            device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
+        }
+    }
+
 }
