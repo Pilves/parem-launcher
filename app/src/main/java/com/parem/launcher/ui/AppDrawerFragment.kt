@@ -210,6 +210,19 @@ class AppDrawerFragment : BaseFragment() {
 
     private fun initViews() {
         if (flag != Constants.FLAG_LAUNCH_APP) {
+            // Keep the search reachable when a short IME window cannot fit all chrome.
+            val chrome = DrawerPickerChrome(requireContext())
+            val content = android.widget.LinearLayout(requireContext()).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+            }
+            listOf(binding.drawerPickerTitle, binding.drawerSearchRow, binding.appDrawerTip).forEach { child ->
+                binding.root.removeView(child)
+                content.addView(child)
+            }
+            chrome.addView(content)
+            binding.root.addView(chrome, 0, android.widget.LinearLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            ))
             binding.drawerPickerTitle.setText(
                 if (flag == Constants.FLAG_HIDDEN_APPS) R.string.hidden_apps else R.string.select_app
             )
@@ -408,7 +421,9 @@ class AppDrawerFragment : BaseFragment() {
         // Picker drawers only pick an app, so a tip there must not promise a search
         val searches = flag == Constants.FLAG_LAUNCH_APP
         val bang = searches && query.startsWith("!") && query.length > 1
-        if (bang || (adapter.itemCount == 0 && (query.isNotBlank() || !searches))) {
+        val noRows = if (searches) adapter.itemCount == 0
+            else adapter.currentList.none { it.appPackage.isNotEmpty() }
+        if (bang || (noRows && (query.isNotBlank() || !searches))) {
             b.appDrawerTip.text = when {
                 hiddenHintShown -> getString(R.string.hidden_apps_hint)
                 searches && !HiddenAppHint.canSearchWeb(query, currentHiddenLabels()) -> getString(R.string.no_apps_found)
