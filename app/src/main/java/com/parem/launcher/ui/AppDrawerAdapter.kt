@@ -104,8 +104,15 @@ class AppDrawerAdapter(
     override fun getItemViewType(position: Int): Int =
         if (getItem(position).isPrivateHeader()) 1 else 0
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
-        ViewHolder(AdapterAppDrawerBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val binding = AdapterAppDrawerBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        if (flag != Constants.FLAG_LAUNCH_APP) {
+            binding.appTitle.minHeight = parent.resources.getDimensionPixelSize(R.dimen.touch_target_min)
+            binding.appTitle.maxLines = 2
+            binding.appTitle.ellipsize = android.text.TextUtils.TruncateAt.END
+        }
+        return ViewHolder(binding)
+    }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         try {
