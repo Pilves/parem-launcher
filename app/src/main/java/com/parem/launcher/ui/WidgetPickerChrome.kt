@@ -5,6 +5,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.ScrollView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 
 /** Keep picker search reachable without moving it into the widget list. */
 internal class WidgetPickerChrome(context: Context, private val minListHeight: Int) : ScrollView(context) {
@@ -26,20 +28,37 @@ internal class WidgetPickerChrome(context: Context, private val minListHeight: I
     }
 }
 
-internal fun installWidgetPickerChrome(container: LinearLayout, title: View, search: View, minListHeight: Int): WidgetPickerChrome {
-    val index = container.indexOfChild(title)
+internal fun installWidgetPickerChrome(container: LinearLayout, title: View, search: View, list: View, minListHeight: Int, bottomContentPadding: Int): WidgetPickerChrome {
+    val titleIndex = container.indexOfChild(title)
+    val handle = container.getChildAt(titleIndex - 1)
     val hadFocus = search.hasFocus()
+    val handleParams = LinearLayout.LayoutParams(handle.layoutParams as LinearLayout.LayoutParams)
     val titleParams = LinearLayout.LayoutParams(title.layoutParams as LinearLayout.LayoutParams)
     val searchParams = LinearLayout.LayoutParams(search.layoutParams as LinearLayout.LayoutParams)
+    val topPadding = container.paddingTop
+    val navPadding = (container.paddingBottom - bottomContentPadding).coerceAtLeast(0)
+    container.removeView(handle)
     container.removeView(title)
     container.removeView(search)
-    val content = LinearLayout(container.context).apply { orientation = LinearLayout.VERTICAL }
+    container.setPadding(container.paddingLeft, 0, container.paddingRight, navPadding)
+    ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
+        val bottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+        view.setPadding(view.paddingLeft, 0, view.paddingRight, bottom)
+        insets
+    }
+    list.setPadding(list.paddingLeft, list.paddingTop, list.paddingRight, list.paddingBottom + bottomContentPadding)
+    val content = LinearLayout(container.context).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(0, topPadding, 0, 0)
+    }
+    content.addView(handle, handleParams)
     content.addView(title, titleParams)
     content.addView(search, searchParams)
     val chrome = WidgetPickerChrome(container.context, minListHeight).apply {
         addView(content, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
     }
-    container.addView(chrome, index, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+    container.addView(chrome, titleIndex - 1, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+    ViewCompat.requestApplyInsets(container)
     if (hadFocus) search.post { if (search.isAttachedToWindow) search.requestFocus() }
     return chrome
 }
