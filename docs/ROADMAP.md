@@ -321,6 +321,8 @@ subject to the audit notes and the product-owner brief.
 | M6-WP63 | **Done** (PR #67). **Todo**. Suppress system error dialogs on disposable CI emulators while detecting Parem incidents | Emulator scripts, incident wrapper, harness and handoff | Target app crash or ANR events and workload failures remain failures; unrelated process incidents do not match |
 | M6-WP57 | **Done** (PR #63). **Todo**. Improve app picker selection flows | Picker UI, callers, strings, tests, capture workflow and handoff | Searchable selected-first multi-choice with staged edits; single-tap app-limit selection |
 
+| M6-WP64 | **Done** (PR #68). **Todo**. Scroll to settings actions in minified release smoke | Release smoke driver and diagnostics, handoff | Both minified flavors exercise export/import by resource id and preserve failure evidence |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
