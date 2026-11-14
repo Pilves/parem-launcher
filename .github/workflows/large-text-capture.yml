@@ -29,16 +29,7 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-          script: |
-            ./gradlew installPlayDebug installPlayDebugAndroidTest
-            adb shell wm size 320x640
-            adb shell wm density 160
-            adb shell pm clear com.parem.launcher.debug
-            set +e
-            adb shell am instrument -w -e smallPhoneCapture true -e class com.parem.launcher.LargeTextSmallPhoneCaptureTest com.parem.launcher.debug.test/androidx.test.runner.AndroidJUnitRunner | tee large-text-instrumentation.txt
-            adb pull /data/local/tmp/parem-large ./large-text-capture
-            timeout --kill-after=2s 8s adb logcat -d -v threadtime > large-text-logcat.txt || true
-            grep -q 'OK (1 test)' large-text-instrumentation.txt
+          script: bash scripts/capture-large-text.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:

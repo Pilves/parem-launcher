@@ -156,7 +156,7 @@
     <string name="focus_allowed_apps">Lubatud rakendused (kuni 5)</string>
     <string name="focus_schedule">Ajakava</string>
     <string name="focus_schedule_add">Lisa ajavahemik</string>
-    <string name="focus_schedule_hint">Muudmiseks puuduta ajavahemikku, eemaldamiseks hoia sõrme peal</string>
+    <string name="focus_schedule_hint">Muutmiseks puuduta ajavahemikku, eemaldamiseks hoia sõrme peal</string>
     <string name="focus_schedule_days">Päevad</string>
     <string name="focus_schedule_start">Algus</string>
     <string name="focus_schedule_end">Lõpp</string>

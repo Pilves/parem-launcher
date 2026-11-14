@@ -98,6 +98,7 @@ class HomeWidgetController(
     private var reconcileJob: Job? = null
     private var reconcileRequested = false
     private var forceRebuild = false
+    private var hasSweptOrphans = false
     private var renderedWidgets: List<Pair<Int, String?>>? = null
     private var renderedAbove: Boolean? = null
 
@@ -216,7 +217,12 @@ class HomeWidgetController(
                 CrashReporter.reportNonFatal("HomeWidgetController: widget migration lookup failed", e)
             }
             val ids = prefs.getWidgetIdList()
-            sweepOrphanIds(activity, ids)
+            // Resume still checks availability, but host ID enumeration is only
+            // needed on the first scan and explicit provider/rebuild refreshes.
+            if (!hasSweptOrphans || force) {
+                sweepOrphanIds(activity, ids)
+                hasSweptOrphans = true
+            }
             // The manager may return null or throw for inaccessible profiles; both
             // are unknown and must never be treated as proof of an uninstall.
             val infos = withContext(Dispatchers.IO) {

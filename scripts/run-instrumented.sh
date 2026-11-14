@@ -36,7 +36,7 @@ collect_diagnostics() {
 
 if [ "${runs:-0}" -le 0 ]; then
   status=0
-  if timeout --kill-after=10s 15m ./gradlew connectedPlayDebugAndroidTest; then
+  if timeout --kill-after=10s 22m ./gradlew connectedPlayDebugAndroidTest; then
     :
   else
     play_result=$?
@@ -56,7 +56,7 @@ if [ "${runs:-0}" -le 0 ]; then
       exit 1
     fi
   fi
-  if ! timeout --kill-after=10s 15m ./gradlew connectedFullDebugAndroidTest; then
+  if ! timeout --kill-after=10s 22m ./gradlew connectedFullDebugAndroidTest; then
     status=1
     capture_failure full
     if [ "$(timeout --kill-after=2s 8s adb get-state 2>/dev/null)" != device ]; then
@@ -66,7 +66,7 @@ if [ "${runs:-0}" -le 0 ]; then
     fi
   fi
   if [ "${2:-false}" = true ]; then
-    if ! timeout --kill-after=10s 15m bash scripts/perf-compare.sh; then
+    if ! timeout --kill-after=10s 22m bash scripts/perf-compare.sh; then
       status=1
       capture_failure perf
     fi

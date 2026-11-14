@@ -14,16 +14,26 @@ function run(state, stress = false, hangDiagnostic = false, playResult = 1) {
     writeFileSync(join(root, 'gradlew'), '#!/bin/sh\necho "$*" >> phases\nif [ "$1" = connectedPlayDebugAndroidTest ]; then exit "$TEST_PLAY_RESULT"; fi\nexit 0\n');
     writeFileSync(join(root, 'bin/adb'), '#!/bin/sh\nif [ "$1" = get-state ]; then echo "$TEST_DEVICE_STATE"; fi\nif [ "$1 $2 $3" = "shell pm clear" ] && [ "$TEST_DEVICE_STATE" = offline ]; then exit 1; fi\nif [ "$TEST_HANG_DIAGNOSTIC" = yes ] && [ "$1 $2 $3" = "shell dumpsys dropbox" ] && [ ! -f hung ]; then touch hung; sleep 30; fi\n');
     writeFileSync(join(root, 'scripts/perf-compare.sh'), '#!/bin/sh\necho perf >> phases\n');
+    writeFileSync(join(root, 'bin/timeout'), '#!/bin/sh\nprintf "%s\\n" "$*" >> timeouts\nexec /usr/bin/timeout "$@"\n');
     chmodSync(join(root, 'gradlew'), 0o755);
     chmodSync(join(root, 'bin/adb'), 0o755);
+    chmodSync(join(root, 'bin/timeout'), 0o755);
     const result = spawnSync('bash', ['scripts/run-instrumented.sh', stress ? '2' : '0', 'true'], {
       cwd: root, env: { ...process.env, PATH: `${join(root, 'bin')}:${process.env.PATH}`, TEST_DEVICE_STATE: state, TEST_HANG_DIAGNOSTIC: hangDiagnostic ? 'yes' : 'no', TEST_PLAY_RESULT: String(playResult) }, encoding: 'utf8', timeout: 15000,
     });
-    return { result, phases: readFileSync(join(root, 'phases'), 'utf8') };
+    return { result, phases: readFileSync(join(root, 'phases'), 'utf8'), timeouts: readFileSync(join(root, 'timeouts'), 'utf8') };
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
 }
+
+test('normal Play, Full and performance phases have a 22 minute limit', () => {
+  const { result, timeouts } = run('device', false, false, 0);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(timeouts, /--kill-after=10s 22m \.\/gradlew connectedPlayDebugAndroidTest/);
+  assert.match(timeouts, /--kill-after=10s 22m \.\/gradlew connectedFullDebugAndroidTest/);
+  assert.match(timeouts, /--kill-after=10s 22m bash scripts\/perf-compare\.sh/);
+});
 
 test('a failed test remains failed; unavailable emulator skips later phases', () => {
   const { result, phases } = run('offline');

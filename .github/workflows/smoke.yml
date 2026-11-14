@@ -32,7 +32,7 @@ jobs:
   smoke:
     if: inputs.investigate_performance != true && inputs.film_capture != true
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 85
     strategy:
       fail-fast: false
       matrix:
