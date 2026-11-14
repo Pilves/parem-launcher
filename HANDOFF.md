@@ -396,5 +396,6 @@ per package; the rest of each of those fragments is still in
 - **M6-WP56 (PR #61):** Cancelling widget configuration releases the new unsaved ID and leaves any existing widget in place.
 - **M6-WP58 (PR #64):** Widget reconciliation sweeps orphan host IDs on the first scan and on forced refreshes, not every ordinary return home.
 - **M6-WP59 (PR #62):** Instrumented permission-loss HOME checks verify the actual launcher state, and a timed-out Play run cannot overlap Full or performance phases.
+- **M6-WP60 (PR #65):** A raw published v6.0.2 export is checked through the bounded reader and registered preference-type validator in both JVM flavors.
 
 <!-- handoff:end -->

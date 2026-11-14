@@ -316,6 +316,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP59 | **Done** (PR #62). Verify HOME state and isolate timed-out instrumented phases | Android tests, HOME helper and instrumented runner | HOME uses one real injection with observed launcher state; a timed-out Play phase fails without starting Full or performance |
 
+| M6-WP60 | **Done** (PR #65). Validate a real released settings export | Capture workflow, UI driver and JVM import fixture | Pin published APK and unchanged export; exercise bounded read and registered-type validation |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
