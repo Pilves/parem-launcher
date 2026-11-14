@@ -18,7 +18,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.RemoteViews
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.widget.doAfterTextChanged
@@ -35,7 +34,13 @@ import com.parem.launcher.helper.WidgetPickerLabels
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.showToast
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -579,7 +584,6 @@ class HomeWidgetController(
                 val header: String,
                 val widgetLabel: String,
                 val provider: AppWidgetProviderInfo,
-                val preview: RemoteViews?,
             )
             val allEntries = withContext(Dispatchers.IO) {
                 val myUser = Process.myUserHandle()
@@ -606,7 +610,7 @@ class HomeWidgetController(
                     val isOtherProfile = provider.profile != myUser
                     val header = if (isOtherProfile) pm.getUserBadgedLabel(appName, provider.profile).toString()
                     else appName
-                    WidgetEntry(appName, isOtherProfile, header, provider.loadLabel(pm), provider, loadGeneratedPreview(provider))
+                    WidgetEntry(appName, isOtherProfile, header, provider.loadLabel(pm), provider)
                 }.sortedWith(
                     compareBy<WidgetEntry, String>(String.CASE_INSENSITIVE_ORDER) { it.appName }
                         .thenBy { it.isOtherProfile }
@@ -672,8 +676,32 @@ class HomeWidgetController(
             val textColor = context.getColorFromAttr(R.attr.primaryColor)
             val headerColor = textColor
             var currentItems = buildItems("")
-            // RemoteViews inflation is not free; keep each applied preview for the dialog's lifetime
-            val previewViews = HashMap<AppWidgetProviderInfo, View?>()
+            // Load only visible row icons; no provider view or thumbnail cache is retained.
+            val pickerContext = context
+            val iconScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+            val iconSlots = Semaphore(2)
+            class IconRow(val icon: android.widget.ImageView) {
+                var key: String? = null
+                var entry: WidgetEntry? = null
+                var job: Job? = null
+            }
+            fun loadIcon(state: IconRow, entry: WidgetEntry) {
+                state.job?.cancel()
+                val key = "${entry.provider.provider.flattenToString()}@${entry.provider.profile}"
+                state.key = key
+                state.entry = entry
+                state.job = iconScope.launch {
+                    val drawable = withContext(Dispatchers.IO) {
+                        iconSlots.withPermit {
+                            runCatching {
+                                val icon = entry.provider.loadIcon(pickerContext, 0) ?: pm.defaultActivityIcon
+                                if (entry.isOtherProfile) pm.getUserBadgedIcon(icon, entry.provider.profile) else icon
+                            }.getOrElse { pm.defaultActivityIcon }
+                        }
+                    }
+                    if (isActive() && state.key == key) state.icon.setImageDrawable(drawable)
+                }
+            }
 
             val adapter = object : android.widget.BaseAdapter() {
                 override fun getCount() = currentItems.size
@@ -699,49 +727,35 @@ class HomeWidgetController(
 
                     val row = (convertView as? android.widget.LinearLayout)
                         ?: android.widget.LinearLayout(context).apply {
-                            orientation = android.widget.LinearLayout.VERTICAL
+                            orientation = android.widget.LinearLayout.HORIZONTAL
+                            gravity = Gravity.CENTER_VERTICAL
                             minimumHeight = 48.dpToPx()
-                            // A preview Button is explicitly focusable, and AbsListView skips the item
-                            // click for rows with explicit focusables; touch interception can't fix that
                             descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
-                            addView(TextView(context))
-                            // Swallow touches so a preview's own click intents never fire; the row click still lands
-                            addView(object : FrameLayout(context) {
-                                override fun onInterceptTouchEvent(ev: MotionEvent?) = true
-                            }.apply {
-                                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
-                                setPadding(24.dpToPx(), 0, 16.dpToPx(), 8.dpToPx())
+                            setPadding(24.dpToPx(), 4.dpToPx(), 16.dpToPx(), 4.dpToPx())
+                            val icon = android.widget.ImageView(context).apply {
+                                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                                scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                            }
+                            tag = IconRow(icon)
+                            addView(icon, android.widget.LinearLayout.LayoutParams(40.dpToPx(), 40.dpToPx()))
+                            addView(TextView(context).apply {
+                                setPadding(12.dpToPx(), 4.dpToPx(), 0, 4.dpToPx())
+                            }, android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                            addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                                override fun onViewAttachedToWindow(v: View) {
+                                    val state = v.tag as IconRow
+                                    if (state.icon.drawable == null) state.entry?.let { loadIcon(state, it) }
+                                }
+                                override fun onViewDetachedFromWindow(v: View) { (v.tag as IconRow).job?.cancel() }
                             })
                         }
-                    val textView = row.getChildAt(0) as TextView
+                    val state = row.tag as IconRow
+                    val textView = row.getChildAt(1) as TextView
                     textView.text = item.first
                     textView.textSize = 16f
                     textView.setTextColor(textColor)
-                    textView.setPadding(24.dpToPx(), 8.dpToPx(), 16.dpToPx(), 8.dpToPx())
-
-                    val previewFrame = row.getChildAt(1) as FrameLayout
-                    previewFrame.removeAllViews()
-                    val previewView = entry.preview?.let { preview ->
-                        previewViews.getOrPut(entry.provider) {
-                            try {
-                                preview.apply(context, previewFrame)
-                            } catch (e: Exception) {
-                                Log.w("HomeWidgetController", "preview apply failed", e)
-                                null
-                            }
-                        }
-                    }
-                    if (previewView != null) {
-                        (previewView.parent as? ViewGroup)?.removeView(previewView)
-                        // minHeight is the provider's px size; clamp so one tall widget can't flood the list
-                        val height = entry.provider.minHeight.coerceIn(48.dpToPx(), 160.dpToPx())
-                        previewFrame.addView(previewView, FrameLayout.LayoutParams(
-                            FrameLayout.LayoutParams.MATCH_PARENT, height
-                        ))
-                        previewFrame.visibility = View.VISIBLE
-                    } else {
-                        previewFrame.visibility = View.GONE
-                    }
+                    state.icon.setImageDrawable(null)
+                    loadIcon(state, entry)
                     return row
                 }
             }
@@ -749,6 +763,7 @@ class HomeWidgetController(
 
             var announcement: Runnable? = null
             searchField.doAfterTextChanged { s ->
+                iconScope.coroutineContext.cancelChildren()
                 currentItems = buildItems(s?.toString() ?: "")
                 clear.visibility = if (s.isNullOrEmpty()) View.GONE else View.VISIBLE
                 adapter.notifyDataSetChanged()
@@ -782,7 +797,8 @@ class HomeWidgetController(
                 searchRow.isFocusableInTouchMode = true
                 searchRow.requestFocus()
             }
-            dialog = menu.customView(listView).show(resizeForKeyboard = true, scrollContent = false)
+            dialog = menu.customView(listView).onDismiss { iconScope.cancel() }
+                .show(resizeForKeyboard = true, scrollContent = false)
                 .dismissOnDestroy(fragment.viewLifecycleOwner)
             dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
                 android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
@@ -812,19 +828,6 @@ class HomeWidgetController(
             cells(if (targetCells) provider.targetCellWidth else 0, provider.minWidth),
             cells(if (targetCells) provider.targetCellHeight else 0, provider.minHeight),
         )
-    }
-
-    /** Android 15+ generated preview for the home-screen category, or null when the provider has none. */
-    private fun loadGeneratedPreview(provider: AppWidgetProviderInfo): RemoteViews? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return null
-        val category = AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN
-        if (provider.generatedPreviewCategories and category == 0) return null
-        return try {
-            mainActivity?.appWidgetManager?.getWidgetPreview(provider.provider, provider.profile, category)
-        } catch (e: Exception) {
-            Log.w("HomeWidgetController", "generated preview unavailable for ${provider.provider}", e)
-            null
-        }
     }
 
     private fun bindWidget(providerInfo: AppWidgetProviderInfo, replaceId: Int = -1) {
