@@ -307,6 +307,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP50 | **Done** (PR #55). **Todo**. Protect action and eligible settings prefixes from single-app auto-launch | Drawer guard, quick-action and settings search helpers, tests, changelog and handoff | Action prefixes hold; settings prefixes yield to the matching app label or word prefix |
 
 | M6-WP42 | **Done** (PR #47). **Todo**. Settle instrumentation tasks before orchestrator clears package data | Android test listener, runner arguments and handoff | Listener waits for target and test-package task teardown; precursor counts compared across CI emulator legs |
+| M6-WP49 | **Done** (PR #54). **Todo**. Set new-install text size to Large | Prefs, MainActivity, appearance settings, string resources, restore/import and emulator tests | New installs use Large on first display; existing or restored explicit choices survive; legacy nonempty stores without a scale use Medium |
 
 | M6-WP56 | **Done** (PR #61). **Todo**. Respect cancelled widget configuration | Widget result handling, companion fixture, tests and handoff | Cancel releases only the unsaved allocation and preserves existing widgets |
 

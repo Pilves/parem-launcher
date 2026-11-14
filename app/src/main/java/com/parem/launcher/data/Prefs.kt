@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import com.parem.launcher.helper.CsvPairs
 import com.parem.launcher.helper.SettingsImport
+import com.parem.launcher.helper.TextScale
 import org.json.JSONObject
 
 /** The single SharedPreferences file every feature manager reads and writes. */
@@ -102,6 +103,13 @@ class Prefs(context: Context) {
     private var widgetHeightsCache: Map<Int, Int>? = null
     private var widgetProvidersCache: Map<Int, String>? = null
     private var usageStatsCache: Map<String, Long>? = null
+
+    /** Establish the initial scale before the first Activity configuration is created. */
+    fun initializeTextSize() {
+        if (prefs.contains(TEXT_SIZE_SCALE)) return
+        val scale = if (prefs.all.isEmpty()) TextScale.LARGE else TextScale.DEFAULT
+        prefs.edit { putFloat(TEXT_SIZE_SCALE, scale) }
+    }
 
     fun initializeHomeGuidance() {
         if (!prefs.contains(HOME_GUIDANCE_INITIALIZED)) prefs.edit {
@@ -605,6 +613,9 @@ class Prefs(context: Context) {
         widgetProvidersCache = null
         usageStatsCache = null
 
+        // Import is a replacement, but older exports have no text-size key.
+        val retainedTextSize = if (TEXT_SIZE_SCALE !in validated)
+            prefs.getFloat(TEXT_SIZE_SCALE, TextScale.DEFAULT) else null
         val excludedValues = mutableMapOf<String, Any?>()
         for (key in exportExcludeKeys) {
             if (prefs.contains(key)) {
@@ -613,6 +624,7 @@ class Prefs(context: Context) {
         }
         prefs.edit {
             clear()
+            if (retainedTextSize != null) putFloat(TEXT_SIZE_SCALE, retainedTextSize)
             for ((key, value) in excludedValues) {
                 when (value) {
                     is Int -> putInt(key, value)

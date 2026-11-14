@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.PackageManager
 import android.os.ParcelFileDescriptor
+import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.parem.launcher.data.Prefs
@@ -20,6 +21,7 @@ import org.junit.Assume.assumeTrue
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.helper.SettingsImport
+import com.parem.launcher.helper.TextScale
 import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.DoubleTapActionManager
 import com.parem.launcher.helper.FocusSchedule
@@ -53,6 +55,51 @@ class PrefsRoundTripTest {
         for ((key, value) in saved) if (value != null) editor.put(key, value)
         check(editor.commit())
         Prefs(context).omniboxHistory = savedHistory
+    }
+
+    @Test
+    fun textSizeIsInitializedBeforeFirstActivityConfiguration() {
+        check(sp.edit().clear().commit())
+        val expected = TextScale.effective(context.resources.configuration.fontScale, TextScale.LARGE)
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                assertEquals(TextScale.LARGE, Prefs(activity).textSizeScale, 0.001f)
+                assertEquals(expected, activity.resources.configuration.fontScale, 0.001f)
+            }
+        }
+    }
+
+    @Test
+    fun textSizeKeepsExistingAndPartialRestoredStores() {
+        val prefs = Prefs(context)
+        for (seed in listOf("FIRST_OPEN", "unrelated_restored_setting")) {
+            check(sp.edit().clear().putBoolean(seed, false).commit())
+            prefs.initializeTextSize()
+            assertEquals(TextScale.DEFAULT, prefs.textSizeScale, 0.001f)
+        }
+        for (step in TextScale.STEPS) {
+            check(sp.edit().clear().putBoolean("FIRST_OPEN", false).putFloat("TEXT_SIZE_SCALE", step).commit())
+            prefs.initializeTextSize()
+            assertEquals(step, prefs.textSizeScale, 0.001f)
+        }
+    }
+
+    @Test
+    fun textSizeSurvivesImportAndExportIncludingOldFiles() {
+        val prefs = Prefs(context)
+        for (step in TextScale.STEPS) {
+            prefs.textSizeScale = step
+            val exported = JSONObject(prefs.exportToJson().toString())
+            prefs.textSizeScale = TextScale.DEFAULT
+            prefs.importFromJson(exported)
+            assertEquals(step, prefs.textSizeScale, 0.001f)
+            prefs.importFromJson(JSONObject().put("__parem_export_version", 1))
+            assertEquals(step, prefs.textSizeScale, 0.001f)
+        }
+        check(sp.edit().clear().putBoolean("FIRST_OPEN", false).commit())
+        prefs.importFromJson(JSONObject().put("__parem_export_version", 1))
+        prefs.initializeTextSize()
+        assertEquals(TextScale.DEFAULT, prefs.textSizeScale, 0.001f)
     }
 
     @Test

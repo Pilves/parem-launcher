@@ -363,7 +363,7 @@
     <string name="a11y_app_limit_value" translatable="false">limit %1$s</string>
     <string name="a11y_picker_cap" translatable="false">Only %1$d apps can be selected</string>
     <string name="text_size_smaller" translatable="false">Smaller</string>
-    <string name="text_size_default" translatable="false">Default</string>
+    <string name="text_size_medium" translatable="false">Medium</string>
     <string name="text_size_large" translatable="false">Large</string>
     <string name="text_size_larger" translatable="false">Larger</string>
     <string name="usage_access" translatable="false">Usage access</string>
