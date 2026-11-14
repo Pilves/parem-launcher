@@ -8,7 +8,7 @@ export function parseDiscovery(text) {
   for (const line of text.split(/\r?\n/)) {
     if (line.startsWith('INSTRUMENTATION_STATUS: class=')) name = line.slice('INSTRUMENTATION_STATUS: class='.length);
     if (line.startsWith('INSTRUMENTATION_STATUS: test=')) method = line.slice('INSTRUMENTATION_STATUS: test='.length);
-    if (/^INSTRUMENTATION_STATUS_CODE: (1|-3)\s*$/.test(line)) {
+    if (/^INSTRUMENTATION_STATUS_CODE: 1\s*$/.test(line)) {
       if (!name || !method) throw new Error('discovery entry missing class or method');
       const id = `${name}#${method}`;
       if (tests.has(id)) throw new Error(`duplicate discovery entry: ${id}`);

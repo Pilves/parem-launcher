@@ -15,7 +15,8 @@ test('rejects incomplete, empty and duplicate discovery and includes ignored tes
   assert.throws(() => parseDiscovery('INSTRUMENTATION_CODE: -1\n'), /no tests/);
   assert.throws(() => parseDiscovery(entry('a','x')), /did not finish/);
   assert.throws(() => parseDiscovery(result(entry('a','x'),entry('a','x'))), /duplicate/);
-  assert.ok(parseDiscovery(result(entry('a','ignored',-3))).has('a#ignored'));
+  // AndroidX emits a start followed by ignored status for the same test.
+  assert.ok(parseDiscovery(result(entry('a','ignored'),entry('a','ignored',-3))).has('a#ignored'));
 });
 
 test('reviewed inventory matches exactly the annotated source methods', async () => {
