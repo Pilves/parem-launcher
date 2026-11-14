@@ -53,4 +53,5 @@ jobs:
             app/build/reports/androidTests/
             app/build/widget-fixture-logcat.txt
             app/build/widget-fixture-failure.png
+            app/build/widget-home-failure.*
           if-no-files-found: ignore

@@ -101,8 +101,7 @@ class WidgetProviderFixtureTest {
         var pending = -1
         var originalActivity: MainActivity? = null
         try {
-            check(device.pressHome())
-            check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
+            pressHomeAndAwaitParem()
             onHome { activity ->
                 originalActivity = activity
                 first = activity.appWidgetHost.allocateAppWidgetId()

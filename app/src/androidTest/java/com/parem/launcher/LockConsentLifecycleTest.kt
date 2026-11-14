@@ -52,7 +52,6 @@ class LockConsentLifecycleTest {
         if (!grantedBefore) device.executeShellCommand("pm grant ${context.packageName} android.permission.WRITE_SECURE_SETTINGS")
         check(context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED)
         device.executeShellCommand("cmd package set-home-activity ${context.packageName}/${MainActivity::class.java.name}")
-        val home = By.res(context.resources.getResourceName(R.id.homeAppsLayout))
         val grayOption = By.desc(context.getString(R.string.grayscale_now))
         val quietAccessOption = By.desc(context.getString(R.string.quiet_open_settings))
         val quietContinue = By.desc(context.getString(R.string.quiet_continue))
@@ -60,8 +59,7 @@ class LockConsentLifecycleTest {
         try {
             // Launch as HOME first. ActivityScenario's LAUNCHER intent creates a
             // different standard task that HOME can destroy and replace.
-            check(device.pressHome()) { "initial HOME failed" }
-            check(device.wait(Until.hasObject(home), 10_000)) { "initial home not shown" }
+            pressHomeAndAwaitParem()
             lateinit var settingsFragment: Fragment
             fun openSettingsThen(open: (Fragment) -> Unit) {
                 instrumentation.runOnMainSync {
@@ -76,8 +74,7 @@ class LockConsentLifecycleTest {
                 }
             }
             fun pressHomeAndCheckDismissed(vararg options: androidx.test.uiautomator.BySelector) {
-                check(device.pressHome()) { "HOME failed" }
-                check(device.wait(Until.hasObject(home), 10_000)) { "home not shown after HOME" }
+                pressHomeAndAwaitParem()
                 instrumentation.runOnMainSync {
                     check(settingsFragment.view == null) { "HOME did not destroy the Settings view" }
                 }

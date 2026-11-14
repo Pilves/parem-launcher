@@ -52,8 +52,7 @@ class WidgetAvailabilityTest {
         val prefs = Prefs(context)
         var widgetId = -1
         try {
-            check(device.pressHome())
-            check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
+            pressHomeAndAwaitParem()
             fun onHome(block: (MainActivity) -> Unit) {
                 instrumentation.runOnMainSync {
                     val activity = ActivityLifecycleMonitorRegistry.getInstance()
@@ -75,7 +74,7 @@ class WidgetAvailabilityTest {
             onHome { activity ->
                 assertTrue("fixture bind refused", activity.appWidgetManager.bindAppWidgetIdIfAllowed(widgetId, provider))
             }
-            assertTrue(device.pressHome())
+            pressHomeAndAwaitParem()
             assertTrue("same ID did not recover", device.wait(Until.hasObject(By.text("WP28 fixture widget")), 10_000))
             assertEquals(listOf(widgetId), prefs.getWidgetIdList())
             assertEquals(173, prefs.getWidgetHeight(widgetId))
@@ -107,8 +106,7 @@ class WidgetAvailabilityTest {
         prepare()
         val prefs = Prefs(context)
         try {
-            check(device.pressHome())
-            check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
+            pressHomeAndAwaitParem()
             instrumentation.runOnMainSync {
                 val activity = ActivityLifecycleMonitorRegistry.getInstance()
                     .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
@@ -131,7 +129,7 @@ class WidgetAvailabilityTest {
             while (prefs.getWidgetIdList().isNotEmpty() && SystemClock.elapsedRealtime() < removalDeadline) SystemClock.sleep(50)
             assertTrue("explicit removal left the ID", prefs.getWidgetIdList().isEmpty())
             assertEquals("explicit removal left the stale legacy marker", -1, prefs.widgetId)
-            assertTrue(device.pressHome())
+            pressHomeAndAwaitParem()
             device.waitForIdle()
             SystemClock.sleep(500)
             assertTrue("removed legacy widget reappeared", prefs.getWidgetIdList().isEmpty())
@@ -146,8 +144,7 @@ class WidgetAvailabilityTest {
         prepare()
         val prefs = Prefs(context)
         try {
-            check(device.pressHome())
-            check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
+            pressHomeAndAwaitParem()
             fun onHome(block: (MainActivity) -> Unit) {
                 instrumentation.runOnMainSync {
                     val activity = ActivityLifecycleMonitorRegistry.getInstance()
@@ -175,7 +172,7 @@ class WidgetAvailabilityTest {
                     putInt("stage", 2); putInt("widgetId", pending); putInt("replaceId", first)
                 }
             }
-            assertTrue(device.pressHome())
+            pressHomeAndAwaitParem()
             onHome { home(it).widgetController!!.showWidgetPicker() }
             assertFalse("a second widget picker opened", device.wait(Until.hasObject(pickerList), 1_500))
             onHome { activity ->
@@ -251,8 +248,7 @@ class WidgetAvailabilityTest {
         var placeholder: View? = null
         var validWrapper: View? = null
         try {
-            check(device.pressHome())
-            check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
+            pressHomeAndAwaitParem()
             fun onHome(block: (MainActivity) -> Unit) = instrumentation.runOnMainSync {
                 val activity = ActivityLifecycleMonitorRegistry.getInstance()
                     .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
