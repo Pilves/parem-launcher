@@ -116,13 +116,13 @@ class SheetAccessibilityTest {
                     this.adapter = adapter
                 }
                 activity.findViewById<ViewGroup>(android.R.id.content).addView(
-                    list, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 400),
+                    list, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1200),
                 )
             }
             try {
                 device.waitForIdle()
                 scenario.onActivity {
-                    val first = requireNotNull(list.findViewHolderForAdapterPosition(0)).itemView
+                    val first = requireNotNull(list.findViewHolderForAdapterPosition(1)).itemView
                     assertTrue(
                         "test requires RecyclerView's item accessibility delegate",
                         ViewCompat.getAccessibilityDelegate(first) is RecyclerViewAccessibilityDelegate.ItemDelegate,
@@ -143,31 +143,28 @@ class SheetAccessibilityTest {
                         assertTrue(info.isCheckable)
                         assertEquals(expected, info.isChecked)
                     }
-                    assertEquals(2, adapter.itemCount)
-                    checkRow(0, true)
-                    checkRow(1, false)
-                    requireNotNull(list.findViewHolderForAdapterPosition(1)).itemView.performClick()
+                    // Selected Alpha and Beta stay visible above matching unselected Alpha.
+                    assertEquals(5, adapter.itemCount)
                     checkRow(1, true)
+                    checkRow(2, true)
+                    checkRow(4, false)
+                    requireNotNull(list.findViewHolderForAdapterPosition(4)).itemView.performClick()
+                    assertTrue("real click must update the selection", "b" in adapter.selectedIds)
                     adapter.filter("Beta")
                 }
                 device.waitForIdle()
                 scenario.onActivity {
-                    val row = requireNotNull(list.findViewHolderForAdapterPosition(0)).itemView
-                    val info = AccessibilityNodeInfoCompat.wrap(row.createAccessibilityNodeInfo())
-                    assertEquals("Beta selected", row.contentDescription)
-                    assertEquals("android.widget.CheckBox", info.className)
-                    assertTrue(info.isCheckable)
-                    assertTrue(info.isChecked)
-                    adapter.filter("Alpha")
-                }
-                device.waitForIdle()
-                scenario.onActivity {
-                    val row = requireNotNull(list.findViewHolderForAdapterPosition(1)).itemView
-                    val info = AccessibilityNodeInfoCompat.wrap(row.createAccessibilityNodeInfo())
-                    assertEquals("Alpha other", row.contentDescription)
-                    assertEquals("android.widget.CheckBox", info.className)
-                    assertTrue(info.isCheckable)
-                    assertTrue(info.isChecked)
+                    val selectedRows = (0 until adapter.itemCount).mapNotNull {
+                        list.findViewHolderForAdapterPosition(it)?.itemView as? SheetCheckRow
+                    }
+                    assertEquals(setOf("Alpha selected", "Alpha other", "Beta selected"),
+                        selectedRows.map { it.contentDescription.toString() }.toSet())
+                    selectedRows.forEach { row ->
+                        val info = AccessibilityNodeInfoCompat.wrap(row.createAccessibilityNodeInfo())
+                        assertEquals("android.widget.CheckBox", info.className)
+                        assertTrue(info.isCheckable)
+                        assertTrue(info.isChecked)
+                    }
                 }
             } finally {
                 scenario.onActivity { (list.parent as ViewGroup).removeView(list) }

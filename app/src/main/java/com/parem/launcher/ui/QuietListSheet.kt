@@ -114,8 +114,7 @@ object QuietListSheet {
         BottomSheetMenu(context)
             .title(context.getString(R.string.quiet_pick_title))
             .customView(content)
-            .option(context.getString(R.string.quiet_continue)) { onDone(adapter.selectedIds.toSet()) }
-            .option(context.getString(android.R.string.cancel), dimmed = true) {}
+            .pickerActions { onDone(adapter.selectedIds.toSet()) }
             .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true).dismissOnDestroy(owner)
     }
 
