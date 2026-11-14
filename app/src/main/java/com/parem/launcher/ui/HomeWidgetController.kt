@@ -691,10 +691,13 @@ class HomeWidgetController(
             }
             fun loadIcon(state: IconRow, entry: WidgetEntry) {
                 state.job?.cancel()
+                android.util.Log.i("WidgetIconABBA", "bind mode=${System.getProperty("widget.icon.mode")} provider=${entry.provider.provider}")
+                if (System.getProperty("widget.icon.mode") == "off") return
                 val key = "${entry.provider.provider.flattenToString()}@${entry.provider.profile}"
                 state.key = key
                 state.entry = entry
                 state.job = iconScope.launch {
+                    android.util.Log.i("WidgetIconABBA", "start provider=$key")
                     val drawable = withContext(Dispatchers.IO) {
                         iconSlots.withPermit {
                             runCatching {
@@ -704,7 +707,7 @@ class HomeWidgetController(
                         }
                     }
                     if (isActive() && state.key == key) state.icon.setImageDrawable(drawable)
-                }
+                }.also { job -> job.invokeOnCompletion { cause -> android.util.Log.i("WidgetIconABBA", "end provider=$key canceled=${cause != null}") } }
             }
 
             val adapter = object : android.widget.BaseAdapter() {

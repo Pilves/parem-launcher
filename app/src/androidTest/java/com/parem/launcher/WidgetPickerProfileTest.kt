@@ -32,6 +32,13 @@ class WidgetPickerProfileTest {
         assumeTrue(InstrumentationRegistry.getArguments().getString("widget_picker_profile") == "true")
         assumeTrue(BuildConfig.DEBUG && Build.VERSION.SDK_INT >= 35)
         assumeTrue(device.executeShellCommand("getprop ro.kernel.qemu").trim() == "1")
+        val mode = requireNotNull(InstrumentationRegistry.getArguments().getString("icon_mode"))
+        val trial = requireNotNull(InstrumentationRegistry.getArguments().getString("trial"))
+        System.setProperty("widget.icon.mode", mode)
+        fun memory(stage: String) {
+            val runtime = Runtime.getRuntime()
+            Log.i("WidgetIconABBA", "sample trial=$trial mode=$mode stage=$stage pss_kb=${Debug.getPss()} java_used=${runtime.totalMemory() - runtime.freeMemory()} native_alloc=${Debug.getNativeHeapAllocatedSize()}")
+        }
         Prefs(context).apply { firstOpen = false; onboardingVersionSeen = Constants.ONBOARDING_VERSION; autoShowKeyboard = false }
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             var providers = 0
@@ -48,6 +55,7 @@ class WidgetPickerProfileTest {
             // Report this separately; the static-image and icon paths do not need that access.
             for (round in listOf("cold", "warm")) {
             device.executeShellCommand("dumpsys gfxinfo ${context.packageName} reset")
+            memory("$round-before")
             val baselinePssKb = Debug.getPss()
             val start = SystemClock.elapsedRealtime()
             scenario.onActivity { activity ->
@@ -61,6 +69,7 @@ class WidgetPickerProfileTest {
                     throw AssertionError("widget picker list did not appear")
                 }
             val openMs = SystemClock.elapsedRealtime() - start
+            memory("$round-open")
             device.executeShellCommand("screencap -p /data/local/tmp/parem-widget-picker-$round-open.png")
             val search = device.wait(Until.findObject(By.clazz("android.widget.EditText")), 10_000)
                 ?: throw AssertionError("widget search did not appear")
@@ -78,6 +87,7 @@ class WidgetPickerProfileTest {
                 sawLast = device.hasObject(By.textContains("Stress widget 119"))
             }
             val scrollMs = SystemClock.elapsedRealtime() - scrollStart
+            memory("$round-traversed")
             assertTrue("could not reach last of $providers providers after $swipes scrolls", sawLast)
             device.executeShellCommand("screencap -p /data/local/tmp/parem-widget-picker-$round-scrolled.png")
             val gfx = device.executeShellCommand("dumpsys gfxinfo ${context.packageName}")
@@ -90,7 +100,12 @@ class WidgetPickerProfileTest {
             device.pressBack()
             if (!device.wait(Until.gone(By.clazz("android.widget.ListView")), 1_000)) device.pressBack()
             assertTrue("widget picker did not close", device.wait(Until.gone(By.clazz("android.widget.ListView")), 5_000))
+            memory("$round-dismissed")
             }
+            System.gc()
+            System.runFinalization()
+            SystemClock.sleep(1_000)
+            memory("after-final-gc")
             scenario.onActivity { activity ->
                 retrievable = activity.appWidgetManager.installedProviders
                     .filter { it.provider.packageName == "com.parem.widgetstress" }

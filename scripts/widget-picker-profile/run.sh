@@ -19,21 +19,13 @@ for attempt in $(seq 1 60); do
   sleep 1
 done
 [[ $ready == true ]] || { echo 'Synthetic preview publisher did not become ready' >&2; exit 1; }
-./gradlew connectedPlayDebugAndroidTest \
-  -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.WidgetPickerProfileTest \
-  -Pandroid.testInstrumentationRunnerArguments.widget_picker_profile=true
-
-if [[ ${WIDGET_PICKER_CAPTURE:-false} == true ]]; then
-  # AVD has a hardware keyboard; allow a user-equivalent tap to raise the IME.
-  adb shell settings put secure show_ime_with_hard_keyboard 1
-  for font in 1.0 2.0; do
-    adb shell settings put system font_scale "$font"
-    for ime in off on; do
-      ./gradlew connectedPlayDebugAndroidTest \
-        -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.WidgetPickerCaptureTest \
-        -Pandroid.testInstrumentationRunnerArguments.widget_picker_capture=true \
-        -Pandroid.testInstrumentationRunnerArguments.widget_picker_font="$font" \
-        -Pandroid.testInstrumentationRunnerArguments.widget_picker_ime="$ime"
-    done
-  done
-fi
+for trial_mode in 1:on 2:off 3:off 4:on; do
+  trial=${trial_mode%%:*}
+  mode=${trial_mode#*:}
+  ./gradlew connectedPlayDebugAndroidTest \
+    -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.WidgetPickerProfileTest \
+    -Pandroid.testInstrumentationRunnerArguments.widget_picker_profile=true \
+    -Pandroid.testInstrumentationRunnerArguments.icon_mode="$mode" \
+    -Pandroid.testInstrumentationRunnerArguments.trial="$trial"
+  adb logcat -d -v threadtime -s WidgetIconABBA:I ParemWidgetPickerProfile:I '*:S' > "app/build/widget-picker-profile/trial-$trial-log.txt"
+done
