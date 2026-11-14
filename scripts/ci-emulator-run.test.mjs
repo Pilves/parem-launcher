@@ -57,5 +57,7 @@ test('a failed workload stays failed and an unavailable collector cannot pass', 
   assert.equal(run({ collectorFails: true }).result.status, 1);
   assert.equal(run({ collectorDies: true }).result.status, 1);
   assert.equal(run({ noAck: true }).result.status, 1);
-  assert.equal(run({ streamEvent: row('am_crash', 'com.parem.launcher.debug') }).result.status, 1);
+  const streamOnly = run({ streamEvent: row('am_crash', 'com.parem.launcher.debug') });
+  assert.equal(streamOnly.result.status, 1);
+  assert.match(streamOnly.result.stderr, /Parem crash\/ANR/);
 });
