@@ -106,7 +106,10 @@ class DrawerAssignmentPickerTest {
             val clear = checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.picker_clear_search))), timeout))
             clear.click()
             assertTrue(device.wait(Until.hasObject(By.text("Picker Fixture")), timeout))
-            assertEquals("", search.text)
+            scenario.onActivity { activity ->
+                val searchView = requireNotNull(activity.findViewById<androidx.appcompat.widget.SearchView>(R.id.search))
+                assertEquals("", searchView.query.toString())
+            }
         }
     }
 
