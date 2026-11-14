@@ -33,6 +33,9 @@ import com.parem.launcher.helper.ContactMatcher
 import com.parem.launcher.helper.ContactSearchManager
 import com.parem.launcher.helper.SearchHints
 import com.parem.launcher.helper.PickerKeyboardPolicy
+import com.parem.launcher.helper.DrawerPickerSelection
+import com.parem.launcher.helper.DoubleTapActionManager
+import com.parem.launcher.helper.GestureLetterManager
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.copyToClipboard
 import com.parem.launcher.helper.CurrencyRates
@@ -208,6 +211,46 @@ class AppDrawerFragment : BaseFragment() {
         }
     }
 
+    private fun savedPickerSelection(): DrawerPickerSelection.Identity? {
+        fun key(pkg: String, activity: String?, user: String?) =
+            DrawerPickerSelection.Identity(pkg, activity, user).takeIf { pkg.isNotBlank() }
+        val context = context ?: return null
+        return when (flag) {
+            in Constants.FLAG_SET_HOME_APP_1..Constants.FLAG_SET_HOME_APP_8 ->
+                if (prefs.getHomeAppUrl(flag).isNotEmpty()) null else key(
+                    prefs.getHomeAppPackage(flag), prefs.getHomeAppActivityClassName(flag), prefs.getHomeAppUser(flag))
+            Constants.FLAG_SET_SWIPE_LEFT_APP -> key(prefs.appPackageSwipeLeft, prefs.appActivityClassNameSwipeLeft, prefs.appUserSwipeLeft)
+            Constants.FLAG_SET_SWIPE_RIGHT_APP -> key(prefs.appPackageSwipeRight, prefs.appActivityClassNameSwipeRight, prefs.appUserSwipeRight)
+            Constants.FLAG_SET_CLOCK_APP -> key(prefs.clockAppPackage, prefs.clockAppClassName, prefs.clockAppUser)
+            Constants.FLAG_SET_CALENDAR_APP -> key(prefs.calendarAppPackage, prefs.calendarAppClassName, prefs.calendarAppUser)
+            Constants.FLAG_SET_DOUBLE_TAP_APP -> key(DoubleTapActionManager.getAppPackage(context),
+                DoubleTapActionManager.getAppActivity(context), DoubleTapActionManager.getAppUser(context))
+            Constants.FLAG_SET_GESTURE_LETTER_APP -> gestureLetter?.let { letter ->
+                GestureLetterManager.getMapping(context, letter)?.let { (pkg, activity, user) -> key(pkg, activity, user) }
+            }
+            else -> null
+        }
+    }
+
+    private fun showCurrentPickerSelection(apps: List<AppModel>) {
+        val b = _binding ?: return
+        if (flag == Constants.FLAG_LAUNCH_APP || flag == Constants.FLAG_HIDDEN_APPS) return
+        // The shared app list may contain Private Space entries; apply the same
+        // consumer-side gate as the picker adapter before displaying any label.
+        val visibleApps = DrawerRows.gate(apps, isLaunchDrawer = false) { it.isPrivate }
+        val identities = visibleApps.map { DrawerPickerSelection.Identity(it.appPackage, it.activityClassName, it.user.toString()) }
+        val app = DrawerPickerSelection.uniqueIndex(savedPickerSelection(), identities, android.os.Process.myUserHandle().toString())?.let(visibleApps::get)
+        if (app == null) {
+            b.drawerPickerCurrent.visibility = View.GONE
+            return
+        }
+        val label = androidx.core.text.BidiFormatter.getInstance().unicodeWrap(app.appLabel)
+        val profileLabel = if (app.user != android.os.Process.myUserHandle())
+            "$label · ${getString(R.string.a11y_work_profile)}" else label
+        b.drawerPickerCurrent.text = getString(R.string.picker_current_app, profileLabel)
+        b.drawerPickerCurrent.visibility = View.VISIBLE
+    }
+
     private fun initViews() {
         if (flag != Constants.FLAG_LAUNCH_APP) {
             // Keep the search reachable when a short IME window cannot fit all chrome.
@@ -215,7 +258,7 @@ class AppDrawerFragment : BaseFragment() {
             val content = android.widget.LinearLayout(requireContext()).apply {
                 orientation = android.widget.LinearLayout.VERTICAL
             }
-            listOf(binding.drawerPickerTitle, binding.drawerSearchRow, binding.appDrawerTip).forEach { child ->
+            listOf(binding.drawerPickerTitle, binding.drawerPickerCurrent, binding.drawerSearchRow, binding.appDrawerTip).forEach { child ->
                 binding.root.removeView(child)
                 content.addView(child)
             }
@@ -238,7 +281,7 @@ class AppDrawerFragment : BaseFragment() {
             binding.search.queryHint = getString(R.string.search_apps)
             binding.search.findViewById<android.widget.ImageView>(androidx.appcompat.R.id.search_close_btn)?.apply {
                 setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
-                contentDescription = getString(R.string.search_history_clear)
+                contentDescription = getString(R.string.picker_clear_search)
                 minimumWidth = resources.getDimensionPixelSize(R.dimen.touch_target_min)
                 minimumHeight = resources.getDimensionPixelSize(R.dimen.touch_target_min)
             }
@@ -795,6 +838,7 @@ class AppDrawerFragment : BaseFragment() {
             }
             viewModel.appList.observe(viewLifecycleOwner) {
                 it?.let { appModels ->
+                    showCurrentPickerSelection(appModels)
                     adapter.setAppList(appModels.toMutableList())
                     refreshRecent()
                     if (typedQuery.isNotEmpty()) {

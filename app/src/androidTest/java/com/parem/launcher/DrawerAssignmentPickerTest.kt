@@ -26,7 +26,7 @@ class DrawerAssignmentPickerTest {
     private val context = instrumentation.targetContext
     private val device = UiDevice.getInstance(instrumentation)
     private val timeout = 15_000L
-    private val fixture = AppModel("Picker Fixture", null, "fixture.picker", null, false, Process.myUserHandle())
+    private val fixture = AppModel("Picker Fixture", null, "com.android.settings", null, false, Process.myUserHandle())
 
     @Before fun prepare() {
         Prefs(context).apply {
@@ -40,7 +40,7 @@ class DrawerAssignmentPickerTest {
         val model = ViewModelProvider(activity)[MainViewModel::class.java]
         if (flag == Constants.FLAG_HIDDEN_APPS) model.hiddenApps.value = listOf(fixture)
         activity.findNavController(R.id.nav_host_fragment).navigate(
-            R.id.appListFragment, bundleOf(Constants.Key.FLAG to flag)
+            R.id.appListFragment, bundleOf(Constants.Key.FLAG to flag, Constants.Key.LETTER to 'A')
         )
         if (flag != Constants.FLAG_HIDDEN_APPS) model.appList.value = listOf(fixture)
     }
@@ -56,7 +56,108 @@ class DrawerAssignmentPickerTest {
             assertTrue(device.wait(Until.hasObject(By.text("Picker Fixture")), timeout))
             device.findObject(By.text("Picker Fixture")).click()
             assertTrue(device.wait(Until.hasObject(By.res(context.packageName, "homeAppsLayout")), timeout))
-            assertEquals("fixture.picker", Prefs(context).getHomeAppPackage(1))
+            assertEquals(fixture.appPackage, Prefs(context).getHomeAppPackage(1))
+        }
+    }
+
+    @Test fun currentChoiceIsShownOnlyForAnUnambiguousVisibleProfile() {
+        val prefs = Prefs(context)
+        prefs.setHomeAppPackage(1, fixture.appPackage)
+        prefs.setHomeAppActivityClassName(1, fixture.activityClassName)
+        prefs.setHomeAppUser(1, fixture.user.toString())
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.open(Constants.FLAG_SET_HOME_APP_1)
+            assertTrue(device.wait(Until.hasObject(By.res(context.packageName, "drawerPickerCurrent")
+                .text(context.getString(R.string.picker_current_app, fixture.appLabel))), timeout))
+        }
+    }
+
+    @Test fun privateAppDoesNotAppearAsCurrentChoice() {
+        val prefs = Prefs(context)
+        prefs.setHomeAppPackage(1, fixture.appPackage)
+        prefs.setHomeAppActivityClassName(1, fixture.activityClassName)
+        prefs.setHomeAppUser(1, fixture.user.toString())
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                activity.findNavController(R.id.nav_host_fragment).navigate(
+                    R.id.appListFragment, bundleOf(Constants.Key.FLAG to Constants.FLAG_SET_HOME_APP_1)
+                )
+            }
+            assertTrue(device.wait(Until.hasObject(By.res(context.packageName, "drawerPickerTitle")), timeout))
+            scenario.onActivity { activity ->
+                ViewModelProvider(activity)[MainViewModel::class.java].appList.value = listOf(fixture.copy(isPrivate = true))
+            }
+            assertTrue(device.wait(Until.hasObject(By.text(context.getString(R.string.no_apps_found))), timeout))
+            assertFalse(device.hasObject(By.res(context.packageName, "drawerPickerCurrent")))
+            assertFalse(device.hasObject(By.text("Picker Fixture")))
+        }
+    }
+
+    @Test fun pickerClearSearchRestoresTheList() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.open(Constants.FLAG_SET_HOME_APP_1)
+            assertTrue(device.wait(Until.hasObject(By.text("Picker Fixture")), timeout))
+            val searchId = context.resources.getResourceName(androidx.appcompat.R.id.search_src_text)
+            val search = checkNotNull(device.wait(Until.findObject(By.res(searchId)), timeout))
+            search.text = "zz_no_match_picker"
+            assertTrue(device.wait(Until.hasObject(By.text(context.getString(R.string.no_apps_found))), timeout))
+            val clear = checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.picker_clear_search))), timeout))
+            clear.click()
+            assertTrue(device.wait(Until.hasObject(By.text("Picker Fixture")), timeout))
+            assertEquals("", search.text)
+        }
+    }
+
+    @Test fun gestureClockAndCalendarAssignmentsKeepSelectedIdentity() {
+        val flags = listOf(Constants.FLAG_SET_SWIPE_LEFT_APP, Constants.FLAG_SET_SWIPE_RIGHT_APP,
+            Constants.FLAG_SET_CLOCK_APP, Constants.FLAG_SET_CALENDAR_APP,
+            Constants.FLAG_SET_DOUBLE_TAP_APP, Constants.FLAG_SET_GESTURE_LETTER_APP)
+        for (flag in flags) {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                scenario.open(flag)
+                assertTrue("picker row missing for flag $flag", device.wait(Until.hasObject(By.text("Picker Fixture")), timeout))
+                device.findObject(By.text("Picker Fixture")).click()
+                assertTrue("home missing after selecting flag $flag", device.wait(
+                    Until.hasObject(By.res(context.packageName, "homeAppsLayout")), timeout))
+                val prefs = Prefs(context)
+                val selected = when (flag) {
+                    Constants.FLAG_SET_SWIPE_LEFT_APP -> prefs.appPackageSwipeLeft to prefs.appUserSwipeLeft
+                    Constants.FLAG_SET_SWIPE_RIGHT_APP -> prefs.appPackageSwipeRight to prefs.appUserSwipeRight
+                    Constants.FLAG_SET_CLOCK_APP -> prefs.clockAppPackage to prefs.clockAppUser
+                    Constants.FLAG_SET_CALENDAR_APP -> prefs.calendarAppPackage to prefs.calendarAppUser
+                    Constants.FLAG_SET_DOUBLE_TAP_APP -> com.parem.launcher.helper.DoubleTapActionManager.getAppPackage(context) to
+                        com.parem.launcher.helper.DoubleTapActionManager.getAppUser(context)
+                    else -> requireNotNull(com.parem.launcher.helper.GestureLetterManager.getMapping(context, 'A')).let { it.first to it.third }
+                }
+                assertEquals("wrong selected package/profile for flag $flag", fixture.appPackage to fixture.user.toString(), selected)
+            }
+        }
+    }
+
+    @Test fun silentAppChoiceOpensTheResolvedNotificationSettings() {
+        val intent = android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+            .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, fixture.appPackage)
+        val settingsPackage = requireNotNull(context.packageManager.resolveActivity(intent, 0)?.activityInfo?.packageName)
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.open(Constants.FLAG_PICK_SILENT_APP)
+            assertTrue(device.wait(Until.hasObject(By.text("Picker Fixture")), timeout))
+            device.findObject(By.text("Picker Fixture")).click()
+            assertTrue("notification settings did not open", device.wait(Until.hasObject(By.pkg(settingsPackage)), timeout))
+            device.pressBack()
+        }
+    }
+
+    @Test fun backingOutKeepsExistingAssignment() {
+        val prefs = Prefs(context)
+        prefs.setHomeAppPackage(1, "com.android.settings")
+        prefs.setHomeAppName(1, "Original name")
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.open(Constants.FLAG_SET_HOME_APP_1)
+            assertTrue(device.wait(Until.hasObject(By.text("Picker Fixture")), timeout))
+            device.pressBack()
+            assertTrue(device.wait(Until.hasObject(By.res(context.packageName, "homeAppsLayout")), timeout))
+            assertEquals("com.android.settings", prefs.getHomeAppPackage(1))
+            assertEquals("Original name", prefs.getHomeAppName(1))
         }
     }
 

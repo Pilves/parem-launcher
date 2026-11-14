@@ -49,6 +49,15 @@ class DrawerPickerCaptureTest {
             .distinctBy { it.appPackage }
         assertTrue("capture requires at least three launcher apps", apps.size >= 3)
         for ((name, flag) in listOf("assignment" to Constants.FLAG_SET_HOME_APP_1, "hidden" to Constants.FLAG_HIDDEN_APPS)) {
+            if (flag == Constants.FLAG_SET_HOME_APP_1) {
+                Prefs(context).apply {
+                    setHomeAppName(1, apps.first().appLabel)
+                    setHomeAppPackage(1, apps.first().appPackage)
+                    setHomeAppActivityClassName(1, apps.first().activityClassName)
+                    setHomeAppUser(1, apps.first().user.toString())
+                    setHomeAppUrl(1, "")
+                }
+            }
             if (flag == Constants.FLAG_HIDDEN_APPS) {
                 Prefs(context).hiddenApps = apps.take(3).mapTo(mutableSetOf()) {
                     AppListRebuilder.hiddenKey(it.appPackage, it.user.toString())
@@ -70,6 +79,8 @@ class DrawerPickerCaptureTest {
                     Until.hasObject(By.res(context.packageName, "drawerPickerTitle").text(title)), 15_000))
                 assertTrue("expected real app row missing from $name", device.wait(
                     Until.hasObject(By.res(context.packageName, "appTitle").textStartsWith(apps.first().appLabel)), 15_000))
+                if (flag == Constants.FLAG_SET_HOME_APP_1) assertTrue("current assignment missing", device.wait(
+                    Until.hasObject(By.res(context.packageName, "drawerPickerCurrent").textContains(apps.first().appLabel)), 15_000))
                 val field = checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.EditText")), 15_000))
                 if (wantIme && hardware) field.click()
                 val deadline = SystemClock.elapsedRealtime() + 15_000

@@ -18,6 +18,15 @@
         android:textAppearance="@style/TextAppearance.Parem.Title"
         android:visibility="gone" />
 
+    <TextView
+        android:id="@+id/drawerPickerCurrent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:paddingHorizontal="20dp"
+        android:textAppearance="@style/TextAppearance.Parem.Caption"
+        android:visibility="gone" />
+
     <LinearLayout
         android:id="@+id/drawerSearchRow"
         android:layout_width="match_parent"
