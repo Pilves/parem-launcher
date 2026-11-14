@@ -41,11 +41,7 @@ class WidgetPickerProfileTest {
                 val fixture = activity.appWidgetManager.installedProviders.filter { it.provider.packageName == "com.parem.widgetstress" }
                 providers = fixture.size
                 previews = fixture.count { it.generatedPreviewCategories and AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN != 0 }
-                retrievable = fixture.count { provider ->
-                    activity.appWidgetManager.getWidgetPreview(provider.provider, provider.profile, AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN) != null
-                }
             }
-            Log.i("ParemWidgetPickerProfile", "providers=$providers generated_categories=$previews retrievable_previews=$retrievable")
             assertTrue("need >=100 registered synthetic providers; got $providers", providers >= 100)
             assertTrue("need >=100 published generated previews; got $previews", previews >= 100)
             // A third-party generated preview may be unavailable without widget-bind access.
@@ -85,7 +81,12 @@ class WidgetPickerProfileTest {
                     it.trim().startsWith("90th percentile:") || it.trim().startsWith("95th percentile:") ||
                     it.trim().startsWith("99th percentile:")
             }.forEach { Log.i("ParemWidgetPickerProfile", "gfx: ${it.trim()}") }
-            Log.i("ParemWidgetPickerProfile", "providers=$providers generated_previews=$previews open_ms=$openMs scroll_ms=$scrollMs swipes=$swipes baseline_pss_kb=$baselinePssKb peak_pss_kb=$peakPssKb delta_pss_kb=${peakPssKb - baselinePssKb}")
+            scenario.onActivity { activity ->
+                retrievable = activity.appWidgetManager.installedProviders
+                    .filter { it.provider.packageName == "com.parem.widgetstress" }
+                    .count { provider -> activity.appWidgetManager.getWidgetPreview(provider.provider, provider.profile, AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN) != null }
+            }
+            Log.i("ParemWidgetPickerProfile", "providers=$providers generated_previews=$previews retrievable_previews=$retrievable open_ms=$openMs scroll_ms=$scrollMs swipes=$swipes baseline_pss_kb=$baselinePssKb peak_pss_kb=$peakPssKb delta_pss_kb=${peakPssKb - baselinePssKb}")
             device.pressBack()
             if (!device.wait(Until.gone(By.clazz("android.widget.ListView")), 1_000)) device.pressBack()
             assertTrue("widget picker did not close", device.wait(Until.gone(By.clazz("android.widget.ListView")), 5_000))
