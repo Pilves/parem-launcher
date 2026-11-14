@@ -16,7 +16,7 @@ adb install app/build/widget-picker-profile-fixture/widget-stress.apk
 adb shell am start -W -n "$fixture/.Publisher"
 ready=false
 for attempt in $(seq 1 60); do
-  if adb logcat -d -s ParemWidgetStress:I '*:S' | rg -q 'generated_previews=120'; then ready=true; break; fi
+  if adb logcat -d -s ParemWidgetStress:I '*:S' | grep -q 'generated_previews=120'; then ready=true; break; fi
   sleep 1
 done
 [[ $ready == true ]] || { echo 'Synthetic preview publisher did not become ready' >&2; exit 1; }
