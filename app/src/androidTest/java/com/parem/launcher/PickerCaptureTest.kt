@@ -76,13 +76,7 @@ class PickerCaptureTest {
             if (shown == wantIme) break
             SystemClock.sleep(100)
         }
-        if (shown != wantIme) {
-            val dir = File(requireNotNull(context.getExternalFilesDir(null)), "picker-capture-failure").apply { mkdirs() }
-            device.takeScreenshot(File(dir, "failure.png"))
-            device.dumpWindowHierarchy(File(dir, "hierarchy.xml"))
-            device.executeShellCommand("mkdir -p /data/local/tmp/parem-picker-captures")
-            device.executeShellCommand("cp ${dir.absolutePath}/* /data/local/tmp/parem-picker-captures/")
-        }
+        if (shown != wantIme) runCatching { saveFailureEvidence() }
         val searchFocused = device.findObject(By.clazz("android.widget.EditText"))?.isFocused
         assertTrue("IME state not verified: wanted=$wantIme observed=$shown $keyboardConfig searchFocused=$searchFocused autoShow=${Prefs(context).autoShowKeyboard}", shown == wantIme)
         val action = when (name) {
@@ -107,15 +101,30 @@ class PickerCaptureTest {
                 row = device.wait(Until.findObject(By.textStartsWith(text)), 1_000)
             }
         }
+        if (row == null) runCatching { saveFailureEvidence() }
         checkNotNull(row) { "row missing: $text" }.click()
+    }
+
+    private fun saveFailureEvidence() {
+        val dir = File(requireNotNull(context.getExternalFilesDir(null)), "picker-capture-failure").apply { mkdirs() }
+        device.takeScreenshot(File(dir, "failure.png"))
+        device.dumpWindowHierarchy(File(dir, "hierarchy.xml"))
+        device.executeShellCommand("mkdir -p /data/local/tmp/parem-picker-captures")
+        device.executeShellCommand("cp ${dir.absolutePath}/* /data/local/tmp/parem-picker-captures/")
     }
 
     @Test fun captureAllRoutes() {
         prepare()
-        focus()
-        folder()
-        quiet()
-        appLimit()
+        try {
+            focus()
+            folder()
+            quiet()
+            appLimit()
+        } catch (failure: Throwable) {
+            val recorded = File(requireNotNull(context.getExternalFilesDir(null)), "picker-capture-failure/failure.png")
+            if (!recorded.exists()) try { saveFailureEvidence() } catch (diagnostic: Exception) { failure.addSuppressed(diagnostic) }
+            throw failure
+        }
     }
 
     private fun focus() {
