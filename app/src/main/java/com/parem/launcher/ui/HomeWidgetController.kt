@@ -672,6 +672,10 @@ class HomeWidgetController(
             searchRow.addView(searchField, android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             searchRow.addView(clear)
             val listView = android.widget.ListView(context)
+            // The empty header is populated only when the window is too short
+            // to keep title and search pinned above a usable list.
+            val overflowHeader = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.VERTICAL }
+            listView.addHeaderView(overflowHeader, null, false)
 
             val textColor = context.getColorFromAttr(R.attr.primaryColor)
             val headerColor = textColor
@@ -744,7 +748,7 @@ class HomeWidgetController(
                             addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
                                 override fun onViewAttachedToWindow(v: View) {
                                     val state = v.tag as IconRow
-                                    if (state.icon.drawable == null) state.entry?.let { loadIcon(state, it) }
+                                    if (state.icon.drawable == null && state.job?.isActive != true) state.entry?.let { loadIcon(state, it) }
                                 }
                                 override fun onViewDetachedFromWindow(v: View) { (v.tag as IconRow).job?.cancel() }
                             })
@@ -776,7 +780,7 @@ class HomeWidgetController(
             }
 
             listView.setOnItemClickListener { _, _, position, _ ->
-                val entry = currentItems[position].second ?: return@setOnItemClickListener
+                val entry = currentItems.getOrNull(position - listView.headerViewsCount)?.second ?: return@setOnItemClickListener
                 dialog.dismiss()
                 if (isActive() && !rejectPendingOperation()) onSelected(entry.provider)
             }
@@ -800,6 +804,10 @@ class HomeWidgetController(
             dialog = menu.customView(listView).onDismiss { iconScope.cancel() }
                 .show(resizeForKeyboard = true, scrollContent = false)
                 .dismissOnDestroy(fragment.viewLifecycleOwner)
+            val pickerContainer = searchRow.parent as android.widget.LinearLayout
+            val titleView = pickerContainer.getChildAt(pickerContainer.indexOfChild(searchRow) - 1)
+            val overflow = WidgetPickerOverflow(pickerContainer, titleView, searchRow, listView, overflowHeader, 48.dpToPx())
+            pickerContainer.post { if (pickerContainer.isAttachedToWindow) overflow.update() }
             dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
                 android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
             dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.let { sheet ->
