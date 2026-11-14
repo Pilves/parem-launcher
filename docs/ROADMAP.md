@@ -330,6 +330,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP62 | **Done** (PR #71). **Todo**. Make the widget picker searchable and show sizes | Widget picker, chrome, captures, profiling fixture, strings and handoff | Searchable app groups, every widget has a size, usable at short heights; text-only fallback |
 
+| M6-WP69 | **Done** (PR #73). **Todo**. Shorten approved English copy and guard rapid picker taps | Base English strings, multi-choice picker, tests and release notes | Approved copy retains keys and placeholders; a rapid second tap cannot change the next row |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
