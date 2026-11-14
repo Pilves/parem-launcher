@@ -35,7 +35,11 @@ class LargeTextSmallPhoneCaptureTest {
         device.executeShellCommand("appops set ${context.packageName} GET_USAGE_STATS allow")
         val out = "/data/local/tmp/parem-large"
         device.executeShellCommand("mkdir -p $out")
-        fun capture(name: String) { device.executeShellCommand("screencap -p $out/$name.png") }
+        fun capture(name: String) {
+            device.waitForIdle()
+            SystemClock.sleep(500)
+            device.executeShellCommand("screencap -p $out/$name.png")
+        }
         fun id(resource: Int) = context.resources.getResourceName(resource)
         fun waitFor(resource: Int) = device.wait(Until.findObject(By.res(id(resource))), 10_000)
         fun clickAfterScrolling(target: Int) {
