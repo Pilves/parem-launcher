@@ -44,7 +44,7 @@ public final class Publisher extends Activity {
         int layout = getResources().getIdentifier("widget", "layout", getPackageName());
         AppWidgetManager manager = AppWidgetManager.getInstance(this);
         TextView result = new TextView(this); result.setText("Waiting for synthetic providers"); setContentView(result);
-        new Thread(() -> {
+        new Thread(new Runnable() { @Override public void run() {
             int ok = 0;
             if (android.os.Build.VERSION.SDK_INT >= 35) {
                 for (int i = 0; i < 120; i++) {
@@ -69,8 +69,8 @@ public final class Publisher extends Activity {
             }
             final int publishedCount = ok;
             Log.i("ParemWidgetStress", "generated_previews=" + publishedCount);
-            runOnUiThread(() -> result.setText("Published " + publishedCount + " generated previews"));
-        }).start();
+            runOnUiThread(new Runnable() { @Override public void run() { result.setText("Published " + publishedCount + " generated previews"); } });
+        } }).start();
     }
 }
 JAVA
