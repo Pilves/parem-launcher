@@ -13,6 +13,7 @@ on:
       - 'app/src/main/res/values-et/strings.xml'
       - 'app/src/androidTest/java/com/parem/launcher/DrawerPickerCaptureTest.kt'
       - 'scripts/capture-drawer-picker-ux.sh'
+      - 'scripts/ci-emulator-run.sh'
       - '.github/workflows/drawer-picker-ux-capture.yml'
 permissions:
   contents: read
@@ -49,5 +50,6 @@ jobs:
           path: |
             app/build/drawer-picker-ux/
             app/build/reports/androidTests/
+            app/build/ci-incidents/
           if-no-files-found: error
           retention-days: 30

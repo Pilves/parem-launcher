@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+if [[ ${PAREM_INCIDENT_MONITORED:-} != 1 ]]; then exec bash scripts/ci-emulator-run.sh com.parem.launcher.debug bash "$0" "$@"; fi
 # Disposable emulator only: drawer assignment and hidden management, 1x/2x and IME up/down.
 set -euo pipefail
 out=app/build/drawer-picker-ux
