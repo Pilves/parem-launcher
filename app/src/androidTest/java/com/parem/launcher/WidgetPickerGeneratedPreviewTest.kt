@@ -87,7 +87,19 @@ class WidgetPickerGeneratedPreviewTest {
                 return Triple(matches, xFound, yFound)
             }
             assertTrue("published preview did not visibly render", findPreviewPixels().first > 100)
-            assertFalse("preview descendants must be hidden from accessibility", device.hasObject(By.textStartsWith("Synthetic preview")))
+            // UiAutomator can opt into non-important views; check a normal accessibility view
+            // of the hierarchy rather than treating that diagnostic flag as TalkBack behavior.
+            val automation = instrumentation.uiAutomation
+            val service = automation.serviceInfo
+            val originalFlags = service.flags
+            try {
+                service.flags = originalFlags and android.accessibilityservice.AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS.inv()
+                automation.serviceInfo = service
+                assertFalse("preview descendants must be hidden from accessibility", device.hasObject(By.textStartsWith("Synthetic preview")))
+            } finally {
+                service.flags = originalFlags
+                automation.serviceInfo = service
+            }
             search.text = "Stress widget 001"
             assertTrue("nonpreview row missing after filtering", device.wait(Until.hasObject(By.clazz("android.widget.TextView").textStartsWith("Stress widget 001")), 10_000))
             assertEquals("stale preview remained on another row", 0, findPreviewPixels().first)
