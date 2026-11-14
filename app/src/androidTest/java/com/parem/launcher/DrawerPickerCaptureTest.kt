@@ -82,7 +82,8 @@ class DrawerPickerCaptureTest {
                         Until.hasObject(By.res(context.packageName, "appTitle").textStartsWith(apps.first().appLabel)), 15_000))
                     if (flag == Constants.FLAG_SET_HOME_APP_1) assertTrue("current assignment missing", device.wait(
                         Until.hasObject(By.res(context.packageName, "drawerPickerCurrent").textContains(apps.first().appLabel)), 15_000))
-                    val field = checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.EditText")), 15_000))
+                    val searchId = context.resources.getResourceName(androidx.appcompat.R.id.search_src_text)
+                    val field = checkNotNull(device.wait(Until.findObject(By.res(searchId)), 15_000))
                     if (wantIme && hardware) field.click()
                     val deadline = SystemClock.elapsedRealtime() + 15_000
                     var shown: Boolean? = null
@@ -94,7 +95,7 @@ class DrawerPickerCaptureTest {
                     }
                     assertTrue("IME state not verified: wanted=$wantIme actual=$shown", shown == wantIme)
                     if (wantIme) assertTrue("search has no focus", device.wait(
-                        Until.hasObject(By.clazz("android.widget.EditText").focused(true)), 5_000))
+                        Until.hasObject(By.res(searchId).focused(true)), 5_000))
                     val imePackage = device.executeShellCommand("settings get secure default_input_method").trim().substringBefore('/')
                     assertTrue("default IME unavailable", imePackage.isNotBlank() && imePackage != "null")
                     assertTrue("IME window state incorrect", if (wantIme) device.wait(Until.hasObject(By.pkg(imePackage)), 15_000)
@@ -123,17 +124,17 @@ class DrawerPickerCaptureTest {
         val out = "/data/local/tmp/parem-drawer-picker-captures"
         val issues = mutableListOf<Throwable>()
         fun verify(path: String, operation: String) {
-            val result = device.executeShellCommand("stat -c %s '$path'").trim()
+            val result = device.executeShellCommand("stat -c %s $path").trim()
             check((result.toLongOrNull() ?: 0) > 0) { "$operation did not produce a nonempty file: $result" }
         }
         runCatching {
-            val result = device.executeShellCommand("mkdir -p '$out'")
-            val listing = device.executeShellCommand("ls -ld '$out'")
+            val result = device.executeShellCommand("mkdir -p $out")
+            val listing = device.executeShellCommand("ls -ld $out")
             check(listing.contains("parem-drawer-picker-captures")) { "diagnostic directory: $result $listing" }
         }.onFailure(issues::add)
         runCatching {
             val target = "$out/$base.png"
-            val result = device.executeShellCommand("screencap -p '$target'")
+            val result = device.executeShellCommand("screencap -p $target")
             android.util.Log.i("DrawerPickerDiag", "screencap output: $result")
             verify(target, "screencap")
         }.onFailure(issues::add)
@@ -145,7 +146,7 @@ class DrawerPickerCaptureTest {
                 android.util.Log.i("DrawerPickerDiag", "hierarchy[$index]: $chunk")
             }
             val target = "$out/$base.xml"
-            val result = device.executeShellCommand("cp '${hierarchy.absolutePath}' '$target'")
+            val result = device.executeShellCommand("cp ${hierarchy.absolutePath} $target")
             android.util.Log.i("DrawerPickerDiag", "hierarchy copy output: $result")
             verify(target, "hierarchy copy")
         }.onFailure(issues::add)
