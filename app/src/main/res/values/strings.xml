@@ -138,8 +138,8 @@
     <string name="alignment_changed">Alignment changed ✅</string>
     <string name="home_screen">Home screen</string>
     <string name="notification_bar">Notification bar</string>
-    <string name="widget_setup_in_progress" translatable="false">Finish the current widget setup first.</string>
-    <string name="widget_unavailable" translatable="false">Widget unavailable. Tap for options.</string>
+    <string name="widget_setup_in_progress">Finish the current widget setup first.</string>
+    <string name="widget_unavailable">Widget unavailable. Tap for options.</string>
     <string name="remove_widget">Remove widget</string>
     <string name="no_widgets_available">No widgets available</string>
     <string name="add_widget">Add widget</string>
@@ -322,13 +322,13 @@
     <string name="grayscale_now">Now</string>
     <string name="grayscale_during_focus">During focus</string>
     <string name="grayscale_after_limit">After a limit (until you come back to Parem)</string>
-    <string name="grayscale_restore_pending" translatable="false">Now is off. Parem cannot restore the previous color settings without access.</string>
-    <string name="grayscale_restore_access" translatable="false">Restore grayscale access</string>
-    <string name="grayscale_android_settings" translatable="false">Open Android accessibility settings</string>
-    <string name="grayscale_settings_unavailable" translatable="false">Open Accessibility settings in Android to change color correction.</string>
-    <string name="limit_usage_access_missing" translatable="false">Parem cannot access usage data, so it cannot check this app’s daily limit.</string>
-    <string name="limit_usage_unavailable" translatable="false">Parem could not check this app’s daily limit.</string>
-    <string name="limit_settings_unavailable" translatable="false">Open Usage access in Android Settings.</string>
+    <string name="grayscale_restore_pending">Grayscale is switched off, but Parem cannot restore your previous color settings without access.</string>
+    <string name="grayscale_restore_access">Restore grayscale access</string>
+    <string name="grayscale_android_settings">Open Android accessibility settings</string>
+    <string name="grayscale_settings_unavailable">Open Accessibility settings in Android to change color correction.</string>
+    <string name="limit_usage_access_missing">Parem cannot access usage data, so it cannot check this app’s daily limit.</string>
+    <string name="limit_usage_unavailable">Parem could not check this app’s daily limit.</string>
+    <string name="limit_settings_unavailable">Open Usage access in Android Settings.</string>
     <string name="grayscale_toggles_hint">When Parem’s grayscale triggers end, it tries to restore your previous color correction. If the screen stays gray, check Android Settings › Accessibility › Color correction.</string>
     <string name="grayscale_grant_title">Allow grayscale</string>
     <string name="grayscale_grant_body">Android lets an app switch the screen to grayscale only after a one-time permission given through developer tools. Parem uses it for grayscale and nothing else.\n\nTo get color back at any time, without Parem: Android Settings › Accessibility › Color correction.</string>

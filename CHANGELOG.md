@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Avoid enumerating orphaned widget IDs on every ordinary return home.
+- Clarify grayscale restore guidance and correct an Estonian schedule hint.
 - Explain when lost access prevents a grayscale restore or an app-limit check.
 
 - Refresh screen time after the device clock moves backwards.
