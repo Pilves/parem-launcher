@@ -600,14 +600,14 @@ class AppDrawerFragment : BaseFragment() {
         adapter.iconPackPackage = prefs.iconPackPackage
         adapter.openCounts = AppOpenCounter.getCounts(requireContext())
         // Read when the filter publishes, so fast typing only makes it stricter
-        adapter.autoLaunchGuard = { query ->
+        adapter.autoLaunchGuard = { query, appLabel ->
             val text = searchTextView?.text?.toString().orEmpty()
             val keys = settingPrefixKeys ?: _binding?.root?.context?.let {
                 SettingsSearch.prefixKeys(SettingsSearchIndex.rows(it, includeHidden = true))
                     .also { keys -> settingPrefixKeys = keys }
             }.orEmpty()
             text == query && !isSearchComposing() && !QuickActionParser.isActionPrefix(text) &&
-                !SettingsSearch.isPrefix(text, keys) && OmniboxResolver.autoLaunchAllowed(text, prefs.autoLaunchSingleMatch, isScreenReaderOn())
+                !SettingsSearch.holdsAutoLaunch(text, appLabel, keys) && OmniboxResolver.autoLaunchAllowed(text, prefs.autoLaunchSingleMatch, isScreenReaderOn())
         }
         if (flag == Constants.FLAG_LAUNCH_APP) {
             // Re-read profile and system visibility on every rebuild, including search.

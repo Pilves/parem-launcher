@@ -97,8 +97,8 @@ object QuickActionParser {
     }
 
     /**
-     * True while the query could still be heading for an action: a keyword
-     * nonempty keyword prefix, or a keyword plus anything. The drawer holds
+     * True while the query could still be heading for an action: a nonempty
+     * keyword prefix, or a keyword plus anything. The drawer holds
      * auto-launch then, so "alarm 7:30" never opens an app called "Alarmy".
      */
     fun isActionPrefix(query: String): Boolean {

@@ -522,7 +522,7 @@ class SmokeTest {
         val search = device.wait(Until.findObject(By.res(
             context.resources.getResourceName(androidx.appcompat.R.id.search_src_text))), TIMEOUT)
         assertNotNull("drawer search missing", search)
-        for ((query, label) in listOf("e" to "Eventual Fixture", "ev" to "Eventual Fixture", "s" to "Sort Fixture", "so" to "Sort Fixture")) {
+        for ((query, label) in listOf("e" to "Eventual Fixture", "ev" to "Eventual Fixture", "s" to "Resource Fixture", "so" to "Resource Fixture")) {
             showFixture(label)
             search.text = query
             assertTrue("single matching fixture missing for $query", device.wait(Until.hasObject(By.text(label)), TIMEOUT))
@@ -536,6 +536,28 @@ class SmokeTest {
     }
 
     @Test
+    fun matchingAppPrefixesStillAutoLaunchForSettingsNames() {
+        Prefs(context).autoLaunchSingleMatch = true
+        val handle = android.os.Process.myUserHandle()
+        for ((query, label) in listOf("clo" to "Clock", "wea" to "Weather", "set" to "Settings")) {
+            device.pressHome()
+            assertTrue(device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+            openDrawer()
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                ViewModelProvider(activity)[MainViewModel::class.java].appList.value = listOf(
+                    AppModel(label, null, "com.android.settings", null, false, handle))
+            }
+            val search = checkNotNull(device.wait(Until.findObject(By.res(
+                context.resources.getResourceName(androidx.appcompat.R.id.search_src_text))), TIMEOUT))
+            search.text = query
+            assertTrue("$label did not auto-launch for $query", device.wait(
+                Until.hasObject(By.pkg("com.android.settings").depth(0)), TIMEOUT))
+        }
+    }
+
+    @Test
     fun changedQueryCancelsPostedAutoLaunch() {
         val clicks = AtomicInteger()
         val done = CountDownLatch(1)
@@ -545,7 +567,7 @@ class SmokeTest {
         instrumentation.runOnMainSync {
             adapter = AppDrawerAdapter(Constants.FLAG_LAUNCH_APP, android.view.Gravity.START,
                 appClickListener = { _, _ -> clicks.incrementAndGet() }, appLongPressListener = {})
-            adapter.autoLaunchGuard = { query -> query == currentQuery }
+            adapter.autoLaunchGuard = { query, _ -> query == currentQuery }
             adapter.onFilterCommitted = { query ->
                 if (query == "zzz") {
                     android.os.Handler(android.os.Looper.getMainLooper()).post {

@@ -29,6 +29,23 @@ class SettingsSearchTest {
         assertNull(match("so")) // The guard does not make short suggestions visible.
     }
 
+    @Test
+    fun settingsPrefixYieldsOnlyToTheMatchingAppLabelOrWordPrefix() {
+        val keys = SettingsSearch.prefixKeys(listOf(
+            Row("Clock and date", 1), Row("Weather", 2), Row("Export settings", 3),
+            Row("Sort apps by usage", 4), Row("Café mode", 5),
+        ))
+        listOf("clo" to "Clock", "wea" to "Weather", "set" to "Settings",
+            "clo" to "Desk Clock", "cafe" to "Café Tools").forEach { (q, label) ->
+            assertEquals("$q should yield to $label", false, SettingsSearch.holdsAutoLaunch(q, label, keys))
+        }
+        listOf("so" to "Resource", "sort" to "Resort", "set" to "Asset",
+            "cafe" to "Decafeteria").forEach { (q, label) ->
+            assertEquals("$q should hold $label", true, SettingsSearch.holdsAutoLaunch(q, label, keys))
+        }
+        assertEquals(false, SettingsSearch.holdsAutoLaunch("zzz", "Zzz", keys))
+    }
+
     private fun match(q: String) = SettingsSearch.match(q, rows)?.anchor
 
     @Test

@@ -381,7 +381,7 @@ per package; the rest of each of those fragments is still in
 - **M6-WP46 (PR #48):** Pull requests run both flavor JVM suites, Node harness tests and the Play APK pairing check.
 - **M6-WP47 (PR #52):** Home-slot rename, folder names and new website labels accept at most 40 UTF-16 code units; home labels use at most two ellipsized lines.
 - **M6-WP48 (PR #53):** Swipe choices show the current app, home setup taps are debounced and picker search follows sheet insets.
-- **M6-WP50 (PR #55):** Single-app auto-launch waits while a query is a quick-action or settings-name prefix.
+- **M6-WP50 (PR #55):** Single-app auto-launch protects quick-action prefixes and settings prefixes unless the matched app label or a label word starts with the query.
 - **M6-WP51 (PR #56):** Grayscale toggles and Quiet sheets close when their owning fragment view is destroyed.
 - **M6-WP52 (PR #57):** Screen-time freshness checks treat future timestamps as stale after a clock rollback.
 - **M6-WP53 (PR #59):** Unavailable widgets retain their ID, order and height as removable, replaceable placeholders until they recover or the user removes them.

@@ -54,6 +54,14 @@ object SettingsSearch {
         }
     }
 
+    /** Settings prefixes yield to a matching app's own label or word prefix. */
+    fun holdsAutoLaunch(query: String, appLabel: String, keys: List<SearchMatcher.LabelKey>): Boolean {
+        if (!isPrefix(query, keys)) return false
+        val normalized = SearchMatcher.key(query).normalized
+        val label = SearchMatcher.key(appLabel)
+        return !(label.normalized.startsWith(normalized) || label.words.any { it.startsWith(normalized) })
+    }
+
     private fun wordsInOrder(tokens: List<String>, words: List<String>): Boolean {
         var i = 0
         for (token in tokens) {
