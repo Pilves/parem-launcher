@@ -305,7 +305,7 @@ subject to the audit notes and the product-owner brief.
 | M6-WP53 | **Done** (PR #59). **Todo**. Preserve unavailable widgets without empty bind dialogs | Widget host reconciliation, placeholder, swap safety, tests, changelog and handoff | Unknown provider state preserves saved ID and exposes explicit removal; swaps retain their original target |
 | M6-WP54 | **Done** (PR #58). **Todo**. Reject invisible-only home labels | Home label logic, slot/folder/website dialogs, tests and handoff | Preserve visible Unicode sequences and old stored labels; prevent new invisible-only home rows |
 
-| M6-WP42 | **Done** (PR #0). **Todo**. Settle instrumentation tasks before orchestrator clears package data | Android test listener, runner arguments and handoff | Listener waits for target and test-package task teardown; precursor counts compared across CI emulator legs |
+| M6-WP42 | **Done** (PR #47). **Todo**. Settle instrumentation tasks before orchestrator clears package data | Android test listener, runner arguments and handoff | Listener waits for target and test-package task teardown; precursor counts compared across CI emulator legs |
 
 ## Recurring (no id)
 

@@ -12,6 +12,9 @@ import org.junit.runner.notification.RunListener
 /** Keep orchestrator's next package clear from racing a task still exiting. */
 class TaskSettleListener : RunListener() {
     override fun testFinished(description: Description) {
+        // Orchestrator first enumerates tests without executing them. Its synthetic
+        // finish events must not remove tasks or add a five-second wait per test.
+        if (InstrumentationRegistry.getArguments().getString("listTestsForOrchestrator") == "true") return
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val target = instrumentation.targetContext
         val packages = listOf(target.packageName, instrumentation.context.packageName)
@@ -25,7 +28,7 @@ class TaskSettleListener : RunListener() {
         }
 
         val packagePattern = packages.joinToString("|") { Regex.escape(it) }
-        val taskPattern = Regex("(?:I=|A=\\d+:)(?:$packagePattern)(?=/|\\s|})")
+        val taskPattern = Regex("(?:I=|A=\\d+:)(?:$packagePattern)(?=/|\\s|\\})")
         val deadline = SystemClock.elapsedRealtime() + 5_000
         do {
             val dump = try {

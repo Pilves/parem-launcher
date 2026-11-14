@@ -374,6 +374,7 @@ per package; the rest of each of those fragments is still in
 - **M6-WP39 (PR #44):** Settings initially hides both default-home rows until their role state is observed.
 - **M6-WP40 (PR #45):** Unused settings views, first-open observer, debug log and drawer animation resources are removed; motion notes distinguish the old audit from current navigation.
 - **M6-WP41 (PR #46):** Home skips repeated first-run tip updates when their text, visibility and the default-home prompt are unchanged.
+- **M6-WP42 (PR #47):** Android instrumentation uses a listener to finish app tasks and wait for standard task teardown before orchestrator clears package data.
 - **M6-WP43 (PR #50):** Settings import bounds file size and JSON nesting and rejects out-of-range registered settings before applying any changes.
 - **M6-WP44 (PR #51):** Default date, clock and Digital Wellbeing launches use the same Focus and app-limit decisions as other app routes.
 - **M6-WP45 (PR #49):** Picker rows retain their checkbox accessibility semantics through filtering and RecyclerView rebinding.
