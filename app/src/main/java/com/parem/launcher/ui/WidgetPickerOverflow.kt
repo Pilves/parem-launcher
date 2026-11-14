@@ -42,6 +42,7 @@ internal class WidgetPickerOverflow(
         val hadFocus = search.hasFocus()
         android.util.Log.i("WidgetOverflowDiag", "update should=$shouldScrollChrome hadFocus=$hadFocus container=${container.height} first=${list.firstVisiblePosition}")
         if (shouldScrollChrome) {
+            list.itemsCanFocus = true
             container.removeView(title)
             container.removeView(search)
             header.addView(title, LinearLayout.LayoutParams(titleParams))
