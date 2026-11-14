@@ -9,7 +9,7 @@ if adb shell pm path "$fixture" | grep -q '^package:'; then
   exit 1
 fi
 mkdir -p app/build/widget-picker-profile
-trap 'adb logcat -d -v threadtime > app/build/widget-picker-profile/logcat.txt || true; for image in open filtered scrolled; do adb pull "/data/local/tmp/parem-widget-picker-$image.png" "app/build/widget-picker-profile/$image.png" >/dev/null 2>&1 || true; done; adb uninstall "$fixture" >/dev/null 2>&1 || true' EXIT
+trap 'adb logcat -d -v threadtime > app/build/widget-picker-profile/logcat.txt || true; for image in cold-open cold-filtered cold-scrolled warm-open warm-filtered warm-scrolled; do adb pull "/data/local/tmp/parem-widget-picker-$image.png" "app/build/widget-picker-profile/$image.png" >/dev/null 2>&1 || true; done; adb uninstall "$fixture" >/dev/null 2>&1 || true' EXIT
 adb shell settings put global hide_error_dialogs 1
 adb logcat -c
 adb install app/build/widget-picker-profile-fixture/widget-stress.apk
