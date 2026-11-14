@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+if [[ ${PAREM_INCIDENT_MONITORED:-} != 1 ]]; then exec bash scripts/ci-emulator-run.sh com.parem.launcher.debug bash "$0" "$@"; fi
 # Run only on a disposable emulator: the test changes HOME and binds a widget.
 set -Eeuo pipefail
 trap 'adb shell uiautomator dump /sdcard/upgrade-window.xml >/dev/null 2>&1 && adb shell cat /sdcard/upgrade-window.xml || true' ERR

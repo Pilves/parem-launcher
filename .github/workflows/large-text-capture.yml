@@ -38,4 +38,5 @@ jobs:
             large-text-capture/
             large-text-instrumentation.txt
             large-text-logcat.txt
+            app/build/ci-incidents/
           if-no-files-found: warn

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+if [[ ${PAREM_INCIDENT_MONITORED:-} != 1 ]]; then exec bash scripts/ci-emulator-run.sh com.parem.launcher bash "$0" "$@"; fi
 set -uo pipefail
 flavour=$1
 out=app/build/reports/minified-release

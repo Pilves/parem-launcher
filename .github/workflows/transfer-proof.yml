@@ -32,3 +32,9 @@ jobs:
           script: |
             ./gradlew installPlayDebug installPlayDebugAndroidTest
             bash scripts/ci-transfer-proof.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: transfer-ci-incidents
+          path: app/build/ci-incidents/
+          if-no-files-found: warn

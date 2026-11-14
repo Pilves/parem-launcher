@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+if [[ ${PAREM_INCIDENT_MONITORED:-} != 1 ]]; then exec bash scripts/ci-emulator-run.sh com.parem.launcher.debug bash "$0" "$@"; fi
 # Synthetic companion installs/uninstalls are permitted only on a disposable CI emulator.
 set -euo pipefail
 [[ ${GITHUB_ACTIONS:-} == true ]] || { echo 'CI only' >&2; exit 1; }

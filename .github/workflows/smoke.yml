@@ -90,6 +90,7 @@ jobs:
           path: |
             app/build/reports/androidTests/
             app/build/smoke-diagnostics/
+            app/build/ci-incidents/
           if-no-files-found: ignore
           retention-days: 14
 
@@ -135,5 +136,7 @@ jobs:
         if: always()
         with:
           name: pause-film-play-unreviewed
-          path: capture/
+          path: |
+            capture/
+            app/build/ci-incidents/
           if-no-files-found: error
