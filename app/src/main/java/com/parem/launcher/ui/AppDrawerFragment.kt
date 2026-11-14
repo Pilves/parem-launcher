@@ -995,10 +995,9 @@ class AppDrawerFragment : BaseFragment() {
             // Further typing must land in the field even with keyboard auto-show off
             if (typedQuery.isNotEmpty()) binding.search.requestFocus()
         } else {
-            val accessibility = requireContext().getSystemService(android.view.accessibility.AccessibilityManager::class.java)
             val config = resources.configuration
             val mode = PickerKeyboardPolicy.decide(
-                touchExploration = accessibility?.isTouchExplorationEnabled == true,
+                touchExploration = isScreenReaderOn(),
                 autoShow = prefs.autoShowKeyboard,
                 hardwareKeyboard = config.keyboard != android.content.res.Configuration.KEYBOARD_NOKEYS &&
                     config.hardKeyboardHidden != android.content.res.Configuration.HARDKEYBOARDHIDDEN_YES,
