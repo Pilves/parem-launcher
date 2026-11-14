@@ -121,10 +121,23 @@ class DrawerPickerCaptureTest {
         val base = "failure-$route-font$font-ime$ime"
         val hierarchy = File(directory, "$base.xml")
         val screenshot = File(directory, "$base.png")
-        device.dumpWindowHierarchy(hierarchy)
-        check(device.takeScreenshot(screenshot)) { "failure screenshot failed" }
-        val command = "mkdir -p /data/local/tmp/parem-drawer-picker-captures && " +
-            "cp ${hierarchy.absolutePath} ${screenshot.absolutePath} /data/local/tmp/parem-drawer-picker-captures/ && echo copied"
-        check(device.executeShellCommand(command).trim().endsWith("copied")) { "failure evidence copy failed" }
+        val issues = mutableListOf<Throwable>()
+        fun copy(file: File) {
+            val command = "mkdir -p /data/local/tmp/parem-drawer-picker-captures && " +
+                "cp ${file.absolutePath} /data/local/tmp/parem-drawer-picker-captures/ && echo copied"
+            check(device.executeShellCommand(command).trim().endsWith("copied")) { "failure evidence copy failed: ${file.name}" }
+        }
+        runCatching {
+            check(device.takeScreenshot(screenshot)) { "failure screenshot failed" }
+            copy(screenshot)
+        }.onFailure(issues::add)
+        runCatching {
+            device.dumpWindowHierarchy(hierarchy)
+            check(hierarchy.isFile) { "failure hierarchy missing" }
+            copy(hierarchy)
+        }.onFailure(issues::add)
+        if (issues.isNotEmpty()) throw IllegalStateException("failure diagnostics incomplete").also { error ->
+            issues.forEach(error::addSuppressed)
+        }
     }
 }
