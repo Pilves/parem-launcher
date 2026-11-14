@@ -387,6 +387,7 @@ per package; the rest of each of those fragments is still in
 - **M6-WP52 (PR #57):** Screen-time freshness checks treat future timestamps as stale after a clock rollback.
 - **M6-WP53 (PR #59):** Unavailable widgets retain their ID, order and height as removable, replaceable placeholders until they recover or the user removes them.
 - **M6-WP54 (PR #58):** New home and folder names reject known invisible-only input; blank website labels use the visible host fallback.
+- **M6-WP55 (PR #60):** Grayscale recovery and app-limit checks explain missing access or unavailable usage without silently treating it as zero.
 - **M6-WP56 (PR #61):** Cancelling widget configuration releases the new unsaved ID and leaves any existing widget in place.
 
 <!-- handoff:end -->

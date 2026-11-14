@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Explain when lost access prevents a grayscale restore or an app-limit check.
+
 - Refresh screen time after the device clock moves backwards.
 - Close grayscale and quiet notification sheets when their screen is dismissed.
 - Cancel widget configuration without adding or replacing a widget.

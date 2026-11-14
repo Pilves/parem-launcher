@@ -9,6 +9,7 @@ import android.os.SystemClock
 import android.provider.AlarmClock
 import android.provider.CalendarContract
 import android.provider.MediaStore
+import android.util.Log
 import android.view.View
 import androidx.lifecycle.lifecycleScope
 import androidx.test.core.app.ActivityScenario
@@ -17,6 +18,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.StaleObjectException
 import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
@@ -28,6 +30,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.regex.Pattern
+import java.io.ByteArrayOutputStream
 
 @RunWith(AndroidJUnit4::class)
 class FocusLaunchRoutingTest {
@@ -154,6 +157,22 @@ class FocusLaunchRoutingTest {
             ActivityScenario.launch(MainActivity::class.java).use { scenario ->
                 device.waitForIdle()
                 val y = device.displayHeight * 3 / 4
+                fun traceChooser(stage: String, choice: UiObject2) {
+                    try {
+                        var node: UiObject2? = choice
+                        var depth = 0
+                        while (node != null && depth < 8) {
+                            Log.i("CameraResolverTrace", "$stage ancestor=$depth class=${node.className} bounds=${node.visibleBounds} clickable=${node.isClickable} selected=${node.isSelected} checked=${node.isChecked}")
+                            node = node.parent
+                            depth++
+                        }
+                    } catch (e: Exception) { Log.i("CameraResolverTrace", "$stage ancestry unavailable", e) }
+                    try {
+                        val hierarchy = ByteArrayOutputStream()
+                        device.dumpWindowHierarchy(hierarchy)
+                        hierarchy.toString(Charsets.UTF_8.name()).chunked(3000).forEach { Log.i("CameraResolverTrace", "$stage hierarchy: $it") }
+                    } catch (e: Exception) { Log.i("CameraResolverTrace", "$stage hierarchy unavailable", e) }
+                }
                 fun openCamera() {
                     val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
                     val resolved = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
@@ -166,7 +185,20 @@ class FocusLaunchRoutingTest {
                         for (handler in handlers) {
                             val label = handler.loadLabel(context.packageManager).toString()
                             val choice = device.wait(Until.findObject(By.text(label)), 2_000) ?: continue
-                            choice.click()
+                            Log.i("CameraResolverTrace", "intended label=$label package=${handler.activityInfo.packageName}")
+                            traceChooser("before", choice)
+                            val lookupDeadline = SystemClock.uptimeMillis() + 5_000
+                            var clickable: UiObject2? = null
+                            while (clickable == null && SystemClock.uptimeMillis() < lookupDeadline) {
+                                try {
+                                    var node = device.findObject(By.text(label))
+                                    while (node != null && !node.isClickable) node = node.parent
+                                    clickable = node
+                                } catch (_: StaleObjectException) { }
+                                if (clickable == null) SystemClock.sleep(100)
+                            }
+                            checkNotNull(clickable) { "camera chooser row is not clickable" }.click()
+                            traceChooser("after", choice)
                             selected = handler.activityInfo.packageName
                             break
                         }
