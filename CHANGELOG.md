@@ -4,6 +4,8 @@
 
 ## v6.1.0 — 2026-11-14
 
+- Shorter first-run and guide text.
+
 - Make widgets easier to find with app grouping, search and size labels.
 
 - Clarify app assignment and hidden-app management pickers, including gated Open for hidden apps.

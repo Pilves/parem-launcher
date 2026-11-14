@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--On-phone grayscale pairing: absent from the play build-->
-    <string name="grayscale_grant_wifi">On this phone, over Wi-Fi:\n1. Turn on Developer options: Android Settings › About phone > tap Build number 7 times.\n2. In Developer options, turn on Wireless debugging and tap Pair device with pairing code.\n3. Pull down Parem\'s notification and type the 6-digit code into it.</string>
+    <string name="grayscale_grant_wifi">On this phone, over Wi-Fi:\n1. Turn on Developer options: Android Settings › About phone › tap Build number 7 times.\n2. In Developer options, turn on Wireless debugging and tap Pair device with pairing code.\n3. Pull down Parem\'s notification and type the 6-digit code into it.</string>
     <string name="grayscale_pair_start">Start pairing</string>
     <string name="grayscale_pair_needs_notif">Allow notifications so you can type the pairing code</string>
     <string name="grayscale_pair_notif_title">Grayscale: pairing code</string>
@@ -15,7 +15,7 @@
     <string name="grayscale_pair_err_connect">Paired, but Wireless debugging is not reachable. Check it is still on and try again.</string>
     <string name="grayscale_pair_err_refused">The phone refused the permission. Some phones need an extra switch in Developer options (for example USB debugging (Security settings)). Turn it on and try again.</string>
     <string name="grayscale_pair_err_generic">Pairing failed. Try again with a new code.</string>
-    <string name="lock_consent_restricted">If the switch is greyed out: App info > menu > Allow restricted settings.</string>
+    <string name="lock_consent_restricted">If the switch is greyed out: App info › menu › Allow restricted settings.</string>
     <!--main carries the wording for builds whose only grant route is a computer-->
     <string name="grayscale_grant_computer">Or with a computer: turn on USB debugging, plug the phone in, and open this page in Chrome or Edge:</string>
     <string name="onboarding_row_grayscale_caption">One-time setup, about 2 min</string>
