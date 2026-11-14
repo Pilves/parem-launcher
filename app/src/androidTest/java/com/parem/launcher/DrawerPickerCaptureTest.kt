@@ -64,46 +64,67 @@ class DrawerPickerCaptureTest {
                 }
             }
             ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-                var hardware = false
-                scenario.onActivity { activity ->
-                    val config = activity.resources.configuration
-                    assertTrue("font scale not applied", kotlin.math.abs(config.fontScale - font.toFloat()) < 0.05f)
-                    hardware = config.keyboard != android.content.res.Configuration.KEYBOARD_NOKEYS &&
-                        config.hardKeyboardHidden != android.content.res.Configuration.HARDKEYBOARDHIDDEN_YES
-                    activity.findNavController(R.id.nav_host_fragment).navigate(
-                        R.id.appListFragment, bundleOf(Constants.Key.FLAG to flag)
-                    )
+                try {
+                    var hardware = false
+                    scenario.onActivity { activity ->
+                        val config = activity.resources.configuration
+                        assertTrue("font scale not applied", kotlin.math.abs(config.fontScale - font.toFloat()) < 0.05f)
+                        hardware = config.keyboard != android.content.res.Configuration.KEYBOARD_NOKEYS &&
+                            config.hardKeyboardHidden != android.content.res.Configuration.HARDKEYBOARDHIDDEN_YES
+                        activity.findNavController(R.id.nav_host_fragment).navigate(
+                            R.id.appListFragment, bundleOf(Constants.Key.FLAG to flag)
+                        )
+                    }
+                    val title = context.getString(if (flag == Constants.FLAG_HIDDEN_APPS) R.string.hidden_apps else R.string.select_app)
+                    assertTrue("route-specific picker title missing", device.wait(
+                        Until.hasObject(By.res(context.packageName, "drawerPickerTitle").text(title)), 15_000))
+                    assertTrue("expected real app row missing from $name", device.wait(
+                        Until.hasObject(By.res(context.packageName, "appTitle").textStartsWith(apps.first().appLabel)), 15_000))
+                    if (flag == Constants.FLAG_SET_HOME_APP_1) assertTrue("current assignment missing", device.wait(
+                        Until.hasObject(By.res(context.packageName, "drawerPickerCurrent").textContains(apps.first().appLabel)), 15_000))
+                    val field = checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.EditText")), 15_000))
+                    if (wantIme && hardware) field.click()
+                    val deadline = SystemClock.elapsedRealtime() + 15_000
+                    var shown: Boolean? = null
+                    while (SystemClock.elapsedRealtime() < deadline) {
+                        shown = Regex("mInputShown=(true|false)").find(device.executeShellCommand("dumpsys input_method"))
+                            ?.groupValues?.get(1)?.toBooleanStrictOrNull()
+                        if (shown == wantIme) break
+                        SystemClock.sleep(100)
+                    }
+                    assertTrue("IME state not verified: wanted=$wantIme actual=$shown", shown == wantIme)
+                    if (wantIme) assertTrue("search has no focus", device.wait(
+                        Until.hasObject(By.clazz("android.widget.EditText").focused(true)), 5_000))
+                    val imePackage = device.executeShellCommand("settings get secure default_input_method").trim().substringBefore('/')
+                    assertTrue("default IME unavailable", imePackage.isNotBlank() && imePackage != "null")
+                    assertTrue("IME window state incorrect", if (wantIme) device.wait(Until.hasObject(By.pkg(imePackage)), 15_000)
+                        else device.wait(Until.gone(By.pkg(imePackage)), 15_000))
+                    device.waitForIdle()
+                    val file = File(requireNotNull(context.getExternalFilesDir(null)), "ux-pick2-$name-font$font-ime$ime.png")
+                    assertTrue("screenshot failed", device.takeScreenshot(file))
+                    device.executeShellCommand("mkdir -p /data/local/tmp/parem-drawer-picker-captures")
+                    device.executeShellCommand("cp ${file.absolutePath} /data/local/tmp/parem-drawer-picker-captures/${file.name}")
+                } catch (failure: Throwable) {
+                    try {
+                        saveFailureEvidence(name, font, ime)
+                    } catch (diagnostic: Throwable) {
+                        failure.addSuppressed(diagnostic)
+                    }
+                    throw failure
                 }
-                val title = context.getString(if (flag == Constants.FLAG_HIDDEN_APPS) R.string.hidden_apps else R.string.select_app)
-                assertTrue("route-specific picker title missing", device.wait(
-                    Until.hasObject(By.res(context.packageName, "drawerPickerTitle").text(title)), 15_000))
-                assertTrue("expected real app row missing from $name", device.wait(
-                    Until.hasObject(By.res(context.packageName, "appTitle").textStartsWith(apps.first().appLabel)), 15_000))
-                if (flag == Constants.FLAG_SET_HOME_APP_1) assertTrue("current assignment missing", device.wait(
-                    Until.hasObject(By.res(context.packageName, "drawerPickerCurrent").textContains(apps.first().appLabel)), 15_000))
-                val field = checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.EditText")), 15_000))
-                if (wantIme && hardware) field.click()
-                val deadline = SystemClock.elapsedRealtime() + 15_000
-                var shown: Boolean? = null
-                while (SystemClock.elapsedRealtime() < deadline) {
-                    shown = Regex("mInputShown=(true|false)").find(device.executeShellCommand("dumpsys input_method"))
-                        ?.groupValues?.get(1)?.toBooleanStrictOrNull()
-                    if (shown == wantIme) break
-                    SystemClock.sleep(100)
-                }
-                assertTrue("IME state not verified: wanted=$wantIme actual=$shown", shown == wantIme)
-                if (wantIme) assertTrue("search has no focus", device.wait(
-                    Until.hasObject(By.clazz("android.widget.EditText").focused(true)), 5_000))
-                val imePackage = device.executeShellCommand("settings get secure default_input_method").trim().substringBefore('/')
-                assertTrue("default IME unavailable", imePackage.isNotBlank() && imePackage != "null")
-                assertTrue("IME window state incorrect", if (wantIme) device.wait(Until.hasObject(By.pkg(imePackage)), 15_000)
-                    else device.wait(Until.gone(By.pkg(imePackage)), 15_000))
-                device.waitForIdle()
-                val file = File(requireNotNull(context.getExternalFilesDir(null)), "ux-pick2-$name-font$font-ime$ime.png")
-                assertTrue("screenshot failed", device.takeScreenshot(file))
-                device.executeShellCommand("mkdir -p /data/local/tmp/parem-drawer-picker-captures")
-                device.executeShellCommand("cp ${file.absolutePath} /data/local/tmp/parem-drawer-picker-captures/${file.name}")
             }
         }
+    }
+
+    private fun saveFailureEvidence(route: String, font: String, ime: String) {
+        val directory = requireNotNull(context.getExternalFilesDir(null))
+        val base = "failure-$route-font$font-ime$ime"
+        val hierarchy = File(directory, "$base.xml")
+        val screenshot = File(directory, "$base.png")
+        device.dumpWindowHierarchy(hierarchy)
+        check(device.takeScreenshot(screenshot)) { "failure screenshot failed" }
+        val command = "mkdir -p /data/local/tmp/parem-drawer-picker-captures && " +
+            "cp ${hierarchy.absolutePath} ${screenshot.absolutePath} /data/local/tmp/parem-drawer-picker-captures/ && echo copied"
+        check(device.executeShellCommand(command).trim().endsWith("copied")) { "failure evidence copy failed" }
     }
 }
