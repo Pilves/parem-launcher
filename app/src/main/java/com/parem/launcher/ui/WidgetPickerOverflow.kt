@@ -21,6 +21,15 @@ internal class WidgetPickerOverflow(
     private var inHeader = false
 
     init {
+        list.setOnScrollListener(object : android.widget.AbsListView.OnScrollListener {
+            override fun onScrollStateChanged(view: android.widget.AbsListView?, state: Int) {}
+            override fun onScroll(view: android.widget.AbsListView?, first: Int, visible: Int, total: Int) {
+                android.util.Log.i("WidgetOverflowDiag", "scroll first=$first selected=${list.selectedItemPosition} searchAttached=${search.isAttachedToWindow} searchFocus=${search.hasFocus()}")
+            }
+        })
+        container.viewTreeObserver.addOnGlobalFocusChangeListener { old, new ->
+            android.util.Log.i("WidgetOverflowDiag", "focus old=${old?.javaClass?.simpleName} new=${new?.javaClass?.simpleName} selected=${list.selectedItemPosition}")
+        }
         container.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             container.post { if (container.isAttachedToWindow) update() }
         }
@@ -42,7 +51,6 @@ internal class WidgetPickerOverflow(
         val hadFocus = search.hasFocus()
         android.util.Log.i("WidgetOverflowDiag", "update should=$shouldScrollChrome hadFocus=$hadFocus container=${container.height} first=${list.firstVisiblePosition}")
         if (shouldScrollChrome) {
-            list.itemsCanFocus = true
             container.removeView(title)
             container.removeView(search)
             header.addView(title, LinearLayout.LayoutParams(titleParams))
