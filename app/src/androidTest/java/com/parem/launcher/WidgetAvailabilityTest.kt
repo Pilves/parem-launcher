@@ -47,6 +47,73 @@ class WidgetAvailabilityTest {
     }
 
     @Test
+    fun orphanSweepRunsOnFirstAndForcedReconcileButNotPlainResumeScan() {
+        prepare()
+        val prefs = Prefs(context)
+        try {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                var saved = -1
+                var pending = -1
+                var firstOrphan = -1
+                scenario.onActivity { activity ->
+                    saved = activity.appWidgetHost.allocateAppWidgetId()
+                    pending = activity.appWidgetHost.allocateAppWidgetId()
+                    firstOrphan = activity.appWidgetHost.allocateAppWidgetId()
+                    prefs.setWidgetIdList(listOf(saved))
+                    activity.pendingWidgetOp = Bundle().apply {
+                        putInt("stage", 2); putInt("widgetId", pending); putInt("replaceId", saved)
+                    }
+                }
+                scenario.recreate()
+                var firstIds = emptySet<Int>()
+                val firstDeadline = SystemClock.elapsedRealtime() + 10_000
+                do {
+                    scenario.onActivity { firstIds = it.appWidgetHost.appWidgetIds.toSet() }
+                    if (firstOrphan in firstIds) SystemClock.sleep(50)
+                } while (firstOrphan in firstIds && SystemClock.elapsedRealtime() < firstDeadline)
+                assertFalse("first reconcile did not remove orphan", firstOrphan in firstIds)
+                assertTrue("first reconcile removed a saved or pending ID", saved in firstIds && pending in firstIds)
+
+                var laterOrphan = -1
+                var anotherSaved = -1
+                scenario.onActivity { activity ->
+                    laterOrphan = activity.appWidgetHost.allocateAppWidgetId()
+                    anotherSaved = activity.appWidgetHost.allocateAppWidgetId()
+                    prefs.setWidgetIdList(listOf(saved, anotherSaved))
+                    home(activity).widgetController!!.requestReconcile()
+                }
+                // A newly rendered second placeholder proves the normal scan completed.
+                var rendered = false
+                val renderDeadline = SystemClock.elapsedRealtime() + 10_000
+                do {
+                    scenario.onActivity { activity ->
+                        rendered = activity.findViewById<ViewGroup>(R.id.widgetContainerAbove)
+                            ?.findViewWithTag<View>(anotherSaved) != null ||
+                            activity.findViewById<ViewGroup>(R.id.widgetContainerBelow)
+                                ?.findViewWithTag<View>(anotherSaved) != null
+                    }
+                    if (!rendered) SystemClock.sleep(50)
+                } while (!rendered && SystemClock.elapsedRealtime() < renderDeadline)
+                assertTrue("normal reconcile did not render the new saved ID", rendered)
+                scenario.onActivity { activity ->
+                    assertTrue("normal reconcile swept an orphan", laterOrphan in activity.appWidgetHost.appWidgetIds)
+                    home(activity).widgetController!!.requestReconcile(force = true)
+                }
+                var finalIds = emptySet<Int>()
+                val forceDeadline = SystemClock.elapsedRealtime() + 10_000
+                do {
+                    scenario.onActivity { finalIds = it.appWidgetHost.appWidgetIds.toSet() }
+                    if (laterOrphan in finalIds) SystemClock.sleep(50)
+                } while (laterOrphan in finalIds && SystemClock.elapsedRealtime() < forceDeadline)
+                assertFalse("forced reconcile did not remove orphan", laterOrphan in finalIds)
+                assertTrue("forced reconcile removed a saved or pending ID", saved in finalIds && anotherSaved in finalIds && pending in finalIds)
+            }
+        } finally {
+            device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
+        }
+    }
+
+    @Test
     fun unavailableIdCanRecoverAndBeRemovedExplicitly() {
         prepare()
         val prefs = Prefs(context)
