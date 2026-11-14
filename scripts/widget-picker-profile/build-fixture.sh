@@ -43,17 +43,34 @@ public final class Publisher extends Activity {
         super.onCreate(state);
         int layout = getResources().getIdentifier("widget", "layout", getPackageName());
         AppWidgetManager manager = AppWidgetManager.getInstance(this);
-        int ok = 0;
-        if (android.os.Build.VERSION.SDK_INT >= 35) {
-            for (int i = 0; i < 120; i++) {
-                String suffix = String.format(java.util.Locale.ROOT, "%03d", i);
-                RemoteViews views = new RemoteViews(getPackageName(), layout);
-                views.setTextViewText(android.R.id.text1, "Synthetic preview " + suffix);
-                if (manager.setWidgetPreview(new ComponentName(getPackageName(), getPackageName() + ".Provider" + suffix), AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN, views)) ok++;
+        TextView result = new TextView(this); result.setText("Waiting for synthetic providers"); setContentView(result);
+        new Thread(() -> {
+            int ok = 0;
+            if (android.os.Build.VERSION.SDK_INT >= 35) {
+                for (int i = 0; i < 120; i++) {
+                    String suffix = String.format(java.util.Locale.ROOT, "%03d", i);
+                    RemoteViews views = new RemoteViews(getPackageName(), layout);
+                    views.setTextViewText(android.R.id.text1, "Synthetic preview " + suffix);
+                    boolean published = false;
+                    long deadline = android.os.SystemClock.elapsedRealtime() + 30000;
+                    while (!published && android.os.SystemClock.elapsedRealtime() < deadline) {
+                        try {
+                            published = manager.setWidgetPreview(new ComponentName(getPackageName(), getPackageName() + ".Provider" + suffix), AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN, views);
+                        } catch (IllegalArgumentException notRegisteredYet) {
+                            try { Thread.sleep(250); } catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); return; }
+                        }
+                        if (!published) {
+                            try { Thread.sleep(250); } catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); return; }
+                        }
+                    }
+                    if (!published) break;
+                    ok++;
+                }
             }
-        }
-        Log.i("ParemWidgetStress", "generated_previews=" + ok);
-        TextView result = new TextView(this); result.setText("Published " + ok + " generated previews"); setContentView(result);
+            final int publishedCount = ok;
+            Log.i("ParemWidgetStress", "generated_previews=" + publishedCount);
+            runOnUiThread(() -> result.setText("Published " + publishedCount + " generated previews"));
+        }).start();
     }
 }
 JAVA
