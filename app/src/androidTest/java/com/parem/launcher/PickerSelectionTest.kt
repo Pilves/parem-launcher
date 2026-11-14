@@ -5,6 +5,8 @@ import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -19,6 +21,7 @@ import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.FocusModeManager
 import com.parem.launcher.ui.CreateFolderDialog
 import com.parem.launcher.ui.FocusModeDialog
+import com.parem.launcher.ui.AppPickerAdapter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -53,6 +56,60 @@ class PickerSelectionTest {
         device.pressBack()
         assertTrue("child picker did not close", device.wait(Until.gone(By.desc("Beta")), 10_000))
     }
+
+    private fun checkTwoTaps(delayed: Boolean, expected: Set<String>) {
+        prepare()
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            lateinit var list: RecyclerView
+            lateinit var adapter: AppPickerAdapter
+            scenario.onActivity { activity ->
+                adapter = AppPickerAdapter(
+                    textColor = android.graphics.Color.BLACK,
+                    maxSelected = 5,
+                    entries = listOf(AppPickerAdapter.Entry("a", "Alpha"), AppPickerAdapter.Entry("b", "Beta")),
+                    initiallySelected = listOf("a", "b"),
+                )
+                list = RecyclerView(activity).apply {
+                    layoutManager = LinearLayoutManager(activity)
+                    this.adapter = adapter
+                }
+                activity.findViewById<ViewGroup>(android.R.id.content).addView(
+                    list, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 800),
+                )
+            }
+            device.waitForIdle()
+            fun forceLayout() {
+                list.measure(
+                    View.MeasureSpec.makeMeasureSpec(list.width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(list.height, View.MeasureSpec.EXACTLY),
+                )
+                list.layout(list.left, list.top, list.right, list.bottom)
+            }
+            scenario.onActivity {
+                val started = SystemClock.uptimeMillis()
+                assertTrue(requireNotNull(list.findViewHolderForAdapterPosition(1)).itemView.performClick())
+                forceLayout()
+                val shifted = requireNotNull(list.findViewHolderForAdapterPosition(1)).itemView
+                assertEquals("the next selected row must occupy the tapped position", "Beta", shifted.contentDescription)
+                if (!delayed) {
+                    assertTrue("layout exceeded guard window", SystemClock.uptimeMillis() - started < 400L)
+                    assertTrue(shifted.performClick())
+                    assertEquals(expected, adapter.selectedIds.toSet())
+                }
+            }
+            if (delayed) {
+                SystemClock.sleep(1_000)
+                scenario.onActivity {
+                    assertTrue(requireNotNull(list.findViewHolderForAdapterPosition(1)).itemView.performClick())
+                    assertEquals(expected, adapter.selectedIds.toSet())
+                }
+            }
+        }
+    }
+
+    @Test fun rapidTapsDoNotDeselectTheNextRow() = checkTwoTaps(false, setOf("b"))
+
+    @Test fun tapAfterGuardCanDeselectTheNextRow() = checkTwoTaps(true, emptySet())
 
     @Test fun folderChildBackDiscardsItsStagedEdits() {
         prepare()

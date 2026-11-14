@@ -1,5 +1,7 @@
 # WP9 meaning-review snapshot
 
+This is a historical snapshot against the English source identified below. The 6.1 English copy pass changed guide text afterward; the locale hashes still identify the unchanged localized texts and do not establish a fresh comparison with the new English. Localized copy is scheduled for follow-up.
+
 English source: merged master `95f5936800ca2358da0c2afa0a1d6286ac022691`. The four guides and quiet disclosure were compared sentence by sentence with English by AI for each locale below. These are machine or AI translation drafts; none has native review or device certification. The review records under the project PM workspace distinguish independent comparisons from self-review. Estonian remains an AI draft without native or device review; after Patric’s no-guess decision, uncertain feature names and technical instructions fall back to English.
 
 Independent AI guide comparisons: `ar`, `de`, `es-rES`, `es-rUS`, `fr`, `he`, `hr`, `hu`, `in`, `it`, `ja`, `pl`, `pt-rBR`, `ru-rRU`, `zh`. Guide self-comparisons of earlier drafts: `et`, `sv`, `tr`, `uk`. The Estonian search, calm and quiet guide texts below are now adapted from the default English, with the exact current Estonian control labels quoted; these are new text and were not covered by the earlier self-comparison. Disclosure comparisons were separate AI checks for the existing 18 locales; Estonian disclosure was self-checked. Hungarian disclosure contains the corrected “remain snoozed” wording.
