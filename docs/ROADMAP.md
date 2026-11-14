@@ -328,6 +328,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP67 | **Done** (PR #70). **Todo**. Run reviewed state tests on one emulator | Smoke matrix, discovery inventory and handoff | Both flavors and all device-specific cases remain on four profiles; reviewed state cases run on fastest phone |
 
+| M6-WP62 | **Done** (PR #71). **Todo**. Make the widget picker searchable and show sizes | Widget picker, chrome, captures, profiling fixture, strings and handoff | Searchable app groups, every widget has a size, usable at short heights; text-only fallback |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict

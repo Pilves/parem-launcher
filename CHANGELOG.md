@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Make widgets easier to find with app grouping, search and size labels.
+
 - Clarify app assignment and hidden-app management pickers, including gated Open for hidden apps.
 
 - Avoid enumerating orphaned widget IDs on every ordinary return home.

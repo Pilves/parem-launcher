@@ -610,20 +610,15 @@ class HomeWidgetController(
                 }.sortedWith(
                     compareBy<WidgetEntry, String>(String.CASE_INSENSITIVE_ORDER) { it.appName }
                         .thenBy { it.isOtherProfile }
+                        .thenBy { it.provider.profile.toString() }
+                        .thenBy { it.provider.provider.packageName }
+                        .thenBy(String.CASE_INSENSITIVE_ORDER) { it.widgetLabel }
                 ).let { entries ->
-                    val needsSize = WidgetPickerLabels.needsSize(entries.map { WidgetPickerLabels.Row(it.header, it.widgetLabel) })
-                    entries.mapIndexed { index, entry ->
-                        if (needsSize[index]) entry.copy(widgetLabel = sizedLabel(entry.widgetLabel, entry.provider)) else entry
-                    }
+                    entries.map { entry -> entry.copy(widgetLabel = sizedLabel(entry.widgetLabel, entry.provider)) }
                 }
             }
 
             if (!isActive() || rejectPendingOperation()) return@launch
-
-            if (allEntries.isEmpty()) {
-                context.showToast(context.getString(R.string.no_widgets_available))
-                return@launch
-            }
 
             fun buildItems(query: String): MutableList<Pair<String, WidgetEntry?>> {
                 val items = mutableListOf<Pair<String, WidgetEntry?>>()
@@ -631,19 +626,21 @@ class HomeWidgetController(
                 else allEntries.filter {
                     it.header.contains(query, true) || it.widgetLabel.contains(query, true)
                 }
-                var lastApp = ""
+                var lastGroup: Pair<String, android.os.UserHandle>? = null
                 for (entry in filtered) {
-                    if (entry.header != lastApp) {
+                    val group = entry.provider.provider.packageName to entry.provider.profile
+                    if (group != lastGroup) {
                         items.add(Pair(entry.header, null))
-                        lastApp = entry.header
+                        lastGroup = group
                     }
                     items.add(Pair(entry.widgetLabel, entry))
                 }
+                if (items.isEmpty()) items.add(Pair(context.getString(R.string.no_widgets_found), null))
                 return items
             }
 
             lateinit var dialog: BottomSheetDialog
-            val menu = BottomSheetMenu(context)
+            val menu = BottomSheetMenu(context).title(context.getString(R.string.add_widget))
             val searchField = android.widget.EditText(context).apply {
                 hint = context.getString(R.string.search_widgets)
                 setPadding(16.dpToPx(), 12.dpToPx(), 16.dpToPx(), 12.dpToPx())
@@ -653,15 +650,31 @@ class HomeWidgetController(
                 background = null
                 inputType = android.text.InputType.TYPE_CLASS_TEXT
                 isSingleLine = true
+                showSoftInputOnFocus = false
             }
-            val listView = android.widget.ListView(context)
-
+            val searchRow = android.widget.LinearLayout(context).apply {
+                orientation = android.widget.LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            val clear = TextView(context).apply {
+                text = context.getString(R.string.search_history_clear)
+                setTextColor(context.getColorFromAttr(R.attr.primaryColor))
+                gravity = Gravity.CENTER
+                minimumWidth = 48.dpToPx()
+                minimumHeight = 48.dpToPx()
+                visibility = View.GONE
+                setOnClickListener { searchField.text.clear() }
+            }
+            searchRow.addView(searchField, android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            searchRow.addView(clear)
+            val listView = android.widget.ListView(context).apply {
+                addFooterView(View(context).apply { minimumHeight = 24.dpToPx() }, null, false)
+            }
             val textColor = context.getColorFromAttr(R.attr.primaryColor)
             val headerColor = textColor
             var currentItems = buildItems("")
             // RemoteViews inflation is not free; keep each applied preview for the dialog's lifetime
             val previewViews = HashMap<AppWidgetProviderInfo, View?>()
-
             val adapter = object : android.widget.BaseAdapter() {
                 override fun getCount() = currentItems.size
                 override fun getItem(position: Int) = currentItems[position]
@@ -687,6 +700,7 @@ class HomeWidgetController(
                     val row = (convertView as? android.widget.LinearLayout)
                         ?: android.widget.LinearLayout(context).apply {
                             orientation = android.widget.LinearLayout.VERTICAL
+                            minimumHeight = 48.dpToPx()
                             // A preview Button is explicitly focusable, and AbsListView skips the item
                             // click for rows with explicit focusables; touch interception can't fix that
                             descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
@@ -733,24 +747,62 @@ class HomeWidgetController(
             }
             listView.adapter = adapter
 
+            var announcement: Runnable? = null
             searchField.doAfterTextChanged { s ->
                 currentItems = buildItems(s?.toString() ?: "")
+                clear.visibility = if (s.isNullOrEmpty()) View.GONE else View.VISIBLE
                 adapter.notifyDataSetChanged()
+                announcement?.let(searchField::removeCallbacks)
+                announcement = Runnable {
+                    if (searchField.isAttachedToWindow) searchField.announceForAccessibility(
+                        context.getString(R.string.widget_picker_result_count, currentItems.count { it.second != null }),
+                    )
+                }.also { searchField.postDelayed(it, 400) }
             }
 
             listView.setOnItemClickListener { _, _, position, _ ->
-                val entry = currentItems[position].second ?: return@setOnItemClickListener
+                val entry = currentItems.getOrNull(position)?.second ?: return@setOnItemClickListener
                 dialog.dismiss()
                 if (isActive() && !rejectPendingOperation()) onSelected(entry.provider)
             }
 
-            menu.customView(searchField)
+            menu.customView(searchRow)
             listView.layoutParams = android.widget.LinearLayout.LayoutParams(
-                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                1f,
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f,
             )
-            dialog = menu.customView(listView).show(resizeForKeyboard = true, scrollContent = false)
+            val accessibility = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as android.view.accessibility.AccessibilityManager
+            val mode = com.parem.launcher.helper.PickerKeyboardPolicy.decide(
+                accessibility.isTouchExplorationEnabled, prefs.autoShowKeyboard,
+                context.resources.configuration.let { config ->
+                    config.keyboard != android.content.res.Configuration.KEYBOARD_NOKEYS &&
+                        config.hardKeyboardHidden != android.content.res.Configuration.HARDKEYBOARDHIDDEN_YES
+                },
+            )
+            if (mode == com.parem.launcher.helper.PickerKeyboardPolicy.Mode.LEAVE_FOCUS) {
+                searchRow.isFocusableInTouchMode = true
+                searchRow.requestFocus()
+            }
+            dialog = menu.customView(listView)
+                .show(resizeForKeyboard = true, scrollContent = false)
+                .dismissOnDestroy(fragment.viewLifecycleOwner)
+            val pickerContainer = searchRow.parent as android.widget.LinearLayout
+            val titleView = pickerContainer.getChildAt(pickerContainer.indexOfChild(searchRow) - 1)
+            installWidgetPickerChrome(pickerContainer, titleView, searchRow, 48.dpToPx(), 24.dpToPx())
+            dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
+                android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
+            dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.let { sheet ->
+                sheet.layoutParams = sheet.layoutParams.apply { height = ViewGroup.LayoutParams.MATCH_PARENT }
+            }
+            if (mode != com.parem.launcher.helper.PickerKeyboardPolicy.Mode.LEAVE_FOCUS) searchField.requestFocus()
+            searchField.postDelayed({
+                if (isActive() && dialog.isShowing && searchField.isAttachedToWindow) {
+                    searchField.showSoftInputOnFocus = true
+                    if (mode == com.parem.launcher.helper.PickerKeyboardPolicy.Mode.FOCUS_AND_SHOW && searchField.hasFocus()) {
+                        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                        imm.showSoftInput(searchField, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+                    }
+                }
+            }, 100)
         }
     }
 

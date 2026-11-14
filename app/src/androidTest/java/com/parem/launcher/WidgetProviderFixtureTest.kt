@@ -144,7 +144,7 @@ class WidgetProviderFixtureTest {
             }
             checkNotNull(swap).click()
             checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.EditText")), 20_000)).text = "configurable"
-            checkNotNull(device.wait(Until.findObject(By.text("Parem configurable fixture")), 20_000)).click()
+            checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.TextView").textStartsWith("Parem configurable fixture")), 20_000)).click()
             assertTrue("actual configure activity did not launch", device.wait(Until.hasObject(By.text("Parem fixture configuration")), 15_000))
             instrumentation.runOnMainSync {
                 val operation = checkNotNull(originalActivity?.pendingWidgetOp)
@@ -196,7 +196,7 @@ class WidgetProviderFixtureTest {
             device.findObjects(unavailable).first().click()
             checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.swap_widget))), 10_000)).click()
             checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.EditText")), 20_000)).text = "configurable"
-            checkNotNull(device.wait(Until.findObject(By.text("Parem configurable fixture")), 20_000)).click()
+            checkNotNull(device.wait(Until.findObject(By.clazz("android.widget.TextView").textStartsWith("Parem configurable fixture")), 20_000)).click()
             assertTrue(device.wait(Until.hasObject(By.text("Parem fixture configuration")), 15_000))
             instrumentation.runOnMainSync {
                 val operation = checkNotNull(owner.pendingWidgetOp)
