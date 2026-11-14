@@ -18,7 +18,7 @@ import android.widget.LinearLayout
 import android.widget.ListView
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.parem.launcher.ui.WidgetPickerOverflow
+import com.parem.launcher.ui.installWidgetPickerChrome
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -35,14 +35,12 @@ class WidgetPickerOverflowTest {
             val title = View(context).apply { layoutParams = LinearLayout.LayoutParams(100, 45) }
             val search = View(context).apply { layoutParams = LinearLayout.LayoutParams(100, 60) }
             val list = ListView(context).apply { layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f) }
-            val header = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-            list.addHeaderView(header, null, false)
             list.adapter = ArrayAdapter(context, android.R.layout.simple_list_item_1, (0..19).map { "Widget $it" })
             container.addView(handle)
             container.addView(title)
             container.addView(search)
             container.addView(list)
-            val overflow = WidgetPickerOverflow(container, title, search, list, header, 30)
+            val chrome = installWidgetPickerChrome(container, title, search, 30)
             fun layout(height: Int) {
                 container.measure(View.MeasureSpec.makeMeasureSpec(240, View.MeasureSpec.EXACTLY),
                     View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
@@ -50,32 +48,21 @@ class WidgetPickerOverflowTest {
             }
 
             layout(200)
-            overflow.update()
-            assertSame("normal title should remain pinned", container, title.parent)
-            assertSame("normal search should remain pinned", container, search.parent)
-            assertSame("widget ListView remains the single scrolling list", container, list.parent)
+            assertSame("widget list remains a direct sibling", container, list.parent)
+            assertSame("chrome remains a direct sibling", container, chrome.parent)
             assertTrue("normal list needs room", list.height >= 30)
 
             // Fixed handle/title/search alone are 115px, greater than the viewport.
             layout(100)
-            overflow.update()
-            layout(100)
-            assertSame("short-window title must be in the list header", header, title.parent)
-            assertSame("short-window search must be in the list header", header, search.parent)
-            assertSame("widget ListView must not be wrapped by another scroller", container, list.parent)
-            assertEquals(1, list.headerViewsCount)
-            assertTrue("list must remain usable", list.height > 0 && list.canScrollVertically(1))
-            list.setSelection(0)
-            assertTrue("title and search can be reached from the top", title.parent === header && search.parent === header)
-            list.setSelection(list.count - 1)
-            assertEquals("last item remains addressable", 21, list.count)
+            assertSame("title remains in scrollable chrome", chrome, (title.parent as View).parent)
+            assertSame("search remains in scrollable chrome", chrome, (search.parent as View).parent)
+            assertTrue("short chrome and list both need space", chrome.height > 0 && list.height > 0)
+            assertTrue("both ends of chrome must be scrollable", chrome.canScrollVertically(1))
+            assertEquals("all provider rows remain addressable", 20, list.count)
 
             layout(200)
-            overflow.update()
-            layout(200)
-            assertSame("title returns to its pinned position", container, title.parent)
-            assertSame("search returns to its pinned position", container, search.parent)
-            assertSame(list, container.getChildAt(3))
+            assertTrue("list room is restored", list.height >= 30)
+            assertSame(list, container.getChildAt(2))
         }
     }
     @Test fun nonTouchResizeKeepsSearchReachableAndSelectionCorrect() {
@@ -90,7 +77,6 @@ class WidgetPickerOverflowTest {
                 lateinit var dialog: Dialog
                 lateinit var search: EditText
                 lateinit var list: ListView
-                lateinit var header: LinearLayout
                 lateinit var container: LinearLayout
                 scenario.onActivity { activity ->
                     container = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
@@ -103,16 +89,14 @@ class WidgetPickerOverflowTest {
                         showSoftInputOnFocus = false
                         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 120)
                     }
-                    header = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
                     list = ListView(activity).apply {
                         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
-                        addHeaderView(header, null, false)
                     }
                     val adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1, (0..19).map { "Provider $it" })
                     list.adapter = adapter
                     search.doAfterTextChanged { adapter.filter.filter(it?.toString().orEmpty()) }
                     list.setOnItemClickListener { _, _, position, _ ->
-                        val item = adapter.getItem(position - list.headerViewsCount)
+                        val item = adapter.getItem(position)
                         if (item != null) selected.set(item)
                     }
                     container.addView(title)
@@ -120,10 +104,9 @@ class WidgetPickerOverflowTest {
                     container.addView(list)
                     dialog = Dialog(activity)
                     dialog.setContentView(container)
-                    val overflow = WidgetPickerOverflow(container, title, search, list, header, 120)
+                    installWidgetPickerChrome(container, title, search, 120)
                     dialog.show()
                     dialog.window!!.setLayout(500, 500)
-                    container.post { overflow.update() }
                 }
                 try {
                     assertTrue("initial search missing", device.wait(Until.hasObject(By.clazz(EditText::class.java)), 10_000))
@@ -133,12 +116,12 @@ class WidgetPickerOverflowTest {
                         dialog.window!!.setLayout(500, 200)
                     }
                     val shrinkDeadline = android.os.SystemClock.elapsedRealtime() + 10_000
-                    var movedIntoHeader = false
-                    while (!movedIntoHeader && android.os.SystemClock.elapsedRealtime() < shrinkDeadline) {
-                        scenario.onActivity { movedIntoHeader = container.height <= 200 && search.parent === header }
-                        if (!movedIntoHeader) android.os.SystemClock.sleep(50)
+                    var shrunk = false
+                    while (!shrunk && android.os.SystemClock.elapsedRealtime() < shrinkDeadline) {
+                        scenario.onActivity { shrunk = container.height <= 200 && list.height > 0 }
+                        if (!shrunk) android.os.SystemClock.sleep(50)
                     }
-                    assertTrue("short-window layout did not move search into the header", movedIntoHeader)
+                    assertTrue("short-window layout did not leave list space", shrunk)
                     assertTrue("search was not reachable with input focus after shrinking",
                         device.wait(Until.hasObject(By.clazz(EditText::class.java).focused(true)), 10_000))
                     val field = checkNotNull(device.findObject(By.clazz(EditText::class.java).focused(true)))

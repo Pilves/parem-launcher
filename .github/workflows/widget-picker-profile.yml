@@ -4,7 +4,7 @@ on:
     branches: [master]
     paths:
       - app/src/main/java/com/parem/launcher/ui/HomeWidgetController.kt
-      - app/src/main/java/com/parem/launcher/ui/WidgetPickerOverflow.kt
+      - app/src/main/java/com/parem/launcher/ui/WidgetPickerChrome.kt
       - app/src/main/java/com/parem/launcher/helper/WidgetPickerLabels.kt
       - app/src/androidTest/java/com/parem/launcher/WidgetPickerProfileTest.kt
       - app/src/androidTest/java/com/parem/launcher/WidgetPickerCaptureTest.kt

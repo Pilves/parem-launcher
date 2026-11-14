@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-- Make widgets easier to find with app grouping, search, icons and size labels.
+- Make widgets easier to find with app grouping, search and size labels.
 
 - Clarify app assignment and hidden-app management pickers, including gated Open for hidden apps.
 

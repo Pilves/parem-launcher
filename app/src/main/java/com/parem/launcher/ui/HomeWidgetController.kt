@@ -34,13 +34,7 @@ import com.parem.launcher.helper.WidgetPickerLabels
 import com.parem.launcher.helper.dpToPx
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.showToast
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -672,41 +666,9 @@ class HomeWidgetController(
             searchRow.addView(searchField, android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             searchRow.addView(clear)
             val listView = android.widget.ListView(context)
-            // The empty header is populated only when the window is too short
-            // to keep title and search pinned above a usable list.
-            val overflowHeader = android.widget.LinearLayout(context).apply { orientation = android.widget.LinearLayout.VERTICAL }
-            listView.addHeaderView(overflowHeader, null, false)
-
             val textColor = context.getColorFromAttr(R.attr.primaryColor)
             val headerColor = textColor
             var currentItems = buildItems("")
-            // Load only visible row icons; no provider view or thumbnail cache is retained.
-            val pickerContext = context
-            val iconScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-            val iconSlots = Semaphore(2)
-            class IconRow(val icon: android.widget.ImageView) {
-                var key: String? = null
-                var entry: WidgetEntry? = null
-                var job: Job? = null
-            }
-            fun loadIcon(state: IconRow, entry: WidgetEntry) {
-                state.job?.cancel()
-                val key = "${entry.provider.provider.flattenToString()}@${entry.provider.profile}"
-                state.key = key
-                state.entry = entry
-                state.job = iconScope.launch {
-                    val drawable = withContext(Dispatchers.IO) {
-                        iconSlots.withPermit {
-                            runCatching {
-                                val icon = entry.provider.loadIcon(pickerContext, 0) ?: pm.defaultActivityIcon
-                                if (entry.isOtherProfile) pm.getUserBadgedIcon(icon, entry.provider.profile) else icon
-                            }.getOrElse { pm.defaultActivityIcon }
-                        }
-                    }
-                    if (isActive() && state.key == key) state.icon.setImageDrawable(drawable)
-                }
-            }
-
             val adapter = object : android.widget.BaseAdapter() {
                 override fun getCount() = currentItems.size
                 override fun getItem(position: Int) = currentItems[position]
@@ -729,45 +691,20 @@ class HomeWidgetController(
                         return textView
                     }
 
-                    val row = (convertView as? android.widget.LinearLayout)
-                        ?: android.widget.LinearLayout(context).apply {
-                            orientation = android.widget.LinearLayout.HORIZONTAL
-                            gravity = Gravity.CENTER_VERTICAL
-                            minimumHeight = 48.dpToPx()
-                            descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
-                            setPadding(24.dpToPx(), 4.dpToPx(), 16.dpToPx(), 4.dpToPx())
-                            val icon = android.widget.ImageView(context).apply {
-                                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                                scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-                            }
-                            tag = IconRow(icon)
-                            addView(icon, android.widget.LinearLayout.LayoutParams(40.dpToPx(), 40.dpToPx()))
-                            addView(TextView(context).apply {
-                                setPadding(12.dpToPx(), 4.dpToPx(), 0, 4.dpToPx())
-                            }, android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-                            addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-                                override fun onViewAttachedToWindow(v: View) {
-                                    val state = v.tag as IconRow
-                                    if (state.icon.drawable == null && state.job?.isActive != true) state.entry?.let { loadIcon(state, it) }
-                                }
-                                override fun onViewDetachedFromWindow(v: View) { (v.tag as IconRow).job?.cancel() }
-                            })
-                        }
-                    val state = row.tag as IconRow
-                    val textView = row.getChildAt(1) as TextView
+                    val textView = (convertView as? TextView) ?: TextView(context)
                     textView.text = item.first
                     textView.textSize = 16f
                     textView.setTextColor(textColor)
-                    state.icon.setImageDrawable(null)
-                    loadIcon(state, entry)
-                    return row
+                    textView.minimumHeight = 48.dpToPx()
+                    textView.gravity = Gravity.CENTER_VERTICAL
+                    textView.setPadding(24.dpToPx(), 4.dpToPx(), 16.dpToPx(), 4.dpToPx())
+                    return textView
                 }
             }
             listView.adapter = adapter
 
             var announcement: Runnable? = null
             searchField.doAfterTextChanged { s ->
-                iconScope.coroutineContext.cancelChildren()
                 currentItems = buildItems(s?.toString() ?: "")
                 clear.visibility = if (s.isNullOrEmpty()) View.GONE else View.VISIBLE
                 adapter.notifyDataSetChanged()
@@ -780,7 +717,7 @@ class HomeWidgetController(
             }
 
             listView.setOnItemClickListener { _, _, position, _ ->
-                val entry = currentItems.getOrNull(position - listView.headerViewsCount)?.second ?: return@setOnItemClickListener
+                val entry = currentItems.getOrNull(position)?.second ?: return@setOnItemClickListener
                 dialog.dismiss()
                 if (isActive() && !rejectPendingOperation()) onSelected(entry.provider)
             }
@@ -801,13 +738,12 @@ class HomeWidgetController(
                 searchRow.isFocusableInTouchMode = true
                 searchRow.requestFocus()
             }
-            dialog = menu.customView(listView).onDismiss { iconScope.cancel() }
+            dialog = menu.customView(listView)
                 .show(resizeForKeyboard = true, scrollContent = false)
                 .dismissOnDestroy(fragment.viewLifecycleOwner)
             val pickerContainer = searchRow.parent as android.widget.LinearLayout
             val titleView = pickerContainer.getChildAt(pickerContainer.indexOfChild(searchRow) - 1)
-            val overflow = WidgetPickerOverflow(pickerContainer, titleView, searchRow, listView, overflowHeader, 48.dpToPx())
-            pickerContainer.post { if (pickerContainer.isAttachedToWindow) overflow.update() }
+            installWidgetPickerChrome(pickerContainer, titleView, searchRow, 48.dpToPx())
             dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
                 android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
             dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.let { sheet ->

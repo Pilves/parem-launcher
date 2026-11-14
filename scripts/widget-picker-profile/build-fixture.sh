@@ -17,13 +17,24 @@ XML
 cat > "$res/drawable/preview.xml" <<'XML'
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><solid android:color="#325a66" /><size android:width="96dp" android:height="96dp" /></shape>
 XML
+for size in 24 96 256; do
+  cat > "$res/drawable/provider_icon_$size.xml" <<XML
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval"><solid android:color="#325a66" /><size android:width="${size}dp" android:height="${size}dp" /></shape>
+XML
+done
 manifest="$out/AndroidManifest.xml"
 cat > "$manifest" <<'XML'
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.parem.widgetstress"><uses-sdk android:minSdkVersion="29" android:targetSdkVersion="35" /><application android:label="Parem stress widgets" android:theme="@android:style/Theme.Material.Light.NoActionBar"><activity android:name=".Publisher" android:exported="true" />
 XML
 for i in $(seq -w 0 119); do
+  icon=""
+  case "$i" in
+    000) icon=' android:icon="@drawable/provider_icon_24"' ;;
+    001) icon=' android:icon="@drawable/provider_icon_96"' ;;
+    002) icon=' android:icon="@drawable/provider_icon_256"' ;;
+  esac
   cat >> "$manifest" <<XML
-<receiver android:name=".Provider$i" android:exported="true" android:label="Stress widget $i"><intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter><meta-data android:name="android.appwidget.provider" android:resource="@xml/provider" /></receiver>
+<receiver android:name=".Provider$i" android:exported="true" android:label="Stress widget $i"$icon><intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter><meta-data android:name="android.appwidget.provider" android:resource="@xml/provider" /></receiver>
 XML
   printf 'package com.parem.widgetstress; public final class Provider%s extends android.appwidget.AppWidgetProvider {}\n' "$i" > "$src/Provider$i.java"
 done
