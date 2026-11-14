@@ -490,4 +490,6 @@
     <string name="picker_result_count">%1$d apps shown</string>
     <string name="picker_current_app">Current: %1$s</string>
     <string name="picker_clear_search">Clear search</string>
+    <string name="no_widgets_found">No widgets found</string>
+    <string name="widget_picker_result_count">%1$d widgets shown</string>
 </resources>
