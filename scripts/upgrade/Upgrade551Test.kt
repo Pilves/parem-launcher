@@ -91,7 +91,7 @@ class Upgrade551Test {
     }
 
     @Test fun verify600() {
-        assertEquals("Expected 6.1.0", 108L, version())
+        assertEquals("Expected v6.1.0", 108L, version())
         assertEquals(1, prefs.getInt("APP_THEME", -99))
         assertEquals("Upgrade settings", prefs.getString("APP_NAME_1", null))
         assertEquals("com.android.settings", prefs.getString("APP_PACKAGE_1", null))
