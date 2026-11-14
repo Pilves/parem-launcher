@@ -201,7 +201,7 @@ class ScreenTimeLimitDialog(
                 addAppPicker(adapter)
             }
             picker = BottomSheetMenu(context)
-                .title(context.getString(R.string.add_another_app))
+                .title(context.getString(R.string.select_app))
                 .customView(content)
                 .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true)
         }
