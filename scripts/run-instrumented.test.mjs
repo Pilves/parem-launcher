@@ -5,19 +5,19 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-function run(state, stress = false, hangDiagnostic = false) {
+function run(state, stress = false, hangDiagnostic = false, playResult = 1) {
   const root = mkdtempSync(join(tmpdir(), 'parem-ci-'));
   try {
     mkdirSync(join(root, 'scripts'));
     mkdirSync(join(root, 'bin'));
     copyFileSync(resolve('scripts/run-instrumented.sh'), join(root, 'scripts/run-instrumented.sh'));
-    writeFileSync(join(root, 'gradlew'), '#!/bin/sh\necho "$*" >> phases\n[ "$1" != connectedPlayDebugAndroidTest ]\n');
+    writeFileSync(join(root, 'gradlew'), '#!/bin/sh\necho "$*" >> phases\nif [ "$1" = connectedPlayDebugAndroidTest ]; then exit "$TEST_PLAY_RESULT"; fi\nexit 0\n');
     writeFileSync(join(root, 'bin/adb'), '#!/bin/sh\nif [ "$1" = get-state ]; then echo "$TEST_DEVICE_STATE"; fi\nif [ "$1 $2 $3" = "shell pm clear" ] && [ "$TEST_DEVICE_STATE" = offline ]; then exit 1; fi\nif [ "$TEST_HANG_DIAGNOSTIC" = yes ] && [ "$1 $2 $3" = "shell dumpsys dropbox" ] && [ ! -f hung ]; then touch hung; sleep 30; fi\n');
     writeFileSync(join(root, 'scripts/perf-compare.sh'), '#!/bin/sh\necho perf >> phases\n');
     chmodSync(join(root, 'gradlew'), 0o755);
     chmodSync(join(root, 'bin/adb'), 0o755);
     const result = spawnSync('bash', ['scripts/run-instrumented.sh', stress ? '2' : '0', 'true'], {
-      cwd: root, env: { ...process.env, PATH: `${join(root, 'bin')}:${process.env.PATH}`, TEST_DEVICE_STATE: state, TEST_HANG_DIAGNOSTIC: hangDiagnostic ? 'yes' : 'no' }, encoding: 'utf8', timeout: 15000,
+      cwd: root, env: { ...process.env, PATH: `${join(root, 'bin')}:${process.env.PATH}`, TEST_DEVICE_STATE: state, TEST_HANG_DIAGNOSTIC: hangDiagnostic ? 'yes' : 'no', TEST_PLAY_RESULT: String(playResult) }, encoding: 'utf8', timeout: 15000,
     });
     return { result, phases: readFileSync(join(root, 'phases'), 'utf8') };
   } finally {
@@ -51,4 +51,14 @@ test('a stuck diagnostic is bounded and cannot suppress the original failure', (
   const { result } = run('offline', false, true);
   assert.equal(result.status, 1, result.stderr);
   assert.match(result.stderr, /Emulator unavailable/);
+});
+
+
+test('Play timeout skips Full and performance instead of overlapping instrumentation', () => {
+  for (const status of [124, 137]) {
+    const { result, phases } = run('device', false, false, status);
+    assert.equal(result.status, 1, result.stderr);
+    assert.doesNotMatch(phases, /connectedFullDebugAndroidTest|perf/);
+    assert.match(result.stderr, /Play timed out; skipping Full/);
+  }
 });

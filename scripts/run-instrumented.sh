@@ -36,13 +36,22 @@ collect_diagnostics() {
 
 if [ "${runs:-0}" -le 0 ]; then
   status=0
-  if ! timeout --kill-after=10s 15m ./gradlew connectedPlayDebugAndroidTest; then
+  if timeout --kill-after=10s 15m ./gradlew connectedPlayDebugAndroidTest; then
+    :
+  else
+    play_result=$?
     status=1
     capture_failure play
     cp -r app/build/reports/androidTests/connected "$diag_out/play-failure-report" 2>/dev/null || true
     cp -r app/build/outputs/androidTest-results/connected "$diag_out/play-failure-results" 2>/dev/null || true
     if [ "$(timeout --kill-after=2s 8s adb get-state 2>/dev/null)" != device ]; then
       echo 'Emulator unavailable after Play tests; skipping remaining phases and failing.' >&2
+      collect_diagnostics
+      exit 1
+    fi
+    if [ "$play_result" -eq 124 ] || [ "$play_result" -eq 137 ]; then
+      # The Gradle client can time out while device instrumentation is still running.
+      echo 'Play timed out; skipping Full and performance to avoid overlapping instrumentation.' >&2
       collect_diagnostics
       exit 1
     fi

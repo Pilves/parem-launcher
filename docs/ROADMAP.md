@@ -312,6 +312,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP56 | **Done** (PR #61). **Todo**. Respect cancelled widget configuration | Widget result handling, companion fixture, tests and handoff | Cancel releases only the unsaved allocation and preserves existing widgets |
 
+| M6-WP59 | **Done** (PR #62). Verify HOME state and isolate timed-out instrumented phases | Android tests, HOME helper and instrumented runner | HOME uses one real injection with observed launcher state; a timed-out Play phase fails without starting Full or performance |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
