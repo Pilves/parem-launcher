@@ -36,6 +36,8 @@ class WidgetPickerGeneratedPreviewTest {
         assumeTrue(BuildConfig.DEBUG && Build.VERSION.SDK_INT >= 35)
         assumeTrue(device.executeShellCommand("getprop ro.kernel.qemu").trim() == "1")
         val prefs = Prefs(context).apply { firstOpen = false; onboardingVersionSeen = Constants.ONBOARDING_VERSION; autoShowKeyboard = false }
+        // App and test are installed now; only this disposable CI emulator gets the grant.
+        device.executeShellCommand("appwidget grantbind --package ${context.packageName} --user 0")
         val manager = context.getSystemService(AppWidgetManager::class.java)
         val component = ComponentName("com.parem.widgetstress", "com.parem.widgetstress.Provider000")
         val provider = manager.installedProviders.firstOrNull { it.provider == component }
