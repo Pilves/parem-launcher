@@ -90,8 +90,10 @@ class WidgetPickerOverflowTest {
                 lateinit var dialog: Dialog
                 lateinit var search: EditText
                 lateinit var list: ListView
+                lateinit var header: LinearLayout
+                lateinit var container: LinearLayout
                 scenario.onActivity { activity ->
-                    val container = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+                    container = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
                     val title = TextView(activity).apply {
                         text = "Widget picker test"
                         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 110)
@@ -101,7 +103,7 @@ class WidgetPickerOverflowTest {
                         showSoftInputOnFocus = false
                         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 120)
                     }
-                    val header = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+                    header = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
                     list = ListView(activity).apply {
                         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
                         addHeaderView(header, null, false)
@@ -130,13 +132,20 @@ class WidgetPickerOverflowTest {
                         assertTrue("initial search did not take focus", search.requestFocus())
                         dialog.window!!.setLayout(500, 200)
                     }
+                    val shrinkDeadline = android.os.SystemClock.elapsedRealtime() + 10_000
+                    var movedIntoHeader = false
+                    while (!movedIntoHeader && android.os.SystemClock.elapsedRealtime() < shrinkDeadline) {
+                        scenario.onActivity { movedIntoHeader = container.height <= 200 && search.parent === header }
+                        if (!movedIntoHeader) android.os.SystemClock.sleep(50)
+                    }
+                    assertTrue("short-window layout did not move search into the header", movedIntoHeader)
                     assertTrue("search was not reachable with input focus after shrinking",
                         device.wait(Until.hasObject(By.clazz(EditText::class.java).focused(true)), 10_000))
                     val field = checkNotNull(device.findObject(By.clazz(EditText::class.java).focused(true)))
                     assertTrue("focused search is not visible", field.visibleBounds.height() > 0)
                     field.text = "Provider 7"
                     scenario.onActivity { dialog.window!!.setLayout(500, 500) }
-                    val row = device.wait(Until.findObject(By.text("Provider 7")), 10_000)
+                    val row = device.wait(Until.findObject(By.res("android", "text1").text("Provider 7")), 10_000)
                         ?: throw AssertionError("filtered provider missing after re-expansion")
                     row.click()
                     val deadline = android.os.SystemClock.elapsedRealtime() + 5_000
