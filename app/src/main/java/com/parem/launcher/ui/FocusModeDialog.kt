@@ -161,9 +161,11 @@ class FocusModeDialog(
 
         if (allApps.isNotEmpty()) {
             val currentWhitelist = FocusModeManager.getWhitelist(ctx)
+            val knownPackages = allApps.mapTo(mutableSetOf()) { it.first }
+            val hiddenCount = currentWhitelist.count { it !in knownPackages }
             val adapter = AppPickerAdapter(
                 textColor = primaryColor,
-                maxSelected = 5,
+                maxSelected = (5 - hiddenCount).coerceAtLeast(0),
                 entries = allApps.map { (packageName, appLabel) ->
                     AppPickerAdapter.Entry(packageName, appLabel)
                 },
@@ -175,15 +177,25 @@ class FocusModeDialog(
             pickerAdapter = adapter
             val allowedRow = createWindowRow(ctx, primaryColor, ctx.getString(R.string.focus_allowed_apps),
                 onClick = {
-                    adapter.filter("")
+                    val staged = AppPickerAdapter(
+                        textColor = primaryColor,
+                        maxSelected = (5 - hiddenCount).coerceAtLeast(0),
+                        entries = allApps.map { (pkg, label) -> AppPickerAdapter.Entry(pkg, label) },
+                        initiallySelected = adapter.selectedIds,
+                        onLimitReached = { it.showToast(it.getString(R.string.a11y_picker_cap, 5)) },
+                    )
                     val pickerContent = LinearLayout(ctx).apply {
                         orientation = LinearLayout.VERTICAL
-                        addAppPicker(adapter)
+                        addAppPicker(staged)
                     }
                     val picker = BottomSheetMenu(ctx)
                         .title(ctx.getString(R.string.focus_allowed_apps))
                         .customView(pickerContent)
-                        .option(ctx.getString(android.R.string.ok)) {}
+                        .pickerActions {
+                            adapter.replaceSelection(staged.selectedIds)
+                            updateEmptyWarning()
+                            updateAllowedCount()
+                        }
                         .show(resizeForKeyboard = true, scrollContent = false, fitPicker = true)
                     picker.dismissWithParent(dialog)
                 }, onLongClick = null)
@@ -247,7 +259,10 @@ class FocusModeDialog(
             updateEmptyWarning()
         }
         updateEmptyWarning = {
-            val noApps = pickerAdapter?.selectedIds?.isEmpty() ?: true
+            val visible = pickerAdapter?.selectedIds.orEmpty()
+            val noApps = FocusModeManager.mergeWhitelist(
+                visible, FocusModeManager.getWhitelist(ctx), allApps.mapTo(mutableSetOf()) { it.first },
+            ).isEmpty()
             emptyWarning.visibility =
                 if (scheduleOn && noApps) android.view.View.VISIBLE else android.view.View.GONE
         }

@@ -50,7 +50,7 @@ class MinorPolishTest {
                         setPaddingRelative(parentInset, 0, parentInset, 0)
                     }
                     parent.addAppPicker(AppPickerAdapter(0, 1, emptyList()))
-                    val search = parent.getChildAt(0) as EditText
+                    val search = requireNotNull(parent.findViewWithTag<EditText>("parem_picker_search"))
                     assertEquals(sheetInset, parent.paddingStart + search.paddingStart)
                     assertEquals(sheetInset, parent.paddingEnd + search.paddingEnd)
                 }
