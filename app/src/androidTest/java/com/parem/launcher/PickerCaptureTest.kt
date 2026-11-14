@@ -58,9 +58,12 @@ class PickerCaptureTest {
         assertTrue("font scale not applied: ${context.resources.configuration.fontScale}",
             kotlin.math.abs(context.resources.configuration.fontScale - font.toFloat()) < 0.05f)
         var activityScale = 0f
+        var keyboardConfig = ""
         instrumentation.runOnMainSync {
-            activityScale = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
-                .filterIsInstance<MainActivity>().single().resources.configuration.fontScale
+            val config = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                .filterIsInstance<MainActivity>().single().resources.configuration
+            activityScale = config.fontScale
+            keyboardConfig = "keyboard=${config.keyboard} hardKeyboardHidden=${config.hardKeyboardHidden}"
         }
         assertTrue("activity font scale not applied: $activityScale", kotlin.math.abs(activityScale - font.toFloat()) < 0.05f)
         val wantIme = args.getString("picker_ime") == "on"
@@ -73,7 +76,15 @@ class PickerCaptureTest {
             if (shown == wantIme) break
             SystemClock.sleep(100)
         }
-        assertTrue("IME state not verified: wanted=$wantIme observed=$shown", shown == wantIme)
+        if (shown != wantIme) {
+            val dir = File(requireNotNull(context.getExternalFilesDir(null)), "picker-capture-failure").apply { mkdirs() }
+            device.takeScreenshot(File(dir, "failure.png"))
+            device.dumpWindowHierarchy(File(dir, "hierarchy.xml"))
+            device.executeShellCommand("mkdir -p /data/local/tmp/parem-picker-captures")
+            device.executeShellCommand("cp ${dir.absolutePath}/* /data/local/tmp/parem-picker-captures/")
+        }
+        val searchFocused = device.findObject(By.clazz("android.widget.EditText"))?.isFocused
+        assertTrue("IME state not verified: wanted=$wantIme observed=$shown $keyboardConfig searchFocused=$searchFocused autoShow=${Prefs(context).autoShowKeyboard}", shown == wantIme)
         val action = when (name) {
             "focus", "folder", "quiet" -> context.getString(R.string.quiet_continue)
             else -> null
