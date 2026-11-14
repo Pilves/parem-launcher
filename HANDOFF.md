@@ -568,7 +568,7 @@ per package; the rest of each of those fragments is still in
   Contract: log-only runner discovery must match the reviewed inventory and partition the full suite before each flavor; discovery or filter mismatch fails the leg.
   Not verified: physical devices and net CI runner-minute savings until the exact-head matrix completes.
   Easy to get wrong: leave geometry, gestures, accessibility, lifecycle, widgets, system services and API-specific behavior on every device; never silently annotate new tests.
-- **M6-WP69 (PR #0):** Onboarding, feature guides and selected settings and disclosure text use the approved shorter English copy; rapid multi-choice picker taps cannot remove a shifted second row.
+- **M6-WP69 (PR #73):** Onboarding, feature guides and selected settings and disclosure text use the approved shorter English copy; rapid multi-choice picker taps cannot remove a shifted second row.
   Contract: the 43 approved base-English strings retain their keys and placeholders; the four excluded strings and all locale files remain unchanged. Multi-choice selection changes are separated by 400ms; single-choice is unchanged.
   Not verified: translations against the new English, native language review, and physical-device accessibility.
   Easy to get wrong: translated resources retain older text until the 6.1.1 follow-up; the WP9 meaning-review hashes are historical locale snapshots.
