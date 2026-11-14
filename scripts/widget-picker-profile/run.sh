@@ -19,7 +19,7 @@ for attempt in $(seq 1 60); do
   sleep 1
 done
 [[ $ready == true ]] || { echo 'Synthetic preview publisher did not become ready' >&2; exit 1; }
-for trial_mode in 1:on 2:off 3:off 4:on; do
+for trial_mode in 1:on 2:cache 3:cache 4:on; do
   trial=${trial_mode%%:*}
   mode=${trial_mode#*:}
   ./gradlew connectedPlayDebugAndroidTest \

@@ -684,6 +684,7 @@ class HomeWidgetController(
             val pickerContext = context
             val iconScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
             val iconSlots = Semaphore(2)
+            val fallbackIcons = android.util.LruCache<String, android.graphics.drawable.Drawable.ConstantState>(16)
             class IconRow(val icon: android.widget.ImageView) {
                 var key: String? = null
                 var entry: WidgetEntry? = null
@@ -692,7 +693,6 @@ class HomeWidgetController(
             fun loadIcon(state: IconRow, entry: WidgetEntry) {
                 state.job?.cancel()
                 android.util.Log.i("WidgetIconABBA", "bind mode=${System.getProperty("widget.icon.mode")} provider=${entry.provider.provider}")
-                if (System.getProperty("widget.icon.mode") == "off") return
                 val key = "${entry.provider.provider.flattenToString()}@${entry.provider.profile}"
                 state.key = key
                 state.entry = entry
@@ -701,8 +701,19 @@ class HomeWidgetController(
                     val drawable = withContext(Dispatchers.IO) {
                         iconSlots.withPermit {
                             runCatching {
-                                val icon = entry.provider.loadIcon(pickerContext, 0) ?: pm.defaultActivityIcon
-                                if (entry.isOtherProfile) pm.getUserBadgedIcon(icon, entry.provider.profile) else icon
+                                fun load(): android.graphics.drawable.Drawable {
+                                    android.util.Log.i("WidgetIconABBA", "platform-load provider=$key")
+                                    val icon = entry.provider.loadIcon(pickerContext, 0) ?: pm.defaultActivityIcon
+                                    return if (entry.isOtherProfile) pm.getUserBadgedIcon(icon, entry.provider.profile) else icon
+                                }
+                                if (System.getProperty("widget.icon.mode") == "cache" && entry.provider.icon == 0) {
+                                    val fallbackKey = "${entry.provider.provider.packageName}@${entry.provider.profile}"
+                                    synchronized(fallbackIcons) {
+                                        fallbackIcons.get(fallbackKey)?.newDrawable()?.mutate() ?: load().also {
+                                            it.constantState?.let { state -> fallbackIcons.put(fallbackKey, state) }
+                                        }
+                                    }
+                                } else load()
                             }.getOrElse { pm.defaultActivityIcon }
                         }
                     }
