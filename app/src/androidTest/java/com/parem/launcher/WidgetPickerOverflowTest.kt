@@ -1,6 +1,7 @@
 package com.parem.launcher
 
 import android.app.Dialog
+import android.os.SystemClock
 import android.view.View
 import android.widget.EditText
 import android.widget.TextView
@@ -92,6 +93,8 @@ class WidgetPickerOverflowTest {
                     }
                     search = EditText(activity).apply {
                         hint = "Widget search test"
+                        inputType = android.text.InputType.TYPE_CLASS_TEXT
+                        isSingleLine = true
                         showSoftInputOnFocus = false
                         layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 120)
                     }
@@ -141,16 +144,21 @@ class WidgetPickerOverflowTest {
                     scenario.onActivity { dialog.window!!.setLayout(500, 500) }
                     val row = device.wait(Until.findObject(By.res("android", "text1").text("Provider 7")), 10_000)
                         ?: throw AssertionError("filtered provider missing after re-expansion")
-                    fun logKeys(stage: String) {
-                        scenario.onActivity { android.util.Log.i("WidgetKeyDiag", "$stage search=${search.text} searchFocus=${search.hasFocus()} listFocus=${list.hasFocus()} selected=${list.selectedItemPosition} touch=${list.isInTouchMode}") }
-                        val ime = device.executeShellCommand("dumpsys input_method").lineSequence().firstOrNull { "mInputShown=" in it }
-                        android.util.Log.i("WidgetKeyDiag", "$stage ime=$ime")
+                    var listFocused = false
+                    repeat(6) {
+                        if (!listFocused) {
+                            device.pressDPadDown()
+                            SystemClock.sleep(250)
+                            scenario.onActivity { listFocused = list.hasFocus() && list.selectedItemPosition >= 0 }
+                        }
                     }
-                    logKeys("before-down")
-                    assertTrue("D-pad down was not sent", device.pressDPadDown())
-                    logKeys("after-down")
+                    if (!listFocused) {
+                        device.pressKeyCode(android.view.KeyEvent.KEYCODE_TAB)
+                        SystemClock.sleep(250)
+                        scenario.onActivity { listFocused = list.hasFocus() && list.selectedItemPosition >= 0 }
+                    }
+                    assertTrue("hardware navigation did not focus a provider row", listFocused)
                     assertTrue("Enter was not sent", device.pressEnter())
-                    logKeys("after-enter")
                     val deadline = android.os.SystemClock.elapsedRealtime() + 5_000
                     while (selected.get() == null && android.os.SystemClock.elapsedRealtime() < deadline) android.os.SystemClock.sleep(50)
                     assertEquals("Provider 7", selected.get())
