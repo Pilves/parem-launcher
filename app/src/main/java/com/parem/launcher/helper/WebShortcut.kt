@@ -1,5 +1,6 @@
 package com.parem.launcher.helper
 
+import com.parem.launcher.data.Constants
 import java.net.URI
 
 /** URL handling for website shortcuts on home slots and in folders. Android-free. */
@@ -26,10 +27,13 @@ object WebShortcut {
         return uriScheme + withScheme.substring(uriScheme.length)
     }
 
-    /** The host without a leading "www.", used when the user leaves the label blank. */
+    /** The bounded host without a leading "www.", used when the label is blank. */
     fun defaultLabel(url: String): String {
-        val host = try { host(URI(url)) } catch (_: Exception) { null } ?: return url
-        return host.removePrefix("www.")
+        val host = try { host(URI(url)) } catch (_: Exception) { null } ?: url
+        val label = host.removePrefix("www.")
+        val limit = Constants.MAX_HOME_NAME_LENGTH
+        val end = if (label.length > limit && label[limit - 1].isHighSurrogate() && label[limit].isLowSurrogate()) limit - 1 else limit
+        return label.take(end)
     }
 
     // URI.host is null for IDN (non-ASCII) hosts; fall back to the raw authority

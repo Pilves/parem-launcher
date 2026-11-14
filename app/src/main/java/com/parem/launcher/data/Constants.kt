@@ -1,6 +1,7 @@
 package com.parem.launcher.data
 
 object Constants {
+    const val MAX_HOME_NAME_LENGTH = 40
 
     object Key {
         const val FLAG = "flag"

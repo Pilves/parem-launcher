@@ -17,6 +17,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
 import com.parem.launcher.data.AppModel
+import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.helper.AppLimitManager
 import com.parem.launcher.helper.AppListRebuilder
@@ -131,6 +132,7 @@ object AppMenu {
             isSingleLine = true
             isCursorVisible = true
             setText(name)
+            if (onHome) filters = filters + android.text.InputFilter.LengthFilter(Constants.MAX_HOME_NAME_LENGTH)
             setSelectAllOnFocus(true)
         }
         val fields = LinearLayout(context).apply {

@@ -100,6 +100,10 @@ class HomeSlotsController(
         else binding.widgetScrollViewBelow
 
     init {
+        homeAppViews.forEach {
+            it.maxLines = 2
+            it.ellipsize = android.text.TextUtils.TruncateAt.END
+        }
         // The root is padded by the system-bar insets (padForSystemBars), which
         // can arrive or change after a fitting pass (status-bar toggle, nav mode);
         // re-fit when the column's height changes so no row ends under a bar.

@@ -9,6 +9,7 @@
 - Reject unsafe or invalid settings imports without changing existing preferences.
 - Apply Focus, app limits and mindful pause to the default date, clock and Digital Wellbeing launch paths while preserving the camera gesture and other documented exceptions.
 
+- Limit new folder, home-slot and website labels and keep long home labels within two lines.
 - Avoid repeating unchanged first-run tip layout work when returning home.
 - Show the correct default-home settings row after checking the current role.
 
