@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+if [[ ${PAREM_INCIDENT_MONITORED:-} != 1 ]]; then exec bash scripts/ci-emulator-run.sh com.parem.launcher.debug bash "$0" "$@"; fi
 # Same emulator and driver: release branch before motion, then motion candidate.
 set -euo pipefail
 out=app/build/motion-perf

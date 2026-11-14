@@ -45,6 +45,8 @@ jobs:
         if: always()
         with:
           name: motion-review
-          path: app/build/motion-review/
+          path: |
+            app/build/motion-review/
+            app/build/ci-incidents/
           if-no-files-found: error
           retention-days: 14

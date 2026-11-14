@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+if [[ ${PAREM_INCIDENT_MONITORED:-} != 1 ]]; then exec bash scripts/ci-emulator-run.sh com.parem.launcher.debug bash "$0" "$@"; fi
 # Manual CI diagnosis only. Installs into the disposable workflow emulator.
 set -euo pipefail
 for variant in candidate reference without-strictmode; do
@@ -6,7 +7,7 @@ for variant in candidate reference without-strictmode; do
     adb uninstall com.parem.launcher.debug
   fi
   adb install "app/build/perf-investigation/$variant.apk"
-  adb logcat -c
+  adb logcat -b main -b system -b crash -c
   status=0
   PERF_VARIANT="$variant" node --input-type=module <<'JS' || status=$?
 import {measure, measurementProblems} from './scripts/perf-budget.mjs';

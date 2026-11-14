@@ -52,4 +52,5 @@ jobs:
             app/build/perf-investigation/**/*.xml
             app/build/perf-investigation/**/*.png
             app/build/perf-investigation/**/*.txt
+            app/build/ci-incidents/
           retention-days: 14

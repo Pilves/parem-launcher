@@ -14,29 +14,49 @@ mkdir -p app/build/ci-incidents || exit 1
 # Clear only once, before the workload. A continuous stream limits ring-buffer loss.
 adb_ci logcat -b events -c || exit 1
 adb_ci logcat -b events -d -v threadtime -s am_crash:I am_anr:I '*:S' > app/build/ci-incidents/probe.txt || exit 1
-adb -s "$serials" logcat -b events -v threadtime -s am_crash:I am_anr:I '*:S' > app/build/ci-incidents/stream.txt 2> app/build/ci-incidents/collector-error.txt &
+adb -s "$serials" logcat -b main -b events -v threadtime -s ParemCiIncidentMonitor:I am_crash:I am_anr:I '*:S' > app/build/ci-incidents/stream.txt 2> app/build/ci-incidents/collector-error.txt &
 collector=$!
-sleep 1
-if ! kill -0 "$collector" 2>/dev/null; then
+collector_live=1
+stop_collector() {
+  [ "$collector_live" -eq 1 ] || return 0
+  collector_live=0
+  kill "$collector" 2>/dev/null || true
+  for _ in {1..20}; do
+    kill -0 "$collector" 2>/dev/null || break
+    sleep 0.1
+  done
+  kill -KILL "$collector" 2>/dev/null || true
   wait "$collector" 2>/dev/null || true
-  echo 'Incident collector stopped before workload' >&2
+}
+trap stop_collector EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+marker() {
+  local token=$1
+  adb_ci shell log -p i -t ParemCiIncidentMonitor "$token" || return 1
+  for _ in {1..50}; do
+    grep -F 'ParemCiIncidentMonitor' app/build/ci-incidents/stream.txt | grep -Fq "$token" && return 0
+    kill -0 "$collector" 2>/dev/null || return 1
+    sleep 0.1
+  done
+  return 1
+}
+nonce="$$-$RANDOM-$RANDOM"
+if ! marker "start-$nonce"; then
+  stop_collector
+  echo 'Incident collector did not acknowledge startup' >&2
   exit 1
 fi
 PAREM_INCIDENT_MONITORED=1 "$@"
 workload_status=$?
 collector_status=0
-kill -0 "$collector" 2>/dev/null || collector_status=1
+marker "end-$nonce" || collector_status=1
 adb_ci logcat -b events -d -v threadtime -s am_crash:I am_anr:I '*:S' > app/build/ci-incidents/final.txt || collector_status=1
-kill "$collector" 2>/dev/null || true
-for _ in {1..20}; do
-  kill -0 "$collector" 2>/dev/null || break
-  sleep 0.1
-done
-kill -KILL "$collector" 2>/dev/null || true
-wait "$collector" 2>/dev/null || true
+stop_collector
 if ! awk -v pkg="$pkg" '
   /am_(crash|anr)[[:space:]]*:/ {
-    line=$0; sub(/^.*am_(crash|anr)[[:space:]]*:[[:space:]]*/, "", line)
+    match($0, /am_(crash|anr)[[:space:]]*:[[:space:]]*/)
+    line=substr($0, RSTART + RLENGTH)
     if (line !~ /^\[/ || split(line, fields, ",") < 4) { print "Malformed incident event: " $0 > "/dev/stderr"; bad=1; next }
     process=fields[3]; gsub(/^[[:space:]]+|[[:space:]]+$/, "", process)
     if (process == pkg || index(process, pkg ":") == 1) { print "Parem crash/ANR: " $0 > "/dev/stderr"; bad=1 }

@@ -45,6 +45,8 @@ jobs:
         if: always()
         with:
           name: motion-paired-performance
-          path: app/build/motion-perf/
+          path: |
+            app/build/motion-perf/
+            app/build/ci-incidents/
           if-no-files-found: warn
           retention-days: 14

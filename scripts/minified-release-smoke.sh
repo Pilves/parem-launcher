@@ -8,7 +8,7 @@ mkdir -p "$out"
 # the hosted x86 emulator. Still fail on every crash after the test starts.
 adb shell pm disable-user --user 0 com.google.android.googlequicksearchbox || exit 1
 adb shell am force-stop com.google.android.googlequicksearchbox || exit 1
-adb logcat -c
+adb logcat -b main -b system -b crash -c
 status=0
 adb install -r "app/build/outputs/apk/$flavour/release/app-$flavour-release.apk" || status=1
 adb install -r "release-smoke-driver/build/outputs/apk/debug/release-smoke-driver-debug.apk" || status=1

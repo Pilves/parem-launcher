@@ -15,6 +15,7 @@ on:
       - 'app/src/main/java/com/parem/launcher/helper/PickerKeyboardPolicy.kt'
       - 'app/src/androidTest/java/com/parem/launcher/PickerCaptureTest.kt'
       - 'scripts/capture-picker-ux.sh'
+      - 'scripts/ci-emulator-run.sh'
       - '.github/workflows/picker-ux-capture.yml'
 permissions:
   contents: read
@@ -50,6 +51,7 @@ jobs:
           name: picker-ux-captures-${{ github.run_id }}
           path: |
             app/build/picker-ux/
+            app/build/ci-incidents/
             app/build/reports/androidTests/
           if-no-files-found: error
           retention-days: 30
