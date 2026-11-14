@@ -356,7 +356,10 @@ class BottomSheetMenu(private val context: Context) {
         // taller sheets (screen-time graph + top apps) exceed the screen, and
         // the default landscape peek opens sheets half-hidden. Short menus are
         // unaffected — they still open at content height.
-        val content = if (scrollContent) androidx.core.widget.NestedScrollView(context).apply {
+        val content = if (scrollContent || fitPicker) androidx.core.widget.NestedScrollView(context).apply {
+            // Fill the sheet normally; if fixed picker rows exceed its height, the
+            // bounded list and controls can scroll together instead of clipping.
+            isFillViewport = fitPicker
             addView(container)
         } else container
         // Edge-to-edge dialog window: keep the last row above the navigation bar
