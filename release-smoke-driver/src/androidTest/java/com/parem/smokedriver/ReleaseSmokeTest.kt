@@ -81,6 +81,8 @@ class ReleaseSmokeTest {
         val deadline = SystemClock.elapsedRealtime() + 15_000
         while (SystemClock.elapsedRealtime() < deadline) {
             try {
+                val scroll = UiScrollable(UiSelector().resourceId("$pkg:id/scrollView"))
+                if (!scroll.scrollIntoView(UiSelector().resourceId("$pkg:id/$id"))) continue
                 val row = device.wait(Until.findObject(By.res(pkg, id)), 1_000)
                 if (row != null) {
                     row.click()
@@ -94,13 +96,7 @@ class ReleaseSmokeTest {
         if (directory != null) {
             runCatching { device.dumpWindowHierarchy(File(directory, "settings-row-failure.xml")) }
             runCatching { device.takeScreenshot(File(directory, "settings-row-failure.png")) }
-            val found = runCatching {
-                UiScrollable(UiSelector().resourceId("$pkg:id/scrollView"))
-                    .scrollIntoView(UiSelector().resourceId("$pkg:id/$id"))
-            }.getOrDefault(false)
-            println("DIAGNOSTIC: $id reachable by scrolling: $found")
-            runCatching { device.dumpWindowHierarchy(File(directory, "settings-row-after-scroll.xml")) }
-            runCatching { device.takeScreenshot(File(directory, "settings-row-after-scroll.png")) }
+
         }
         fail("Settings row $id did not remain available")
     }

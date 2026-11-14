@@ -15,7 +15,7 @@ adb install -r "release-smoke-driver/build/outputs/apk/debug/release-smoke-drive
 adb install -r "release-smoke-driver/build/outputs/apk/androidTest/debug/release-smoke-driver-debug-androidTest.apk" || status=1
 if [ "$status" = 0 ]; then
   adb shell am instrument -w -e class com.parem.smokedriver.ReleaseSmokeTest com.parem.smokedriver.test/androidx.test.runner.AndroidJUnitRunner >"$out/instrumentation.txt" 2>&1 || status=1
-  for file in settings-row-failure.xml settings-row-failure.png settings-row-after-scroll.xml settings-row-after-scroll.png; do
+  for file in settings-row-failure.xml settings-row-failure.png; do
     adb pull "/sdcard/Android/data/com.parem.smokedriver/files/$file" "$out/$file" 2>/dev/null || true
   done
   cat "$out/instrumentation.txt"
