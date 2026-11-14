@@ -1,6 +1,7 @@
 package com.parem.smokedriver
 
 import android.os.SystemClock
+import java.io.File
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
@@ -88,6 +89,11 @@ class ReleaseSmokeTest {
             } catch (_: StaleObjectException) {
                 // A wallpaper-induced theme update can recreate Settings between lookup and click.
             }
+        }
+        val directory = InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null)
+        if (directory != null) {
+            runCatching { device.dumpWindowHierarchy(File(directory, "settings-row-failure.xml")) }
+            runCatching { device.takeScreenshot(File(directory, "settings-row-failure.png")) }
         }
         fail("Settings row $id did not remain available")
     }
