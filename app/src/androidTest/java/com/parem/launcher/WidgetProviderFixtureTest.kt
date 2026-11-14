@@ -179,8 +179,7 @@ class WidgetProviderFixtureTest {
         var pending = -1
         lateinit var owner: MainActivity
         try {
-            check(device.pressHome())
-            check(device.wait(Until.hasObject(By.res(context.resources.getResourceName(R.id.homeAppsLayout))), 10_000))
+            pressHomeAndAwaitParem()
             onHome { activity ->
                 owner = activity
                 first = activity.appWidgetHost.allocateAppWidgetId()
@@ -205,7 +204,8 @@ class WidgetProviderFixtureTest {
                 assertEquals(first, operation.getInt("replaceId"))
                 pending = operation.getInt("widgetId")
             }
-            assertTrue(device.pressHome())
+            assertEquals("fixture configuration must be foreground before HOME", fixture, device.currentPackageName)
+            pressHomeAndAwaitParem()
             assertTrue(device.wait(Until.hasObject(unavailable), 15_000))
             val deadline = SystemClock.elapsedRealtime() + 15_000
             var allocated = true
