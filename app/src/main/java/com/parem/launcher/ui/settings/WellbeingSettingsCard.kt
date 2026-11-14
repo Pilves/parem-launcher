@@ -90,7 +90,7 @@ class WellbeingSettingsCard(
         val onChanged = { if (fragment.isBindingAlive()) populateQuietNotif() }
         when (QuietNotificationsManager.state(context)) {
             State.OFF -> QuietListSheet.startTurnOn(fragment, prefs, fragment::isBindingAlive, onChanged)
-            State.NEEDS_ACCESS -> QuietListSheet.showNeedsAccess(context, starting = false, onChanged = onChanged)
+            State.NEEDS_ACCESS -> QuietListSheet.showNeedsAccess(fragment, starting = false, onChanged = onChanged)
             State.ON -> BottomSheetMenu(context)
                 .title(context.getString(R.string.settings_quiet_notifications))
                 .option(context.getString(R.string.quiet_allowed_apps)) { openQuietControl(R.id.quietNotifAllowed) }

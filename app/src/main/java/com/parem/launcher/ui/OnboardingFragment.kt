@@ -291,7 +291,7 @@ class OnboardingFragment : BaseFragment() {
         val isAlive = { _binding != null }
         when (QuietNotificationsManager.state(ctx)) {
             State.OFF -> QuietListSheet.startTurnOn(this, prefs, isAlive, onChanged = ::refreshRows)
-            State.NEEDS_ACCESS -> QuietListSheet.showNeedsAccess(ctx, starting = false, onChanged = ::refreshRows)
+            State.NEEDS_ACCESS -> QuietListSheet.showNeedsAccess(this, starting = false, onChanged = ::refreshRows)
             State.ON -> QuietListSheet.editAllowed(this, prefs, isAlive)
         }
     }
