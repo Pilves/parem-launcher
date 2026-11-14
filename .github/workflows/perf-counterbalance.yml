@@ -1,0 +1,60 @@
+# Diagnostic experiment only; this does not replace or modify the smoke performance gate.
+name: Experimental counterbalanced performance measurements
+on:
+  workflow_dispatch:
+    inputs:
+      order:
+        description: Counterbalanced order after the two identical-reference controls
+        type: choice
+        options: [ABBA, BAAB]
+        default: ABBA
+permissions:
+  contents: read
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+      - name: Build pinned master reference and candidate
+        run: |
+          mkdir -p app/build/perf-counterbalance
+          git fetch origin f61a3324315f8ba94c7a73282f7d678626b3bce5
+          git worktree add ../perf-reference f61a3324315f8ba94c7a73282f7d678626b3bce5
+          (cd ../perf-reference && ./gradlew assembleFullDebug)
+          cp ../perf-reference/app/build/outputs/apk/full/debug/app-full-debug.apk app/build/perf-counterbalance/reference.apk
+          ./gradlew assembleFullDebug
+          cp app/build/outputs/apk/full/debug/app-full-debug.apk app/build/perf-counterbalance/candidate.apk
+          sha256sum app/build/perf-counterbalance/*.apk | tee app/build/perf-counterbalance/apk-sha256.txt
+          git rev-parse HEAD | tee app/build/perf-counterbalance/candidate-revision.txt
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Measure controls and both orders
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          profile: pixel_6
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: bash scripts/perf-counterbalance.sh "${{ inputs.order || 'ABBA' }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: experimental-counterbalance-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            app/build/perf-counterbalance/**/*.json
+            app/build/perf-counterbalance/**/*.xml
+            app/build/perf-counterbalance/**/*.png
+            app/build/perf-counterbalance/**/*.txt
+          if-no-files-found: warn
+          retention-days: 14
