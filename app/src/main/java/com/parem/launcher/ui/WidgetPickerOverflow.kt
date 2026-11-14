@@ -57,26 +57,24 @@ internal class WidgetPickerOverflow(
     }
 
     private fun revealHeader(restoreFocus: Boolean) {
-        list.post {
-            if (!inHeader || !list.isAttachedToWindow) return@post
-            // Scroll to the header by position rather than selecting it: the header
-            // is deliberately nonselectable and D-pad selection skips it.
-            list.smoothScrollToPositionFromTop(0, 0, 200)
-            if (restoreFocus) {
-                val deadline = android.os.SystemClock.elapsedRealtime() + 3_000
-                val retry = object : Runnable {
-                    override fun run() {
-                        if (!inHeader || !list.isAttachedToWindow) return
-                        if (search.isAttachedToWindow) {
-                            search.requestFocus()
-                            search.requestRectangleOnScreen(android.graphics.Rect(0, 0, search.width, search.height), true)
-                        } else if (android.os.SystemClock.elapsedRealtime() < deadline) {
-                            list.postDelayed(this, 50)
-                        }
+        // Scroll without selecting: the header deliberately cannot be selected.
+        // A tiny viewport may need many list pages to reach it from a distant row.
+        var remaining = 240
+        val reveal = object : Runnable {
+            override fun run() {
+                if (!inHeader || !list.isAttachedToWindow || remaining-- <= 0) return
+                val first = list.getChildAt(0)
+                if (list.firstVisiblePosition == 0 && first != null && first.top >= list.paddingTop) {
+                    if (restoreFocus && search.isAttachedToWindow) {
+                        search.requestFocus()
+                        search.requestRectangleOnScreen(android.graphics.Rect(0, 0, search.width, search.height), true)
                     }
+                    return
                 }
-                list.post(retry)
+                list.scrollListBy(-list.height.coerceAtLeast(1))
+                list.postOnAnimation(this)
             }
         }
+        list.post(reveal)
     }
 }
