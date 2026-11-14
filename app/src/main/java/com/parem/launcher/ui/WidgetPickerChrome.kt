@@ -28,7 +28,7 @@ internal class WidgetPickerChrome(context: Context, private val minListHeight: I
     }
 }
 
-internal fun installWidgetPickerChrome(container: LinearLayout, title: View, search: View, list: View, minListHeight: Int, bottomContentPadding: Int): WidgetPickerChrome {
+internal fun installWidgetPickerChrome(container: LinearLayout, title: View, search: View, minListHeight: Int, bottomContentPadding: Int): WidgetPickerChrome {
     val titleIndex = container.indexOfChild(title)
     val handle = container.getChildAt(titleIndex - 1)
     val hadFocus = search.hasFocus()
@@ -46,7 +46,6 @@ internal fun installWidgetPickerChrome(container: LinearLayout, title: View, sea
         view.setPadding(view.paddingLeft, 0, view.paddingRight, bottom)
         insets
     }
-    list.setPadding(list.paddingLeft, list.paddingTop, list.paddingRight, list.paddingBottom + bottomContentPadding)
     val content = LinearLayout(container.context).apply {
         orientation = LinearLayout.VERTICAL
         setPadding(0, topPadding, 0, 0)
