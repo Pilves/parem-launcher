@@ -137,11 +137,12 @@ class WidgetPickerOverflowTest {
                     val shortRow = device.wait(Until.findObject(By.res("android", "text1")), 10_000)
                         ?: throw AssertionError("provider row missing in short window")
                     assertTrue("provider row has no visible height in short window", shortRow.visibleBounds.height() > 0)
-                    field.text = "Provider 7"
+                    instrumentation.sendStringSync("Provider 7")
                     scenario.onActivity { dialog.window!!.setLayout(500, 500) }
                     val row = device.wait(Until.findObject(By.res("android", "text1").text("Provider 7")), 10_000)
                         ?: throw AssertionError("filtered provider missing after re-expansion")
-                    row.click()
+                    assertTrue("D-pad down was not sent", device.pressDPadDown())
+                    assertTrue("Enter was not sent", device.pressEnter())
                     val deadline = android.os.SystemClock.elapsedRealtime() + 5_000
                     while (selected.get() == null && android.os.SystemClock.elapsedRealtime() < deadline) android.os.SystemClock.sleep(50)
                     assertEquals("Provider 7", selected.get())
