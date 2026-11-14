@@ -1,0 +1,48 @@
+name: Capture released export
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Fetch and verify published APK
+        run: |
+          set -euo pipefail
+          mkdir -p capture
+          curl -fL --retry 3 -o capture/release.apk https://github.com/Pilves/parem-launcher/releases/download/v6.0.2/ParemLauncher-v6.0.2.apk
+          echo '0681798e77ea60664c0c76a3952a004268ab1b85032fd801990d517f63e7b80b  capture/release.apk' | sha256sum -c
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging capture/release.apk | head -n 1 | tee capture/apk-package.txt
+      - name: Build UI driver
+        run: ./gradlew -PreleaseSmoke :release-smoke-driver:assembleDebug :release-smoke-driver:assembleDebugAndroidTest
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Export through the released app UI
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          profile: pixel_6
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: bash scripts/capture-released-export.sh
+      - name: Upload captured file and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: released-export-capture
+          path: capture/
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,21 @@
+{
+  "__parem_export_version": 1,
+  "HIDDEN_APPS": [],
+  "DAILY_WALLPAPER_URL": "https:\/\/images.unsplash.com\/photo-1700564666932-49f9af98d987?w=2000&q=99",
+  "FIRST_OPEN": false,
+  "CLOCK_APP_PACKAGE": "com.google.android.deskclock",
+  "DAILY_WALLPAPER": true,
+  "HIDDEN_APPS_UPDATED": true,
+  "CLOCK_APP_CLASS_NAME": "com.android.deskclock.DeskClock",
+  "FIRST_OPEN_TIME": 1794634769572,
+  "APP_NAME_1": "",
+  "APP_NAME_2": "",
+  "APP_NAME_3": "",
+  "APP_NAME_4": "",
+  "CLOCK_APP_USER": "UserHandle{0}",
+  "APP_PACKAGE_1": "",
+  "APP_PACKAGE_2": "",
+  "SEARCH_HINT_OPENS": 1,
+  "APP_PACKAGE_3": "",
+  "APP_PACKAGE_4": ""
+}
