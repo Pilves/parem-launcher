@@ -6,6 +6,7 @@
 - Close grayscale and quiet notification sheets when their screen is dismissed.
 - Show unavailable widgets as removable placeholders instead of opening empty bind dialogs.
 - Prevent invisible-only home, folder and website labels from creating inaccessible slots.
+- Protect quick-action prefixes and settings searches while allowing matching app-name prefixes to auto-launch.
 
 - Preserve picker checkbox accessibility after filtering and recycling rows.
 - Reject unsafe or invalid settings imports without changing existing preferences.

@@ -59,7 +59,7 @@ class AppDrawerAdapter(
     var privateSpaceHeader: (String) -> AppModel? = { null }
 
     /** Extra veto for auto-launch, checked on the main thread right before firing. */
-    var autoLaunchGuard: (String) -> Boolean = { true }
+    var autoLaunchGuard: (String, String) -> Boolean = { _, _ -> true }
     var onFilterCommitted: (String) -> Unit = { }
     private val filterState = DrawerFilterState()
     fun isQueryReady(query: String): Boolean = filterState.isReady(query)
@@ -195,6 +195,7 @@ class AppDrawerAdapter(
 
     private fun autoLaunch(filteredSnapshot: List<AppModel>, query: String, generation: Long) {
         try {
+            val app = firstApp(filteredSnapshot, includeShortcuts = false) ?: return
             // App rows only: a shortcut row never starts or stops auto-launch
             if (filteredSnapshot.none { it.isPrivateHeader() }
                 && filteredSnapshot.count { it.shortcutId == null } == 1
@@ -204,15 +205,15 @@ class AppDrawerAdapter(
                 && flag == Constants.FLAG_LAUNCH_APP
                 && filteredSnapshot.isNotEmpty()
                 && !OmniboxResolver.blocksAutoLaunch(query)
-                && autoLaunchGuard(query)
+                && autoLaunchGuard(query, app.appLabel)
             ) {
                 autoLaunchedQuery = query
                 val token = ++autoLaunchVersion
                 Handler(Looper.getMainLooper()).post {
                     try {
                         if (token == autoLaunchVersion && filterState.isCurrent(generation) &&
-                            isQueryReady(query) && autoLaunchGuard(query))
-                            firstApp(filteredSnapshot, includeShortcuts = false)?.let { appClickListener(it, null) }
+                            isQueryReady(query) && autoLaunchGuard(query, app.appLabel))
+                            appClickListener(app, null)
                     } catch (e: Exception) {
                         CrashReporter.reportNonFatal("AppDrawerAdapter.autoLaunch", e)
                     }

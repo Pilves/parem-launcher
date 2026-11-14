@@ -507,6 +507,83 @@ class SmokeTest {
     }
 
     @Test
+    fun quickActionAndSettingPrefixesDoNotAutoLaunchSingleApp() {
+        Prefs(context).autoLaunchSingleMatch = true
+        val handle = android.os.Process.myUserHandle()
+        openDrawer()
+        fun showFixture(label: String) {
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                ViewModelProvider(activity)[MainViewModel::class.java].appList.value = listOf(
+                    AppModel(label, null, "com.android.settings", null, false, handle))
+            }
+        }
+        val search = device.wait(Until.findObject(By.res(
+            context.resources.getResourceName(androidx.appcompat.R.id.search_src_text))), TIMEOUT)
+        assertNotNull("drawer search missing", search)
+        for ((query, label) in listOf("e" to "Eventual Fixture", "ev" to "Eventual Fixture", "s" to "Resource Fixture", "so" to "Resource Fixture")) {
+            showFixture(label)
+            search.text = query
+            assertTrue("single matching fixture missing for $query", device.wait(Until.hasObject(By.text(label)), TIMEOUT))
+            SystemClock.sleep(1_000) // Allow the posted auto-launch to run if its guard is broken.
+            assertEquals("$query unexpectedly launched the app", pkg, device.currentPackageName)
+        }
+        showFixture("Zzz Fixture")
+        search.text = "zzz"
+        assertTrue("unrelated single match did not auto-launch", device.wait(
+            Until.hasObject(By.pkg("com.android.settings").depth(0)), TIMEOUT))
+    }
+
+    @Test
+    fun matchingAppPrefixesStillAutoLaunchForSettingsNames() {
+        Prefs(context).autoLaunchSingleMatch = true
+        val handle = android.os.Process.myUserHandle()
+        for ((query, label) in listOf("clo" to "Clock", "wea" to "Weather", "set" to "Settings")) {
+            device.pressHome()
+            assertTrue(device.wait(Until.hasObject(By.res(homeId)), TIMEOUT))
+            openDrawer()
+            instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                ViewModelProvider(activity)[MainViewModel::class.java].appList.value = listOf(
+                    AppModel(label, null, "com.android.settings", null, false, handle))
+            }
+            val search = checkNotNull(device.wait(Until.findObject(By.res(
+                context.resources.getResourceName(androidx.appcompat.R.id.search_src_text))), TIMEOUT))
+            search.text = query
+            assertTrue("$label did not auto-launch for $query", device.wait(
+                Until.hasObject(By.pkg("com.android.settings").depth(0)), TIMEOUT))
+        }
+    }
+
+    @Test
+    fun changedQueryCancelsPostedAutoLaunch() {
+        val clicks = AtomicInteger()
+        val done = CountDownLatch(1)
+        var currentQuery = "zzz"
+        val fixture = AppModel("Zzz Fixture", null, "fixture.zzz", null, false, android.os.Process.myUserHandle())
+        lateinit var adapter: AppDrawerAdapter
+        instrumentation.runOnMainSync {
+            adapter = AppDrawerAdapter(Constants.FLAG_LAUNCH_APP, android.view.Gravity.START,
+                appClickListener = { _, _ -> clicks.incrementAndGet() }, appLongPressListener = {})
+            adapter.autoLaunchGuard = { query, _ -> query == currentQuery }
+            adapter.onFilterCommitted = { query ->
+                if (query == "zzz") {
+                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                        currentQuery = "ev"
+                        android.os.Handler(android.os.Looper.getMainLooper()).post { done.countDown() }
+                    }
+                }
+            }
+            adapter.setAppList(mutableListOf(fixture))
+            adapter.filter.filter("zzz")
+        }
+        assertTrue("controlled launch sequence did not finish", done.await(10, TimeUnit.SECONDS))
+        assertEquals("stale posted result launched after the query changed", 0, clicks.get())
+    }
+
+    @Test
     fun immediateEnterLaunchesSingleResultOnlyOnceWithAutoLaunchEnabled() {
         Prefs(context).autoLaunchSingleMatch = true
         val before = AppOpenCounter.getCounts(context)["com.android.settings"] ?: 0
@@ -622,7 +699,9 @@ class SmokeTest {
         field.click()
         field.text = "Settings"
         // Filtering and list submission are asynchronous. Do not submit an old row.
-        val settingsRow = By.res(context.resources.getResourceName(R.id.appTitle)).text("Settings")
+        // Newly installed apps carry the existing decorative star in their row label.
+        val settingsRow = By.res(context.resources.getResourceName(R.id.appTitle))
+            .text(java.util.regex.Pattern.compile("^Settings(?: ✦)?$"))
         val ready = device.wait(Until.hasObject(By.pkg(SETTINGS_PKG).depth(0)), 500L)
             || device.wait(Until.hasObject(settingsRow), TIMEOUT)
         if (ready && device.currentPackageName != SETTINGS_PKG) device.pressEnter()

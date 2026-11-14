@@ -40,6 +40,28 @@ object SettingsSearch {
         return best
     }
 
+    /** Precompute the same title/alias keys used by match for the auto-launch guard. */
+    fun prefixKeys(rows: List<Row>): List<SearchMatcher.LabelKey> =
+        rows.flatMap { row -> (listOf(row.title) + row.aliases).map(SearchMatcher::key) }
+
+    /** Protect even short queries without changing the minimum length of visible suggestions. */
+    fun isPrefix(query: String, keys: List<SearchMatcher.LabelKey>): Boolean {
+        if (query.startsWith(" ")) return false
+        val tokens = SearchMatcher.key(query).words
+        val flat = tokens.joinToString("")
+        return flat.isNotEmpty() && keys.any { key ->
+            key.normalized.startsWith(flat) || wordsInOrder(tokens, key.words)
+        }
+    }
+
+    /** Settings prefixes yield to a matching app's own label or word prefix. */
+    fun holdsAutoLaunch(query: String, appLabel: String, keys: List<SearchMatcher.LabelKey>): Boolean {
+        if (!isPrefix(query, keys)) return false
+        val normalized = SearchMatcher.key(query).normalized
+        val label = SearchMatcher.key(appLabel)
+        return !(label.normalized.startsWith(normalized) || label.words.any { it.startsWith(normalized) })
+    }
+
     private fun wordsInOrder(tokens: List<String>, words: List<String>): Boolean {
         var i = 0
         for (token in tokens) {

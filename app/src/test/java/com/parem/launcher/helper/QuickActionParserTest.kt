@@ -130,10 +130,17 @@ class QuickActionParserTest {
     @Test
     fun isActionPrefix() {
         val yes = listOf(
-            "ala", "alarm", "alarm ", "alarm 7", "timer ", "timer p", "remind m", "äratus 7", "eve",
+            "a", "al", "e", "ev", "t", "ti", "r", "re", "ä", "är", "s", "sü", "k", "ko", "tu", "ala", "alarm", "alarm ", "alarm 7", "timer ", "timer p", "remind m", "äratus 7", "eve",
             "Alarm 7:30", "remind  me 5pm", "tai", "kohtumine reedel",
         )
-        val no = listOf("al", "a", "", "alarmy", "ever", "timers", " alarm 7:30", "calendar", "chrome", "remind x")
+        val no = listOf("", "alarmy", "ever", "timers", " alarm 7:30", "calendar", "chrome", "remind x")
+        val keywords = listOf("alarm", "äratus", "timer", "taimer", "event", "sündmus", "kohtumine", "remind me", "tuleta meelde")
+        keywords.forEach { keyword ->
+            (1..keyword.length).forEach { n ->
+                val prefix = keyword.take(n)
+                assertEquals("keyword prefix '$prefix'", true, QuickActionParser.isActionPrefix(prefix))
+            }
+        }
         yes.forEach { assertEquals("query '$it'", true, QuickActionParser.isActionPrefix(it)) }
         no.forEach { assertEquals("query '$it'", false, QuickActionParser.isActionPrefix(it)) }
     }

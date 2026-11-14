@@ -57,14 +57,14 @@ object SettingsSearchIndex {
     )
 
     /** Rows the settings cards hide outright are not offered (same conditions as the cards). */
-    fun rows(context: Context): List<SettingsSearch.Row> {
+    fun rows(context: Context, includeHidden: Boolean = false): List<SettingsSearch.Row> {
         val hidden = buildSet {
             if (Constants.URL_ABOUT_PAREM.isEmpty()) add(R.id.aboutParem)
             if (Constants.URL_PAREM_PRIVACY.isEmpty()) add(R.id.privacy)
             if (Constants.URL_PAREM_GITHUB.isEmpty()) add(R.id.github)
             if (!context.appUsagePermissionGranted()) add(R.id.sortByUsage)
         }
-        return ROWS.filter { it.second !in hidden }
+        return ROWS.filter { includeHidden || it.second !in hidden }
             .map { (title, anchor) ->
                 val aliasIds = when (title) {
                     R.string.settings_default_home -> listOf(R.string.settings_set_default_home, R.string.set_as_default_launcher, R.string.change_default_launcher)

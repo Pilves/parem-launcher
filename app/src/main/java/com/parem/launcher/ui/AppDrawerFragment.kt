@@ -41,6 +41,7 @@ import com.parem.launcher.helper.OmniboxResolver
 import com.parem.launcher.helper.QuickAction
 import com.parem.launcher.helper.QuickActionParser
 import com.parem.launcher.helper.SettingsSearch
+import com.parem.launcher.helper.SearchMatcher
 import com.parem.launcher.helper.fireQuickAction
 import com.parem.launcher.helper.quickActionPreview
 import com.parem.launcher.helper.getShortcutRaws
@@ -100,6 +101,7 @@ class AppDrawerFragment : BaseFragment() {
 
     // Built on the first query; only the launch drawer resolves omnibox modes.
     private var settingsRows: List<SettingsSearch.Row>? = null
+    private var settingPrefixKeys: List<SearchMatcher.LabelKey>? = null
 
     // Labels protect web searches and drive the empty-result hint; never shown.
     private val hiddenLabels = HiddenLabelLoad()
@@ -598,10 +600,14 @@ class AppDrawerFragment : BaseFragment() {
         adapter.iconPackPackage = prefs.iconPackPackage
         adapter.openCounts = AppOpenCounter.getCounts(requireContext())
         // Read when the filter publishes, so fast typing only makes it stricter
-        adapter.autoLaunchGuard = { query ->
+        adapter.autoLaunchGuard = { query, appLabel ->
             val text = searchTextView?.text?.toString().orEmpty()
+            val keys = settingPrefixKeys ?: _binding?.root?.context?.let {
+                SettingsSearch.prefixKeys(SettingsSearchIndex.rows(it, includeHidden = true))
+                    .also { keys -> settingPrefixKeys = keys }
+            }.orEmpty()
             text == query && !isSearchComposing() && !QuickActionParser.isActionPrefix(text) &&
-                OmniboxResolver.autoLaunchAllowed(text, prefs.autoLaunchSingleMatch, isScreenReaderOn())
+                !SettingsSearch.holdsAutoLaunch(text, appLabel, keys) && OmniboxResolver.autoLaunchAllowed(text, prefs.autoLaunchSingleMatch, isScreenReaderOn())
         }
         if (flag == Constants.FLAG_LAUNCH_APP) {
             // Re-read profile and system visibility on every rebuild, including search.
@@ -956,6 +962,7 @@ class AppDrawerFragment : BaseFragment() {
     }
 
     override fun onDestroyView() {
+        settingPrefixKeys = null
         revealPrivateSpace = false
         scrollListener?.let { binding.recyclerView.removeOnScrollListener(it) }
         scrollListener = null
