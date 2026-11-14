@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+if [[ ${PAREM_INCIDENT_MONITORED:-} != 1 ]]; then exec bash scripts/ci-emulator-run.sh com.parem.launcher.debug bash "$0" "$@"; fi
 # Explicitly disposable CI emulator only; never changes a physical device.
 set -euo pipefail
 [[ ${GITHUB_ACTIONS:-} == true ]] || { echo 'CI only' >&2; exit 1; }
@@ -10,8 +11,6 @@ if adb shell pm path "$fixture" | grep -q '^package:'; then
 fi
 mkdir -p app/build/widget-picker-profile
 trap 'adb logcat -d -v threadtime > app/build/widget-picker-profile/logcat.txt || true; for image in cold-open cold-filtered cold-scrolled warm-open warm-filtered warm-scrolled font1.0-imeoff font1.0-imeon font2.0-imeoff font2.0-imeon; do adb pull "/data/local/tmp/parem-widget-picker-$image.png" "app/build/widget-picker-profile/$image.png" >/dev/null 2>&1 || true; done; adb shell settings delete system font_scale >/dev/null 2>&1 || true; adb uninstall "$fixture" >/dev/null 2>&1 || true' EXIT
-adb shell settings put global hide_error_dialogs 1
-adb logcat -c
 adb install app/build/widget-picker-profile-fixture/widget-stress.apk
 adb shell am start -W -n "$fixture/.Publisher"
 ready=false
