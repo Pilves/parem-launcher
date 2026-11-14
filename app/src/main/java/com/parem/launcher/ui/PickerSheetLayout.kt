@@ -3,6 +3,7 @@ package com.parem.launcher.ui
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
+import com.parem.launcher.helper.dpToPx
 
 /** Keep title, search and actions visible around the one scrolling app list. */
 internal fun LinearLayout.makePickerScroller() {
@@ -12,5 +13,5 @@ internal fun LinearLayout.makePickerScroller() {
     val list = (0 until content.childCount).map(content::getChildAt).filterIsInstance<RecyclerView>().single()
     content.removeView(list)
     addView(list, indexOfChild(content) + 1,
-        LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f))
+        LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 48.dpToPx(), 1f))
 }
