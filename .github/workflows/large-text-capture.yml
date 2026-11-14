@@ -1,4 +1,4 @@
-name: Large text small phone capture
+name: Copy picker API36 diagnostic
 on:
   pull_request:
     branches: [master]
@@ -23,13 +23,13 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
-          profile: pixel_6
+          api-level: 36
+          profile: pixel_tablet
           target: google_apis
           arch: x86_64
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-          script: bash scripts/capture-large-text.sh
+          script: bash scripts/ci-emulator-run.sh com.parem.launcher.debug bash scripts/ci-copy-picker.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
