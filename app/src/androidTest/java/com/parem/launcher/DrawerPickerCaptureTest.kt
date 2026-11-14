@@ -120,21 +120,34 @@ class DrawerPickerCaptureTest {
         val directory = requireNotNull(context.getExternalFilesDir(null))
         val base = "failure-$route-font$font-ime$ime"
         val hierarchy = File(directory, "$base.xml")
-        val screenshot = File(directory, "$base.png")
+        val out = "/data/local/tmp/parem-drawer-picker-captures"
         val issues = mutableListOf<Throwable>()
-        fun copy(file: File) {
-            val command = "mkdir -p /data/local/tmp/parem-drawer-picker-captures && " +
-                "cp ${file.absolutePath} /data/local/tmp/parem-drawer-picker-captures/ && echo copied"
-            check(device.executeShellCommand(command).trim().endsWith("copied")) { "failure evidence copy failed: ${file.name}" }
+        fun verify(path: String, operation: String) {
+            val result = device.executeShellCommand("stat -c %s '$path'").trim()
+            check((result.toLongOrNull() ?: 0) > 0) { "$operation did not produce a nonempty file: $result" }
         }
         runCatching {
-            check(device.takeScreenshot(screenshot)) { "failure screenshot failed" }
-            copy(screenshot)
+            val result = device.executeShellCommand("mkdir -p '$out'")
+            val listing = device.executeShellCommand("ls -ld '$out'")
+            check(listing.contains("parem-drawer-picker-captures")) { "diagnostic directory: $result $listing" }
+        }.onFailure(issues::add)
+        runCatching {
+            val target = "$out/$base.png"
+            val result = device.executeShellCommand("screencap -p '$target'")
+            android.util.Log.i("DrawerPickerDiag", "screencap output: $result")
+            verify(target, "screencap")
         }.onFailure(issues::add)
         runCatching {
             device.dumpWindowHierarchy(hierarchy)
             check(hierarchy.isFile) { "failure hierarchy missing" }
-            copy(hierarchy)
+            // Bounded logcat fallback survives shell-copy failures.
+            hierarchy.readText().take(100_000).chunked(2_000).forEachIndexed { index, chunk ->
+                android.util.Log.i("DrawerPickerDiag", "hierarchy[$index]: $chunk")
+            }
+            val target = "$out/$base.xml"
+            val result = device.executeShellCommand("cp '${hierarchy.absolutePath}' '$target'")
+            android.util.Log.i("DrawerPickerDiag", "hierarchy copy output: $result")
+            verify(target, "hierarchy copy")
         }.onFailure(issues::add)
         if (issues.isNotEmpty()) throw IllegalStateException("failure diagnostics incomplete").also { error ->
             issues.forEach(error::addSuppressed)
