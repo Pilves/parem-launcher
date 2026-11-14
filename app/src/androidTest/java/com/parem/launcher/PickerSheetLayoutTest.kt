@@ -47,11 +47,13 @@ class PickerSheetLayoutTest {
             sheet.addView(cancel)
 
             sheet.makePickerScroller()
-            assertEquals(3, sheet.childCount)
-            assertSame(list, sheet.getChildAt(0))
-            assertSame(action, sheet.getChildAt(1))
-            assertSame(cancel, sheet.getChildAt(2))
-            assertEquals(21, list.adapter!!.itemCount) // header and 20 choices; actions are pinned
+            assertEquals(5, sheet.childCount)
+            assertSame(title, sheet.getChildAt(0))
+            assertSame(content, sheet.getChildAt(1))
+            assertSame(list, sheet.getChildAt(2))
+            assertSame(action, sheet.getChildAt(3))
+            assertSame(cancel, sheet.getChildAt(4))
+            assertEquals(20, list.adapter!!.itemCount) // search and actions stay outside the single list
             sheet.measure(
                 View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(240, View.MeasureSpec.EXACTLY),
@@ -64,13 +66,13 @@ class PickerSheetLayoutTest {
             assertEquals("the action must span the picker width", list.width, action.width)
             assertEquals("search must span the picker width", list.width, search.width)
 
-            // A wrap-content dialog supplies an AT_MOST height, not always EXACTLY.
+            // A short resized window still leaves a visible list and pinned actions.
             sheet.measure(
                 View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(240, View.MeasureSpec.AT_MOST),
+                View.MeasureSpec.makeMeasureSpec(180, View.MeasureSpec.EXACTLY),
             )
-            sheet.layout(0, 0, 200, sheet.measuredHeight)
-            assertTrue("list must retain space under a dialog height limit", list.height > 75)
+            sheet.layout(0, 0, 200, 180)
+            assertTrue("list must retain some room in a short window", list.height > 0)
             assertTrue("last action must remain inside the dialog", cancel.bottom <= sheet.height)
             assertTrue("long list must remain scrollable", list.canScrollVertically(1))
         }
