@@ -8,6 +8,8 @@ import android.icu.util.Measure
 import android.icu.util.MeasureUnit
 import android.content.IntentFilter
 import android.os.BatteryManager
+import android.provider.AlarmClock
+import android.provider.CalendarContract
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
@@ -17,6 +19,7 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.parem.launcher.helper.CrashReporter
 import com.parem.launcher.MainViewModel
 import com.parem.launcher.R
@@ -28,8 +31,7 @@ import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.WeatherStaleness
 import com.parem.launcher.helper.appUsagePermissionGranted
 import com.parem.launcher.helper.formattedTimeSpent
-import com.parem.launcher.helper.openAlarmApp
-import com.parem.launcher.helper.openCalendar
+import com.parem.launcher.ui.BadHabitDialogs
 import com.parem.launcher.ui.HomeFragment
 import com.parem.launcher.ui.ScreenTimeGraphDialog
 import com.parem.launcher.ui.isAlive
@@ -150,7 +152,7 @@ class HomeClockController(
 
     fun openClockApp(sourceView: android.view.View) {
         if (prefs.clockAppPackage.isBlank())
-            openAlarmApp(context)
+            openSystemIntent(Intent(AlarmClock.ACTION_SHOW_ALARMS))
         else
             fragment.slotsController?.launchApp(
                 "Clock",
@@ -162,8 +164,12 @@ class HomeClockController(
     }
 
     fun openCalendarApp(sourceView: android.view.View) {
-        if (prefs.calendarAppPackage.isBlank())
-            openCalendar(context)
+        if (prefs.calendarAppPackage.isBlank()) {
+            val calendar = Intent(Intent.ACTION_VIEW, CalendarContract.CONTENT_URI.buildUpon().appendPath("time").build())
+            openSystemIntent(calendar) {
+                openSystemIntent(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR))
+            }
+        }
         else
             fragment.slotsController?.launchApp(
                 "Calendar",
@@ -186,10 +192,14 @@ class HomeClockController(
                     Constants.DIGITAL_WELLBEING_PACKAGE_NAME,
                     Constants.DIGITAL_WELLBEING_ACTIVITY
                 )
-                fragment.startActivity(intent)
+                openSystemIntent(intent)
             } catch (e2: Exception) {
                 CrashReporter.reportNonFatal("HomeFragment: Failed to open Digital Wellbeing", e2)
             }
         }
+    }
+
+    private fun openSystemIntent(intent: Intent, onFailure: () -> Unit = {}) {
+        BadHabitDialogs.gateIntent(context, fragment.viewLifecycleOwner.lifecycleScope, { fragment.isAlive }, intent, onFailure)
     }
 }

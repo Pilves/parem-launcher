@@ -129,7 +129,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     launchUrl(appModel.url, appModel.appPackage)
                     return
                 }
-                if (!FocusModeManager.isAppAllowed(appContext, appModel.appPackage)) {
+                if (com.parem.launcher.helper.LaunchGate.decide(
+                    FocusModeManager.isAppAllowed(appContext, appModel.appPackage), false, false, false,
+                ) == com.parem.launcher.helper.LaunchGate.Decision.BLOCK) {
                     showFocusBlocked()
                     return
                 }

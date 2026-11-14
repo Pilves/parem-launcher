@@ -61,27 +61,6 @@ fun openDialerApp(context: Context) = context.startOrLog(Intent(Intent.ACTION_DI
 
 fun openCameraApp(context: Context) = context.startOrLog(Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA), "camera app")
 
-fun openAlarmApp(context: Context) = context.startOrLog(Intent(AlarmClock.ACTION_SHOW_ALARMS), "alarm app")
-
-fun openCalendar(context: Context) {
-    try {
-        val calendarUri = CalendarContract.CONTENT_URI
-            .buildUpon()
-            .appendPath("time")
-            .build()
-        context.startActivity(Intent(Intent.ACTION_VIEW, calendarUri))
-    } catch (e: Exception) {
-        CrashReporter.reportNonFatal("SystemActions", e)
-        try {
-            val intent = Intent(Intent.ACTION_MAIN)
-            intent.addCategory(Intent.CATEGORY_APP_CALENDAR)
-            context.startActivity(intent)
-        } catch (e: Exception) {
-            Log.e("Utils", "Failed to open calendar", e)
-        }
-    }
-}
-
 /**
  * Starts an omnibox quick action. Alarm and timer go straight to the clock app
  * (SET_ALARM is normal-level, no prompt); an event opens the calendar's editor
