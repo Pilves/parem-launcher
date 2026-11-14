@@ -1070,12 +1070,11 @@ class AppDrawerFragment : BaseFragment() {
                     config.hardKeyboardHidden != android.content.res.Configuration.HARDKEYBOARDHIDDEN_YES,
             )
             when (mode) {
-                PickerKeyboardPolicy.Mode.LEAVE_FOCUS -> {
+                PickerKeyboardPolicy.Mode.LEAVE_FOCUS, PickerKeyboardPolicy.Mode.FOCUS_ONLY -> {
                     binding.root.isFocusableInTouchMode = true
                     binding.root.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                     binding.root.requestFocus()
                 }
-                PickerKeyboardPolicy.Mode.FOCUS_ONLY -> searchTextView?.requestFocus()
                 PickerKeyboardPolicy.Mode.FOCUS_AND_SHOW -> searchTextView?.let { field ->
                     field.requestFocus()
                     field.postDelayed({

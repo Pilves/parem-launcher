@@ -16,6 +16,7 @@ import com.parem.launcher.helper.getAppsList
 import com.parem.launcher.helper.AppListRebuilder
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -84,6 +85,10 @@ class DrawerPickerCaptureTest {
                         Until.hasObject(By.res(context.packageName, "drawerPickerCurrent").textContains(apps.first().appLabel)), 15_000))
                     val searchId = context.resources.getResourceName(androidx.appcompat.R.id.search_src_text)
                     val field = checkNotNull(device.wait(Until.findObject(By.res(searchId)), 15_000))
+                    if (!wantIme) {
+                        assertFalse("IME-off preference was not applied", Prefs(context).autoShowKeyboard)
+                        assertFalse("IME-off picker should not focus search on entry", field.isFocused)
+                    }
                     if (wantIme && hardware) field.click()
                     val deadline = SystemClock.elapsedRealtime() + 15_000
                     var shown: Boolean? = null
@@ -105,6 +110,21 @@ class DrawerPickerCaptureTest {
                     assertTrue("screenshot failed", device.takeScreenshot(file))
                     device.executeShellCommand("mkdir -p /data/local/tmp/parem-drawer-picker-captures")
                     device.executeShellCommand("cp ${file.absolutePath} /data/local/tmp/parem-drawer-picker-captures/${file.name}")
+                    if (!wantIme) {
+                        field.click()
+                        assertTrue("explicit tap should focus picker search", device.wait(
+                            Until.hasObject(By.res(searchId).focused(true)), 5_000))
+                        val tapDeadline = SystemClock.elapsedRealtime() + 15_000
+                        var tapShown = false
+                        while (SystemClock.elapsedRealtime() < tapDeadline) {
+                            tapShown = Regex("mInputShown=(true|false)").find(device.executeShellCommand("dumpsys input_method"))
+                                ?.groupValues?.get(1) == "true"
+                            if (tapShown) break
+                            SystemClock.sleep(100)
+                        }
+                        assertTrue("explicit tap should open keyboard", tapShown)
+                        assertTrue("IME window missing after tap", device.wait(Until.hasObject(By.pkg(imePackage)), 15_000))
+                    }
                 } catch (failure: Throwable) {
                     try {
                         saveFailureEvidence(name, font, ime)

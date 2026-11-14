@@ -109,8 +109,8 @@ class DrawerAssignmentPickerTest {
             assertTrue(device.wait(Until.hasObject(By.res(context.packageName, "drawerPickerTitle")
                 .text(context.getString(R.string.select_app))), timeout))
             val searchId = context.resources.getResourceName(androidx.appcompat.R.id.search_src_text)
-            assertTrue("picker search must receive focus without forced IME", device.wait(
-                Until.hasObject(By.res(searchId).focused(true)), timeout))
+            assertTrue("picker search should be unfocused when auto-show is off", device.wait(
+                Until.hasObject(By.res(searchId).focused(false)), timeout))
             assertTrue(device.wait(Until.hasObject(By.text("Picker Fixture")), timeout))
             device.findObject(By.text("Picker Fixture")).click()
             assertTrue(device.wait(Until.hasObject(By.res(context.packageName, "homeAppsLayout")), timeout))
@@ -291,8 +291,14 @@ class DrawerAssignmentPickerTest {
 
     @Test fun landscapePickerAndOrdinaryDrawerRemainUsable() {
         assumeTrue("requires a tablet landscape layout", context.resources.configuration.smallestScreenWidthDp >= 600)
-        device.setOrientationLeft()
+        device.setOrientationNatural()
         try {
+            val naturalDeadline = android.os.SystemClock.elapsedRealtime() + timeout
+            while (!device.isNaturalOrientation && android.os.SystemClock.elapsedRealtime() < naturalDeadline) {
+                android.os.SystemClock.sleep(100)
+            }
+            assertTrue("tablet did not reach natural rotation", device.isNaturalOrientation)
+            if (device.displayWidth <= device.displayHeight) device.setOrientationLeft()
             val deadline = android.os.SystemClock.elapsedRealtime() + timeout
             while (device.displayWidth <= device.displayHeight && android.os.SystemClock.elapsedRealtime() < deadline) {
                 android.os.SystemClock.sleep(100)
