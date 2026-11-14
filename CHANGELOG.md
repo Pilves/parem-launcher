@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Make app selection easier to search and review before saving.
+
 - Explain when lost access prevents a grayscale restore or an app-limit check.
 
 - Refresh screen time after the device clock moves backwards.
