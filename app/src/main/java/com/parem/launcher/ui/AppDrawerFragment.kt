@@ -258,14 +258,22 @@ class AppDrawerFragment : BaseFragment() {
             val content = android.widget.LinearLayout(requireContext()).apply {
                 orientation = android.widget.LinearLayout.VERTICAL
             }
-            listOf(binding.drawerPickerTitle, binding.drawerPickerCurrent, binding.drawerSearchRow, binding.appDrawerTip).forEach { child ->
-                binding.root.removeView(child)
-                content.addView(child)
+            // Landscape animates root child removal, which otherwise leaves the
+            // old parent attached while the new chrome tries to adopt the views.
+            val transition = binding.root.layoutTransition
+            binding.root.layoutTransition = null
+            try {
+                listOf(binding.drawerPickerTitle, binding.drawerPickerCurrent, binding.drawerSearchRow, binding.appDrawerTip).forEach { child ->
+                    binding.root.removeView(child)
+                    content.addView(child)
+                }
+                chrome.addView(content)
+                binding.root.addView(chrome, 0, android.widget.LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                ))
+            } finally {
+                binding.root.layoutTransition = transition
             }
-            chrome.addView(content)
-            binding.root.addView(chrome, 0, android.widget.LinearLayout.LayoutParams(
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-            ))
             binding.drawerPickerTitle.setText(
                 if (flag == Constants.FLAG_HIDDEN_APPS) R.string.hidden_apps else R.string.select_app
             )

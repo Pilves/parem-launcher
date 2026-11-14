@@ -15,7 +15,9 @@ import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -225,6 +227,42 @@ class DrawerAssignmentPickerTest {
                 chrome.scrollTo(0, search.bottom)
                 assertTrue("search bottom must be reachable", search.bottom - chrome.scrollY in 1..chrome.height)
             }
+        }
+    }
+
+    @Test fun landscapePickerAndOrdinaryDrawerRemainUsable() {
+        assumeTrue("requires a tablet landscape layout", context.resources.configuration.smallestScreenWidthDp >= 600)
+        device.setOrientationLeft()
+        try {
+            val deadline = android.os.SystemClock.elapsedRealtime() + timeout
+            while (device.displayWidth <= device.displayHeight && android.os.SystemClock.elapsedRealtime() < deadline) {
+                android.os.SystemClock.sleep(100)
+            }
+            assertTrue("tablet did not reach landscape", device.displayWidth > device.displayHeight)
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                scenario.onActivity { activity ->
+                    assertEquals(android.content.res.Configuration.ORIENTATION_LANDSCAPE, activity.resources.configuration.orientation)
+                }
+                scenario.open(Constants.FLAG_SET_HOME_APP_1)
+                assertTrue(device.wait(Until.hasObject(By.res(context.packageName, "drawerPickerTitle")), timeout))
+                val searchId = context.resources.getResourceName(androidx.appcompat.R.id.search_src_text)
+                assertTrue(device.wait(Until.hasObject(By.res(searchId)), timeout))
+                assertTrue(device.wait(Until.hasObject(By.text("Picker Fixture")), timeout))
+                scenario.onActivity { activity ->
+                    val title = requireNotNull(activity.findViewById<android.view.View>(R.id.drawerPickerTitle))
+                    val content = title.parent as android.view.View
+                    val chrome = content.parent as android.view.View
+                    val root = chrome.parent as android.widget.LinearLayout
+                    assertNotNull("landscape layout transition should be restored", root.layoutTransition)
+                }
+            }
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                scenario.open(Constants.FLAG_LAUNCH_APP)
+                assertTrue(device.wait(Until.hasObject(By.text("Picker Fixture")), timeout))
+                assertFalse(device.hasObject(By.res(context.packageName, "drawerPickerTitle")))
+            }
+        } finally {
+            device.unfreezeRotation()
         }
     }
 
