@@ -50,15 +50,10 @@ if [ "${runs:-0}" -le 0 ]; then
       exit 1
     fi
     if [ "$play_result" -eq 124 ] || [ "$play_result" -eq 137 ]; then
-      # A timed-out Gradle client can leave device instrumentation running.
-      # Stop it before Full reinstalls the orchestrator and test-services APKs.
-      for package in androidx.test.orchestrator androidx.test.services; do
-        if ! timeout --kill-after=2s 8s adb shell am force-stop "$package"; then
-          echo "Unable to stop $package after Play timeout; skipping Full and failing." >&2
-          collect_diagnostics
-          exit 1
-        fi
-      done
+      # The Gradle client can time out while device instrumentation is still running.
+      echo 'Play timed out; skipping Full and performance to avoid overlapping instrumentation.' >&2
+      collect_diagnostics
+      exit 1
     fi
   fi
   if ! timeout --kill-after=10s 15m ./gradlew connectedFullDebugAndroidTest; then
