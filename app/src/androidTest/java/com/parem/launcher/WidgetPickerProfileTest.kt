@@ -53,10 +53,12 @@ class WidgetPickerProfileTest {
             val list = device.wait(Until.findObject(By.clazz("android.widget.ListView")), 30_000)
                 ?: throw AssertionError("widget picker list did not appear")
             val openMs = SystemClock.elapsedRealtime() - start
+            device.executeShellCommand("screencap -p /data/local/tmp/parem-widget-picker-open.png")
             val search = device.wait(Until.findObject(By.clazz("android.widget.EditText")), 10_000)
                 ?: throw AssertionError("widget search did not appear")
             search.text = "Stress widget"
             device.waitForIdle()
+            device.executeShellCommand("screencap -p /data/local/tmp/parem-widget-picker-filtered.png")
             var peakPssKb = Debug.getPss()
             val scrollStart = SystemClock.elapsedRealtime()
             var sawLast = device.hasObject(By.textContains("Stress widget 119"))
@@ -69,8 +71,17 @@ class WidgetPickerProfileTest {
             }
             val scrollMs = SystemClock.elapsedRealtime() - scrollStart
             assertTrue("could not reach last of $providers providers after $swipes scrolls", sawLast)
-            device.executeShellCommand("dumpsys gfxinfo ${context.packageName} > /data/local/tmp/parem-widget-picker-gfxinfo.txt")
+            device.executeShellCommand("screencap -p /data/local/tmp/parem-widget-picker-scrolled.png")
+            val gfx = device.executeShellCommand("dumpsys gfxinfo ${context.packageName}")
+            gfx.lineSequence().filter {
+                it.trim().startsWith("Total frames rendered:") || it.trim().startsWith("Janky frames:") ||
+                    it.trim().startsWith("90th percentile:") || it.trim().startsWith("95th percentile:") ||
+                    it.trim().startsWith("99th percentile:")
+            }.forEach { Log.i("ParemWidgetPickerProfile", "gfx: ${it.trim()}") }
             Log.i("ParemWidgetPickerProfile", "providers=$providers generated_previews=$previews open_ms=$openMs scroll_ms=$scrollMs swipes=$swipes baseline_pss_kb=$baselinePssKb peak_pss_kb=$peakPssKb delta_pss_kb=${peakPssKb - baselinePssKb}")
+            device.pressBack()
+            if (!device.wait(Until.gone(By.clazz("android.widget.ListView")), 1_000)) device.pressBack()
+            assertTrue("widget picker did not close", device.wait(Until.gone(By.clazz("android.widget.ListView")), 5_000))
         }
     }
 }
