@@ -55,7 +55,7 @@ object QuietListSheet {
                 QuietNotificationsManager.defaultSms(context),
             )
             showAllowedPicker(context, fragment.viewLifecycleOwner, entries, preselected) { selected ->
-                if (!fragment.isAdded || !isAlive()) return@showAllowedPicker
+                if (!fragment.isAdded || fragment.view == null || !isAlive()) return@showAllowedPicker
                 QuietNotificationsManager.setAllowed(context, selected)
                 showDisclosure(context, fragment.viewLifecycleOwner, onChanged)
             }
@@ -66,7 +66,7 @@ object QuietListSheet {
     fun editAllowed(fragment: Fragment, prefs: Prefs, isAlive: () -> Boolean) {
         withAppEntries(fragment, prefs, isAlive) { context, entries ->
             showAllowedPicker(context, fragment.viewLifecycleOwner, entries, QuietNotificationsManager.getAllowed(context)) { selected ->
-                if (!fragment.isAdded || !isAlive()) return@showAllowedPicker
+                if (!fragment.isAdded || fragment.view == null || !isAlive()) return@showAllowedPicker
                 QuietNotificationsManager.setAllowed(context, selected)
             }
         }
@@ -83,7 +83,7 @@ object QuietListSheet {
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             // Hidden apps still post notifications, so they are offered too
             val apps = getAppsList(context, prefs, includeRegularApps = true, includeHiddenApps = true)
-            if (!fragment.isAdded || !isAlive()) return@launch
+            if (!fragment.isAdded || fragment.view == null || !isAlive()) return@launch
             val entries = apps
                 .filter { it.appPackage.isNotEmpty() }
                 .map { it.appPackage to it.appLabel }

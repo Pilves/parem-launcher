@@ -100,13 +100,21 @@ object BadHabitDialogs {
                         continued = true
                         dialog.dismiss()
                         if (!isActive()) { onCancel(); return@option }
+                        if (!FocusModeManager.isAppAllowed(context, packageName)) {
+                            FocusModeManager.showBlocked(context)
+                            return@option
+                        }
                         if (pause) {
                             val label = BidiFormatter.getInstance().unicodeWrap(appLabel(context, appName, packageName))
                             showPause(context,
                                 question = context.getString(R.string.mindful_pause_question, label), note = null,
                                 waiting = { left -> context.getString(R.string.mindful_pause_wait, label, left) },
                                 ready = context.getString(R.string.mindful_pause_open, label),
-                                onProceed = { if (isActive()) open() else onCancel() }, onCancel = onCancel)
+                                onProceed = {
+                                    if (!isActive()) onCancel()
+                                    else if (!FocusModeManager.isAppAllowed(context, packageName)) FocusModeManager.showBlocked(context)
+                                    else open()
+                                }, onCancel = onCancel)
                                 .dismissWithScope(scope)
                         } else open()
                     }
