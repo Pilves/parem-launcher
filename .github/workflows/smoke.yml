@@ -37,10 +37,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { profile: pixel_6,      api-level: 34, perf: true }
-          - { profile: '7.6in Foldable',   api-level: 34 }
-          - { profile: pixel_tablet, api-level: 34 }
-          - { profile: pixel_tablet, api-level: 36 }
+          - { profile: pixel_6,      api-level: 34, perf: true, single_device: true }
+          - { profile: '7.6in Foldable',   api-level: 34, single_device: false }
+          - { profile: pixel_tablet, api-level: 34, single_device: false }
+          - { profile: pixel_tablet, api-level: 36, single_device: false }
     steps:
       - uses: actions/checkout@v4
 
@@ -52,7 +52,7 @@ jobs:
           cache: gradle
 
       - name: Harness script tests
-        run: node --test scripts/perf-budget.test.mjs scripts/run-instrumented.test.mjs
+        run: node --test scripts/perf-budget.test.mjs scripts/run-instrumented.test.mjs scripts/test-inventory/check.test.mjs
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -80,7 +80,7 @@ jobs:
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           # The wrapper keeps continuous logcat running through the performance comparison.
-          script: bash scripts/run-instrumented.sh "${{ inputs.drawer_stress_runs }}" "${{ matrix.perf }}"
+          script: bash scripts/run-instrumented.sh "${{ inputs.drawer_stress_runs }}" "${{ matrix.perf }}" "${{ matrix.single_device }}"
 
       - name: Upload test reports
         if: always()
