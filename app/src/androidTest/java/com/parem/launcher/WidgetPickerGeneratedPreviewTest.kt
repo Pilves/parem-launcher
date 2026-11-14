@@ -19,6 +19,7 @@ import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.ui.HomeFragment
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
@@ -38,6 +39,7 @@ class WidgetPickerGeneratedPreviewTest {
         val prefs = Prefs(context).apply { firstOpen = false; onboardingVersionSeen = Constants.ONBOARDING_VERSION; autoShowKeyboard = false }
         // App and test are installed now; only this disposable CI emulator gets the grant.
         device.executeShellCommand("appwidget grantbind --package ${context.packageName} --user 0")
+        assertTrue("fixture expects no preexisting widgets", prefs.getWidgetIdList().isEmpty())
         val manager = context.getSystemService(AppWidgetManager::class.java)
         val component = ComponentName("com.parem.widgetstress", "com.parem.widgetstress.Provider000")
         val provider = manager.installedProviders.firstOrNull { it.provider == component }
@@ -66,22 +68,33 @@ class WidgetPickerGeneratedPreviewTest {
             val row = device.wait(Until.findObject(By.clazz("android.widget.TextView").textStartsWith("Stress widget 000")), 10_000)
                 ?: throw AssertionError("filtered fixture row missing")
             assertTrue("widget size missing", row.text.contains("×"))
-            device.waitForIdle()
-            val bounds = checkNotNull(device.findObject(By.clazz("android.widget.ListView"))).visibleBounds
-            val bitmap = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
-            var previewX = -1
-            var previewY = -1
-            var matches = 0
-            for (y in bounds.top.coerceAtLeast(0) until bounds.bottom.coerceAtMost(bitmap.height) step 4) {
-                for (x in bounds.left.coerceAtLeast(0) until bounds.right.coerceAtMost(bitmap.width) step 4) {
-                    if (bitmap.getPixel(x, y) == Color.rgb(0x32, 0x5a, 0x66)) {
-                        matches++
-                        if (previewX < 0) { previewX = x; previewY = y }
+            fun findPreviewPixels(): Triple<Int, Int, Int> {
+                device.waitForIdle()
+                val bounds = checkNotNull(device.findObject(By.clazz("android.widget.ListView"))).visibleBounds
+                val bitmap = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
+                var xFound = -1
+                var yFound = -1
+                var matches = 0
+                for (y in bounds.top.coerceAtLeast(0) until bounds.bottom.coerceAtMost(bitmap.height) step 4) {
+                    for (x in bounds.left.coerceAtLeast(0) until bounds.right.coerceAtMost(bitmap.width) step 4) {
+                        if (bitmap.getPixel(x, y) == Color.rgb(0x32, 0x5a, 0x66)) {
+                            matches++
+                            if (xFound < 0) { xFound = x; yFound = y }
+                        }
                     }
                 }
+                bitmap.recycle()
+                return Triple(matches, xFound, yFound)
             }
-            bitmap.recycle()
-            assertTrue("published fixture preview did not visibly render: matching pixels=$matches", matches > 100)
+            assertTrue("published preview did not visibly render", findPreviewPixels().first > 100)
+            assertFalse("preview descendants must be hidden from accessibility", device.hasObject(By.textStartsWith("Synthetic preview")))
+            search.text = "Stress widget 001"
+            assertTrue("nonpreview row missing after filtering", device.wait(Until.hasObject(By.clazz("android.widget.TextView").textStartsWith("Stress widget 001")), 10_000))
+            assertEquals("stale preview remained on another row", 0, findPreviewPixels().first)
+            search.text = "Stress widget 000"
+            assertTrue("preview row missing after restoring filter", device.wait(Until.hasObject(By.clazz("android.widget.TextView").textStartsWith("Stress widget 000")), 10_000))
+            val (matches, previewX, previewY) = findPreviewPixels()
+            assertTrue("published preview did not reattach: matching pixels=$matches", matches > 100)
             device.executeShellCommand("screencap -p /data/local/tmp/widget-preview.png")
             assertTrue("could not tap preview area", device.click(previewX + 8, previewY + 8))
             val deadline = SystemClock.elapsedRealtime() + 15_000
