@@ -37,6 +37,7 @@ jobs:
             set +e
             adb shell am instrument -w -e smallPhoneCapture true -e class com.parem.launcher.LargeTextSmallPhoneCaptureTest com.parem.launcher.debug.test/androidx.test.runner.AndroidJUnitRunner | tee large-text-instrumentation.txt
             adb pull /data/local/tmp/parem-large ./large-text-capture
+            timeout --kill-after=2s 8s adb logcat -d -v threadtime > large-text-logcat.txt || true
             grep -q 'OK (1 test)' large-text-instrumentation.txt
       - uses: actions/upload-artifact@v4
         if: always()
@@ -45,4 +46,5 @@ jobs:
           path: |
             large-text-capture/
             large-text-instrumentation.txt
+            large-text-logcat.txt
           if-no-files-found: warn
