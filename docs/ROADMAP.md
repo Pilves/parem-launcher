@@ -326,7 +326,7 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP66 | **Done** (PR #69). **Todo**. Give larger instrumented suites enough CI time | Smoke phase limits, workflow timeout, harness assertions and handoff | Play and Full each have 30 minutes, perf remains 22; perf job has appropriate setup margin |
 
-| M6-WP67 | **Done** (PR #0). **Todo**. Run reviewed state tests on one emulator | Smoke matrix, discovery inventory and handoff | Both flavors and all device-specific cases remain on four profiles; reviewed state cases run on fastest phone |
+| M6-WP67 | **Done** (PR #70). **Todo**. Run reviewed state tests on one emulator | Smoke matrix, discovery inventory and handoff | Both flavors and all device-specific cases remain on four profiles; reviewed state cases run on fastest phone |
 
 ## Recurring (no id)
 
