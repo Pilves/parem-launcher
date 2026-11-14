@@ -580,6 +580,7 @@ class HomeWidgetController(
                 val widgetLabel: String,
                 val provider: AppWidgetProviderInfo,
                 val preview: RemoteViews?,
+                val staticPreview: android.graphics.drawable.Drawable?,
             )
             val allEntries = withContext(Dispatchers.IO) {
                 val myUser = Process.myUserHandle()
@@ -606,7 +607,8 @@ class HomeWidgetController(
                     val isOtherProfile = provider.profile != myUser
                     val header = if (isOtherProfile) pm.getUserBadgedLabel(appName, provider.profile).toString()
                     else appName
-                    WidgetEntry(appName, isOtherProfile, header, provider.loadLabel(pm), provider, loadGeneratedPreview(provider))
+                    val staticPreview = runCatching { provider.loadPreviewImage(context, 0) }.getOrNull()
+                    WidgetEntry(appName, isOtherProfile, header, provider.loadLabel(pm), provider, loadGeneratedPreview(provider), staticPreview)
                 }.sortedWith(
                     compareBy<WidgetEntry, String>(String.CASE_INSENSITIVE_ORDER) { it.appName }
                         .thenBy { it.isOtherProfile }
@@ -707,23 +709,12 @@ class HomeWidgetController(
 
                     val previewFrame = row.getChildAt(1) as FrameLayout
                     previewFrame.removeAllViews()
-                    val previewView = entry.preview?.let { preview ->
-                        previewViews.getOrPut(entry.provider) {
-                            try {
-                                preview.apply(context, previewFrame)
-                            } catch (e: Exception) {
-                                Log.w("HomeWidgetController", "preview apply failed", e)
-                                null
-                            }
-                        }
-                    }
-                    if (previewView != null) {
-                        (previewView.parent as? ViewGroup)?.removeView(previewView)
-                        // minHeight is the provider's px size; clamp so one tall widget can't flood the list
-                        val height = entry.provider.minHeight.coerceIn(48.dpToPx(), 160.dpToPx())
-                        previewFrame.addView(previewView, FrameLayout.LayoutParams(
-                            FrameLayout.LayoutParams.MATCH_PARENT, height
-                        ))
+                    val drawable = entry.staticPreview
+                    if (drawable != null) {
+                        previewFrame.addView(android.widget.ImageView(context).apply {
+                            setImageDrawable(drawable)
+                            scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                        }, FrameLayout.LayoutParams(96.dpToPx(), 96.dpToPx()))
                         previewFrame.visibility = View.VISIBLE
                     } else {
                         previewFrame.visibility = View.GONE
