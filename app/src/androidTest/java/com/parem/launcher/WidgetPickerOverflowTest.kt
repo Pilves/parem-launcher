@@ -141,8 +141,16 @@ class WidgetPickerOverflowTest {
                     scenario.onActivity { dialog.window!!.setLayout(500, 500) }
                     val row = device.wait(Until.findObject(By.res("android", "text1").text("Provider 7")), 10_000)
                         ?: throw AssertionError("filtered provider missing after re-expansion")
+                    fun logKeys(stage: String) {
+                        scenario.onActivity { android.util.Log.i("WidgetKeyDiag", "$stage search=${search.text} searchFocus=${search.hasFocus()} listFocus=${list.hasFocus()} selected=${list.selectedItemPosition} touch=${list.isInTouchMode}") }
+                        val ime = device.executeShellCommand("dumpsys input_method").lineSequence().firstOrNull { "mInputShown=" in it }
+                        android.util.Log.i("WidgetKeyDiag", "$stage ime=$ime")
+                    }
+                    logKeys("before-down")
                     assertTrue("D-pad down was not sent", device.pressDPadDown())
+                    logKeys("after-down")
                     assertTrue("Enter was not sent", device.pressEnter())
+                    logKeys("after-enter")
                     val deadline = android.os.SystemClock.elapsedRealtime() + 5_000
                     while (selected.get() == null && android.os.SystemClock.elapsedRealtime() < deadline) android.os.SystemClock.sleep(50)
                     assertEquals("Provider 7", selected.get())
