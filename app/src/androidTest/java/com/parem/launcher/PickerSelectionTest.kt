@@ -87,15 +87,21 @@ class PickerSelectionTest {
                 x = point[0] + row.width / 2
                 y = point[1] + row.height / 2
             }
+            val started = SystemClock.uptimeMillis()
             assertTrue(device.click(x, y))
-            SystemClock.sleep(delayMs)
+            SystemClock.sleep(if (delayMs == 0L) 100 else delayMs)
+            scenario.onActivity {
+                val shifted = requireNotNull(list.findViewHolderForAdapterPosition(1)).itemView
+                assertEquals("the next selected row must occupy the tapped position", "Beta", shifted.contentDescription)
+            }
+            if (delayMs == 0L) assertTrue("second tap exceeded guard window", SystemClock.uptimeMillis() - started < 400L)
             assertTrue(device.click(x, y))
             device.waitForIdle()
             scenario.onActivity { assertEquals(expected, adapter.selectedIds.toSet()) }
         }
     }
 
-    @Test fun rapidTapsDoNotDeselectTheNextRow() = checkTwoTaps(200, setOf("b"))
+    @Test fun rapidTapsDoNotDeselectTheNextRow() = checkTwoTaps(0, setOf("b"))
 
     @Test fun tapAfterGuardCanDeselectTheNextRow() = checkTwoTaps(550, emptySet())
 
