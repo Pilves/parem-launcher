@@ -12,6 +12,7 @@ import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import java.util.concurrent.atomic.AtomicReference
+import java.io.File
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
@@ -139,8 +140,14 @@ class WidgetPickerOverflowTest {
                         if (!movedIntoHeader) android.os.SystemClock.sleep(50)
                     }
                     assertTrue("short-window layout did not move search into the header", movedIntoHeader)
-                    assertTrue("search was not reachable with input focus after shrinking",
-                        device.wait(Until.hasObject(By.clazz(EditText::class.java).focused(true)), 10_000))
+                    val focused = device.wait(Until.hasObject(By.clazz(EditText::class.java).focused(true)), 10_000)
+                    if (!focused) {
+                        context.getExternalFilesDir(null)?.let { directory ->
+                            runCatching { device.dumpWindowHierarchy(File(directory, "widget-overflow-failure.xml")) }
+                            runCatching { device.takeScreenshot(File(directory, "widget-overflow-failure.png")) }
+                        }
+                    }
+                    assertTrue("search was not reachable with input focus after shrinking", focused)
                     val field = checkNotNull(device.findObject(By.clazz(EditText::class.java).focused(true)))
                     assertTrue("focused search is not visible", field.visibleBounds.height() > 0)
                     field.text = "Provider 7"
