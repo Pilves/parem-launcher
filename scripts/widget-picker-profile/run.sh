@@ -19,8 +19,6 @@ for attempt in $(seq 1 60); do
   sleep 1
 done
 [[ $ready == true ]] || { echo 'Synthetic preview publisher did not become ready' >&2; exit 1; }
-# The hosted emulator needs explicit binding authorization to read another package's preview.
-adb shell appwidget grantbind --package com.parem.launcher.debug --user 0
 ./gradlew connectedPlayDebugAndroidTest \
   -Pandroid.testInstrumentationRunnerArguments.class=com.parem.launcher.WidgetPickerProfileTest \
   -Pandroid.testInstrumentationRunnerArguments.widget_picker_profile=true

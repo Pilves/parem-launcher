@@ -700,6 +700,7 @@ class HomeWidgetController(
                     val row = (convertView as? android.widget.LinearLayout)
                         ?: android.widget.LinearLayout(context).apply {
                             orientation = android.widget.LinearLayout.VERTICAL
+                            minimumHeight = 48.dpToPx()
                             // A preview Button is explicitly focusable, and AbsListView skips the item
                             // click for rows with explicit focusables; touch interception can't fix that
                             descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
