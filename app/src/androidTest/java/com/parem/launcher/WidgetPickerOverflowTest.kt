@@ -1,6 +1,17 @@
 package com.parem.launcher
 
+import android.app.Dialog
 import android.view.View
+import android.widget.EditText
+import android.widget.TextView
+import androidx.core.widget.doAfterTextChanged
+import androidx.test.core.app.ActivityScenario
+import androidx.test.uiautomator.By
+import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.Until
+import com.parem.launcher.data.Constants
+import com.parem.launcher.data.Prefs
+import java.util.concurrent.atomic.AtomicReference
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
@@ -67,4 +78,77 @@ class WidgetPickerOverflowTest {
             assertSame(list, container.getChildAt(3))
         }
     }
+    @Test fun nonTouchResizeKeepsSearchReachableAndSelectionCorrect() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val device = UiDevice.getInstance(instrumentation)
+        Prefs(context).apply { firstOpen = false; onboardingVersionSeen = Constants.ONBOARDING_VERSION }
+        val selected = AtomicReference<String>()
+        instrumentation.setInTouchMode(false)
+        try {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                lateinit var dialog: Dialog
+                lateinit var search: EditText
+                lateinit var list: ListView
+                scenario.onActivity { activity ->
+                    val container = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+                    val title = TextView(activity).apply {
+                        text = "Widget picker test"
+                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 110)
+                    }
+                    search = EditText(activity).apply {
+                        hint = "Widget search test"
+                        showSoftInputOnFocus = false
+                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 120)
+                    }
+                    val header = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+                    list = ListView(activity).apply {
+                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
+                        addHeaderView(header, null, false)
+                    }
+                    val adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1, (0..19).map { "Provider $it" })
+                    list.adapter = adapter
+                    search.doAfterTextChanged { adapter.filter.filter(it?.toString().orEmpty()) }
+                    list.setOnItemClickListener { _, _, position, _ ->
+                        val item = adapter.getItem(position - list.headerViewsCount)
+                        if (item != null) selected.set(item)
+                    }
+                    container.addView(title)
+                    container.addView(search)
+                    container.addView(list)
+                    dialog = Dialog(activity)
+                    dialog.setContentView(container)
+                    val overflow = WidgetPickerOverflow(container, title, search, list, header, 120)
+                    dialog.show()
+                    dialog.window!!.setLayout(500, 500)
+                    container.post { overflow.update() }
+                }
+                try {
+                    assertTrue("initial search missing", device.wait(Until.hasObject(By.clazz(EditText::class.java)), 10_000))
+                    scenario.onActivity {
+                        list.setSelection(15)
+                        assertTrue("initial search did not take focus", search.requestFocus())
+                        dialog.window!!.setLayout(500, 200)
+                    }
+                    assertTrue("search was not reachable with input focus after shrinking",
+                        device.wait(Until.hasObject(By.clazz(EditText::class.java).focused(true)), 10_000))
+                    val field = checkNotNull(device.findObject(By.clazz(EditText::class.java).focused(true)))
+                    assertTrue("focused search is not visible", field.visibleBounds.height() > 0)
+                    field.text = "Provider 7"
+                    scenario.onActivity { dialog.window!!.setLayout(500, 500) }
+                    val row = device.wait(Until.findObject(By.text("Provider 7")), 10_000)
+                        ?: throw AssertionError("filtered provider missing after re-expansion")
+                    row.click()
+                    val deadline = android.os.SystemClock.elapsedRealtime() + 5_000
+                    while (selected.get() == null && android.os.SystemClock.elapsedRealtime() < deadline) android.os.SystemClock.sleep(50)
+                    assertEquals("Provider 7", selected.get())
+                } finally {
+                    scenario.onActivity { dialog.dismiss() }
+                }
+            }
+        } finally {
+            instrumentation.setInTouchMode(true)
+        }
+    }
+
 }

@@ -45,7 +45,6 @@ internal class WidgetPickerOverflow(
             container.removeView(search)
             header.addView(title, LinearLayout.LayoutParams(titleParams))
             header.addView(search, LinearLayout.LayoutParams(searchParams))
-            list.setSelection(0)
         } else {
             header.removeView(title)
             header.removeView(search)
@@ -53,6 +52,31 @@ internal class WidgetPickerOverflow(
             container.addView(search, searchIndex, LinearLayout.LayoutParams(searchParams))
         }
         inHeader = shouldScrollChrome
-        if (hadFocus) search.post { if (search.isAttachedToWindow) search.requestFocus() }
+        if (shouldScrollChrome) revealHeader(hadFocus)
+        else if (hadFocus) search.post { if (search.isAttachedToWindow) search.requestFocus() }
+    }
+
+    private fun revealHeader(restoreFocus: Boolean) {
+        list.post {
+            if (!inHeader || !list.isAttachedToWindow) return@post
+            // Scroll to the header by position rather than selecting it: the header
+            // is deliberately nonselectable and D-pad selection skips it.
+            list.smoothScrollToPositionFromTop(0, 0, 200)
+            if (restoreFocus) {
+                val deadline = android.os.SystemClock.elapsedRealtime() + 3_000
+                val retry = object : Runnable {
+                    override fun run() {
+                        if (!inHeader || !list.isAttachedToWindow) return
+                        if (search.isAttachedToWindow) {
+                            search.requestFocus()
+                            search.requestRectangleOnScreen(android.graphics.Rect(0, 0, search.width, search.height), true)
+                        } else if (android.os.SystemClock.elapsedRealtime() < deadline) {
+                            list.postDelayed(this, 50)
+                        }
+                    }
+                }
+                list.post(retry)
+            }
+        }
     }
 }
