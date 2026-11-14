@@ -54,7 +54,12 @@ class LargeTextSmallPhoneCaptureTest {
             val firstScreen = waitFor(R.id.homeScreen)
             if (firstScreen == null) {
                 // Capture before ActivityScenario closes the screen on assertion failure.
-                runCatching { device.dumpWindowHierarchy(File("$out/onboarding-failure.xml")) }
+                runCatching {
+                    val hierarchy = File(checkNotNull(context.getExternalFilesDir(null)), "onboarding-failure.xml")
+                    device.dumpWindowHierarchy(hierarchy)
+                    val copied = device.executeShellCommand("cp '${hierarchy.absolutePath}' '$out/onboarding-failure.xml' && echo copied")
+                    check(copied.trim() == "copied") { "hierarchy copy failed: $copied" }
+                }.onFailure { Log.e("LargeTextCapture", "could not capture failure hierarchy", it) }
                 runCatching { capture("onboarding-failure") }
                 runCatching {
                     scenario.onActivity { activity ->
