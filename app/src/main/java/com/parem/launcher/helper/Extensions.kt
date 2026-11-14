@@ -212,9 +212,6 @@ fun Long.convertEpochToMidnight(): Long {
 fun Long.isDaySince(): Int = ((System.currentTimeMillis().convertEpochToMidnight() - this.convertEpochToMidnight())
         / Constants.ONE_DAY_IN_MILLIS).toInt()
 
-fun Long.hasBeenMinutes(minutes: Int): Boolean =
-    ((System.currentTimeMillis() - this) / Constants.ONE_MINUTE_IN_MILLIS) >= minutes
-
 fun Int.dpToPx(): Int {
     return (this * Resources.getSystem().displayMetrics.density).toInt()
 }

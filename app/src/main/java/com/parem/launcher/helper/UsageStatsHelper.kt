@@ -13,8 +13,6 @@ object UsageStatsHelper {
     // and limit checks run on every tap of a limited app — so the aggregated map
     // is cached briefly. 60s matches the enforcement granularity (limits are in
     // minutes).
-    private const val CACHE_TTL_MS = 60_000L
-
     @Volatile
     private var cachedAt = 0L
 
@@ -52,9 +50,9 @@ object UsageStatsHelper {
         return cachedUsage
     }
 
-    /** Stale after [CACHE_TTL_MS], and at midnight: yesterday's total must never gate today's first launch. */
+    /** Stale after 60 seconds, after a clock rollback, and at midnight: yesterday's total must never gate today's first launch. */
     fun isCacheStale(nowMs: Long, cachedAtMs: Long, today: Long, cachedDay: Long): Boolean =
-        nowMs - cachedAtMs > CACHE_TTL_MS || today != cachedDay
+        ScreenTimeFreshness.usageCacheStale(nowMs, cachedAtMs, today, cachedDay)
 
     /**
      * Returns today's total foreground usage for the given app in milliseconds.

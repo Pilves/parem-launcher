@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Refresh screen time after the device clock moves backwards.
+
 - Preserve picker checkbox accessibility after filtering and recycling rows.
 - Reject unsafe or invalid settings imports without changing existing preferences.
 

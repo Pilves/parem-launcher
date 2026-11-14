@@ -37,7 +37,7 @@ import com.parem.launcher.helper.WallpaperWorker
 import com.parem.launcher.helper.WeatherManager
 import com.parem.launcher.helper.WebShortcut
 import com.parem.launcher.helper.getAppsList
-import com.parem.launcher.helper.hasBeenMinutes
+import com.parem.launcher.helper.ScreenTimeFreshness
 import com.parem.launcher.helper.isParemDefault
 import com.parem.launcher.helper.isPackageInstalled
 import com.parem.launcher.helper.PackageChangeTracker
@@ -410,7 +410,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getTodaysScreenTime() {
-        if (prefs.screenTimeLastUpdated.hasBeenMinutes(1).not()) return
+        if (!ScreenTimeFreshness.homeRefreshDue(System.currentTimeMillis(), prefs.screenTimeLastUpdated)) return
 
         viewModelScope.launch(Dispatchers.IO) {
             val endTime = System.currentTimeMillis()
