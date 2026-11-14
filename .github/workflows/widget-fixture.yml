@@ -41,7 +41,7 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
-          script: WIDGET_PICKER_CAPTURE=true bash scripts/widget-picker-profile/run.sh
+          script: bash scripts/ci-emulator-run.sh com.parem.launcher.debug bash scripts/widget-picker-profile/overflow-diagnostic.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
