@@ -312,6 +312,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP56 | **Done** (PR #61). **Todo**. Respect cancelled widget configuration | Widget result handling, companion fixture, tests and handoff | Cancel releases only the unsaved allocation and preserves existing widgets |
 
+| M6-WP57 | **Done** (PR #63). **Todo**. Improve app picker selection flows | Picker UI, callers, strings, tests, capture workflow and handoff | Searchable selected-first multi-choice with staged edits; single-tap app-limit selection |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
