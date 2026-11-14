@@ -5,6 +5,7 @@ if [[ ${PAREM_INCIDENT_MONITORED:-} != 1 ]]; then exec bash scripts/ci-emulator-
 set -uo pipefail
 
 runs=${1:-0}
+single_device=${3:-true}
 pkg=com.parem.launcher.debug
 tests=(swipeUpOpensDrawer omniboxLaunchesApp)
 diag_out=app/build/smoke-diagnostics
@@ -37,7 +38,18 @@ collect_diagnostics() {
 
 if [ "${runs:-0}" -le 0 ]; then
   status=0
-  if timeout --kill-after=10s 30m ./gradlew connectedPlayDebugAndroidTest; then
+  filter=()
+  if [[ $single_device == false ]]; then
+    filter=(-Pandroid.testInstrumentationRunnerArguments.notAnnotation=com.parem.launcher.SingleDevice)
+  elif [[ $single_device != true ]]; then
+    echo "Invalid single-device profile selection: $single_device" >&2
+    exit 1
+  fi
+  if ! timeout --kill-after=10s 5m bash scripts/test-inventory/discover.sh Play; then
+    echo 'Play discovery inventory failed' >&2
+    exit 1
+  fi
+  if timeout --kill-after=10s 30m ./gradlew connectedPlayDebugAndroidTest "${filter[@]}"; then
     :
   else
     play_result=$?
@@ -57,7 +69,11 @@ if [ "${runs:-0}" -le 0 ]; then
       exit 1
     fi
   fi
-  if ! timeout --kill-after=10s 30m ./gradlew connectedFullDebugAndroidTest; then
+  if ! timeout --kill-after=10s 5m bash scripts/test-inventory/discover.sh Full; then
+    echo 'Full discovery inventory failed' >&2
+    exit 1
+  fi
+  if ! timeout --kill-after=10s 30m ./gradlew connectedFullDebugAndroidTest "${filter[@]}"; then
     status=1
     capture_failure full
     if [ "$(timeout --kill-after=2s 8s adb get-state 2>/dev/null)" != device ]; then
