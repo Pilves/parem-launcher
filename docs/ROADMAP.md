@@ -314,6 +314,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP59 | **Done** (PR #62). Verify HOME state and isolate timed-out instrumented phases | Android tests, HOME helper and instrumented runner | HOME uses one real injection with observed launcher state; a timed-out Play phase fails without starting Full or performance |
 
+| M6-WP57 | **Done** (PR #63). **Todo**. Improve app picker selection flows | Picker UI, callers, strings, tests, capture workflow and handoff | Searchable selected-first multi-choice with staged edits; single-tap app-limit selection |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
