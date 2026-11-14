@@ -36,13 +36,19 @@ class WidgetPickerProfileTest {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             var providers = 0
             var previews = 0
+            var retrievable = 0
             scenario.onActivity { activity ->
                 val fixture = activity.appWidgetManager.installedProviders.filter { it.provider.packageName == "com.parem.widgetstress" }
                 providers = fixture.size
                 previews = fixture.count { it.generatedPreviewCategories and AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN != 0 }
+                retrievable = fixture.count { provider ->
+                    activity.appWidgetManager.getWidgetPreview(provider.provider, provider.profile, AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN) != null
+                }
             }
+            Log.i("ParemWidgetPickerProfile", "providers=$providers generated_categories=$previews retrievable_previews=$retrievable")
             assertTrue("need >=100 registered synthetic providers; got $providers", providers >= 100)
             assertTrue("need >=100 published generated previews; got $previews", previews >= 100)
+            assertTrue("need >=100 retrievable generated previews; got $retrievable", retrievable >= 100)
             device.executeShellCommand("dumpsys gfxinfo ${context.packageName} reset")
             val baselinePssKb = Debug.getPss()
             val start = SystemClock.elapsedRealtime()
