@@ -430,6 +430,7 @@ class SmokeTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun hiddenDrawerKeepsQueryWhenItsAppListReloads() {
         val alpha = AppModel("Alpha Fixture", null, "fixture.alpha", null, false, android.os.Process.myUserHandle())
@@ -454,6 +455,7 @@ class SmokeTest {
         assertFalse("unrelated app shown after reload", device.hasObject(By.text("Beta Fixture")))
     }
 
+    @SingleDevice
     @Test
     fun pickerEnterWaitsForTheMatchingResults() {
         val fixture = AppModel("Alpha Fixture", null, "com.android.settings", null, false, android.os.Process.myUserHandle())
@@ -478,6 +480,7 @@ class SmokeTest {
         assertEquals("immediate Enter was lost", "com.android.settings", Prefs(context).getHomeAppPackage(1))
     }
 
+    @SingleDevice
     @Test
     fun enterCancelsAutoLaunchAlreadyPostedForTheSameResult() {
         val clicks = AtomicInteger()
@@ -557,6 +560,7 @@ class SmokeTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun changedQueryCancelsPostedAutoLaunch() {
         val clicks = AtomicInteger()
@@ -793,6 +797,7 @@ class SmokeTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun folderSelectionCountTracksEditingAndRetainedHiddenApps() {
         var sheet: BottomSheetDialog? = null
@@ -825,6 +830,7 @@ class SmokeTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun focusSelectionCountTracksChangesAndRetainedUnavailableApps() {
         var sheet: BottomSheetDialog? = null

@@ -84,6 +84,7 @@ class PrefsRoundTripTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun textSizeSurvivesImportAndExportIncludingOldFiles() {
         val prefs = Prefs(context)
@@ -102,6 +103,7 @@ class PrefsRoundTripTest {
         assertEquals(TextScale.DEFAULT, prefs.textSizeScale, 0.001f)
     }
 
+    @SingleDevice
     @Test
     fun guidanceIsLocalAndImportCannotRestoreIt() {
         sp.edit().clear().commit()
@@ -126,6 +128,7 @@ class PrefsRoundTripTest {
         assertEquals(8, prefs.searchHintOpens)
     }
 
+    @SingleDevice
     @Test
     fun existingInstallDoesNotAcquireHomeGuidance() {
         sp.edit().clear().putBoolean("FIRST_OPEN", false).commit()
@@ -136,6 +139,7 @@ class PrefsRoundTripTest {
         assertFalse(prefs.homeGuidanceLongPress)
     }
 
+    @SingleDevice
     @Test
     fun pauseOnlyAppSurvivesExportAndImport() {
         val prefs = Prefs(context)
@@ -170,6 +174,7 @@ class PrefsRoundTripTest {
         assertTrue(sp.getLong("FOCUS_SCHEDULE_SKIP_UNTIL", 0) > System.currentTimeMillis())
     }
 
+    @SingleDevice
     @Test
     fun calmGestureAssignmentsRoundTripAndOldExportsKeepDefaults() {
         val prefs = Prefs(context)
@@ -274,6 +279,7 @@ class PrefsRoundTripTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun exportImportKeepsValuesAndTypes() {
         // Pinned values: 1000L and 2.0f come back from org.json as Integer, so only
@@ -315,6 +321,7 @@ class PrefsRoundTripTest {
         assertEquals("excluded key keeps its local value", 7000L, all[EXCLUDED_KEY])
     }
 
+    @SingleDevice
     @Test
     fun invalidImportLeavesPreferencesAndHistoryUntouched() {
         val prefs = Prefs(context)
@@ -341,6 +348,7 @@ class PrefsRoundTripTest {
         assertEquals(4, prefs.homeAppsNum)
     }
 
+    @SingleDevice
     @Test
     fun importWithHistoryOffOrAbsentErasesHistory() {
         val prefs = Prefs(context)
