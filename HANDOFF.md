@@ -4,7 +4,7 @@ Current state only. History is `git log`, `CHANGELOG.md` and
 `docs/archive/TODO-pre-roadmap.md`. Work queue: `docs/ROADMAP.md`.
 Rules: `AGENTS.md`. Code map and traps: `ARCHITECTURE.md`.
 
-**Last updated:** 2026-11-14 — latest handoff date
+**Last updated:** 2026-11-16 — latest handoff date
 
 ## Phase
 
@@ -405,5 +405,6 @@ per package; the rest of each of those fragments is still in
 - **M6-WP66 (PR #69):** Smoke CI allows 30 minutes per Play and Full instrumentation phase; performance retains 22 minutes.
 - **M6-WP67 (PR #70):** Smoke CI runs reviewed single-device state and selection cases on the API 34 phone, and every unclassified case on all four emulator profiles, for both flavors.
 - **M6-WP69 (PR #73):** Onboarding, feature guides and selected settings and disclosure text use the approved shorter English copy; rapid multi-choice picker taps cannot remove a shifted second row.
+- **M6-WP72 (PR #83):** Returning to Home from the drawer or Settings re-parents cached widget views from `MainActivity.widgetViews` (`WidgetViewCache`) instead of a views IPC and inflation; the dropped Home tree no longer stays reachable through its host views.
 
 <!-- handoff:end -->
