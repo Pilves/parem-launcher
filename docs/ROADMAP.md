@@ -332,6 +332,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP69 | **Done** (PR #73). **Todo**. Shorten approved English copy and guard rapid picker taps | Base English strings, multi-choice picker, tests and release notes | Approved copy retains keys and placeholders; a rapid second tap cannot change the next row |
 
+| M6-WP72 | **Todo**. Keep widget views across Home rebuilds | `ui/HomeWidgetController.kt`, widget host in `MainActivity.kt`, `WidgetViewCache`, widget tests, architecture trap #2, changelog and handoff | Returning from the drawer or Settings reuses each widget view without a views IPC or inflation; delete, provider change, package stamp, configuration, error view and forced refresh make a fresh view; the dropped Home tree is not kept alive; each widget size is reported once |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict

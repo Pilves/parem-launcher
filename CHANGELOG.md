@@ -4,6 +4,7 @@
 
 - Open the keyboard reliably when the app list is opened right after returning home.
 - Show today's screen time on home after Parem restarts within a minute of the last refresh.
+- Keep home screen widgets loaded when returning from the app list or settings.
 
 ## v6.1.0 — 2026-11-14
 
