@@ -1,0 +1,12 @@
+// Gives the release build of whatever ref is being built the applicationId suffix in
+// -PperfSuffix, so two refs install side by side on a test device. An init script, not a
+// build.gradle change, because the base ref is usually a commit that predates this file.
+allprojects {
+    plugins.withId('com.android.application') {
+        def suffix = findProperty('perfSuffix')
+        if (!suffix) throw new GradleException('perf-apk.init.gradle needs -PperfSuffix')
+        android.buildTypes.matching { it.name == 'release' }.configureEach {
+            applicationIdSuffix = suffix
+        }
+    }
+}
