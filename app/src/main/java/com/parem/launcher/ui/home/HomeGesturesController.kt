@@ -482,7 +482,6 @@ class HomeGesturesController(
 
     private fun openSettings() {
         fragment.findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
-        viewModel.firstOpen.postValue(false)
     }
 
     private fun showHomeLongPressMenu() {
