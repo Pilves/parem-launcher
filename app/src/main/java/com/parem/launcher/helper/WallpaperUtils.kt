@@ -41,7 +41,19 @@ fun setPlainWallpaper(context: Context, color: Int) {
     }
 }
 
-suspend fun getBitmapFromURL(src: String?): Bitmap? {
+/**
+ * The largest power-of-two sample size that still leaves the decode at least as large as
+ * the centre-crop to [width]x[height] needs, so sampling never makes the wallpaper softer.
+ */
+internal fun wallpaperSampleSize(srcWidth: Int, srcHeight: Int, width: Int, height: Int): Int {
+    if (width <= 0 || height <= 0) return 1
+    var sample = 1
+    while (srcWidth >= sample * 2 * width && srcHeight >= sample * 2 * height) sample *= 2
+    return sample
+}
+
+/** Sampled down as far as [wallpaperSampleSize] allows for a [width]x[height] screen. */
+suspend fun getBitmapFromURL(src: String?, width: Int, height: Int): Bitmap? {
     return withContext(Dispatchers.IO) {
         var bitmap: Bitmap? = null
         var connection: HttpURLConnection? = null
@@ -52,7 +64,13 @@ suspend fun getBitmapFromURL(src: String?): Bitmap? {
             connection.readTimeout = 15_000
             connection.doInput = true
             connection.connect()
-            bitmap = connection.inputStream.use { BitmapFactory.decodeStream(it) }
+            // In memory: the size pass and the decode both read the image from the start
+            val bytes = connection.inputStream.use { it.readBytes() }
+            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+            options.inSampleSize = wallpaperSampleSize(options.outWidth, options.outHeight, width, height)
+            options.inJustDecodeBounds = false
+            bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
         } catch (e: Exception) {
             Log.e("Utils", "Failed to decode bitmap from URL", e)
         } finally {
@@ -94,25 +112,31 @@ suspend fun getWallpaperBitmap(originalImage: Bitmap, width: Int, height: Int): 
 
 suspend fun setWallpaper(appContext: Context, url: String): Boolean {
     return withContext(Dispatchers.IO) {
-        val originalImageBitmap = getBitmapFromURL(url) ?: return@withContext false
+        // Before the download, whose result this check would only discard
         if (appContext.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE && appContext.resources.getBoolean(R.bool.lock_portrait)) {
-            originalImageBitmap.recycle()
             return@withContext false
         }
 
         val wallpaperManager = WallpaperManager.getInstance(appContext)
         val (width, height) = getScreenDimensions(appContext)
-        val scaledBitmap = getWallpaperBitmap(originalImageBitmap, width, height)
+        val originalImageBitmap = getBitmapFromURL(url, width, height) ?: return@withContext false
+        // Freed before the two encodes below, which only read the screen-sized copy
+        val scaledBitmap = try {
+            getWallpaperBitmap(originalImageBitmap, width, height)
+        } finally {
+            try { originalImageBitmap.recycle() } catch (_: Exception) {}
+        }
 
         try {
+            // Two calls, not FLAG_SYSTEM or FLAG_LOCK: a combined call leaves no lock-specific
+            // wallpaper, so the lock screen would share the home one instead of its own copy
             wallpaperManager.setBitmap(scaledBitmap, null, false, WallpaperManager.FLAG_SYSTEM)
             wallpaperManager.setBitmap(scaledBitmap, null, false, WallpaperManager.FLAG_LOCK)
         } catch (e: Exception) {
             CrashReporter.reportNonFatal("WallpaperUtils", e)
             return@withContext false
         } finally {
-            try { if (scaledBitmap != originalImageBitmap) scaledBitmap.recycle() } catch (_: Exception) {}
-            try { originalImageBitmap.recycle() } catch (_: Exception) {}
+            try { scaledBitmap.recycle() } catch (_: Exception) {}
         }
         true
     }

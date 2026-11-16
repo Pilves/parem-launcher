@@ -88,7 +88,7 @@ class AppearanceSettingsCard(
                     WeatherSettingsDialog(context, fragment.viewLifecycleOwner, onCityChosen = {
                         viewModel.resetWeatherThrottle()
                         onWellbeingChanged()
-                    }).dismissOnDestroy(fragment.viewLifecycleOwner).show()
+                    }).apply { show() }.dismissOnDestroy(fragment.viewLifecycleOwner)
                 }
                 onWellbeingChanged()
             }
@@ -292,15 +292,16 @@ class AppearanceSettingsCard(
         // Taken up front: the dark picker opens later, from the light one's callback
         val owner = fragment.viewLifecycleOwner
         val (lightH, lightM) = parse(ThemeScheduleManager.getLightTime(ctx), 7)
-        Motion.showPopup(TimePickerDialog(ctx, { _, h, m ->
+        // dismissOnDestroy after showing: it can only release a dismissed dialog once its window exists
+        TimePickerDialog(ctx, { _, h, m ->
             ThemeScheduleManager.setLightTime(ctx, String.format(Locale.ROOT, "%02d:%02d", h, m))
             val (darkH, darkM) = parse(ThemeScheduleManager.getDarkTime(ctx), 19)
-            Motion.showPopup(TimePickerDialog(ctx, { _, h2, m2 ->
+            TimePickerDialog(ctx, { _, h2, m2 ->
                 ThemeScheduleManager.setDarkTime(ctx, String.format(Locale.ROOT, "%02d:%02d", h2, m2))
                 onDone()
             }, darkH, darkM, true).apply { setTitle(ctx.getString(R.string.dark_theme_from)) }
-                .dismissOnDestroy(owner))
+                .also(Motion::showPopup).dismissOnDestroy(owner)
         }, lightH, lightM, true).apply { setTitle(ctx.getString(R.string.light_theme_from)) }
-            .dismissOnDestroy(owner))
+            .also(Motion::showPopup).dismissOnDestroy(owner)
     }
 }

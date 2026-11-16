@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
+import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import androidx.core.content.edit
@@ -22,6 +23,7 @@ import com.parem.launcher.data.paremPrefs
 import com.parem.launcher.helper.GrayscalePolicy.Action
 import com.parem.launcher.helper.GrayscalePolicy.State
 import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 
 /**
  * System grayscale through the Secure-settings daltonizer. Needs
@@ -59,6 +61,7 @@ object GrayscaleController {
     private const val MODE_UNSET = -1
 
     private const val FOCUS_END_WORK = "grayscale_focus_end"
+    private const val FOCUS_END_SLACK_MS = 100L
     private const val KEY_FOCUS_END_TIME = "FOCUS_MODE_END_TIME"
 
     fun isGranted(context: Context): Boolean =
@@ -322,24 +325,53 @@ object GrayscaleController {
         else -> null
     }
 
+    // Target of the last enqueued job, so the 2-3 reconciles of a resume do not replace an
+    // identical job. Cleared when that job is cancelled or starts, so a skip always means it
+    // is still pending. In memory only: after process death the next reconcile enqueues again.
+    private var scheduledFocusEnd: Long? = null
+
+    /**
+     * When the job fires, on the elapsed clock rather than as the end itself: the job holds a
+     * relative delay, so a changed wall clock must move the target just as a changed end does.
+     */
+    internal fun focusEndTarget(endMs: Long, nowMs: Long, elapsedMs: Long) =
+        elapsedMs + (endMs - nowMs).coerceAtLeast(0) + 1_000
+
+    /** The slack only absorbs the gap between reading the two clocks. */
+    internal fun sameFocusEndTarget(scheduled: Long?, target: Long) =
+        scheduled != null && abs(scheduled - target) < FOCUS_END_SLACK_MS
+
     /** Replaces any pending job, so re-enabling focus never leaves two. */
+    @Synchronized
     private fun scheduleFocusEnd(context: Context) {
         val end = focusEndMs(context) ?: return
-        val delay = (end - System.currentTimeMillis()).coerceAtLeast(0) + 1_000
+        val elapsed = SystemClock.elapsedRealtime()
+        val target = focusEndTarget(end, System.currentTimeMillis(), elapsed)
+        if (sameFocusEndTarget(scheduledFocusEnd, target)) return
         WorkManager.getInstance(context).enqueueUniqueWork(
             FOCUS_END_WORK,
             ExistingWorkPolicy.REPLACE,
-            OneTimeWorkRequestBuilder<FocusEndWorker>().setInitialDelay(delay, TimeUnit.MILLISECONDS).build()
+            OneTimeWorkRequestBuilder<FocusEndWorker>().setInitialDelay(target - elapsed, TimeUnit.MILLISECONDS).build()
         )
+        scheduledFocusEnd = target
     }
 
+    @Synchronized
     fun cancelFocusEnd(context: Context) {
+        scheduledFocusEnd = null
         WorkManager.getInstance(context).cancelUniqueWork(FOCUS_END_WORK)
+    }
+
+    @Synchronized
+    private fun focusEndStarted() {
+        scheduledFocusEnd = null
     }
 
     /** Only reconciles; FocusModeManager.isActive is already false past the end time. */
     class FocusEndWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
         override fun doWork(): Result {
+            // Before reconcile, which enqueues the next job if focus still runs
+            focusEndStarted()
             reconcile(applicationContext)
             return Result.success()
         }

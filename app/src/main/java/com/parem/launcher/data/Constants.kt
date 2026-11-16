@@ -97,8 +97,9 @@ object Constants {
     const val URL_PAREM_PRIVACY = "https://pilves.github.io/parem-launcher/privacy.html"
     const val URL_PAREM_GITHUB = "https://github.com/Pilves/parem-launcher"
     const val URL_WALLPAPERS = "https://pilves.github.io/parem-launcher/wallpapers.json"
-    const val URL_DEFAULT_DARK_WALLPAPER = "https://images.unsplash.com/photo-1512551980832-13df02babc9e"
-    const val URL_DEFAULT_LIGHT_WALLPAPER = "https://images.unsplash.com/photo-1515549832467-8783363e19b6"
+    // Same size as the daily entries in wallpapers.json; the full originals decode to 60-81 MB
+    const val URL_DEFAULT_DARK_WALLPAPER = "https://images.unsplash.com/photo-1512551980832-13df02babc9e?w=2000&q=99"
+    const val URL_DEFAULT_LIGHT_WALLPAPER = "https://images.unsplash.com/photo-1515549832467-8783363e19b6?w=2000&q=99"
     const val URL_DUCK_SEARCH = "https://duckduckgo.com/?q="
     const val URL_GOOGLE_SEARCH = "https://www.google.com/search?q="
 

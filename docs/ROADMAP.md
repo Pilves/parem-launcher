@@ -334,6 +334,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP70 | **Done** (PR #81). **Todo**. Do less work per keystroke in the app drawer | Drawer search helpers (`SearchMatcher`, `SettingsSearch`, `QuickActionParser`, `ContactMatcher`, `OmniboxResolver`, `HiddenAppHint`, `CurrencyRates`, `AppListSource`), `AppDrawerFragment`, `AppDrawerAdapter`, tests, changelog and handoff | Results, ordering, ties, tips and Private Space lock state identical to before, proven by parity tests; typing an app name on API 35+ makes no Private Space binder call |
 
+| M6-WP71 | **Done** (PR #80). **Todo**. Lower wallpaper decode memory, release dismissed sheets and stop redundant grey-on-focus rescheduling | `helper/WallpaperUtils.kt`, the two fallback wallpaper URLs in `data/Constants.kt`, `ui/BottomSheetMenu.kt`, three `dismissOnDestroy` calls in `ui/settings/AppearanceSettingsCard.kt`, `helper/GrayscaleController.kt`, tests, changelog and handoff | Wallpaper decodes are sampled without undershooting the crop, fallbacks are served at the daily entries' size, and both screens keep their own copy; dismissed sheets are released while owner destroy still dismisses; an unchanged focus end is not re-enqueued and cancel or start clears the memo |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
