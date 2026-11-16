@@ -147,9 +147,12 @@ class AppDrawerAdapter(
 
                 val searchText = charSearch?.toString()?.trim() ?: ""
                 var appFilteredList = (if (searchText.isBlank()) snapshot
-                else snapshot.filter { app ->
-                    val key = keys[app.appLabel] ?: SearchMatcher.key(app.appLabel)
-                    SearchMatcher.matches(app.appLabel, key, searchText)
+                else {
+                    val query = SearchMatcher.Query(searchText)
+                    snapshot.filter { app ->
+                        val key = keys[app.appLabel] ?: SearchMatcher.key(app.appLabel)
+                        SearchMatcher.matches(app.appLabel, key, query)
+                    }
                 }).toMutableList()
 
                 if (sortByUsage) {

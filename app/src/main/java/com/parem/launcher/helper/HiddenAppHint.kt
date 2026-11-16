@@ -26,7 +26,8 @@ object HiddenAppHint {
      */
     fun show(query: String, visibleRows: Int, privateSpaceLocked: Boolean, hiddenLabels: List<String>): Boolean {
         if (query.isBlank() || visibleRows > 0 || privateSpaceLocked) return false
-        return hiddenLabels.any { SearchMatcher.matches(it, SearchMatcher.key(it), query) }
+        val prepared = SearchMatcher.Query(query)
+        return hiddenLabels.any { SearchMatcher.matches(it, SearchMatcher.key(it), prepared) }
     }
 }
 

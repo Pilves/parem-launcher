@@ -34,8 +34,8 @@ object ContactMatcher {
     /** Contacts whose name matches [query], best matches first, capped at [limit]. */
     fun match(query: String, contacts: List<Contact>, limit: Int = 5): List<Contact> {
         if (!looksLikeContactQuery(query)) return emptyList()
-        val q = query.trim()
-        val normalizedQuery = SearchMatcher.key(q).normalized
+        val q = SearchMatcher.Query(query.trim())
+        val normalizedQuery = q.key.normalized
         return contacts
             .mapNotNull { contact ->
                 val key = contact.searchKey
