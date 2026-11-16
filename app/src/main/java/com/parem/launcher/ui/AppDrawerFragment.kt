@@ -835,6 +835,9 @@ class AppDrawerFragment : BaseFragment() {
         scrollListener = getRecyclerViewOnScrollListener()
         binding.recyclerView.addOnScrollListener(scrollListener!!)
         binding.recyclerView.itemAnimator = null
+        // Height is a layout weight in both orientations, never the rows: an
+        // adapter update then lays out the list without re-measuring the drawer
+        binding.recyclerView.setHasFixedSize(true)
     }
 
     private fun initObservers() {

@@ -27,12 +27,27 @@ class RecentHistoryAdapter(
 
     private var rows: List<Row> = emptyList()
 
-    // At most six rows, and the drawer has no item animator: a full rebind is fine
+    // Inside the drawer's ConcatAdapter a full change also rebinds every app
+    // row, so the first keystroke (history to none) removes just these rows
     @SuppressLint("NotifyDataSetChanged")
     fun submit(newRows: List<Row>) {
         if (newRows == rows) return
+        val oldCount = itemCount
         rows = newRows
-        notifyDataSetChanged()
+        val newCount = itemCount
+        when {
+            // Inserted rows would land above the first visible row, which the
+            // list stays anchored on, so the history would open scrolled out
+            // of view; a full change keeps the old layout from the top
+            oldCount == 0 -> notifyDataSetChanged()
+            newCount == 0 -> notifyItemRangeRemoved(0, oldCount)
+            else -> {
+                // The header (position 0) stays; the rows under it change, then the tail grows or shrinks
+                notifyItemRangeChanged(1, minOf(oldCount, newCount) - 1)
+                if (newCount > oldCount) notifyItemRangeInserted(oldCount, newCount - oldCount)
+                else if (newCount < oldCount) notifyItemRangeRemoved(newCount, oldCount - newCount)
+            }
+        }
     }
 
     override fun getItemCount(): Int = if (rows.isEmpty()) 0 else rows.size + 1
