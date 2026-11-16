@@ -411,7 +411,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getTodaysScreenTime() {
-        if (!ScreenTimeFreshness.homeRefreshDue(System.currentTimeMillis(), prefs.screenTimeLastUpdated)) return
+        // The throttle is persisted but the value is not: a new process inside
+        // the minute must still post once, or home shows an empty tile
+        if (screenTimeValue.value != null &&
+            !ScreenTimeFreshness.homeRefreshDue(System.currentTimeMillis(), prefs.screenTimeLastUpdated)) return
 
         viewModelScope.launch(Dispatchers.IO) {
             val endTime = System.currentTimeMillis()
