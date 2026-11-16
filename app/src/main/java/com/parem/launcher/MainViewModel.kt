@@ -57,7 +57,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         appContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
     }
 
-    val firstOpen = MutableLiveData<Boolean>()
     val refreshHome = MutableLiveData<Boolean>()
     val toggleDateTime = MutableLiveData<Unit>()
     val updateSwipeApps = MutableLiveData<Unit>()

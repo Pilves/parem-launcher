@@ -15,7 +15,6 @@
     <string name="home_layout_alignment">יישור היישומים</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">עצה: אפשר להתחיל להקליד שם של יישום מסוים ואז הוא ייפתח אוטומטית</string>
-    <string name="okay">אישור</string>
     <string name="auto_show_keyboard">הצגת המקלדת באופן אוטומטי</string>
     <string name="rename">שינוי שם</string>
     <string name="show_date_time">Show date time</string>
@@ -51,5 +50,5 @@
     <string name="hidden_apps">אפליקציות מוסתרות</string>
     <string name="screen_time">זמן מסך</string>
     <string name="home_screen">מסך הבית</string>
-    <string name="app_usage_message">כדי להציג/להסתיר את זמן המסך שלך במסך הבית, אנא אפשר או בטל את הרשאת השימוש באפליקציה. הערה: לא נאספים נתוני שימוש באפליקציה. הכל מעובד במכשיר שלך.</string><string name="notification_bar">שורת ההתראות</string>
+    <string name="notification_bar">שורת ההתראות</string>
 </resources>

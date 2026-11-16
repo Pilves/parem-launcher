@@ -17,7 +17,6 @@ class LaunchSiteAllowlistTest {
         }.toList().sorted()
         // Reasons distinguish gated dispatch from deliberately exempt configuration and actions.
         val allowed = listOf(
-            "MainActivity.kt|.option(getString(R.string.okay)) { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }" to "Usage access configuration",
             "MainActivity.kt|.option(getString(R.string.agree)) { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }" to "Usage access configuration",
             "MainViewModel.kt|appContext.startActivity(intent)" to "App and shortcut dispatch after the selected-app gate",
             "MainViewModel.kt|launcherApps.startShortcut(appModel.appPackage, shortcutId, sourceBounds, null, appModel.user)" to "App and shortcut dispatch after the selected-app gate",

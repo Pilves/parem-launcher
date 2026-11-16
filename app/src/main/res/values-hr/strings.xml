@@ -16,7 +16,6 @@
     <string name="home_layout_alignment">Poravnanje aplikacija</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Savjet: Povuci prema dolje za zatvaranje. Pomakni zaslon za zatvaranje tipkovnice.</string>
-    <string name="okay">U redu</string>
     <string name="auto_show_keyboard">Automatski prikaži tipkovnicu</string>
     <string name="rename">Preimenuj</string>
     <string name="show_date_time">Prikaži datum i vrijeme</string>
@@ -26,8 +25,6 @@
     <string name="system_default">Sustav</string>
     <string name="dark">Tamna</string>
     <string name="light">Svijetla</string>
-    <string name="app_usage_message">Da biste prikazali/sakrili vrijeme korištenja ekrana na početnom zaslonu, molimo dozvolite ili onemogućite dopuštenje korištenja aplikacije.
-        \n\nNapomena: Ne prikupljaju se podaci o korištenju aplikacije. Sve se obrađuje na vašem uređaju.</string>
     <string name="close">Zatvori</string>
     <string name="not_now">Ne sad</string>
     <string name="date">Datum</string>

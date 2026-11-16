@@ -5,7 +5,6 @@
     <string name="set_as_default_launcher_first">Ustaw jako domyślny program uruchamiający</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Wskazówka: zacznij wpisywać nazwę aplikacji, aby uruchomić ją automatycznie</string>
-    <string name="okay">OK</string>
     <string name="your_wallpaper_will_update_shortly">Twoja tapeta zostanie wkrótce zaktualizowana</string>
     <string name="parem_is_not_default_launcher">Parem Launcher nie jest domyślnym programem uruchamiającym. Codzienna aktualizacja tapety może się nie powieść.</string>
     <string name="no_hidden_apps">Brak ukrytych aplikacji</string>
@@ -45,8 +44,6 @@
     <string name="system_default">System</string>
     <string name="dark">Ciemny</string>
     <string name="light">Jasny</string>
-    <string name="app_usage_message">Aby wyświetlić/ukryć czas ekranu na ekranie głównym, pozwól lub zabroń aplikacji na dostęp do danych o użyciu.
-        \n\nUwaga: Nie są gromadzone żadne dane o użyciu aplikacji. Wszystko jest przetwarzane na Twoim urządzeniu.</string>
     <string name="close">Zamknij</string>
     <string name="not_now">Nie teraz</string>
     <string name="date">Data</string>
