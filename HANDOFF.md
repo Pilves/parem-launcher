@@ -4,7 +4,7 @@ Current state only. History is `git log`, `CHANGELOG.md` and
 `docs/archive/TODO-pre-roadmap.md`. Work queue: `docs/ROADMAP.md`.
 Rules: `AGENTS.md`. Code map and traps: `ARCHITECTURE.md`.
 
-**Last updated:** 2026-11-14 — latest handoff date
+**Last updated:** 2026-11-16 — latest handoff date
 
 ## Phase
 
@@ -405,5 +405,6 @@ per package; the rest of each of those fragments is still in
 - **M6-WP66 (PR #69):** Smoke CI allows 30 minutes per Play and Full instrumentation phase; performance retains 22 minutes.
 - **M6-WP67 (PR #70):** Smoke CI runs reviewed single-device state and selection cases on the API 34 phone, and every unclassified case on all four emulator profiles, for both flavors.
 - **M6-WP69 (PR #73):** Onboarding, feature guides and selected settings and disclosure text use the approved shorter English copy; rapid multi-choice picker taps cannot remove a shifted second row.
+- **M6-WP78 (PR #82):** `Perf APK pair` (`.github/workflows/perf-apks.yml`) builds two refs as minified Play release APKs in one run with one throwaway key and uploads `perf-apks`: base as `com.parem.launcher.perf`, head as `com.parem.launcher.perfb`, both mappings and a MANIFEST with each commit.
 
 <!-- handoff:end -->
