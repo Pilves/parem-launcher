@@ -134,8 +134,6 @@ class MainActivity : AppCompatActivity() {
         enableAdminLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            if (result.resultCode == Activity.RESULT_OK)
-                prefs.lockModeOn = true
             onAdminResult?.invoke(result.resultCode == Activity.RESULT_OK)
             onAdminResult = null
         }
@@ -167,7 +165,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (prefs.firstOpen) {
-            viewModel.firstOpen.postValue(true)
             prefs.firstOpen = false
             prefs.firstOpenTime = System.currentTimeMillis()
             viewModel.setDefaultClockApp()
@@ -297,15 +294,6 @@ class MainActivity : AppCompatActivity() {
         viewModel.showDialog.observe(this) {
             if (isFinishing || isDestroyed) return@observe
             when (it) {
-                Constants.Dialog.DIGITAL_WELLBEING -> {
-                    BottomSheetMenu(this)
-                        .title(getString(R.string.screen_time))
-                        .message(getString(R.string.app_usage_message))
-                        .option(getString(R.string.okay)) { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
-                        .option(getString(R.string.not_now), dimmed = true) {}
-                        .show()
-                }
-
                 Constants.Dialog.GRAYSCALE_USAGE_ACCESS -> {
                     BottomSheetMenu(this)
                         .title(getString(R.string.grayscale))
