@@ -1,8 +1,10 @@
 package com.parem.launcher
 
+import android.appwidget.AppWidgetHostView
 import android.content.ComponentName
 import android.os.Build
 import android.os.Bundle
+import android.os.Process
 import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
@@ -17,9 +19,11 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
+import com.parem.launcher.helper.PackageChangeTracker
 import com.parem.launcher.ui.HomeFragment
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertSame
 import org.junit.Assume.assumeTrue
@@ -370,6 +374,70 @@ class WidgetAvailabilityTest {
             val node = checkNotNull(device.wait(Until.findObject(By.desc(context.getString(R.string.widget_unavailable))), 10_000))
             node.click()
             assertTrue("retained placeholder no longer opens its menu", device.wait(Until.hasObject(By.desc(context.getString(R.string.swap_widget))), 10_000))
+        } finally {
+            device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
+        }
+    }
+
+    @Test
+    fun widgetViewSurvivesDrawerRoundTripAndLeavesWithItsId() {
+        prepare()
+        val prefs = Prefs(context)
+        try {
+            pressHomeAndAwaitParem()
+            fun onMain(block: (MainActivity) -> Unit) = instrumentation.runOnMainSync {
+                val activity = ActivityLifecycleMonitorRegistry.getInstance()
+                    .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
+                block(activity)
+            }
+            fun awaitHostView(id: Int, accept: (AppWidgetHostView) -> Boolean = { true }): AppWidgetHostView {
+                var found: AppWidgetHostView? = null
+                val deadline = SystemClock.elapsedRealtime() + 10_000
+                while (found == null && SystemClock.elapsedRealtime() < deadline) {
+                    onMain { activity ->
+                        found = listOf(R.id.widgetContainerAbove, R.id.widgetContainerBelow)
+                            .mapNotNull { activity.findViewById<ViewGroup>(it)?.findViewWithTag<ViewGroup>(id) }
+                            .firstNotNullOfOrNull { it.getChildAt(0) as? AppWidgetHostView }
+                            ?.takeIf(accept)
+                    }
+                    if (found == null) SystemClock.sleep(50)
+                }
+                return checkNotNull(found) { "widget view for $id not rendered" }
+            }
+            var id = -1
+            onMain { activity ->
+                id = activity.appWidgetHost.allocateAppWidgetId()
+                assertTrue(activity.appWidgetManager.bindAppWidgetIdIfAllowed(id, provider))
+                prefs.setWidgetIdList(listOf(id))
+                prefs.setWidgetProvider(id, provider.flattenToString())
+                home(activity).widgetController!!.requestReconcile(force = true)
+            }
+            val first = awaitHostView(id)
+            val stampBefore = PackageChangeTracker.stamp()
+
+            onMain { home(it).showAppList(Constants.FLAG_LAUNCH_APP) }
+            var detached = false
+            val leaveDeadline = SystemClock.elapsedRealtime() + 10_000
+            while (!detached && SystemClock.elapsedRealtime() < leaveDeadline) {
+                instrumentation.runOnMainSync { detached = first.parent == null }
+                if (!detached) SystemClock.sleep(50)
+            }
+            assertTrue("widget view stayed inside the destroyed Home tree", detached)
+
+            pressHomeAndAwaitParem()
+            val second = awaitHostView(id)
+            // Any package change in between rightly forces a fresh view.
+            if (PackageChangeTracker.stamp() == stampBefore)
+                assertSame("Home inflated the widget again after the drawer", first, second)
+
+            onMain { home(it).widgetController!!.requestReconcile(force = true) }
+            val third = awaitHostView(id) { it !== second }
+            val signature = "${provider.flattenToString()}@${Process.myUserHandle()}"
+            onMain { activity ->
+                assertSame("forced refresh did not cache its new view", third, activity.widgetViews.reusable(id, signature))
+                activity.appWidgetHost.deleteAppWidgetId(id)
+                assertNull("deleted ID kept its cached view", activity.widgetViews.reusable(id, signature))
+            }
         } finally {
             device.executeShellCommand("appwidget revokebind --package ${context.packageName} --user 0")
         }
