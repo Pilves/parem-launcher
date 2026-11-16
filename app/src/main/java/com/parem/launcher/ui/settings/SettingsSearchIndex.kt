@@ -2,7 +2,6 @@ package com.parem.launcher.ui.settings
 
 import android.content.Context
 import com.parem.launcher.R
-import com.parem.launcher.data.Constants
 import com.parem.launcher.helper.SettingsSearch
 import com.parem.launcher.helper.appUsagePermissionGranted
 
@@ -59,9 +58,6 @@ object SettingsSearchIndex {
     /** Rows the settings cards hide outright are not offered (same conditions as the cards). */
     fun rows(context: Context, includeHidden: Boolean = false): List<SettingsSearch.Row> {
         val hidden = buildSet {
-            if (Constants.URL_ABOUT_PAREM.isEmpty()) add(R.id.aboutParem)
-            if (Constants.URL_PAREM_PRIVACY.isEmpty()) add(R.id.privacy)
-            if (Constants.URL_PAREM_GITHUB.isEmpty()) add(R.id.github)
             if (!context.appUsagePermissionGranted()) add(R.id.sortByUsage)
         }
         return ROWS.filter { includeHidden || it.second !in hidden }

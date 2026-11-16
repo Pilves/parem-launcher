@@ -28,7 +28,6 @@
     <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Sugerencia: Comienze a escribir el nombre de una aplicación para abrirla automáticamente</string>
-    <string name="okay">Bueno</string>
     <string name="auto_show_keyboard">Mostrar teclado automáticamente</string>
     <string name="status_bar">Mostrar barra de estado</string>
     <string name="rename">Renombrar</string>
@@ -39,8 +38,6 @@
     <string name="system_default">Sistema</string>
     <string name="dark">Oscuro</string>
     <string name="light">Claro</string>
-    <string name="app_usage_message">Para mostrar/ocultar el tiempo de pantalla en la pantalla de inicio, permita o deniegue el permiso de uso de la aplicación.
-        \n\nNota: No se recopilan datos de uso de la aplicación. Todo se procesa en su dispositivo.</string>
     <string name="close">Cerrar</string>
     <string name="not_now">Ahora no</string>
     <string name="date">Fecha</string>

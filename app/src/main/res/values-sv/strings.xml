@@ -27,7 +27,6 @@
     <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Tips: Börja skriv namnet på en app för att autostarta den</string>
-    <string name="okay">Okej</string>
     <string name="auto_show_keyboard">Visa tangentbord automatiskt</string>
     <string name="status_bar">Statusfält överst</string>
     <string name="rename">Byt namn</string>
@@ -38,8 +37,6 @@
     <string name="system_default">System</string>
     <string name="dark">Mörkt</string>
     <string name="light">Ljust</string>
-    <string name="app_usage_message">För att visa/dölja din skärmtid på startsidan, vänligen tillåt eller neka appanvändningsbehörigheten.
-        \n\nObs: Inga data om appanvändning samlas in. Allt bearbetas på din enhet.</string>
     <string name="close">Stäng</string>
     <string name="not_now">Inte nu</string>
     <string name="date">Datum</string>
