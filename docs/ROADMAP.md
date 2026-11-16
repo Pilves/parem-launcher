@@ -334,6 +334,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP70 | **Done** (PR #81). **Todo**. Do less work per keystroke in the app drawer | Drawer search helpers (`SearchMatcher`, `SettingsSearch`, `QuickActionParser`, `ContactMatcher`, `OmniboxResolver`, `HiddenAppHint`, `CurrencyRates`, `AppListSource`), `AppDrawerFragment`, `AppDrawerAdapter`, tests, changelog and handoff | Results, ordering, ties, tips and Private Space lock state identical to before, proven by parity tests; typing an app name on API 35+ makes no Private Space binder call |
 
+| M6-WP74 | **Todo**. Keep the screen-time guardian for the day and time each scan | `helper/UsageStatsHelper.kt`, `helper/ScreenTimeFreshness.kt`, `helper/usageStats/*`, tests and handoff | Lookback grouped by package with results identical to the old scan; the guardian is reused only on the same day, zone and package stamp with no clock step after a good read; one `ParemUsageScan` line per scan; screen-time numbers unchanged |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
