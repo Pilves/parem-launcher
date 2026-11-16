@@ -64,7 +64,6 @@ class Prefs(context: Context) {
     private val HIDE_SET_DEFAULT_LAUNCHER = "HIDE_SET_DEFAULT_LAUNCHER"
     private val SCREEN_TIME_LAST_UPDATED = "SCREEN_TIME_LAST_UPDATED"
     private val PERIODIC_SELF_RECREATE_ENABLED = "PERIODIC_SELF_RECREATE_ENABLED"
-    private val WIDGET_ID = "WIDGET_ID"
     private val WIDGET_IDS = "WIDGET_IDS"
     private val WIDGET_PLACEMENT = "WIDGET_PLACEMENT"
     private val WIDGET_HEIGHTS = "WIDGET_HEIGHTS"
@@ -268,10 +267,6 @@ class Prefs(context: Context) {
     // versions still import with the right types and existing installs don't
     // leak the dead keys into new exports.
 
-    var widgetId: Int
-        get() = prefs.getInt(WIDGET_ID, -1)
-        set(value) = prefs.edit { putInt(WIDGET_ID, value) }
-
     var widgetIds: String
         get() = prefs.getString(WIDGET_IDS, "").toString()
         set(value) = prefs.edit { putString(WIDGET_IDS, value) }
@@ -403,20 +398,6 @@ class Prefs(context: Context) {
             .mapNotNull { (id, comp) -> id.toIntOrNull()?.takeIf { comp.isNotBlank() }?.let { it to comp } }.toMap()
         widgetProvidersCache = parsed
         return parsed
-    }
-
-    fun migrateWidgetIfNeeded(appWidgetManager: android.appwidget.AppWidgetManager? = null) =
-        migrateWidgetWithProviderLookup { id -> appWidgetManager?.getAppWidgetInfo(id)?.provider?.flattenToString() }
-
-    internal fun migrateWidgetWithProviderLookup(provider: (Int) -> String?) {
-        val legacyId = widgetId
-        if (legacyId != -1 && widgetIds.isBlank()) {
-            setWidgetIdList(listOf(legacyId))
-            // The ID is already safely saved: provider lookup can fail, but it
-            // must not leave a legacy marker that later resurrects a removal.
-            widgetId = -1
-            provider(legacyId)?.let { setWidgetProvider(legacyId, it) }
-        }
     }
 
     var hiddenApps: MutableSet<String>
@@ -555,9 +536,11 @@ class Prefs(context: Context) {
 
     fun clearDeviceOnlyState() = prefs.edit { for (key in deviceOnlyKeys) remove(key) }
 
-    // Keys to exclude from export (device-specific, not transferable)
+    // Keys to exclude from export (device-specific, not transferable).
+    // "WIDGET_ID" is the retired single-widget key: nothing reads it, but a
+    // stale value must never travel through an export or import.
     private val exportExcludeKeys = setOf(
-        WIDGET_ID, WIDGET_IDS, WIDGET_HEIGHTS, WIDGET_PLACEMENT, WIDGET_PROVIDERS,
+        "WIDGET_ID", WIDGET_IDS, WIDGET_HEIGHTS, WIDGET_PLACEMENT, WIDGET_PROVIDERS,
         CACHED_USAGE_STATS,
         "OPEN_COUNTS", "OPEN_COUNTS_DAY",
         "WEATHER_CACHED_TEMP", "WEATHER_LAST_FETCHED", "WEATHER_LAST_SUCCESS_MS",

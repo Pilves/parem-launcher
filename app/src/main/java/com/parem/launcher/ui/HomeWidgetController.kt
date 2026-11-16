@@ -210,12 +210,6 @@ class HomeWidgetController(
         isRestoringWidgets = true
         try {
             val activity = mainActivity ?: return
-            try { prefs.migrateWidgetIfNeeded(activity.appWidgetManager) }
-            catch (e: Exception) {
-                // The legacy ID is already retained before provider lookup; keep
-                // rendering it even when the manager is temporarily unavailable.
-                CrashReporter.reportNonFatal("HomeWidgetController: widget migration lookup failed", e)
-            }
             val ids = prefs.getWidgetIdList()
             // Resume still checks availability, but host ID enumeration is only
             // needed on the first scan and explicit provider/rebuild refreshes.
@@ -545,8 +539,6 @@ class HomeWidgetController(
         val ids = prefs.getWidgetIdList()
         if (widgetId !in ids) return
         ids.remove(widgetId)
-        // Older failed migrations may still carry the legacy marker.
-        if (prefs.widgetId == widgetId) prefs.widgetId = -1
         mainActivity.appWidgetHost.deleteAppWidgetId(widgetId)
         prefs.removeWidgetProvider(widgetId)
         prefs.removeWidgetHeight(widgetId)

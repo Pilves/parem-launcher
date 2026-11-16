@@ -79,7 +79,7 @@ class ImportContentTest {
         imported("WIDGET_ID" to Int.MIN_VALUE, "WIDGET_IDS" to "oops,999999999999999999,-42",
             "WIDGET_PLACEMENT" to Int.MAX_VALUE, "WIDGET_HEIGHTS" to "x:y,9:2147483647",
             "WIDGET_PROVIDERS" to "9:not/a/valid/component")
-        assertEquals(-1, prefs.widgetId)
+        assertEquals(-1, sp.getInt("WIDGET_ID", -1))
         assertEquals(emptyList<Int>(), prefs.getWidgetIdList())
         assertEquals(Constants.WidgetPlacement.ABOVE, prefs.widgetPlacement)
         assertEquals(120, prefs.getWidgetHeight(9))
