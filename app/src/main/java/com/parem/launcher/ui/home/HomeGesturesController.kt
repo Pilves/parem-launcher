@@ -473,7 +473,6 @@ class HomeGesturesController(
             if (outcome == LockServiceCheck.Outcome.LOCK_ADMIN) deviceManager.lockNow()
             else binding.lock.performClick()
         } catch (e: SecurityException) {
-            prefs.lockModeOn = false
             context.showToast(context.getString(R.string.please_turn_on_double_tap_to_unlock), Toast.LENGTH_LONG)
             fragment.findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
         } catch (e: Exception) {

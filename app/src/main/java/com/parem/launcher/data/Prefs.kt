@@ -34,7 +34,6 @@ class Prefs(context: Context) {
     private val HOME_GUIDANCE_LONG_PRESS = "HOME_GUIDANCE_LONG_PRESS"
     private val FIRST_OPEN = "FIRST_OPEN"
     private val FIRST_OPEN_TIME = "FIRST_OPEN_TIME"
-    private val LOCK_MODE = "LOCK_MODE"
     private val LOCK_SERVICE_CONNECTED = "LOCK_SERVICE_CONNECTED"
     private val LOCK_SERVICE_OFF_EXPLAINED = "LOCK_SERVICE_OFF_EXPLAINED"
     private val CRASH_REPORTS_ENABLED = "CRASH_REPORTS_ENABLED"
@@ -135,10 +134,6 @@ class Prefs(context: Context) {
     var firstOpenTime: Long
         get() = prefs.getLong(FIRST_OPEN_TIME, 0L)
         set(value) = prefs.edit { putLong(FIRST_OPEN_TIME, value) }
-
-    var lockModeOn: Boolean
-        get() = prefs.getBoolean(LOCK_MODE, false)
-        set(value) = prefs.edit { putBoolean(LOCK_MODE, value) }
 
     // Device-specific (export-excluded): an imported "connected" would turn the
     // first-time consent sheet into a "your service was turned off" sheet.

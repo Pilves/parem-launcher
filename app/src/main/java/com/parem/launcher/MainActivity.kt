@@ -134,8 +134,6 @@ class MainActivity : AppCompatActivity() {
         enableAdminLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            if (result.resultCode == Activity.RESULT_OK)
-                prefs.lockModeOn = true
             onAdminResult?.invoke(result.resultCode == Activity.RESULT_OK)
             onAdminResult = null
         }
