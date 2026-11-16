@@ -4,7 +4,7 @@ name: Minified release smoke
 on:
   workflow_dispatch:
   push:
-    branches: [release/v6.0.0, ci/minified-release-smoke]
+    branches: [master]
 
 permissions:
   contents: read

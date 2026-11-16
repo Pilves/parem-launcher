@@ -1,11 +1,16 @@
 # Release smoke tests (app/src/androidTest) and the performance regression
-# gate (scripts/perf-budget.mjs, M3-WP10) on an x86_64 emulator.
+# gate (scripts/perf-budget.mjs, M3-WP10) on x86_64 emulators.
+# A pull request runs one leg: pixel_6 API 34, Play flavour, every test, no
+# performance comparison. A push to master and a manual run use the whole
+# matrix: four emulators, both flavours, and the comparison on pixel_6.
 # Not on tag push: release.yml is already publishing by then. Run it by hand
 # on the RC commit before tagging.
 name: Smoke tests
 
 on:
   pull_request:
+    branches: [master]
+  push:
     branches: [master]
   workflow_dispatch:
     inputs:
@@ -25,6 +30,11 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request cancels its older run; master and manual runs are never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   investigate:
     if: inputs.investigate_performance == true && inputs.film_capture != true
@@ -35,12 +45,18 @@ jobs:
     timeout-minutes: ${{ matrix.perf && 100 || 85 }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - { profile: pixel_6,      api-level: 34, perf: true, single_device: true }
-          - { profile: '7.6in Foldable',   api-level: 34, single_device: false }
-          - { profile: pixel_tablet, api-level: 34, single_device: false }
-          - { profile: pixel_tablet, api-level: 36, single_device: false }
+      # The first list is the pull request leg, the second is master and manual
+      # runs. single_device false skips @SingleDevice tests, so only pixel_6 runs
+      # every test; full false skips the Full suite.
+      # scripts/test-inventory/check.test.mjs checks the legs still cover every test.
+      matrix: >-
+        ${{ fromJSON(github.event_name == 'pull_request'
+        && '{"include": [{"profile": "pixel_6", "api-level": 34, "perf": false, "single_device": true, "full": false}]}'
+        || '{"include": [
+        {"profile": "pixel_6", "api-level": 34, "perf": true, "single_device": true, "full": true},
+        {"profile": "7.6in Foldable", "api-level": 34, "perf": false, "single_device": false, "full": true},
+        {"profile": "pixel_tablet", "api-level": 34, "perf": false, "single_device": false, "full": true},
+        {"profile": "pixel_tablet", "api-level": 36, "perf": false, "single_device": false, "full": true}]}') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -80,7 +96,7 @@ jobs:
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           # The wrapper keeps continuous logcat running through the performance comparison.
-          script: bash scripts/run-instrumented.sh "${{ inputs.drawer_stress_runs }}" "${{ matrix.perf }}" "${{ matrix.single_device }}"
+          script: bash scripts/run-instrumented.sh "${{ inputs.drawer_stress_runs }}" "${{ matrix.perf }}" "${{ matrix.single_device }}" "${{ matrix.full }}"
 
       - name: Upload test reports
         if: always()

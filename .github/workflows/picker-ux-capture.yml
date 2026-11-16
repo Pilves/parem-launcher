@@ -1,7 +1,8 @@
 name: Picker UX captures
+# After merge, not per pull request: a pull request runs one smoke leg (smoke.yml).
 on:
   workflow_dispatch:
-  pull_request:
+  push:
     branches: [master]
     paths:
       - 'app/src/main/java/com/parem/launcher/ui/AppPickerAdapter.kt'

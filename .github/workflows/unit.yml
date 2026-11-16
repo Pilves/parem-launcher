@@ -6,6 +6,11 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request cancels its older run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   unit:
     runs-on: ubuntu-latest
@@ -20,8 +25,8 @@ jobs:
         with:
           node-version: '22'
       - name: Test harness scripts
-        run: node --test scripts/*.test.mjs
-      - name: Test both flavors and build Play APK
-        run: ./gradlew testFullDebugUnitTest testPlayDebugUnitTest assemblePlayDebug
+        run: node --test scripts/*.test.mjs scripts/test-inventory/*.test.mjs
+      - name: Test both flavors and build both debug APKs
+        run: ./gradlew testFullDebugUnitTest testPlayDebugUnitTest assembleFullDebug assemblePlayDebug
       - name: Check Play APK
         run: scripts/check-play-build.sh app/build/outputs/apk/play/debug/app-play-debug.apk
