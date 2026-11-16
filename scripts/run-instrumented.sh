@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 if [[ ${PAREM_INCIDENT_MONITORED:-} != 1 ]]; then exec bash scripts/ci-emulator-run.sh com.parem.launcher.debug bash "$0" "$@"; fi
 # Disposable CI emulator only. With a run count, repeats the drawer tests in
-# fresh processes to measure a failure rate; without one, runs both suites.
+# fresh processes to measure a failure rate; without one, runs the Play suite
+# and, unless the fourth argument is false, the Full suite.
 set -uo pipefail
 
 runs=${1:-0}
 single_device=${3:-true}
+full=${4:-true}
 pkg=com.parem.launcher.debug
 tests=(swipeUpOpensDrawer omniboxLaunchesApp)
 diag_out=app/build/smoke-diagnostics
@@ -45,6 +47,14 @@ if [ "${runs:-0}" -le 0 ]; then
     echo "Invalid single-device profile selection: $single_device" >&2
     exit 1
   fi
+  if [[ $full != true && $full != false ]]; then
+    echo "Invalid Full flavour selection: $full" >&2
+    exit 1
+  fi
+  if [[ $full == false && ${2:-false} == true ]]; then
+    echo 'The performance comparison installs the Full APK, so it needs the Full suite.' >&2
+    exit 1
+  fi
   if ! timeout --kill-after=10s 5m bash scripts/test-inventory/discover.sh Play; then
     echo 'Play discovery inventory failed' >&2
     exit 1
@@ -69,11 +79,11 @@ if [ "${runs:-0}" -le 0 ]; then
       exit 1
     fi
   fi
-  if ! timeout --kill-after=10s 5m bash scripts/test-inventory/discover.sh Full; then
+  if [[ $full == true ]] && ! timeout --kill-after=10s 5m bash scripts/test-inventory/discover.sh Full; then
     echo 'Full discovery inventory failed' >&2
     exit 1
   fi
-  if ! timeout --kill-after=10s 30m ./gradlew connectedFullDebugAndroidTest "${filter[@]}"; then
+  if [[ $full == true ]] && ! timeout --kill-after=10s 30m ./gradlew connectedFullDebugAndroidTest "${filter[@]}"; then
     status=1
     capture_failure full
     if [ "$(timeout --kill-after=2s 8s adb get-state 2>/dev/null)" != device ]; then
