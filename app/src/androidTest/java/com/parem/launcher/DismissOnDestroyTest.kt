@@ -37,7 +37,6 @@ class DismissOnDestroyTest {
     }
 
     @Test
-    @SingleDevice
     fun dismissedSheetLeavesOwnerAndCallerListenerIntact() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             for (listenerFirst in listOf(true, false)) {
@@ -64,7 +63,6 @@ class DismissOnDestroyTest {
     }
 
     @Test
-    @SingleDevice
     fun ownerDestroyStillDismissesSheet() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             lateinit var owner: Owner
