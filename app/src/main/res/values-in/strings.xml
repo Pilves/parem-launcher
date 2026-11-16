@@ -3,7 +3,6 @@
     <string name="app">Aplikasi</string>
     <string name="set_as_default_launcher">Tetapkan sebagai peluncur default</string>
     <string name="set_as_default_launcher_first">Tetapkan sebagai peluncur default</string>
-    <string name="double_tap_to_lock_screen">Ketuk dua kali untuk mengunci</string>
     <string name="off">Mati</string>
     <string name="on">Nyala</string>
     <string name="change_default_launcher">Ubah peluncur default</string>
@@ -16,20 +15,9 @@
     <string name="right">kanan</string>
     <string name="center">Tengah</string>
     <string name="home_layout_alignment">Penyelarasan aplikasi</string>
-    <string name="swipe_left_app">Geser aplikasi ke kiri</string>
-    <string name="swipe_right_app">Geser aplikasi ke kanan</string>
-    <string name="_0">0</string>
-    <string name="_1">1</string>
-    <string name="_2">2</string>
-    <string name="_3">3</string>
-    <string name="_4">4</string>
-    <string name="_5">5</string>
-    <string name="_6">6</string>
-    <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Kiat: Mulai ketikkan nama aplikasi untuk meluncurkannya secara otomatis</string>
     <string name="auto_show_keyboard">Tampilkan keyboard secara otomatis</string>
-    <string name="status_bar">Tampilkan bilah status</string>
     <string name="rename">Ganti nama</string>
     <string name="show_date_time">Tampilkan waktu tanggal</string>
     <string name="appearance">Penampilan</string>
@@ -42,8 +30,6 @@
     <string name="not_now">Tidak sekarang</string>
     <string name="date">Tanggal</string>
     <string name="date_only">Tanggal saja</string>
-    <string name="bottom_on">Bawah: Nyala</string>
-    <string name="bottom_off">Bawah: Mati</string>
     <string name="please_set_parem_as_default_first">Silakan atur Parem Launcher sebagai peluncur default Anda terlebih dahulu</string>
     <string name="swipe_down_for">Geser ke bawah untuk</string>
     <string name="search">Cari</string>
@@ -60,13 +46,8 @@
     <string name="copied">Disalin</string>
     <string name="type_a_new_app_name_first">Ketikkan nama aplikasi baru terlebih dahulu</string>
     <string name="app_not_found">Aplikasi tidak ditemukan</string>
-    <string name="swipe_left_app_enabled">Aplikasi geser ke kiri diaktifkan</string>
-    <string name="swipe_right_app_enabled">Aplikasi geser ke kanan diaktifkan</string>
-    <string name="swipe_left_app_disabled">Aplikasi geser ke kiri dinonaktifkan</string>
-    <string name="swipe_right_app_disabled">Aplikasi geser ke kanan dinonaktifkan</string>
     <string name="your_wallpaper_will_update_shortly">Wallpaper Anda akan segera diperbarui</string>
     <string name="parem_is_not_default_launcher">Parem Launcher bukan peluncur default.\nPembaruan wallpaper harian mungkin gagal.</string>
-    <string name="long_press_to_enable">Tekan lama untuk mengaktifkan</string>
     <string name="no_hidden_apps">Aplikasi tersembunyi tidak ada</string>
     <string name="hidden_apps">Aplikasi tersembunyi</string>
     <string name="screen_time">Waktu layar</string><string name="alignment_changed">Penyelarasan diubah ✅</string>

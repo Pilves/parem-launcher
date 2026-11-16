@@ -3,7 +3,6 @@
     <string name="app">Додаток</string>
     <string name="set_as_default_launcher">Зробити лаунчером за замовчування</string>
     <string name="set_as_default_launcher_first">Зробити лаунчером за замовчування</string>
-    <string name="double_tap_to_lock_screen">Блокування подвійним тапом</string>
     <string name="off">Викл</string>
     <string name="on">Вкл</string>
     <string name="change_default_launcher">Змінити лаунчер за замовчуванням</string>
@@ -16,20 +15,9 @@
     <string name="right">Праворуч</string>
     <string name="center">По центру</string>
     <string name="home_layout_alignment">Вирівнювання додатків</string>
-    <string name="swipe_left_app">Проведіть вліво для</string>
-    <string name="swipe_right_app">Проведіть вправо для</string>
-    <string name="_0">0</string>
-    <string name="_1">1</string>
-    <string name="_2">2</string>
-    <string name="_3">3</string>
-    <string name="_4">4</string>
-    <string name="_5">5</string>
-    <string name="_6">6</string>
-    <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Порада. Почніть вводити назву програми, щоб вона запустилася автоматично.</string>
     <string name="auto_show_keyboard">Автопоказ клавіатури</string>
-    <string name="status_bar">Показувати рядок стану</string>
     <string name="rename">Перенайменувати</string>
     <string name="show_date_time">Показувати дату та час</string>
     <string name="appearance">Поява</string>
@@ -42,8 +30,6 @@
     <string name="not_now">Не зараз</string>
     <string name="date">Дата</string>
     <string name="date_only">Толільки дата</string>
-    <string name="bottom_on">Внизу: Вкл</string>
-    <string name="bottom_off">Внизу: Викл</string>
     <string name="please_set_parem_as_default_first">Спочатку встановіть Parem Launcher як стандартний лаунчер.</string>
     <string name="swipe_down_for">Проведіть вниз для</string>
     <string name="search">Пошук</string>
@@ -60,13 +46,8 @@
     <string name="copied">Скопійовано</string>
     <string name="type_a_new_app_name_first">Спочатку введіть нове ім\'я програми</string>
     <string name="app_not_found">Додаток не знайдено</string>
-    <string name="swipe_left_app_enabled">Додаток для лівого свайпа включено</string>
-    <string name="swipe_right_app_enabled">Додаток для правого свайпа включено</string>
-    <string name="swipe_left_app_disabled">Додаток для лівого свайпа вимкнено</string>
-    <string name="swipe_right_app_disabled">Додаток для правого свайпа вимкнено</string>
     <string name="your_wallpaper_will_update_shortly">Ваші шпалери незабаром оновляться</string>
     <string name="parem_is_not_default_launcher">Parem Launcher не є стандартним лаунчером.\nЩоденне оновлення шпалер може завершитися помилкою.</string>
-    <string name="long_press_to_enable">Натисніть та утримуйте, щоб увімкнути</string>
     <string name="no_hidden_apps">Немає прихованих додатків</string>
     <string name="hidden_apps">Приховані додатків</string>
     <string name="screen_time">Час екрану</string><string name="alignment_changed">Вирівнювання змінено ✅</string>

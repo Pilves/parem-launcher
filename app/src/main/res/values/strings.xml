@@ -16,7 +16,6 @@
     <string name="app">App</string>
     <string name="set_as_default_launcher">Set as default launcher</string>
     <string name="set_as_default_launcher_first">Set Parem as default home first</string>
-    <string name="double_tap_to_lock_screen">Double tap to lock</string>
     <string name="admin_permission_message">Parem uses this only to lock the screen when its accessibility service can\'t. After each such lock, your next unlock needs your PIN, pattern or password: fingerprint and face unlock won\'t work for it. Parem uses no other device admin power, and locking reads and sends nothing. To uninstall Parem, first turn this off in Parem\'s Settings › Gestures.</string>
     <string name="off">Off</string>
     <string name="on">On</string>
@@ -29,16 +28,6 @@
     <string name="right">Right</string>
     <string name="center">Center</string>
     <string name="home_layout_alignment">App alignment</string>
-    <string name="swipe_left_app">Swipe left app</string>
-    <string name="swipe_right_app">Swipe right app</string>
-    <string name="_0">0</string>
-    <string name="_1">1</string>
-    <string name="_2">2</string>
-    <string name="_3">3</string>
-    <string name="_4">4</string>
-    <string name="_5">5</string>
-    <string name="_6">6</string>
-    <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="home_guidance_swipe">Swipe up for apps</string>
     <string name="home_guidance_long_press">Long press the background for settings</string>
@@ -83,7 +72,6 @@
     <string name="crash_report_discard">Discard</string>
     <string name="crash_report_subject">Parem crash report</string>
     <string name="auto_show_keyboard">Auto show keyboard</string>
-    <string name="status_bar">Status bar on top</string>
     <string name="rename">Rename</string>
     <string name="show_date_time">Show date time</string>
     <string name="appearance">Appearance</string>
@@ -97,8 +85,6 @@
     <string name="not_now">Not now</string>
     <string name="date">Date</string>
     <string name="date_only">Date only</string>
-    <string name="bottom_on">Bottom: On</string>
-    <string name="bottom_off">Bottom: Off</string>
     <string name="please_set_parem_as_default_first">Set Parem as default home first</string>
     <string name="hidden_apps_message">Hidden. Find it under Hidden apps in Settings.</string>
     <string name="hidden_apps_hint">Not in the list? Check hidden apps</string>
@@ -121,13 +107,8 @@
     <string name="private_space">Private space</string>
     <string name="private_space_unlock">Unlock</string>
     <string name="private_space_lock">Lock</string>
-    <string name="swipe_left_app_enabled">Swipe left app enabled</string>
-    <string name="swipe_right_app_enabled">Swipe right app enabled</string>
-    <string name="swipe_left_app_disabled">Swipe left app disabled</string>
-    <string name="swipe_right_app_disabled">Swipe right app disabled</string>
     <string name="your_wallpaper_will_update_shortly">Your wallpaper will update shortly</string>
     <string name="parem_is_not_default_launcher">Parem is not the default home. Wallpaper won\'t update.</string>
-    <string name="long_press_to_enable">Long press to enable</string>
     <string name="no_hidden_apps">No hidden apps</string>
     <string name="hidden_apps">Hidden apps</string>
     <string name="about_parem">About Parem Launcher</string>
@@ -138,7 +119,6 @@
     <string name="widget_setup_in_progress">Finish the current widget setup first.</string>
     <string name="widget_unavailable">Widget unavailable. Tap for options.</string>
     <string name="remove_widget">Remove widget</string>
-    <string name="no_widgets_available">No widgets available</string>
     <string name="add_widget">Add widget</string>
     <string name="settings">Settings</string>
     <string name="widget_placement">Widget placement</string>
@@ -285,7 +265,6 @@
     <string name="website_label_hint">Label (optional)</string>
     <string name="invalid_url">Enter a web address (http or https)</string>
     <string name="folder_full">A folder holds up to 4 items</string>
-    <string name="select_an_app">Please select an app</string>
     <string name="lock_consent_body">Double tap to lock uses Android\'s accessibility service. Android tells Parem\'s service when you tap inside Parem. The service ignores every tap except the one on its own invisible lock area, and when that tap comes it asks Android to lock the screen. It gets no events from other apps and cannot read your screen. Nothing it sees is stored or sent anywhere. You can turn it off any time in Accessibility settings.</string>
     <string name="lock_consent_accept">Agree and open settings</string>
     <string name="lock_consent_decline">Not now</string>
