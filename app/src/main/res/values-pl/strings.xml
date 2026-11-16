@@ -53,6 +53,7 @@
     <string name="date_only">Tylko data</string>
     <string name="please_set_parem_as_default_first">Najpierw ustaw Parem Launcher jako domyślny program uruchamiający</string>
     <string name="app_not_found">Nie znaleziono aplikacji</string>
+    <string name="about_parem">O Parem Launcher</string>
     <string name="screen_time">Czas ekranowy</string>
     <string name="home_screen">Ekran główny</string><string name="notification_bar">Pasek powiadomień</string>
 </resources><!-- Polish -->

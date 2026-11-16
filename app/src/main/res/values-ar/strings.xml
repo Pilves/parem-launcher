@@ -52,6 +52,7 @@
     <string name="date_only">التاريخ فقط</string>
     <string name="please_set_parem_as_default_first">يرجى تعيين Parem Launcher كمشغل افتراضي أولاً</string>
     <string name="app_not_found">التطبيق غير موجود</string>
+    <string name="about_parem">عن Parem Launcher</string>
     <string name="alignment_changed">تم تغيير المحاذاة ✅</string>
     <string name="home_screen">الشاشة الرئيسية</string><string name="notification_bar">شريط الإشعارات</string>
 </resources>

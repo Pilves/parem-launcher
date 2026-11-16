@@ -55,5 +55,6 @@
     <string name="please_set_parem_as_default_first">まず Parem Launcher をデフォルトのランチャーとして設定してください</string>
     <string name="app_not_found">アプリが見つかりません</string>
     <string name="screen_time">スクリーンタイム</string>
+    <string name="about_parem">アバウト Parem Launcher</string>
     <string name="home_screen">ホーム画面</string><string name="notification_bar">通知バー</string>
 </resources> <!-- Japanese -->

@@ -53,6 +53,7 @@
     <string name="date_only">Nur Datum</string>
     <string name="please_set_parem_as_default_first">Bitte legen Sie zunächst Parem Launcher als Ihren Standard-Launcher fest</string>
     <string name="app_not_found">App nicht gefunden</string>
+    <string name="screen_time">Bildschirmzeit</string>
     <string name="about_parem">Über Parem Launcher</string>
     <string name="home_screen">Startbildschirm</string><string name="notification_bar">Benachrichtigungsleiste</string>
     <string name="onboarding_calm_title">Ruhiges Smartphone (optional)</string>

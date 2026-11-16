@@ -53,6 +53,7 @@
     <string name="date_only">Sadece tarih</string>
     <string name="please_set_parem_as_default_first">Lütfen önce Parem Launcher\'ı varsayılan başlatıcınız olarak ayarlayın</string>
     <string name="app_not_found">Uygulama bulunamadı</string>
+    <string name="about_parem">Parem Launcher Hakkında</string>
     <string name="screen_time">Ekran süresi</string><string name="alignment_changed">Hizalama değiştirildi ✅</string>
     <string name="home_screen">Ana ekran</string><string name="notification_bar">Bildirim çubuğu</string>
 </resources><!-- Turkish -->
