@@ -256,15 +256,26 @@ fun getUserHandleFromString(context: Context, userHandleString: String): UserHan
 }
 
 /** The Private Space profile (API 35+), or null when there is none or it is not visible to Parem. */
-fun privateProfile(context: Context): UserHandle? {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return null
+fun privateProfile(context: Context): UserHandle? = findPrivateProfile(context).profile
+
+/** [complete] is false when the lookup failed or a profile's type was unreadable: a cache must not keep it. */
+class PrivateProfileLookup(val profile: UserHandle?, val complete: Boolean)
+
+fun findPrivateProfile(context: Context): PrivateProfileLookup {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return PrivateProfileLookup(null, true)
     return try {
         val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
         val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-        userManager.userProfiles.firstOrNull { isPrivateProfile(launcherApps, it) == true }
+        var complete = true
+        val profile = userManager.userProfiles.firstOrNull { user ->
+            val isPrivate = isPrivateProfile(launcherApps, user)
+            if (isPrivate == null) complete = false
+            isPrivate == true
+        }
+        PrivateProfileLookup(profile, complete)
     } catch (e: Exception) {
         Log.e("Utils", "Failed to look up the private profile", e)
-        null
+        PrivateProfileLookup(null, false)
     }
 }
 

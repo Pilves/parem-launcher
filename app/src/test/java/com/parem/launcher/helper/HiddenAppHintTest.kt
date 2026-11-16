@@ -2,12 +2,13 @@ package com.parem.launcher.helper
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class HiddenAppHintTest {
 
-    private val hidden = listOf("Spotify", "Tinder")
+    private val hidden = listOf("Spotify", "Tinder").map { HiddenAppHint.Label(it) }
 
     @Test
     fun searchWaitsForHiddenLabelsAndBlocksMatchesBeforeHintIsUpdated() {
@@ -76,6 +77,19 @@ class HiddenAppHintTest {
         load.complete(retry, keys, listOf("New label"), 11)
         assertFalse(HiddenAppHint.canSearchWeb("New label", load.labelsFor(keys, 11)))
         assertTrue(HiddenAppHint.canSearchWeb("Weather", load.labelsFor(keys, 11)))
+    }
+
+    @Test
+    fun aCompletedLoadIsKeyedOnceAndReusedPerKeystroke() {
+        val load = HiddenLabelLoad()
+        val keys = setOf("hidden.package")
+        load.complete(load.begin(keys, 3), keys, listOf("Café Noir", "Spotify"), 3)
+        val labels = load.labelsFor(keys, 3)!!
+        assertEquals(listOf("Café Noir", "Spotify"), labels.map { it.text })
+        assertSame(labels, load.labelsFor(keys, 3))
+        assertTrue(HiddenAppHint.show("cafe", 0, privateSpaceLocked = false, hiddenLabels = labels))
+        assertTrue(HiddenAppHint.show("cn", 0, privateSpaceLocked = false, hiddenLabels = labels))
+        assertFalse(HiddenAppHint.canSearchWeb("spot", labels))
     }
 
     @Test

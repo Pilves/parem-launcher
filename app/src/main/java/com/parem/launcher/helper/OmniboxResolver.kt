@@ -120,7 +120,7 @@ object OmniboxResolver {
         // Contacts rank below every other mode and below the app list (which the
         // filter still populates): the matching contact only fills the tip line.
         if (contacts.isNotEmpty() && ContactMatcher.looksLikeContactQuery(trimmed)) {
-            ContactMatcher.match(trimmed, contacts).firstOrNull()?.let { top ->
+            ContactMatcher.best(trimmed, contacts)?.let { top ->
                 return OmniboxMode.Contact(top.name, top.number)
             }
         }

@@ -56,7 +56,7 @@ import com.parem.launcher.helper.getHiddenAppsForSearch
 import com.parem.launcher.helper.hideKeyboard
 import com.parem.launcher.helper.skipAnimations
 import com.parem.launcher.helper.openSearch
-import com.parem.launcher.helper.privateProfile
+import com.parem.launcher.helper.findPrivateProfile
 import com.parem.launcher.helper.privateSpaceEntryHidden
 import com.parem.launcher.helper.DrawerPull
 import com.parem.launcher.helper.DrawerRows
@@ -107,6 +107,12 @@ class AppDrawerFragment : BaseFragment() {
     // Built on the first query; only the launch drawer resolves omnibox modes.
     private var settingsRows: List<SettingsSearch.Row>? = null
     private var settingPrefixKeys: List<SearchMatcher.LabelKey>? = null
+
+    // Looking the handle up is binder calls. A package or profile availability
+    // change bumps the stamp; adding or removing the profile, or another app
+    // becoming default home, happens outside Parem, so onStart drops it.
+    // Lock state is never cached.
+    private var privateProfileCache: Pair<Long, android.os.UserHandle?>? = null
 
     // Labels protect web searches and drive the empty-result hint; never shown.
     private val hiddenLabels = HiddenLabelLoad()
@@ -464,11 +470,9 @@ class AppDrawerFragment : BaseFragment() {
         val b = _binding ?: return
         if (omniboxMode != OmniboxMode.None) return
         val query = b.search.query.toString()
-        val emptyTip = if (flag == Constants.FLAG_LAUNCH_APP)
-            HiddenAppHint.emptyTip(query, isPrivateSpaceLocked(), currentHiddenLabels())
-        else HiddenAppHint.EmptyTip.NO_APPS
+        // Only an empty launch drawer can show the hint, so only it reads the lock
         hiddenHintShown = flag == Constants.FLAG_LAUNCH_APP && adapter.itemCount == 0 &&
-            emptyTip == HiddenAppHint.EmptyTip.HIDDEN_APPS
+            HiddenAppHint.emptyTip(query, isPrivateSpaceLocked(), currentHiddenLabels()) == HiddenAppHint.EmptyTip.HIDDEN_APPS
         // Picker drawers only pick an app, so a tip there must not promise a search
         val searches = flag == Constants.FLAG_LAUNCH_APP
         val bang = searches && query.startsWith("!") && query.length > 1
@@ -506,7 +510,7 @@ class AppDrawerFragment : BaseFragment() {
         field.postDelayed(announcement, 300)
     }
 
-    private fun currentHiddenLabels(): List<String>? =
+    private fun currentHiddenLabels(): List<HiddenAppHint.Label>? =
         hiddenLabels.labelsFor(prefs.hiddenApps, PackageChangeTracker.stamp())
 
     private fun canOpenImplicitSearch(query: String): Boolean {
@@ -557,8 +561,17 @@ class AppDrawerFragment : BaseFragment() {
 
     /** Locked means a private profile exists and is in quiet mode; no profile is not locked. */
     private fun isPrivateSpaceLocked(): Boolean {
-        val profile = context?.let { privateProfile(it) } ?: return false
+        val profile = privateProfile() ?: return false
         return isQuietMode(profile)
+    }
+
+    private fun privateProfile(): android.os.UserHandle? {
+        // Read before the lookup, so a change landing mid-lookup invalidates it
+        val stamp = PackageChangeTracker.stamp()
+        privateProfileCache?.let { (cachedStamp, profile) -> if (cachedStamp == stamp) return profile }
+        val lookup = findPrivateProfile(context ?: return null)
+        privateProfileCache = if (lookup.complete) stamp to lookup.profile else null
+        return lookup.profile
     }
 
     private fun openHiddenApps() {
@@ -688,7 +701,7 @@ class AppDrawerFragment : BaseFragment() {
         adapter.onFilterCommitted = onFilterCommitted@{ query ->
             if (_binding?.search?.query?.toString() == query) {
                 if (revealPrivateSpace) {
-                    val profile = context?.let { privateProfile(it) }
+                    val profile = privateProfile()
                     if (profile != null && !isQuietMode(profile)) {
                         if (query.isNotBlank()) {
                             binding.search.setQuery("", false)
@@ -721,13 +734,18 @@ class AppDrawerFragment : BaseFragment() {
                 !SettingsSearch.holdsAutoLaunch(text, appLabel, keys) && OmniboxResolver.autoLaunchAllowed(text, prefs.autoLaunchSingleMatch, isScreenReaderOn())
         }
         if (flag == Constants.FLAG_LAUNCH_APP) {
-            // Re-read profile and system visibility on every rebuild, including search.
+            // Lock state and system visibility are re-read on every rebuild that
+            // can show the entry, including search; most typed queries can't, so
+            // they are answered before any binder call.
             adapter.privateSpaceHeader = header@{ query ->
                 if (!isAdded || _binding == null) return@header null
-                val profile = privateProfile(requireContext()) ?: return@header null
+                val label = getString(R.string.private_space)
+                if (!DrawerRows.showPrivateEntry(query, label, locked = false, hiddenWhenLocked = false)) return@header null
+                val profile = privateProfile() ?: return@header null
                 val locked = isQuietMode(profile)
-                if (!DrawerRows.showPrivateEntry(query, getString(R.string.private_space), locked,
-                        privateSpaceEntryHidden(requireContext(), profile))) return@header null
+                // The system's entry-hidden setting applies only while locked
+                if (!DrawerRows.showPrivateEntry(query, label, locked,
+                        locked && privateSpaceEntryHidden(requireContext(), profile))) return@header null
                 AppModel(
                     getString(when {
                         locked -> R.string.private_space_unlock
@@ -819,6 +837,9 @@ class AppDrawerFragment : BaseFragment() {
         scrollListener = getRecyclerViewOnScrollListener()
         binding.recyclerView.addOnScrollListener(scrollListener!!)
         binding.recyclerView.itemAnimator = null
+        // Height is a layout weight in both orientations, never the rows: an
+        // adapter update then lays out the list without re-measuring the drawer
+        binding.recyclerView.setHasFixedSize(true)
     }
 
     private fun initObservers() {
@@ -1063,6 +1084,7 @@ class AppDrawerFragment : BaseFragment() {
     override fun onStart() {
         super.onStart()
         cachedIsCjkKeyboard = null
+        privateProfileCache = null
         if (flag == Constants.FLAG_LAUNCH_APP) {
             binding.search.showKeyboard(prefs.autoShowKeyboard)
             // Further typing must land in the field even with keyboard auto-show off
