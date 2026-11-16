@@ -332,6 +332,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP69 | **Done** (PR #73). **Todo**. Shorten approved English copy and guard rapid picker taps | Base English strings, multi-choice picker, tests and release notes | Approved copy retains keys and placeholders; a rapid second tap cannot change the next row |
 
+| M6-WP70 | **Done** (PR #81). **Todo**. Do less work per keystroke in the app drawer | Drawer search helpers (`SearchMatcher`, `SettingsSearch`, `QuickActionParser`, `ContactMatcher`, `OmniboxResolver`, `HiddenAppHint`, `CurrencyRates`, `AppListSource`), `AppDrawerFragment`, `AppDrawerAdapter`, tests, changelog and handoff | Results, ordering, ties, tips and Private Space lock state identical to before, proven by parity tests; typing an app name on API 35+ makes no Private Space binder call |
+
 | M6-WP78 | **Done** (PR #82). **Todo**. Build base and head release APKs side by side for device measurements | `.github/workflows/perf-apks.yml`, `scripts/perf-apk.init.gradle`, roadmap and handoff | One dispatch builds two refs as minified Play release with one throwaway key, as `.perf` and `.perfb`, and uploads both APKs with their mappings; the CI-A gate changes follow separately |
 
 ## Recurring (no id)
