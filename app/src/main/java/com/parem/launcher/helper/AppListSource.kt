@@ -57,8 +57,6 @@ private suspend fun loadAppsList(
 ): MutableList<AppModel>? {
     return withContext(Dispatchers.IO) {
         try {
-            if (!prefs.hiddenAppsUpdated) upgradeHiddenApps(prefs)
-
             // Read the stamp before the live query: a package change landing
             // mid-query then invalidates this snapshot instead of hiding under it.
             val stamp = PackageChangeTracker.stamp()
@@ -211,13 +209,6 @@ private fun queryShortcutRaws(context: Context, launcherApps: LauncherApps): Pai
         Log.e("Utils", "Failed to query app shortcuts", e)
         Pair(raws, false)
     }
-}
-
-// This is to ensure backward compatibility with older app versions
-// which did not support multiple user profiles
-private fun upgradeHiddenApps(prefs: Prefs) {
-    prefs.hiddenApps = AppListRebuilder.upgradeHiddenApps(prefs.hiddenApps, android.os.Process.myUserHandle().toString()).toMutableSet()
-    prefs.hiddenAppsUpdated = true
 }
 
 fun isPackageInstalled(context: Context, packageName: String, userString: String): Boolean =

@@ -18,14 +18,6 @@ object AppListRebuilder {
     /** The hidden-apps set entry for one app in one profile: `package|userString`. */
     fun hiddenKey(packageName: String, userString: String): String = "$packageName|$userString"
 
-    /**
-     * Upgrades a hidden-apps set written before profiles were keyed: a bare
-     * package name becomes [hiddenKey] for the personal profile, an entry
-     * that already carries a profile is kept as is.
-     */
-    fun upgradeHiddenApps(hiddenApps: Set<String>, personalUserString: String): Set<String> =
-        hiddenApps.mapTo(mutableSetOf()) { if (it.contains("|")) it else hiddenKey(it, personalUserString) }
-
     /** One launcher activity exactly as the system reported it at query time. */
     data class RawApp<U>(
         val label: String,

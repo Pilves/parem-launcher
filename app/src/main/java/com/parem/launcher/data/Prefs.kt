@@ -57,7 +57,6 @@ class Prefs(context: Context) {
     private val SWIPE_LEFT_ENABLED = "SWIPE_LEFT_ENABLED"
     private val SWIPE_RIGHT_ENABLED = "SWIPE_RIGHT_ENABLED"
     private val HIDDEN_APPS = "HIDDEN_APPS"
-    private val HIDDEN_APPS_UPDATED = "HIDDEN_APPS_UPDATED"
     private val APP_THEME = KEY_APP_THEME
     private val SWIPE_DOWN_ACTION = "SWIPE_DOWN_ACTION"
     private val TEXT_SIZE_SCALE = "TEXT_SIZE_SCALE"
@@ -423,10 +422,6 @@ class Prefs(context: Context) {
     var hiddenApps: MutableSet<String>
         get() = HashSet(prefs.getStringSet(HIDDEN_APPS, mutableSetOf()) ?: mutableSetOf())
         set(value) = prefs.edit { putStringSet(HIDDEN_APPS, value) }
-
-    var hiddenAppsUpdated: Boolean
-        get() = prefs.getBoolean(HIDDEN_APPS_UPDATED, false)
-        set(value) = prefs.edit { putBoolean(HIDDEN_APPS_UPDATED, value) }
 
     var swipeDownAction: Int
         get() = prefs.getInt(SWIPE_DOWN_ACTION, Constants.SwipeDownAction.NOTIFICATIONS)
