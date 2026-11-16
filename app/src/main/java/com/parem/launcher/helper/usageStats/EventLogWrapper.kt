@@ -4,9 +4,7 @@ import android.app.ActivityManager
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
-import android.icu.util.Calendar
 import android.util.Log
-import com.parem.launcher.helper.convertEpochToMidnight
 import com.parem.launcher.helper.UsageEventFilter
 import kotlin.math.min
 
@@ -228,25 +226,6 @@ class EventLogWrapper(context: Context, private val requireEvents: Boolean = fal
         }
 
         return componentForegroundStats
-    }
-
-    /**
-     * Collects event information from system to calculate and aggregate precise
-     * foreground time statistics for the specified relative day.
-     *
-     * @param offset Day to query back in time relative to today
-     */
-    fun getForegroundStatsByRelativeDay(offset: Int): List<ComponentForegroundStat> {
-        val cal = Calendar.getInstance()
-        cal.add(Calendar.DAY_OF_YEAR, -offset)
-        cal.timeInMillis = cal.timeInMillis.convertEpochToMidnight()
-        val beginTime = cal.timeInMillis
-
-        // Set to start of the next day
-        cal.add(Calendar.DAY_OF_YEAR, 1)
-        val endTime = cal.timeInMillis
-
-        return getForegroundStatsByTimestamps(beginTime, endTime)
     }
 
     /** Sums foreground time per package. */

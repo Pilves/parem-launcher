@@ -18,11 +18,12 @@ class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManag
         private const val SCAN_INTERVAL = 1000L * 60 * 60 * 24 // 24 hours
     }
 
-    // Cache parsed events for a given queryStart to avoid redundant 24h IPC queries.
-    // Multiple test() calls within the same getForegroundStatsByTimestamps invocation
-    // share the same queryStart, so this eliminates 3-10x redundant queries.
-    private var cachedQueryStart: Long = -1L
-    private var cachedLookback: GuardianLookback? = null
+    // Lookbacks by queryStart, so a guardian kept for the day (UsageStatsHelper) reads
+    // each once. A scan needs midnight's, plus one per reboot today; two also bounds
+    // what the graph's guardian holds across its 13 days.
+    private val lookbacks = object : LinkedHashMap<Long, GuardianLookback>() {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, GuardianLookback>?) = size > 2
+    }
 
     /**
      * Read the lookback once for unmatched closes and event-free fallback checks.
@@ -49,7 +50,7 @@ class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManag
      * @return True if the event is valid, false otherwise
      */
     // Synchronized: the wrapper (and thus this cache) can be hit concurrently from
-    // separate viewModelScope IO coroutines; the two cache fields must move together.
+    // separate viewModelScope IO coroutines, and the lookback map is not thread-safe.
     @Synchronized
     fun test(event: UsageEvents.Event, queryStart: Long): Boolean {
         if (UsageEventFilter.isDream(event.className)) return false
@@ -66,12 +67,5 @@ class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManag
         lookbackBefore(queryStart)?.dreamActive(packageName) ?: true
 
     private fun lookbackBefore(queryStart: Long): GuardianLookback? =
-        if (queryStart == cachedQueryStart && cachedLookback != null) {
-            cachedLookback!!
-        } else {
-            val queried = queryLookback(queryStart)
-            cachedQueryStart = queryStart
-            cachedLookback = queried
-            queried
-        }
+        lookbacks[queryStart] ?: queryLookback(queryStart)?.also { lookbacks[queryStart] = it }
 }
