@@ -61,8 +61,19 @@ fun BottomSheetDialog.disableAnimationsOnEink() {
 val Fragment.isAlive: Boolean get() = isAdded && view != null
 
 fun <T : Dialog> T.dismissOnDestroy(owner: LifecycleOwner): T {
-    owner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
+    val observer = LifecycleEventObserver { _, event ->
         if (event == Lifecycle.Event.ON_DESTROY) dismiss()
+    }
+    owner.lifecycle.addObserver(observer)
+    // Otherwise the owner keeps every dismissed sheet reachable. Window detach, not
+    // setOnDismissListener: a Dialog holds one and callers set their own. Peek, so a call
+    // before show() does not create the decor ahead of the dialog's onCreate.
+    window?.peekDecorView()?.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+        override fun onViewAttachedToWindow(v: View) = Unit
+        override fun onViewDetachedFromWindow(v: View) {
+            v.removeOnAttachStateChangeListener(this)
+            owner.lifecycle.removeObserver(observer)
+        }
     })
     return this
 }
