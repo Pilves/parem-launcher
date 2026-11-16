@@ -30,7 +30,8 @@ class ScreenTimeFreshnessTest {
     private val dayStart = 1_763_244_000_000L
     private val hour = 3_600_000L
     // Made at 01:00, an hour after boot
-    private val kept = ScreenTimeFreshness.GuardianStamp(dayStart, zone, dayStart + hour, hour, dayStart + hour)
+    private val packages = 7L
+    private val kept = ScreenTimeFreshness.GuardianStamp(dayStart, zone, packages, dayStart + hour, hour, dayStart + hour)
 
     private fun reusable(
         nowMs: Long,
@@ -38,8 +39,9 @@ class ScreenTimeFreshnessTest {
         stamp: ScreenTimeFreshness.GuardianStamp = kept,
         today: Long = dayStart,
         zoneId: String = zone,
+        packageStamp: Long = packages,
         lastReadAvailable: Boolean = true,
-    ) = ScreenTimeFreshness.guardianReusable(stamp, lastReadAvailable, today, zoneId, nowMs, elapsedMs)
+    ) = ScreenTimeFreshness.guardianReusable(stamp, lastReadAvailable, today, zoneId, packageStamp, nowMs, elapsedMs)
 
     @Test
     fun keptGuardian_servesLaterScansOfTheSameDayZoneAndClock() {
@@ -83,11 +85,16 @@ class ScreenTimeFreshnessTest {
     }
 
     @Test
+    fun keptGuardian_resetsAfterAPackageChange() {
+        assertFalse(reusable(dayStart + 2 * hour, 2 * hour, packageStamp = packages + 1))
+    }
+
+    @Test
     fun keptGuardian_madeInTheDaysFirstMinutesIsNotKept() {
         val minute = 60_000L
-        val early = ScreenTimeFreshness.GuardianStamp(dayStart, zone, dayStart + minute, minute, dayStart + minute)
+        val early = ScreenTimeFreshness.GuardianStamp(dayStart, zone, packages, dayStart + minute, minute, dayStart + minute)
         assertFalse(reusable(dayStart + 2 * minute, 2 * minute, stamp = early))
-        val settled = ScreenTimeFreshness.GuardianStamp(dayStart, zone, dayStart + 5 * minute, 5 * minute, dayStart + 5 * minute)
+        val settled = ScreenTimeFreshness.GuardianStamp(dayStart, zone, packages, dayStart + 5 * minute, 5 * minute, dayStart + 5 * minute)
         assertTrue(reusable(dayStart + 6 * minute, 6 * minute, stamp = settled))
     }
 }

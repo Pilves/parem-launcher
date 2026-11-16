@@ -60,12 +60,13 @@ object UsageStatsHelper {
         day.add(Calendar.DAY_OF_YEAR, 1)
         val dayEnd = day.timeInMillis
         val zoneId = day.timeZone.id
+        val packages = PackageChangeTracker.stamp()
 
         val reused = kept?.takeIf {
-            ScreenTimeFreshness.guardianReusable(it.stamp, lastReadAvailable, dayStart, zoneId, now, elapsed)
+            ScreenTimeFreshness.guardianReusable(it.stamp, lastReadAvailable, dayStart, zoneId, packages, now, elapsed)
         }
         val stamp = reused?.stamp?.copy(lastWallMs = now)
-            ?: ScreenTimeFreshness.GuardianStamp(dayStart, zoneId, now, elapsed, now)
+            ?: ScreenTimeFreshness.GuardianStamp(dayStart, zoneId, packages, now, elapsed, now)
         lastReadAvailable = false
         var wrapper: EventLogWrapper? = null
         try {
