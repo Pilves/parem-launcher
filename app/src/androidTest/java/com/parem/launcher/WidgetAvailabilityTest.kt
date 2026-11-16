@@ -405,6 +405,8 @@ class WidgetAvailabilityTest {
                 return checkNotNull(found) { "widget view for $id not rendered" }
             }
             var id = -1
+            // Before the first view exists, so a package change while it is cached cannot go unseen
+            val stampBefore = PackageChangeTracker.stamp()
             onMain { activity ->
                 id = activity.appWidgetHost.allocateAppWidgetId()
                 assertTrue(activity.appWidgetManager.bindAppWidgetIdIfAllowed(id, provider))
@@ -413,7 +415,7 @@ class WidgetAvailabilityTest {
                 home(activity).widgetController!!.requestReconcile(force = true)
             }
             val first = awaitHostView(id)
-            val stampBefore = PackageChangeTracker.stamp()
+            assertTrue("host views are not created through Parem's host", first is MainActivity.WidgetHostView)
 
             onMain { home(it).showAppList(Constants.FLAG_LAUNCH_APP) }
             var detached = false
