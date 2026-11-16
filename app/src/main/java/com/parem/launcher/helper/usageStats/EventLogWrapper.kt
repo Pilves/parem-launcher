@@ -4,9 +4,7 @@ import android.app.ActivityManager
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
-import android.icu.util.Calendar
 import android.util.Log
-import com.parem.launcher.helper.convertEpochToMidnight
 import com.parem.launcher.helper.UsageEventFilter
 import kotlin.math.min
 
@@ -15,6 +13,11 @@ class EventLogWrapper(context: Context, private val requireEvents: Boolean = fal
     private val usageStatsManager by lazy { this.context.getSystemService("usagestats") as UsageStatsManager }
     private val guardian = UnmatchedCloseEventGuardian(usageStatsManager, requireEvents)
 
+    // What the last getForegroundStatsByTimestamps read, for the scan timing log
+    var eventsRead = 0
+        private set
+    private var lookbackReadBefore = 0
+    val lookbackEventsRead: Int get() = guardian.lookbackEventsRead - lookbackReadBefore
 
     /**
      * Collects event information from system to calculate and aggregate precise
@@ -29,6 +32,8 @@ class EventLogWrapper(context: Context, private val requireEvents: Boolean = fal
      */
     fun getForegroundStatsByTimestamps(start: Long, end: Long): List<ComponentForegroundStat> {
         var queryStart = start // Can be mutated by DEVICE_STARTUP event
+        eventsRead = 0
+        lookbackReadBefore = guardian.lookbackEventsRead
 
         /*
          * Because sometimes, open events do not have close events when they should, as a hack / workaround,
@@ -78,6 +83,7 @@ class EventLogWrapper(context: Context, private val requireEvents: Boolean = fal
 
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
+            eventsRead++
             if (context.packageName == event.packageName) continue
             if (UsageEventFilter.isDream(event.className)) {
                 dreamPackages.add(event.packageName)
@@ -228,25 +234,6 @@ class EventLogWrapper(context: Context, private val requireEvents: Boolean = fal
         }
 
         return componentForegroundStats
-    }
-
-    /**
-     * Collects event information from system to calculate and aggregate precise
-     * foreground time statistics for the specified relative day.
-     *
-     * @param offset Day to query back in time relative to today
-     */
-    fun getForegroundStatsByRelativeDay(offset: Int): List<ComponentForegroundStat> {
-        val cal = Calendar.getInstance()
-        cal.add(Calendar.DAY_OF_YEAR, -offset)
-        cal.timeInMillis = cal.timeInMillis.convertEpochToMidnight()
-        val beginTime = cal.timeInMillis
-
-        // Set to start of the next day
-        cal.add(Calendar.DAY_OF_YEAR, 1)
-        val endTime = cal.timeInMillis
-
-        return getForegroundStatsByTimestamps(beginTime, endTime)
     }
 
     /** Sums foreground time per package. */
