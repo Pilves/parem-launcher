@@ -25,6 +25,10 @@ class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManag
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, GuardianLookback>?) = size > 2
     }
 
+    /** Lookback events read from the system so far, for the scan timing log. */
+    var lookbackEventsRead = 0
+        private set
+
     /**
      * Read the lookback once for unmatched closes and event-free fallback checks.
      */
@@ -39,6 +43,7 @@ class UnmatchedCloseEventGuardian(private val usageStatsManager: UsageStatsManag
         while (usageEvents.hasNextEvent()) {
             usageEvents.getNextEvent(e)
             lookback.add(e.eventType, e.packageName, e.className, e.timeStamp)
+            lookbackEventsRead++
         }
 
         return lookback

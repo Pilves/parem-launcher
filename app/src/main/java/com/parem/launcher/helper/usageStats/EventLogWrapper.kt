@@ -13,6 +13,11 @@ class EventLogWrapper(context: Context, private val requireEvents: Boolean = fal
     private val usageStatsManager by lazy { this.context.getSystemService("usagestats") as UsageStatsManager }
     private val guardian = UnmatchedCloseEventGuardian(usageStatsManager, requireEvents)
 
+    // What the last getForegroundStatsByTimestamps read, for the scan timing log
+    var eventsRead = 0
+        private set
+    private var lookbackReadBefore = 0
+    val lookbackEventsRead: Int get() = guardian.lookbackEventsRead - lookbackReadBefore
 
     /**
      * Collects event information from system to calculate and aggregate precise
@@ -27,6 +32,8 @@ class EventLogWrapper(context: Context, private val requireEvents: Boolean = fal
      */
     fun getForegroundStatsByTimestamps(start: Long, end: Long): List<ComponentForegroundStat> {
         var queryStart = start // Can be mutated by DEVICE_STARTUP event
+        eventsRead = 0
+        lookbackReadBefore = guardian.lookbackEventsRead
 
         /*
          * Because sometimes, open events do not have close events when they should, as a hack / workaround,
@@ -76,6 +83,7 @@ class EventLogWrapper(context: Context, private val requireEvents: Boolean = fal
 
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
+            eventsRead++
             if (context.packageName == event.packageName) continue
             if (UsageEventFilter.isDream(event.className)) {
                 dreamPackages.add(event.packageName)
