@@ -227,6 +227,7 @@ class SmokeTest {
         assertFalse("successful swipe did not dismiss swipe guidance", prefs.homeGuidanceSwipe)
     }
 
+    @SingleDevice
     @Test
     fun appPickerDoesNotDismissDrawerGuidance() {
         val prefs = Prefs(context)
@@ -629,6 +630,7 @@ class SmokeTest {
         openDrawer()
     }
 
+    @SingleDevice
     @Test
     fun recentAppTapPassesItsLabelAsLaunchSource() {
         instrumentation.runOnMainSync {
@@ -1255,6 +1257,7 @@ class SmokeTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun swipeLockRowsShowMissingAccess() {
         val admin = context.getSystemService(android.content.Context.DEVICE_POLICY_SERVICE) as android.app.admin.DevicePolicyManager
@@ -1280,6 +1283,7 @@ class SmokeTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun settingsChoiceSheetChecksCurrentValueAndKeyboardTogglesOnce() {
         val prefs = Prefs(context)

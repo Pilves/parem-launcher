@@ -111,7 +111,7 @@ class PickerSelectionTest {
 
     @Test fun tapAfterGuardCanDeselectTheNextRow() = checkTwoTaps(true, emptySet())
 
-    @Test fun folderChildBackDiscardsItsStagedEdits() {
+    @SingleDevice @Test fun folderChildBackDiscardsItsStagedEdits() {
         prepare()
         val user = Process.myUserHandle()
         val apps = listOf(
@@ -137,7 +137,7 @@ class PickerSelectionTest {
         }
     }
 
-    @Test fun focusChildBackPreservesOriginalAndUnavailableEntries() {
+    @SingleDevice @Test fun focusChildBackPreservesOriginalAndUnavailableEntries() {
         prepare()
         val original = setOf("example.alpha", "example.unavailable")
         FocusModeManager.disable(context)

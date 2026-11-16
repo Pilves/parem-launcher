@@ -58,6 +58,7 @@ class MinorPolishTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun swipeChoiceShowsTheActualDefaultBesideOpenApp() {
         skipOnboarding().apply {
@@ -84,6 +85,7 @@ class MinorPolishTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun checkedChoiceSummaryIsVisibleAsWellAsAccessible() {
         skipOnboarding()
@@ -109,6 +111,7 @@ class MinorPolishTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun repeatedHomeSetupTapsDoNotStackSettingsScreens() {
         skipOnboarding()

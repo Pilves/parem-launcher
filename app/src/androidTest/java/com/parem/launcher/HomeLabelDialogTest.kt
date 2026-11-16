@@ -133,7 +133,7 @@ class HomeLabelDialogTest {
         }
     }
 
-    @Test fun folderRejectsInvisibleAndWebsiteUsesHostFallback() {
+    @SingleDevice @Test fun folderRejectsInvisibleAndWebsiteUsesHostFallback() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 val folderSaved = mutableListOf<String>()

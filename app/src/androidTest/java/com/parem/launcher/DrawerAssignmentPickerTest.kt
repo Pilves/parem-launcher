@@ -105,7 +105,7 @@ class DrawerAssignmentPickerTest {
         if (flag != Constants.FLAG_HIDDEN_APPS) model.appList.value = listOf(app)
     }
 
-    @Test fun assignmentUsesSearchAndOneTapStillAssignsHomeSlot() {
+    @SingleDevice @Test fun assignmentUsesSearchAndOneTapStillAssignsHomeSlot() {
         ActivityScenario.launch(MainActivity::class.java).useWithEvidence { scenario ->
             scenario.open(Constants.FLAG_SET_HOME_APP_1)
             assertTrue(device.wait(Until.hasObject(By.res(context.packageName, "drawerPickerTitle")
@@ -120,7 +120,7 @@ class DrawerAssignmentPickerTest {
         }
     }
 
-    @Test fun currentChoiceIsShownOnlyForAnUnambiguousVisibleProfile() {
+    @SingleDevice @Test fun currentChoiceIsShownOnlyForAnUnambiguousVisibleProfile() {
         val prefs = Prefs(context)
         prefs.setHomeAppPackage(1, fixture.appPackage)
         prefs.setHomeAppActivityClassName(1, fixture.activityClassName)
@@ -153,7 +153,7 @@ class DrawerAssignmentPickerTest {
         }
     }
 
-    @Test fun pickerClearSearchRestoresTheList() {
+    @SingleDevice @Test fun pickerClearSearchRestoresTheList() {
         ActivityScenario.launch(MainActivity::class.java).useWithEvidence { scenario ->
             scenario.open(Constants.FLAG_SET_HOME_APP_1)
             assertTrue(device.wait(Until.hasObject(By.text("Picker Fixture")), timeout))
@@ -171,7 +171,7 @@ class DrawerAssignmentPickerTest {
         }
     }
 
-    @Test fun gestureClockAndCalendarAssignmentsKeepSelectedIdentity() {
+    @SingleDevice @Test fun gestureClockAndCalendarAssignmentsKeepSelectedIdentity() {
         val flags = listOf(Constants.FLAG_SET_SWIPE_LEFT_APP, Constants.FLAG_SET_SWIPE_RIGHT_APP,
             Constants.FLAG_SET_CLOCK_APP, Constants.FLAG_SET_CALENDAR_APP,
             Constants.FLAG_SET_DOUBLE_TAP_APP, Constants.FLAG_SET_GESTURE_LETTER_APP)
@@ -210,7 +210,7 @@ class DrawerAssignmentPickerTest {
         }
     }
 
-    @Test fun backingOutKeepsExistingAssignment() {
+    @SingleDevice @Test fun backingOutKeepsExistingAssignment() {
         val prefs = Prefs(context)
         prefs.setHomeAppPackage(1, "com.android.settings")
         prefs.setHomeAppName(1, "Original name")
@@ -255,7 +255,7 @@ class DrawerAssignmentPickerTest {
         assertTrue(device.wait(Until.hasObject(By.desc(context.getString(R.string.open_app))), timeout))
     }
 
-    @Test fun hiddenOpenLaunchesTheChosenApp() {
+    @SingleDevice @Test fun hiddenOpenLaunchesTheChosenApp() {
         FocusModeManager.disable(context)
         ActivityScenario.launch(MainActivity::class.java).useWithEvidence { scenario ->
             openHiddenMenu(scenario)
@@ -265,7 +265,7 @@ class DrawerAssignmentPickerTest {
         }
     }
 
-    @Test fun hiddenOpenIsBlockedByFocus() {
+    @SingleDevice @Test fun hiddenOpenIsBlockedByFocus() {
         FocusModeManager.setWhitelist(context, emptySet())
         FocusModeManager.enable(context, 30)
         try {
@@ -280,7 +280,7 @@ class DrawerAssignmentPickerTest {
         } finally { FocusModeManager.disable(context) }
     }
 
-    @Test fun hiddenOpenStillRequiresMindfulPause() {
+    @SingleDevice @Test fun hiddenOpenStillRequiresMindfulPause() {
         FocusModeManager.disable(context)
         AppLimitManager.setPauseOnly(context, launchFixture.appPackage)
         try {
@@ -294,7 +294,7 @@ class DrawerAssignmentPickerTest {
         } finally { AppLimitManager.removeLimit(context, launchFixture.appPackage) }
     }
 
-    @Test fun hiddenOpenStillChecksItsAppLimit() {
+    @SingleDevice @Test fun hiddenOpenStillChecksItsAppLimit() {
         assumeTrue("disposable emulator only", android.os.Build.HARDWARE == "ranchu" || android.os.Build.PRODUCT.contains("sdk_gphone"))
         FocusModeManager.disable(context)
         AppLimitManager.setLimit(context, launchFixture.appPackage, 15)
@@ -313,7 +313,7 @@ class DrawerAssignmentPickerTest {
         }
     }
 
-    @Test fun ordinaryDrawerLongPressDoesNotOfferOpen() {
+    @SingleDevice @Test fun ordinaryDrawerLongPressDoesNotOfferOpen() {
         ActivityScenario.launch(MainActivity::class.java).useWithEvidence { scenario ->
             scenario.open(Constants.FLAG_LAUNCH_APP)
             checkNotNull(device.wait(Until.findObject(By.text("Picker Fixture")), timeout)).longClick()
@@ -322,7 +322,7 @@ class DrawerAssignmentPickerTest {
         }
     }
 
-    @Test fun emptyHiddenAppsShowsEmptyStateDespitePaddingRow() {
+    @SingleDevice @Test fun emptyHiddenAppsShowsEmptyStateDespitePaddingRow() {
         ActivityScenario.launch(MainActivity::class.java).useWithEvidence { scenario ->
             scenario.onActivity { activity ->
                 val model = ViewModelProvider(activity)[MainViewModel::class.java]
@@ -425,7 +425,7 @@ class DrawerAssignmentPickerTest {
         }
     }
 
-    @Test fun normalDrawerDoesNotShowPickerTitle() {
+    @SingleDevice @Test fun normalDrawerDoesNotShowPickerTitle() {
         ActivityScenario.launch(MainActivity::class.java).useWithEvidence { scenario ->
             scenario.open(Constants.FLAG_LAUNCH_APP)
             assertTrue(device.wait(Until.hasObject(By.text("Picker Fixture")), timeout))

@@ -20,7 +20,7 @@ import org.junit.runner.RunWith
 /** Animation scale is restored even when an assertion fails; the emulator is disposable. */
 @RunWith(AndroidJUnit4::class)
 class MotionTest {
-    @Test fun animatorScaleZeroLeavesFeedbackInstant() {
+    @SingleDevice @Test fun animatorScaleZeroLeavesFeedbackInstant() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val device = UiDevice.getInstance(instrumentation)
         val original = device.executeShellCommand("settings get global animator_duration_scale").trim()
@@ -47,7 +47,7 @@ class MotionTest {
         }
     }
 
-    @Test fun pressFeedbackFollowsRuntimeAnimatorScaleChanges() {
+    @SingleDevice @Test fun pressFeedbackFollowsRuntimeAnimatorScaleChanges() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val device = UiDevice.getInstance(instrumentation)
         val names = listOf("window_animation_scale", "transition_animation_scale", "animator_duration_scale")
@@ -135,7 +135,7 @@ class MotionTest {
         }
     }
 
-    @Test fun zeroAnimatorScaleKeepsSettingsAndSheetContentAtRest() {
+    @SingleDevice @Test fun zeroAnimatorScaleKeepsSettingsAndSheetContentAtRest() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val device = UiDevice.getInstance(instrumentation)
         val original = device.executeShellCommand("settings get global animator_duration_scale").trim()
@@ -190,7 +190,7 @@ class MotionTest {
         }
     }
 
-    @Test fun openPopupTracksRuntimeAnimatorScale() {
+    @SingleDevice @Test fun openPopupTracksRuntimeAnimatorScale() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val device = UiDevice.getInstance(instrumentation)
         val names = listOf("window_animation_scale", "transition_animation_scale", "animator_duration_scale")

@@ -16,6 +16,7 @@ import java.util.Locale
 
 @RunWith(AndroidJUnit4::class)
 class SettingsRowsLayoutTest {
+    @SingleDevice
     @Test
     fun defaultHomeRowsStartHiddenBeforeRoleIsObserved() {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {

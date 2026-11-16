@@ -109,6 +109,7 @@ class LockConsentLifecycleTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun stoppingOwnerDismissesConsentAndDeclinesOnce() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
@@ -139,6 +140,7 @@ class LockConsentLifecycleTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun acceptingOrChoosingAdminBeforeStopDoesNotDecline() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext

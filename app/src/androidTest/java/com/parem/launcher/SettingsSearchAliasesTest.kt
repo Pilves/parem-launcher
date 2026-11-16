@@ -10,6 +10,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class SettingsSearchAliasesTest {
+    @SingleDevice
     @Test
     fun renamedLabelsFindCanonicalRows() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext

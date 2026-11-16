@@ -116,7 +116,7 @@ class FocusLaunchRoutingTest {
         }
     }
 
-    @Test fun explicitHandlerIsBlockedOrOpenedByFocusAllowlist() {
+    @SingleDevice @Test fun explicitHandlerIsBlockedOrOpenedByFocusAllowlist() {
         prepare()
         val fixturePackage = instrumentation.context.packageName
         val intent = Intent().setClassName(fixturePackage, LaunchGateFixtureActivity::class.java.name)

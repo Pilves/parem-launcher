@@ -57,6 +57,7 @@ class PrefsRoundTripTest {
         Prefs(context).omniboxHistory = savedHistory
     }
 
+    @SingleDevice
     @Test
     fun textSizeIsInitializedBeforeFirstActivityConfiguration() {
         check(sp.edit().clear().commit())
@@ -69,6 +70,7 @@ class PrefsRoundTripTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun textSizeKeepsExistingAndPartialRestoredStores() {
         val prefs = Prefs(context)
@@ -154,6 +156,7 @@ class PrefsRoundTripTest {
         assertTrue(AppLimitManager.isGated(context, "example.pause"))
     }
 
+    @SingleDevice
     @Test
     fun focusExpiryAndSchedulePauseSurvivePreferenceReads() {
         sp.edit().remove("FOCUS_SCHEDULE_SKIP_UNTIL").commit()
@@ -196,6 +199,7 @@ class PrefsRoundTripTest {
         assertEquals(Constants.GestureAction.LOCK_SCREEN, DoubleTapActionManager.getAction(context))
     }
 
+    @SingleDevice
     @Test
     fun quickGrayscaleKeepsManualChoiceWhenAccessIsLost() {
         sp.edit().putBoolean(GrayscaleController.KEY_MANUAL, false)
@@ -214,6 +218,7 @@ class PrefsRoundTripTest {
         assertFalse(sp.getBoolean(GrayscaleController.KEY_ON_FOCUS, true))
     }
 
+    @SingleDevice
     @Test
     fun quickGrayscaleOffRetainsSavedCorrectionWhenRestoreLosesAccess() {
         val automation = InstrumentationRegistry.getInstrumentation().uiAutomation

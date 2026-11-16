@@ -38,7 +38,7 @@ class PermissionLossGateTest {
     private val device = UiDevice.getInstance(instrumentation)
     private val pkg = "com.parem.fixture.limited"
 
-    @Test fun revokedUsageWarnsAndStillRequiresConfiguredPause() {
+    @SingleDevice @Test fun revokedUsageWarnsAndStillRequiresConfiguredPause() {
         assumeTrue("disposable emulator only", Build.HARDWARE == "ranchu" || Build.PRODUCT.contains("sdk_gphone"))
         Prefs(context).apply { firstOpen = false; onboardingVersionSeen = Constants.ONBOARDING_VERSION }
         val launches = AtomicInteger()
@@ -70,8 +70,8 @@ class PermissionLossGateTest {
             device.executeShellCommand("appops set ${context.packageName} GET_USAGE_STATS default")
         }
     }
-    @Test fun focusActivatedAtUsageWarningBlocksOpenAnyway() = focusBlocksUnknownUsageContinuation(false)
-    @Test fun focusActivatedDuringPauseBlocksProceed() = focusBlocksUnknownUsageContinuation(true)
+    @SingleDevice @Test fun focusActivatedAtUsageWarningBlocksOpenAnyway() = focusBlocksUnknownUsageContinuation(false)
+    @SingleDevice @Test fun focusActivatedDuringPauseBlocksProceed() = focusBlocksUnknownUsageContinuation(true)
 
     private fun focusBlocksUnknownUsageContinuation(pause: Boolean) {
         assumeTrue("disposable emulator only", Build.HARDWARE == "ranchu" || Build.PRODUCT.contains("sdk_gphone"))
@@ -112,7 +112,7 @@ class PermissionLossGateTest {
         }
     }
 
-    @Test fun pauseOnlyDoesNotAskForUsageAccess() {
+    @SingleDevice @Test fun pauseOnlyDoesNotAskForUsageAccess() {
         assumeTrue("disposable emulator only", Build.HARDWARE == "ranchu" || Build.PRODUCT.contains("sdk_gphone"))
         Prefs(context).apply { firstOpen = false; onboardingVersionSeen = Constants.ONBOARDING_VERSION }
         AppLimitManager.setPauseOnly(context, pkg)
@@ -132,7 +132,7 @@ class PermissionLossGateTest {
         }
     }
 
-    @Test fun backCancelsUnavailableWarningOnce() {
+    @SingleDevice @Test fun backCancelsUnavailableWarningOnce() {
         assumeTrue("disposable emulator only", Build.HARDWARE == "ranchu" || Build.PRODUCT.contains("sdk_gphone"))
         Prefs(context).apply { firstOpen = false; onboardingVersionSeen = Constants.ONBOARDING_VERSION }
         val cancelled = AtomicInteger()

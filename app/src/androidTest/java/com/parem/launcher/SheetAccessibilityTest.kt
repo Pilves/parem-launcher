@@ -25,6 +25,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class SheetAccessibilityTest {
+    @SingleDevice
     @Test
     fun radioRowsReportCheckedWithoutOnOffAndBindingIsSilent() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->

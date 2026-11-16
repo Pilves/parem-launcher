@@ -108,6 +108,7 @@ class NameLengthTest {
         }
     }
 
+    @SingleDevice
     @Test
     fun websiteLabelsAreBoundedWithoutTruncatingUrls() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->

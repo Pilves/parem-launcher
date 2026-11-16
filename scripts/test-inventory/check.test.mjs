@@ -20,11 +20,14 @@ test('rejects incomplete, empty and duplicate discovery and includes ignored tes
 });
 
 test('reviewed inventory matches exactly the annotated source methods', async () => {
-  const { readFileSync } = await import('node:fs');
-  const actual = ['PrefsRoundTripTest', 'SmokeTest'].flatMap(name => {
-    const source = readFileSync(`app/src/androidTest/java/com/parem/launcher/${name}.kt`, 'utf8');
-    return [...source.matchAll(/@SingleDevice\s+@Test\s+fun\s+(\w+)\s*\(/g)]
-      .map(m => `com.parem.launcher.${name}#${m[1]}`);
+  const { readFileSync, readdirSync } = await import('node:fs');
+  const dir = 'app/src/androidTest/java/com/parem/launcher';
+  const actual = readdirSync(dir).filter(file => file.endsWith('.kt')).flatMap(file => {
+    const name = file.slice(0, -3), source = readFileSync(`${dir}/${file}`, 'utf8');
+    const tagged = [...source.matchAll(/(?:@SingleDevice\s+@Test|@Test\s+@SingleDevice)\s+fun\s+(\w+)\s*\(/g)];
+    // An annotation in any other position would be missed here but still filter the CI run.
+    assert.equal(tagged.length, source.split('@SingleDevice').length - 1, `unrecognised @SingleDevice placement in ${file}`);
+    return tagged.map(m => `com.parem.launcher.${name}#${m[1]}`);
   }).sort();
   const reviewed = readFileSync('scripts/test-inventory/single-device.txt','utf8').trim().split(/\r?\n/).sort();
   assert.deepEqual(actual, reviewed);

@@ -32,7 +32,7 @@ class PickerSearchTest {
         autoShowKeyboard = false
     }
 
-    @Test fun selectedStayVisibleThroughSearchAndClear() {
+    @SingleDevice @Test fun selectedStayVisibleThroughSearchAndClear() {
         prepare()
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             lateinit var dialog: com.google.android.material.bottomsheet.BottomSheetDialog
@@ -65,7 +65,7 @@ class PickerSearchTest {
         }
     }
 
-    @Test fun singleChoiceIsAnActionAndSelectsOnOneTap() {
+    @SingleDevice @Test fun singleChoiceIsAnActionAndSelectsOnOneTap() {
         prepare()
         val selected = AtomicReference<String>()
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
