@@ -108,8 +108,10 @@ class AppDrawerFragment : BaseFragment() {
     private var settingsRows: List<SettingsSearch.Row>? = null
     private var settingPrefixKeys: List<SearchMatcher.LabelKey>? = null
 
-    // The handle only changes with a profile change, which bumps the package
-    // stamp; looking it up is binder calls. Lock state is never cached.
+    // Looking the handle up is binder calls. A package or profile availability
+    // change bumps the stamp; adding or removing the profile, or another app
+    // becoming default home, happens outside Parem, so onStart drops it.
+    // Lock state is never cached.
     private var privateProfileCache: Pair<Long, android.os.UserHandle?>? = null
 
     // Labels protect web searches and drive the empty-result hint; never shown.
@@ -1082,6 +1084,7 @@ class AppDrawerFragment : BaseFragment() {
     override fun onStart() {
         super.onStart()
         cachedIsCjkKeyboard = null
+        privateProfileCache = null
         if (flag == Constants.FLAG_LAUNCH_APP) {
             binding.search.showKeyboard(prefs.autoShowKeyboard)
             // Further typing must land in the field even with keyboard auto-show off
@@ -1120,7 +1123,6 @@ class AppDrawerFragment : BaseFragment() {
 
     override fun onDestroyView() {
         settingPrefixKeys = null
-        privateProfileCache = null
         revealPrivateSpace = false
         scrollListener?.let { binding.recyclerView.removeOnScrollListener(it) }
         scrollListener = null
