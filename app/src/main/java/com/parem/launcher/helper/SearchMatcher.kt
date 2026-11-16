@@ -39,7 +39,9 @@ object SearchMatcher {
         )
     }
 
-    fun matches(label: String, key: LabelKey, query: String): Boolean = matches(label, key, Query(query))
+    // A plain contains hit needs no normalising, as before Query existed
+    fun matches(label: String, key: LabelKey, query: String): Boolean =
+        label.contains(query, ignoreCase = true) || matches(label, key, Query(query))
 
     fun matches(label: String, key: LabelKey, query: Query): Boolean {
         if (label.contains(query.text, ignoreCase = true)) return true
