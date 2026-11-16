@@ -27,7 +27,6 @@
     <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Tipp: Kezdje el begépelni egy alkalmazás nevét annak automatikus indításához</string>
-    <string name="okay">Rendben</string>
     <string name="auto_show_keyboard">Billentyűzet auto. megjelenítése</string>
     <string name="status_bar">Állapotsor megjelenítése fent</string>
     <string name="rename">Átnevezés</string>
@@ -38,8 +37,6 @@
     <string name="system_default">Rendszer</string>
     <string name="dark">Sötét</string>
     <string name="light">Világos</string>
-    <string name="app_usage_message">A képernyőidő megjelenítéséhez/elrejtéséhez a kezdőképernyőn engedélyezze vagy tagadja meg az alkalmazás használati engedélyét.
-        \n\nMegjegyzés: Nem gyűjtünk alkalmazás-használati adatokat. Minden az Ön eszközén kerül feldolgozásra.</string>
     <string name="close">Bezárás</string>
     <string name="not_now">Később</string>
     <string name="date">Dátum</string>

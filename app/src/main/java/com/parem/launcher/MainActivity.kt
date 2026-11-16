@@ -297,15 +297,6 @@ class MainActivity : AppCompatActivity() {
         viewModel.showDialog.observe(this) {
             if (isFinishing || isDestroyed) return@observe
             when (it) {
-                Constants.Dialog.DIGITAL_WELLBEING -> {
-                    BottomSheetMenu(this)
-                        .title(getString(R.string.screen_time))
-                        .message(getString(R.string.app_usage_message))
-                        .option(getString(R.string.okay)) { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
-                        .option(getString(R.string.not_now), dimmed = true) {}
-                        .show()
-                }
-
                 Constants.Dialog.GRAYSCALE_USAGE_ACCESS -> {
                     BottomSheetMenu(this)
                         .title(getString(R.string.grayscale))
