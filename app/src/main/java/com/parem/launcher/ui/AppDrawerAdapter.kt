@@ -43,6 +43,12 @@ class AppDrawerAdapter(
             override fun areContentsTheSame(oldItem: AppModel, newItem: AppModel): Boolean =
                 oldItem == newItem
         }
+
+        // Keys depend only on their text, so they outlive one adapter: reopening
+        // the drawer or a second emission of the same list re-keys only what
+        // changed instead of every label on the main thread. Main thread only.
+        private var lastLabelKeys: Map<String, SearchMatcher.LabelKey> = emptyMap()
+        private var lastShortcuts: ShortcutKeys? = null
     }
 
     // Main thread only. The same query can publish twice (a re-filter for
@@ -240,9 +246,11 @@ class AppDrawerAdapter(
         val generation = synchronized(appListLock) {
             val token = filterState.invalidate()
             this.appsList = list
+            val previousKeys = lastLabelKeys
             val newKeys = mutableMapOf<String, SearchMatcher.LabelKey>()
-            for (app in list) newKeys[app.appLabel] = SearchMatcher.key(app.appLabel)
+            for (app in list) newKeys[app.appLabel] = previousKeys[app.appLabel] ?: SearchMatcher.key(app.appLabel)
             labelKeys = newKeys
+            lastLabelKeys = newKeys
             rebuildShortcutEntries()
             token
         }
@@ -269,7 +277,11 @@ class AppDrawerAdapter(
                 parents.putIfAbsent(ShortcutMatcher.appKey(app.appPackage, app.user.toString()), app)
         }
         shortcutParents = parents
-        shortcutEntries = ShortcutMatcher.entries(raws, parents.mapValues { it.value.appLabel })
+        val labels = parents.mapValues { it.value.appLabel }
+        // Entries are a pure function of the raws and labels; keying them is the cost
+        val last = lastShortcuts
+        shortcutEntries = if (last != null && last.raws == raws && last.labels == labels) last.entries
+        else ShortcutMatcher.entries(raws, labels).also { lastShortcuts = ShortcutKeys(raws, labels, it) }
     }
 
     /**
@@ -381,3 +393,9 @@ class AppDrawerAdapter(
 
 /** The drawer's private-space header row (see [AppDrawerAdapter.privateSpaceHeader]). */
 fun AppModel.isPrivateHeader(): Boolean = isPrivate && appPackage.isEmpty()
+
+private class ShortcutKeys(
+    val raws: List<ShortcutMatcher.Raw>,
+    val labels: Map<String, String>,
+    val entries: List<ShortcutMatcher.Entry>,
+)
