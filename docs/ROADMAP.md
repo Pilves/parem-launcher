@@ -332,7 +332,7 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP69 | **Done** (PR #73). **Todo**. Shorten approved English copy and guard rapid picker taps | Base English strings, multi-choice picker, tests and release notes | Approved copy retains keys and placeholders; a rapid second tap cannot change the next row |
 
-| M6-WP71 | **Done** (PR #80). **Todo**. Lower wallpaper decode memory, release dismissed sheets and stop redundant grey-on-focus rescheduling | `helper/WallpaperUtils.kt`, `ui/BottomSheetMenu.kt`, three `dismissOnDestroy` calls in `ui/settings/AppearanceSettingsCard.kt`, `helper/GrayscaleController.kt`, tests, changelog and handoff | Wallpaper decodes are sampled without undershooting the crop and both screens keep their own copy; dismissed sheets are released while owner destroy still dismisses; an unchanged focus end is not re-enqueued and cancel or start clears the memo |
+| M6-WP71 | **Done** (PR #80). **Todo**. Lower wallpaper decode memory, release dismissed sheets and stop redundant grey-on-focus rescheduling | `helper/WallpaperUtils.kt`, the two fallback wallpaper URLs in `data/Constants.kt`, `ui/BottomSheetMenu.kt`, three `dismissOnDestroy` calls in `ui/settings/AppearanceSettingsCard.kt`, `helper/GrayscaleController.kt`, tests, changelog and handoff | Wallpaper decodes are sampled without undershooting the crop, fallbacks are served at the daily entries' size, and both screens keep their own copy; dismissed sheets are released while owner destroy still dismisses; an unchanged focus end is not re-enqueued and cancel or start clears the memo |
 
 ## Recurring (no id)
 
