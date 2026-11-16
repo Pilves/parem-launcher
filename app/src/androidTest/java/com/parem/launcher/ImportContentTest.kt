@@ -40,7 +40,7 @@ class ImportContentTest {
         }
     }
 
-    @SingleDevice @Test fun malformedFolderContentsDoNotCrashHome() {
+    @Test fun malformedFolderContentsDoNotCrashHome() {
         imported("FOLDER_DATA" to "not JSON")
         assertFalse(FolderManager(context).isFolderSlot(1))
         homeSurvivesRestart()
@@ -53,7 +53,7 @@ class ImportContentTest {
         homeSurvivesRestart()
     }
 
-    @SingleDevice @Test fun malformedFocusScheduleDoesNotCrashHome() {
+    @Test fun malformedFocusScheduleDoesNotCrashHome() {
         sp.edit().putBoolean("FOCUS_MODE_ENABLED", false).putLong("FOCUS_SCHEDULE_SKIP_UNTIL", 0L).commit()
         imported("FOCUS_SCHEDULE_ENABLED" to true,
             "FOCUS_SCHEDULE" to "oops;127,999999999999999999,0;0,0,0;1,-1,1440;1,2")
@@ -62,7 +62,7 @@ class ImportContentTest {
         homeSurvivesRestart()
     }
 
-    @SingleDevice @Test fun malformedGestureMappingsDoNotCrashHome() {
+    @Test fun malformedGestureMappingsDoNotCrashHome() {
         imported("GESTURE_LETTERS_ENABLED" to true,
             "GESTURE_LETTER_MAPPINGS" to ",:broken::,missing-fields,A:example.app:Main:UserHandle{0},B:too:many:parts:extra")
         val mappings = GestureLetterManager.getAllMappings(context)
@@ -71,7 +71,7 @@ class ImportContentTest {
         homeSurvivesRestart()
     }
 
-    @SingleDevice @Test fun malformedImportedWidgetStateCannotReplaceDeviceWidgets() {
+    @Test fun malformedImportedWidgetStateCannotReplaceDeviceWidgets() {
         // Widgets are device-only; even correctly typed imported values must be ignored.
         sp.edit().putInt("WIDGET_ID", -1).putString("WIDGET_IDS", "")
             .putInt("WIDGET_PLACEMENT", Constants.WidgetPlacement.ABOVE)
