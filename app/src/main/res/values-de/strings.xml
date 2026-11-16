@@ -3,20 +3,11 @@
     <string name="app">App</string>
     <string name="set_as_default_launcher">Als Standard-Launcher festlegen</string>
     <string name="set_as_default_launcher_first">Als Standard-Launcher festlegen</string>
-    <string name="_0">0</string>
-    <string name="_1">1</string>
-    <string name="_2">2</string>
-    <string name="_3">3</string>
-    <string name="_4">4</string>
-    <string name="_5">5</string>
-    <string name="_6">6</string>
-    <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Tipp: Beginnen Sie mit der Eingabe eines App-Namens, um sie automatisch zu starten</string>
     <string name="okay">Okay</string>
     <string name="your_wallpaper_will_update_shortly">Ihr Hintergrundbild wird in Kürze aktualisiert</string>
     <string name="parem_is_not_default_launcher">Parem Launcher ist kein Standard-Launcher. Die tägliche Aktualisierung des Hintergrundbilds schlägt möglicherweise fehl.</string>
-    <string name="long_press_to_enable">Zum Aktivieren lange drücken</string>
     <string name="no_hidden_apps">Keine versteckten Apps</string>
     <string name="hidden_apps">Versteckte Apps</string>
     <string name="swipe_down_for">Wischen Sie nach unten für</string>
@@ -33,7 +24,6 @@
     <string name="unable_to_open_app">App-Informationen können nicht geöffnet werden</string>
     <string name="copied">Kopiert</string>
     <string name="type_a_new_app_name_first">Geben Sie zuerst einen neuen App-Namen ein</string>
-    <string name="double_tap_to_lock_screen">Zum Sperren zweimal tippen</string>
     <string name="off">Aus</string>
     <string name="on">Ein</string>
     <string name="change_default_launcher">Standard-Launcher ändern</string>
@@ -46,10 +36,7 @@
     <string name="right">Rechts</string>
     <string name="center">Mitte</string>
     <string name="home_layout_alignment">App-Ausrichtung</string>
-    <string name="swipe_left_app">Wischen Sie nach links über die App</string>
-    <string name="swipe_right_app">Wischen Sie nach rechts über die App</string>
     <string name="auto_show_keyboard">Tastatur automatisch anzeigen</string>
-    <string name="status_bar">Zeige Statusleiste</string>
     <string name="rename">Umbenennen</string>
     <string name="show_date_time">Datum und Uhrzeit anzeigen</string>
     <string name="appearance">Aussehen</string>
@@ -64,14 +51,8 @@
     <string name="not_now">Nicht jetzt</string>
     <string name="date">Datum</string>
     <string name="date_only">Nur Datum</string>
-    <string name="bottom_on">Unten: Ein</string>
-    <string name="bottom_off">Unten: Aus</string>
     <string name="please_set_parem_as_default_first">Bitte legen Sie zunächst Parem Launcher als Ihren Standard-Launcher fest</string>
     <string name="app_not_found">App nicht gefunden</string>
-    <string name="swipe_left_app_enabled">App nach links wischen aktiviert</string>
-    <string name="swipe_right_app_enabled">App nach rechts wischen aktiviert</string>
-    <string name="swipe_left_app_disabled">App nach links wischen deaktiviert</string>
-    <string name="swipe_right_app_disabled">App nach rechts wischen deaktiviert</string><string name="screen_time">Bildschirmzeit</string>
     <string name="about_parem">Über Parem Launcher</string>
     <string name="home_screen">Startbildschirm</string><string name="notification_bar">Benachrichtigungsleiste</string>
     <string name="onboarding_calm_title">Ruhiges Smartphone (optional)</string>

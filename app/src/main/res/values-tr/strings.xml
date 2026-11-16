@@ -3,20 +3,11 @@
     <string name="app">Uygulama</string>
     <string name="set_as_default_launcher">Varsayılan başlatıcı olarak ayarla</string>
     <string name="set_as_default_launcher_first">Varsayılan başlatıcı olarak ayarla</string>
-    <string name="_0">0</string>
-    <string name="_1">1</string>
-    <string name="_2">2</string>
-    <string name="_3">3</string>
-    <string name="_4">4</string>
-    <string name="_5">5</string>
-    <string name="_6">6</string>
-    <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">İpucu: Otomatik başlatmak için bir uygulama adı yazın</string>
     <string name="okay">Tamam</string>
     <string name="your_wallpaper_will_update_shortly">Duvar kağıdınız birazdan güncellenecek</string>
     <string name="parem_is_not_default_launcher">Parem Launcher varsayılan başlatıcınız değil. Günlük duvar kağıtları hatalı çalışabilir.</string>
-    <string name="long_press_to_enable">Etkinleştirmek için uzun basın</string>
     <string name="no_hidden_apps">Gizli uygulama yok</string>
     <string name="hidden_apps">Gizli uygulamalar</string>
     <string name="swipe_down_for">Aşağı kaydır:</string>
@@ -33,7 +24,6 @@
     <string name="unable_to_open_app">Uygulama bilgisi açılamıyor</string>
     <string name="copied">Kopyalandı</string>
     <string name="type_a_new_app_name_first">Önce yeni bir uygulama adı yazın</string>
-    <string name="double_tap_to_lock_screen">Kilitlemek için çift dokunun</string>
     <string name="off">Kapalı</string>
     <string name="on">Açık</string>
     <string name="change_default_launcher">Varsayılan başlatıcıyı değiştir</string>
@@ -46,10 +36,7 @@
     <string name="right">Sağ</string>
     <string name="center">Merkez</string>
     <string name="home_layout_alignment">Uygulama hizalaması</string>
-    <string name="swipe_left_app">Sola kaydırma uygulaması</string>
-    <string name="swipe_right_app">Sağa kaydırma uygulaması</string>
     <string name="auto_show_keyboard">Klavyeyi otomatik göster</string>
-    <string name="status_bar">Durum çubuğunu göster</string>
     <string name="rename">Yeniden isimlendir</string>
     <string name="show_date_time">Tarih ve saati göster</string>
     <string name="appearance">Görünüm</string>
@@ -64,14 +51,8 @@
     <string name="not_now">Şimdi değil</string>
     <string name="date">Tarih</string>
     <string name="date_only">Sadece tarih</string>
-    <string name="bottom_on">Alt: Açık</string>
-    <string name="bottom_off">Alt: Kapalı</string>
     <string name="please_set_parem_as_default_first">Lütfen önce Parem Launcher\'ı varsayılan başlatıcınız olarak ayarlayın</string>
     <string name="app_not_found">Uygulama bulunamadı</string>
-    <string name="swipe_left_app_enabled">Sola kaydırma uygulaması etkin</string>
-    <string name="swipe_right_app_enabled">Sağa kaydırma uygulaması etkin</string>
-    <string name="swipe_left_app_disabled">Sola kaydırma uygulaması devre dışı</string>
-    <string name="swipe_right_app_disabled">Sağa kaydırma uygulaması devre dışı</string><string name="about_parem">Parem Launcher Hakkında</string>
     <string name="screen_time">Ekran süresi</string><string name="alignment_changed">Hizalama değiştirildi ✅</string>
     <string name="home_screen">Ana ekran</string><string name="notification_bar">Bildirim çubuğu</string>
 </resources><!-- Turkish -->

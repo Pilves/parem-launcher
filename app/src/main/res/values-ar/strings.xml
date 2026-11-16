@@ -3,24 +3,13 @@
     <string name="app">تطبيق</string>
     <string name="set_as_default_launcher">تعيين كمشغل افتراضي</string>
     <string name="set_as_default_launcher_first">تعيين كمشغل افتراضي</string>
-    <string name="_0">صفر</string>
-    <string name="_1">واحد</string>
-    <string name="_2">إثنان</string>
-    <string name="_3">ثلاثة</string>
-    <string name="_4">أربعة</string>
-    <string name="_5">خمسة</string>
-    <string name="_6">ستة</string>
-    <string name="_7">سبعة</string>
     <string name="_8">ثمانية</string>
     <string name="app_drawer_tips">نصيحة: ابدأ في كتابة اسم التطبيق لتشغيله تلقائيًا</string>
     <string name="okay">حسنًا</string>
     <string name="your_wallpaper_will_update_shortly">سيتم تحديث الخلفية الخاصة بك قريبًا</string>
     <string name="parem_is_not_default_launcher">Parem Launcher ليس المشغل الافتراضي. قد يفشل التحديث اليومي للخلفية.</string>
-    <string name="long_press_to_enable">اضغط مطولًا للتمكين</string>
     <string name="no_hidden_apps">لا توجد تطبيقات مخفية</string>
     <string name="hidden_apps">تطبيقات مخفية</string>
-    <string name="swipe_left_app_disabled">التمرير لليسار معطّل</string>
-    <string name="swipe_right_app_disabled">التمرير لليمين معطّل</string>
     <string name="swipe_down_for">اسحب لأسفل من أجل</string>
     <string name="search">يبحث</string>
     <string name="notifications">إشعارات</string>
@@ -35,7 +24,6 @@
     <string name="unable_to_open_app">تعذر فتح التطبيق</string>
     <string name="copied">نُسخ</string>
     <string name="type_a_new_app_name_first">اكتب اسمًا جديدًا للتطبيق أولاً</string>
-    <string name="double_tap_to_lock_screen">انقر مرتين لقفل الشاشة</string>
     <string name="off">ﻻ</string>
     <string name="on">نعم</string>
     <string name="change_default_launcher">تغيير المشغل الافتراضي</string>
@@ -47,10 +35,7 @@
     <string name="right">يمين</string>
     <string name="center">مركز</string>
     <string name="home_layout_alignment">محاذاة التطبيق</string>
-    <string name="swipe_left_app">افتح عند التمرير لليسار</string>
-    <string name="swipe_right_app">افتح عند التمرير لليمين</string>
     <string name="auto_show_keyboard">العرض التلقائي للوحة المفاتيح</string>
-    <string name="status_bar">أظهر شريط الحالة</string>
     <string name="rename">إعادة تسمية</string>
     <string name="show_date_time">إظهار التاريخ والوقت</string>
     <string name="appearance">المظهر</string>
@@ -65,12 +50,8 @@
     <string name="not_now">ليس الآن</string>
     <string name="date">تاريخ</string>
     <string name="date_only">التاريخ فقط</string>
-    <string name="bottom_on">المحاذاة ﻷسفل</string>
-    <string name="bottom_off">المحاذاة ﻷعلى</string>
     <string name="please_set_parem_as_default_first">يرجى تعيين Parem Launcher كمشغل افتراضي أولاً</string>
     <string name="app_not_found">التطبيق غير موجود</string>
-    <string name="swipe_left_app_enabled">التمرير لليسار مفعّل</string>
-    <string name="swipe_right_app_enabled">التمرير لليمين مفعّل</string><string name="about_parem">عن Parem Launcher</string>
     <string name="alignment_changed">تم تغيير المحاذاة ✅</string>
     <string name="home_screen">الشاشة الرئيسية</string><string name="notification_bar">شريط الإشعارات</string>
 </resources>

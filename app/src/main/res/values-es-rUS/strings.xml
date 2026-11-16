@@ -3,7 +3,6 @@
     <string name="app">App</string>
     <string name="set_as_default_launcher">Establecer como lanzador principal</string>
     <string name="set_as_default_launcher_first">Primero pongalo como lanzador principal</string>
-    <string name="double_tap_to_lock_screen">Tocar dos veces para bloquear</string>
     <string name="off">No</string>
     <string name="on">Sí</string>
     <string name="change_default_launcher">Cambiar lanzador principal</string>
@@ -16,21 +15,10 @@
     <string name="right">Derecha</string>
     <string name="center">Centro</string>
     <string name="home_layout_alignment">Alineación de aplicaciones</string>
-    <string name="swipe_left_app">Deslizar a la izquierda para abrir</string>
-    <string name="swipe_right_app">Deslizar a la derecha para abrir</string>
-    <string name="_0">0</string>
-    <string name="_1">1</string>
-    <string name="_2">2</string>
-    <string name="_3">3</string>
-    <string name="_4">4</string>
-    <string name="_5">5</string>
-    <string name="_6">6</string>
-    <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Sugerencia: Comienze a escribir el nombre de una aplicación para abrirla automáticamente</string>
     <string name="okay">Bueno</string>
     <string name="auto_show_keyboard">Mostrar teclado automáticamente</string>
-    <string name="status_bar">Mostrar barra de estado</string>
     <string name="rename">Renombrar</string>
     <string name="show_date_time">Mostrar fecha y hora</string>
     <string name="appearance">Estilo</string>
@@ -45,8 +33,6 @@
     <string name="not_now">Ahora no</string>
     <string name="date">Fecha</string>
     <string name="date_only">Sólo fecha</string>
-    <string name="bottom_on">Abajo: Sí</string>
-    <string name="bottom_off">Abajo: No</string>
     <string name="please_set_parem_as_default_first">Por favor, primero configure Parem Launcher como su lanzador principal</string>
     <string name="swipe_down_for">Deslize el dedo hacia abajo para</string>
     <string name="search">Buscar</string>
@@ -63,13 +49,8 @@
     <string name="copied">Copiado</string>
     <string name="type_a_new_app_name_first">Escriba un nombre nuevo para la aplicación</string>
     <string name="app_not_found">Aplicación no encontrada</string>
-    <string name="swipe_left_app_enabled">Deslizar a la izquierda - Activado</string>
-    <string name="swipe_right_app_enabled">Deslizar a la derecha - Activado</string>
-    <string name="swipe_left_app_disabled">Deslizar a la izquierda - Desactivado</string>
-    <string name="swipe_right_app_disabled">Deslizar a la derecha - Desactivado</string>
     <string name="your_wallpaper_will_update_shortly">El fondo de pantalla se actualizará en breve</string>
     <string name="parem_is_not_default_launcher">Parem Launcher no es el lanzador principal. La actualización diaria del fondo de pantalla puede fallar.</string>
-    <string name="long_press_to_enable">Mantenga presionado para habilitar</string>
     <string name="no_hidden_apps">Sin aplicaciones ocultas</string>
     <string name="hidden_apps">Aplicaciones ocultas</string>
     <string name="screen_time">Tiempo de pantalla</string><string name="alignment_changed">Alineación cambiada ✅</string>
