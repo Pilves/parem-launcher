@@ -9,7 +9,6 @@ import android.provider.MediaStore
 import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.os.bundleOf
-import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.parem.launcher.BuildConfig
 import com.parem.launcher.MainViewModel
@@ -54,11 +53,6 @@ class AppInfoSettingsCard(
     private val context get() = binding.root.context
 
     fun bind() {
-        // Rows that link nowhere are hidden until their URL constants are filled in
-        binding.aboutParem.isVisible = Constants.URL_ABOUT_PAREM.isNotEmpty()
-        binding.privacy.isVisible = Constants.URL_PAREM_PRIVACY.isNotEmpty()
-        binding.github.isVisible = Constants.URL_PAREM_GITHUB.isNotEmpty()
-
         populateCrashReports()
         populateHiddenApps(prefs.hiddenApps.size)
         initClickListeners()

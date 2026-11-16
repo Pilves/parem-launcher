@@ -13,7 +13,6 @@
     <string name="_7">七</string>
     <string name="_8">八</string>
     <string name="app_drawer_tips">ヒント: アプリ名の入力を開始すると、アプリが自動的に起動します</string>
-    <string name="okay">わかった</string>
 
     <string name="your_wallpaper_will_update_shortly">壁紙は間もなく更新されます</string>
     <string name="parem_is_not_default_launcher">Parem Launcher はデフォルトのランチャーではありません。 毎日の壁紙の更新に失敗する場合があります。</string>
@@ -59,8 +58,6 @@
     <string name="system_default">システム</string>
     <string name="dark">ダーク</string>
     <string name="light">ライト</string>
-    <string name="app_usage_message">ホーム画面で画面時間を表示/非表示するには、アプリの使用権限を許可または拒否してください。
-        \n\n注意: アプリの使用データは収集されません。すべての処理はあなたのデバイスで行われます。</string>
     <string name="close">閉じる</string>
     <string name="not_now">今はやめろ</string>
     <string name="date">日にち</string>

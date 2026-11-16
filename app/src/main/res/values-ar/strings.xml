@@ -13,7 +13,6 @@
     <string name="_7">سبعة</string>
     <string name="_8">ثمانية</string>
     <string name="app_drawer_tips">نصيحة: ابدأ في كتابة اسم التطبيق لتشغيله تلقائيًا</string>
-    <string name="okay">حسنًا</string>
     <string name="your_wallpaper_will_update_shortly">سيتم تحديث الخلفية الخاصة بك قريبًا</string>
     <string name="parem_is_not_default_launcher">Parem Launcher ليس المشغل الافتراضي. قد يفشل التحديث اليومي للخلفية.</string>
     <string name="long_press_to_enable">اضغط مطولًا للتمكين</string>
@@ -59,8 +58,6 @@
     <string name="system_default">نظام</string>
     <string name="dark">مظلم</string>
     <string name="light">مضيء</string>
-    <string name="app_usage_message">لعرض/إخفاء وقت استخدام الشاشة على الشاشة الرئيسية، يرجى السماح أو منع إذن استخدام التطبيق.
-        \n\nملاحظة: لا يتم جمع أي بيانات حول استخدام التطبيقات. يتم معالجة كل شيء على جهازك.</string>
     <string name="close">يغلق</string>
     <string name="not_now">ليس الآن</string>
     <string name="date">تاريخ</string>

@@ -34,7 +34,6 @@ class Prefs(context: Context) {
     private val HOME_GUIDANCE_LONG_PRESS = "HOME_GUIDANCE_LONG_PRESS"
     private val FIRST_OPEN = "FIRST_OPEN"
     private val FIRST_OPEN_TIME = "FIRST_OPEN_TIME"
-    private val LOCK_MODE = "LOCK_MODE"
     private val LOCK_SERVICE_CONNECTED = "LOCK_SERVICE_CONNECTED"
     private val LOCK_SERVICE_OFF_EXPLAINED = "LOCK_SERVICE_OFF_EXPLAINED"
     private val CRASH_REPORTS_ENABLED = "CRASH_REPORTS_ENABLED"
@@ -44,7 +43,6 @@ class Prefs(context: Context) {
     private val AUTO_LAUNCH_SINGLE_MATCH = "AUTO_LAUNCH_SINGLE_MATCH"
     private val HOME_APPS_NUM = "HOME_APPS_NUM"
     private val AUTO_SHOW_KEYBOARD = "AUTO_SHOW_KEYBOARD"
-    private val KEYBOARD_MESSAGE = "KEYBOARD_MESSAGE"
     private val DAILY_WALLPAPER = "DAILY_WALLPAPER"
     private val DAILY_WALLPAPER_URL = "DAILY_WALLPAPER_URL"
     private val DIM_WALLPAPER = "DIM_WALLPAPER"
@@ -136,10 +134,6 @@ class Prefs(context: Context) {
         get() = prefs.getLong(FIRST_OPEN_TIME, 0L)
         set(value) = prefs.edit { putLong(FIRST_OPEN_TIME, value) }
 
-    var lockModeOn: Boolean
-        get() = prefs.getBoolean(LOCK_MODE, false)
-        set(value) = prefs.edit { putBoolean(LOCK_MODE, value) }
-
     // Device-specific (export-excluded): an imported "connected" would turn the
     // first-time consent sheet into a "your service was turned off" sheet.
     var lockServiceConnected: Boolean
@@ -185,10 +179,6 @@ class Prefs(context: Context) {
     var autoShowKeyboard: Boolean
         get() = prefs.getBoolean(AUTO_SHOW_KEYBOARD, true)
         set(value) = prefs.edit { putBoolean(AUTO_SHOW_KEYBOARD, value) }
-
-    var keyboardMessageShown: Boolean
-        get() = prefs.getBoolean(KEYBOARD_MESSAGE, false)
-        set(value) = prefs.edit { putBoolean(KEYBOARD_MESSAGE, value) }
 
     var dailyWallpaper: Boolean
         get() = prefs.getBoolean(DAILY_WALLPAPER, false)

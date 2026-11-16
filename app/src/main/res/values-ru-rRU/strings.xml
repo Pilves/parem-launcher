@@ -28,7 +28,6 @@
     <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Совет: начните вводить название приложения, чтобы запустить его автоматически.</string>
-    <string name="okay">Хорошо</string>
     <string name="auto_show_keyboard">Автопоказ клавиатуры</string>
     <string name="status_bar">Показывать строку состояния</string>
     <string name="rename">Переименовать</string>
@@ -39,8 +38,6 @@
     <string name="system_default">Системная</string>
     <string name="dark">Темная</string>
     <string name="light">Светлая</string>
-    <string name="app_usage_message">Чтобы показать/скрыть время экрана на домашнем экране, разрешите или запретите разрешение на использование приложения.
-        \n\nПримечание: Не собираются данные об использовании приложения. Все обрабатывается на вашем устройстве.</string>
     <string name="close">Закрыть</string>
     <string name="not_now">Не сейчас</string>
     <string name="date">Дата</string>

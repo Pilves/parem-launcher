@@ -1284,7 +1284,6 @@ class SmokeTest {
     fun settingsChoiceSheetChecksCurrentValueAndKeyboardTogglesOnce() {
         val prefs = Prefs(context)
         prefs.autoShowKeyboard = true
-        prefs.keyboardMessageShown = false
         instrumentation.runOnMainSync {
             val activity = ActivityLifecycleMonitorRegistry.getInstance()
                 .getActivitiesInStage(Stage.RESUMED).filterIsInstance<MainActivity>().single()
