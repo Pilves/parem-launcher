@@ -463,19 +463,14 @@ class HomeWidgetController(
         }
         wrapper.addView(resizeHandle)
 
+        // No size report here: every pass that adds a widget ends in
+        // resizeWidgetWrappers, which reports the final saved height once.
         container.addView(wrapper, index)
-
-        wrapper.post {
-            if (!isActive()) return@post
-            val widthDp = (wrapper.width / context.resources.displayMetrics.density).toInt()
-            val heightDp = (wrapper.height / context.resources.displayMetrics.density).toInt()
-            if (widthDp > 0 && heightDp > 0) {
-                notifyWidgetSize(hostView, widthDp, heightDp)
-            }
-        }
     }
 
     private fun notifyWidgetSize(hostView: AppWidgetHostView, widthDp: Int, heightDp: Int) {
+        // Each report is an options IPC and a provider callback; a re-parented view already sent its size.
+        if (mainActivity?.widgetViews?.sizeChanged(hostView.appWidgetId, widthDp, heightDp) == false) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // The framework subtracts host padding and supplies the provider's size list.
             hostView.updateAppWidgetSize(Bundle(), listOf(SizeF(widthDp.toFloat(), heightDp.toFloat())))
