@@ -1,8 +1,7 @@
 name: Upgrade from v5.5.1
 
-# After merge, not per pull request: a pull request runs one smoke leg (smoke.yml).
 on:
-  push:
+  pull_request:
     branches: [master]
   workflow_dispatch:
 
