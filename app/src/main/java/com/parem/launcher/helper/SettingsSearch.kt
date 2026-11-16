@@ -6,7 +6,11 @@ package com.parem.launcher.helper
  */
 object SettingsSearch {
 
-    data class Row(val title: String, val anchor: Int, val aliases: List<String> = emptyList())
+    data class Row(val title: String, val anchor: Int, val aliases: List<String> = emptyList()) {
+        // Keyed once per row instead of on every keystroke; outside the
+        // constructor, so equality and copy() are unchanged
+        internal val keys: List<SearchMatcher.LabelKey> by lazy { (listOf(title) + aliases).map(SearchMatcher::key) }
+    }
 
     // Shorter queries are mostly the start of an app name; a settings tip on
     // every two-letter prefix would be noise.
@@ -24,8 +28,7 @@ object SettingsSearch {
         var best: Row? = null
         var bestScore = Int.MAX_VALUE
         for (row in rows) {
-            val score = (listOf(row.title) + row.aliases).mapNotNull { text ->
-                val key = SearchMatcher.key(text)
+            val score = row.keys.mapNotNull { key ->
                 when {
                     key.normalized.startsWith(flat) -> 0
                     wordsInOrder(tokens, key.words) -> 1
@@ -41,8 +44,7 @@ object SettingsSearch {
     }
 
     /** Precompute the same title/alias keys used by match for the auto-launch guard. */
-    fun prefixKeys(rows: List<Row>): List<SearchMatcher.LabelKey> =
-        rows.flatMap { row -> (listOf(row.title) + row.aliases).map(SearchMatcher::key) }
+    fun prefixKeys(rows: List<Row>): List<SearchMatcher.LabelKey> = rows.flatMap { it.keys }
 
     /** Protect even short queries without changing the minimum length of visible suggestions. */
     fun isPrefix(query: String, keys: List<SearchMatcher.LabelKey>): Boolean {

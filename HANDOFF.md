@@ -405,6 +405,7 @@ per package; the rest of each of those fragments is still in
 - **M6-WP66 (PR #69):** Smoke CI allows 30 minutes per Play and Full instrumentation phase; performance retains 22 minutes.
 - **M6-WP67 (PR #70):** Smoke CI runs reviewed single-device state and selection cases on the API 34 phone, and every unclassified case on all four emulator profiles, for both flavors.
 - **M6-WP69 (PR #73):** Onboarding, feature guides and selected settings and disclosure text use the approved shorter English copy; rapid multi-choice picker taps cannot remove a shifted second row.
+- **M6-WP70 (PR #81):** Drawer search normalises the query once per keystroke (`SearchMatcher.Query`), keys settings rows, hidden labels and contact sort names once per load, and reuses label and shortcut keys across list emissions and drawer opens.
 - **M6-WP71 (PR #80):** Downloaded wallpapers decode with the largest power-of-two sample that still covers the screen crop, and the full-size source is freed before the two encodes.
 
 <!-- handoff:end -->

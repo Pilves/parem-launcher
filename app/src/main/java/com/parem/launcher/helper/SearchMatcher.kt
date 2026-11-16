@@ -18,6 +18,11 @@ object SearchMatcher {
     /** Precomputed per-label matching key. Build once per app list. */
     data class LabelKey(val normalized: String, val initials: String, val words: List<String>)
 
+    /** A query normalised once per keystroke instead of once per label it is matched against. */
+    class Query(val text: String) {
+        internal val key: LabelKey = SearchMatcher.key(text)
+    }
+
     private val DIACRITICS = Regex("\\p{InCombiningDiacriticalMarks}+")
     private val SEPARATORS = Regex("[-_+,.·:&()\\s]+")
 
@@ -34,16 +39,21 @@ object SearchMatcher {
         )
     }
 
-    fun matches(label: String, key: LabelKey, query: String): Boolean {
-        if (label.contains(query, ignoreCase = true)) return true
-        val flatQuery = stripDiacritics(query).lowercase()
-        val q = flatQuery.replace(SEPARATORS, "")
+    // A plain contains hit needs no normalising, as before Query existed
+    fun matches(label: String, key: LabelKey, query: String): Boolean =
+        label.contains(query, ignoreCase = true) || matches(label, key, Query(query))
+
+    fun matches(label: String, key: LabelKey, query: Query): Boolean {
+        if (label.contains(query.text, ignoreCase = true)) return true
+        // A query's key is exactly what this used to derive per call: the
+        // separator-free form and the words between separators
+        val q = query.key.normalized
         if (q.isEmpty()) return true
         if (key.normalized.contains(q)) return true
         if (q.length >= 2 && key.initials.startsWith(q)) return true
 
         // each query token prefix-matches a label word, in order
-        val tokens = flatQuery.split(SEPARATORS).filter { it.isNotEmpty() }
+        val tokens = query.key.words
         if (tokens.size >= 2) {
             var wordIndex = 0
             for (token in tokens) {

@@ -32,6 +32,7 @@ object QuickActionParser {
     private val TIME_PREFIXES = setOf("at", "kell")
     private val TIME_REGEX = Regex("(\\d{1,2})(?:[:.](\\d{2}))?(am|pm)?")
     private val MERIDIEMS = setOf("am", "pm")
+    private val WHITESPACE = Regex("\\s+")
 
     private val UNIT_SECONDS: Map<String, Int> = buildMap {
         listOf("s", "sec", "secs", "second", "seconds", "sek", "sekund", "sekundit", "sekundi")
@@ -58,7 +59,7 @@ object QuickActionParser {
     fun parse(query: String, now: LocalDateTime): QuickAction? {
         // A leading space is an explicit web search
         if (query.startsWith(" ")) return null
-        val tokens = query.trim().split(Regex("\\s+"))
+        val tokens = query.trim().split(WHITESPACE)
         val lower = tokens.map { it.lowercase(Locale.ROOT) }
         val joined = lower.joinToString(" ")
         val (keyword, kind) = KEYWORDS.firstOrNull { joined.startsWith(it.first + " ") } ?: return null
@@ -103,7 +104,7 @@ object QuickActionParser {
      */
     fun isActionPrefix(query: String): Boolean {
         if (query.startsWith(" ")) return false
-        val q = query.lowercase(Locale.ROOT).replace(Regex("\\s+"), " ")
+        val q = query.lowercase(Locale.ROOT).replace(WHITESPACE, " ")
         return KEYWORDS.any { (keyword, _) ->
             val withSpace = "$keyword "
             (q.isNotEmpty() && withSpace.startsWith(q)) || q.startsWith(withSpace)

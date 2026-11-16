@@ -92,4 +92,52 @@ class SettingsSearchTest {
         assertNull(match("spotify"))
         assertNull(match("eme"))
     }
+
+    @Test
+    fun precomputedKeysPickTheSameRowAsKeyingOnEveryCall() {
+        // A duplicate title and overlapping aliases make the tie order observable
+        val all = rows + Row("Sort apps by usage", 7, listOf("Rank apps", "Usage order")) +
+            Row("Show icons", 8) + Row("Apps on home", 9, listOf("Sort home"))
+        val queries = listOf("", "  ", "th", "the", "THEME", "show", "show ic", "icons show", "keyboard",
+            "autoshow", "date time", "ilmatéade", "rank", "usage", "order", "sort", "sort a", "apps",
+            "home", "s i", "wall", "spotify", "eme", " show", "Show icons")
+        repeat(2) { // the second pass reads keys built by the first
+            queries.forEach { q -> assertEquals("'$q'", uncachedMatch(q, all), SettingsSearch.match(q, all)) }
+        }
+        assertEquals(2, SettingsSearch.match("show icons", all)?.anchor)
+    }
+
+    // The ranking as it was before row keys were cached
+    private fun uncachedMatch(query: String, rows: List<Row>): Row? {
+        val tokens = SearchMatcher.key(query).words
+        val flat = tokens.joinToString("")
+        if (flat.length < SettingsSearch.MIN_QUERY_LENGTH) return null
+        var best: Row? = null
+        var bestScore = Int.MAX_VALUE
+        for (row in rows) {
+            val score = (listOf(row.title) + row.aliases).mapNotNull { text ->
+                val key = SearchMatcher.key(text)
+                when {
+                    key.normalized.startsWith(flat) -> 0
+                    wordsInOrder(tokens, key.words) -> 1
+                    else -> null
+                }
+            }.minOrNull() ?: continue
+            if (score < bestScore) {
+                best = row
+                bestScore = score
+            }
+        }
+        return best
+    }
+
+    private fun wordsInOrder(tokens: List<String>, words: List<String>): Boolean {
+        var i = 0
+        for (token in tokens) {
+            while (i < words.size && !words[i].startsWith(token)) i++
+            if (i == words.size) return false
+            i++
+        }
+        return true
+    }
 }
