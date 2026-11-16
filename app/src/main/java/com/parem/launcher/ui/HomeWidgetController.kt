@@ -282,9 +282,10 @@ class HomeWidgetController(
                 if (available == null) addUnavailableWidget(id, index)
                 else try {
                     val (info, providerKey) = available
-                    // A forced refresh still makes every valid widget anew
-                    if (force) views.evict(id)
+                    // A forced refresh still makes every valid widget anew, and an error view
+                    // gets the fresh attempt every return to Home used to give it
                     val view = views.reusable(id, providerKey)
+                        ?.takeUnless { force || (it as? MainActivity.WidgetHostView)?.showedError == true }
                         ?: activity.appWidgetHost.createView(context.applicationContext, id, info)
                             .also { views.put(id, providerKey, it) }
                     addWidgetToContainer(view, id, index)

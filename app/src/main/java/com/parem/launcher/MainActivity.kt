@@ -5,6 +5,7 @@ import android.app.Activity
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -12,6 +13,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.provider.Settings
 import android.view.KeyEvent
+import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -135,6 +137,9 @@ class MainActivity : AppCompatActivity() {
                 widgetViews.evict(appWidgetId)
                 super.deleteAppWidgetId(appWidgetId)
             }
+
+            override fun onCreateView(context: Context, appWidgetId: Int, appWidget: AppWidgetProviderInfo?): AppWidgetHostView =
+                WidgetHostView(context)
         }
 
         bindWidgetLauncher = registerForActivityResult(
@@ -372,6 +377,17 @@ class MainActivity : AppCompatActivity() {
                 themeCheckRetries = 0
             }
         }
+    }
+
+    /**
+     * Remembers falling back to the framework's error view, so Home makes a fresh
+     * view instead of reusing this one (never reset: a needless fresh view is harmless).
+     */
+    class WidgetHostView(context: Context) : AppWidgetHostView(context) {
+        var showedError = false
+            private set
+
+        override fun getErrorView(): View = super.getErrorView().also { showedError = true }
     }
 
     companion object {
