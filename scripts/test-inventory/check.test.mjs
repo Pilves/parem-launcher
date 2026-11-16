@@ -29,3 +29,20 @@ test('reviewed inventory matches exactly the annotated source methods', async ()
   const reviewed = readFileSync('scripts/test-inventory/single-device.txt','utf8').trim().split(/\r?\n/).sort();
   assert.deepEqual(actual, reviewed);
 });
+
+test('the pull request leg runs every Play test; master legs together run every test in both flavours', async () => {
+  const { readFileSync } = await import('node:fs');
+  const workflow = readFileSync('.github/workflows/smoke.yml', 'utf8');
+  assert.ok(workflow.includes('"${{ matrix.single_device }}" "${{ matrix.full }}"'), 'smoke.yml must pass the matrix to run-instrumented.sh');
+  assert.equal([...workflow.matchAll(/'\{"include":/g)].length, 2);
+  const legs = re => JSON.parse(workflow.match(re)[1]).include;
+  const pr = legs(/github\.event_name == 'pull_request'\s*&&\s*'(\{"include":[^']*\})'/);
+  const master = legs(/\|\|\s*'(\{"include":[^']*\})'/);
+  // One leg with no @SingleDevice filter and no Full suite; perf would need the Full APK.
+  assert.equal(pr.length, 1);
+  assert.deepEqual([pr[0].single_device, pr[0].full, pr[0].perf], [true, false, false]);
+  // Every master leg runs both flavours, and at least one runs the @SingleDevice tests.
+  assert.ok(master.length > 1 && master.every(leg => leg.full === true));
+  assert.ok(master.some(leg => leg.single_device === true));
+  assert.ok(master.every(leg => typeof leg.single_device === 'boolean' && typeof leg.perf === 'boolean'));
+});

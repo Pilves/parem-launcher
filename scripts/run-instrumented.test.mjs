@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, copyFileSync, chmodSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, copyFileSync, chmodSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-function run(state, stress = false, hangDiagnostic = false, playResult = 1, singleDevice = "true", inventoryResult = 0) {
+function run(state, stress = false, hangDiagnostic = false, playResult = 1, singleDevice = "true", inventoryResult = 0, perf = 'true', full) {
   const root = mkdtempSync(join(tmpdir(), 'parem-ci-'));
   try {
     mkdirSync(join(root, 'scripts'));
@@ -20,10 +20,11 @@ function run(state, stress = false, hangDiagnostic = false, playResult = 1, sing
     chmodSync(join(root, 'gradlew'), 0o755);
     chmodSync(join(root, 'bin/adb'), 0o755);
     chmodSync(join(root, 'bin/timeout'), 0o755);
-    const result = spawnSync('bash', ['scripts/run-instrumented.sh', stress ? '2' : '0', 'true', singleDevice], {
+    const result = spawnSync('bash', ['scripts/run-instrumented.sh', stress ? '2' : '0', perf, singleDevice, ...(full === undefined ? [] : [full])], {
       cwd: root, env: { ...process.env, PATH: `${join(root, 'bin')}:${process.env.PATH}`, TEST_DEVICE_STATE: state, TEST_HANG_DIAGNOSTIC: hangDiagnostic ? 'yes' : 'no', TEST_PLAY_RESULT: String(playResult), TEST_INVENTORY_RESULT: String(inventoryResult), PAREM_INCIDENT_MONITORED: '1' }, encoding: 'utf8', timeout: 15000,
     });
-    return { result, phases: readFileSync(join(root, 'phases'), 'utf8'), timeouts: readFileSync(join(root, 'timeouts'), 'utf8') };
+    const phases = existsSync(join(root, 'phases')) ? readFileSync(join(root, 'phases'), 'utf8') : '';
+    return { result, phases, timeouts: readFileSync(join(root, 'timeouts'), 'utf8') };
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -92,4 +93,21 @@ test('the single-device leg runs all cases and failed inventory blocks execution
   assert.equal(bad.result.status, 1);
   assert.doesNotMatch(bad.phases, /connectedPlayDebugAndroidTest|connectedFullDebugAndroidTest/);
   assert.match(bad.result.stderr, /Play discovery inventory failed/);
+});
+
+test('a Play-only leg runs the Play inventory and suite and nothing of Full', () => {
+  const { result, phases } = run('device', false, false, 0, 'true', 0, 'false', 'false');
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(phases, /inventory-Play/);
+  assert.match(phases, /connectedPlayDebugAndroidTest/);
+  assert.doesNotMatch(phases, /inventory-Full|connectedFullDebugAndroidTest|perf/);
+});
+
+test('an invalid Full selection, or performance without Full, fails before any test', () => {
+  for (const [perf, full, message] of [['false', 'maybe', /Invalid Full flavour selection/], ['true', 'false', /needs the Full suite/]]) {
+    const { result, phases } = run('device', false, false, 0, 'true', 0, perf, full);
+    assert.equal(result.status, 1);
+    assert.equal(phases, '');
+    assert.match(result.stderr, message);
+  }
 });
