@@ -28,7 +28,6 @@
     <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Kiat: Mulai ketikkan nama aplikasi untuk meluncurkannya secara otomatis</string>
-    <string name="okay">Oke</string>
     <string name="auto_show_keyboard">Tampilkan keyboard secara otomatis</string>
     <string name="status_bar">Tampilkan bilah status</string>
     <string name="rename">Ganti nama</string>
@@ -39,8 +38,6 @@
     <string name="system_default">Sistem</string>
     <string name="dark">Gelap</string>
     <string name="light">Terang</string>
-    <string name="app_usage_message">Untuk menampilkan/menyembunyikan waktu layar di layar utama, izinkan atau tolak izin penggunaan aplikasi.
-        \n\nCatatan: Tidak ada data penggunaan aplikasi yang dikumpulkan. Semua diproses di perangkat Anda.</string>
     <string name="close">Tutup</string>
     <string name="not_now">Tidak sekarang</string>
     <string name="date">Tanggal</string>

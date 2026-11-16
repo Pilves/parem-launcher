@@ -14,8 +14,6 @@ object Constants {
     }
 
     object Dialog {
-        const val HIDDEN = "HIDDEN"
-        const val DIGITAL_WELLBEING = "DIGITAL_WELLBEING"
         const val GRAYSCALE_USAGE_ACCESS = "GRAYSCALE_USAGE_ACCESS"
         const val GRAYSCALE_DEFAULT_HOME = "GRAYSCALE_DEFAULT_HOME"
     }
@@ -95,7 +93,6 @@ object Constants {
 
     const val MIN_ANIM_REFRESH_RATE = 10f
 
-    // Rows in settings whose URL is empty are hidden (see SettingsFragment)
     const val URL_ABOUT_PAREM = "https://github.com/Pilves/parem-launcher"
     const val URL_PAREM_PRIVACY = "https://pilves.github.io/parem-launcher/privacy.html"
     const val URL_PAREM_GITHUB = "https://github.com/Pilves/parem-launcher"

@@ -28,7 +28,6 @@
     <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Порада. Почніть вводити назву програми, щоб вона запустилася автоматично.</string>
-    <string name="okay">Добре</string>
     <string name="auto_show_keyboard">Автопоказ клавіатури</string>
     <string name="status_bar">Показувати рядок стану</string>
     <string name="rename">Перенайменувати</string>
@@ -39,8 +38,6 @@
     <string name="system_default">Системна</string>
     <string name="dark">Темна</string>
     <string name="light">Світла</string>
-    <string name="app_usage_message">Щоб показати/ховати час роботи з екраном на головному екрані, будь ласка, дозвольте або забороніть дозвіл на використання програми.
-        \n\nПримітка: Не збираються дані про використання програми. Все обробляється на вашому пристрої.</string>
     <string name="close">Закрити</string>
     <string name="not_now">Не зараз</string>
     <string name="date">Дата</string>

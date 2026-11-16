@@ -8,6 +8,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,6 +36,29 @@ class ScreenTimeRefreshTest {
             scenario.onActivity { ViewModelProvider(it)[MainViewModel::class.java].getTodaysScreenTime() }
             SystemClock.sleep(300)
             assertEquals("fresh timestamp must remain throttled", updated, prefs.screenTimeLastUpdated)
+        }
+    }
+
+    @Test
+    fun freshPersistedTimestampStillPostsOnceInANewProcess() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val prefs = Prefs(context).apply {
+            firstOpen = false
+            onboardingVersionSeen = Constants.ONBOARDING_VERSION
+        }
+        // What a process killed inside the minute leaves behind: throttled, nothing posted
+        prefs.screenTimeLastUpdated = System.currentTimeMillis()
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            lateinit var viewModel: MainViewModel
+            scenario.onActivity {
+                viewModel = ViewModelProvider(it)[MainViewModel::class.java]
+                viewModel.getTodaysScreenTime()
+            }
+            val deadline = SystemClock.elapsedRealtime() + 10_000L
+            while (viewModel.screenTimeValue.value == null && SystemClock.elapsedRealtime() < deadline) {
+                SystemClock.sleep(50)
+            }
+            assertNotNull("home screen time was never posted", viewModel.screenTimeValue.value)
         }
     }
 }

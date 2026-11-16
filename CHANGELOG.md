@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- Open the keyboard reliably when the app list is opened right after returning home.
+- Show today's screen time on home after Parem restarts within a minute of the last refresh.
+
 ## v6.1.0 — 2026-11-14
 
 - Shorter first-run and guide text.

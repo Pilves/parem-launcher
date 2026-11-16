@@ -18,6 +18,7 @@ import android.os.Build
 import android.os.UserHandle
 import android.provider.Settings
 import android.view.View
+import android.view.ViewTreeObserver
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.result.ActivityResultLauncher
@@ -40,10 +41,27 @@ fun View.showKeyboard(show: Boolean = true) {
     if (show.not()) return
     if (this.requestFocus()) {
         val target = findFocus() ?: this
-        target.postDelayed({
-            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(target, InputMethodManager.SHOW_IMPLICIT)
-        }, 100)
+        val request = Runnable {
+            // hideKeyboard clears focus, so a hide in the meantime cancels this
+            if (target.isFocused) {
+                val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.showSoftInput(target, InputMethodManager.SHOW_IMPLICIT)
+            }
+        }
+        if (!target.isAttachedToWindow || target.hasWindowFocus()) {
+            target.postDelayed(request, 100)
+            return
+        }
+        // Android drops a show request made before the window has input focus
+        // (just after landing on home), so make it once focus arrives.
+        val observer = target.viewTreeObserver
+        observer.addOnWindowFocusChangeListener(object : ViewTreeObserver.OnWindowFocusChangeListener {
+            override fun onWindowFocusChanged(hasFocus: Boolean) {
+                if (!hasFocus) return
+                if (observer.isAlive) observer.removeOnWindowFocusChangeListener(this)
+                target.postDelayed(request, 100)
+            }
+        })
     }
 }
 

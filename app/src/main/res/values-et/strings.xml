@@ -45,7 +45,6 @@
     <string name="crash_report_copy">Kopeeri aruanne</string>
     <string name="crash_report_discard">Loobu</string>
     <string name="crash_report_subject">Paremi krahhiaruanne</string>
-    <string name="okay">Sobib</string>
     <string name="auto_show_keyboard">Kuva klaviatuur automaatselt</string>
     <string name="status_bar">Olekuriba ülal</string>
     <string name="rename">Nimeta ümber</string>
@@ -341,7 +340,6 @@
     <string name="configured_app_count">%1$d seadistatud</string>
     <string name="admin_permission_message">Parem kasutab seda ainult ekraani lukustamiseks, kui hõlbustusteenus seda teha ei saa. Pärast iga sellist lukustamist tuleb järgmisel avamisel kasutada PIN-koodi, mustrit või parooli: sõrmejälg ja näotuvastus siis ei tööta. Parem ei kasuta muid seadme administraatori õigusi ning lukustamisel ei loeta ega saadeta midagi. Enne Paremi desinstallimist lülita see välja Paremi seadete jaotises Viiped.</string>
     <string name="crash_report_body">Parem salvestas krahhiaruande sellesse telefoni. Parem pole midagi saatnud. Saatmine avab sinu valitud rakenduse koos täieliku aruandega, et saaksid seda enne saatmist lugeda. Aruanne sisaldab veateadet, milles võib olla rakenduse nimi või veebiaadress, samuti Paremi ja Androidi versiooni, telefoni tootjat ja mudelit ning kellaaega. Rakenduste loendit, kontakte ega seadeid see ei sisalda.</string>
-    <string name="app_usage_message">Parem loeb ekraaniaega Androidi kasutusandmete juurdepääsu abil: sellest sõltuvad avakuva koguaeg, rakenduste piirangud, kasutuse järgi sortimine ja nädalagraafik.\n\nAndmeid arvestatakse selles telefonis. Parem ei saada neid kuhugi ega lisa Androidi pilvvarukoopiasse. Sinu alustatud telefonidevaheline ülekanne võib need uude telefoni kopeerida.</string>
     <string name="accessibility_service_description">Võimaldab ekraani lukustada topeltpuudutuse või viipega. Teenus näeb puudutusi ainult Paremis, eirab neid kõiki peale enda nähtamatu lukustusala puudutuse ega saa ekraani lugeda. Nähtut ei salvestata ega saadeta kuhugi.</string>
     <string name="lock_consent_body">Topeltpuudutusega lukustamine kasutab Androidi hõlbustusteenust. Android teavitab Paremi teenust, kui puudutad Paremi sees ekraani. Teenus eirab kõiki puudutusi peale enda nähtamatu lukustusala puudutuse ning palub selle korral Androidil ekraani lukustada. See ei saa teiste rakenduste sündmusi ega saa ekraani lugeda. Nähtut ei salvestata ega saadeta kuhugi. Saad teenuse igal ajal hõlbustusseadetes välja lülitada.</string>
     <string name="lock_service_off_body">Paremi hõlbustusteenus enam ei tööta, mistõttu lukustamisviibe ei saa ekraani lukustada. Android võib selle välja lülitada pärast rakenduse uuendamist, krahhi või siis, kui turvaseade piirab hõlbustusteenuseid. Lülita see hõlbustusseadetes uuesti sisse või vali Paremi viipeseadetes teine toiming.</string>

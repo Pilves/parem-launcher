@@ -28,7 +28,6 @@
     <string name="_7">7</string>
     <string name="_8">8</string>
     <string name="app_drawer_tips">Suggerimento: inizia a digitare il nome di un\'app per avviarla automaticamente</string>
-    <string name="okay">OK</string>
     <string name="auto_show_keyboard">Tastiera di visualizzazione automatica</string>
     <string name="status_bar">Mostra la barra di stato</string>
     <string name="rename">Rinomina</string>
@@ -39,8 +38,6 @@
     <string name="system_default">di sistema</string>
     <string name="dark">Scuro</string>
     <string name="light">Chiaro</string>
-    <string name="app_usage_message">Per visualizzare/nascondere il tempo di utilizzo dello schermo sulla schermata iniziale, conceda o neghi il permesso di utilizzo dell\'app.
-        \n\nNota: Non vengono raccolti dati sull\'utilizzo dell\'app. Tutto viene elaborato sul tuo dispositivo.</string>
     <string name="close">chiudi</string>
     <string name="not_now">Non ora</string>
     <string name="date">Data</string>
