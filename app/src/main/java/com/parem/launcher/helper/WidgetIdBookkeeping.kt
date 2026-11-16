@@ -36,3 +36,52 @@ object WidgetIdBookkeeping {
     fun orphanIds(hostIds: IntArray, ids: List<Int>, pendingId: Int): List<Int> =
         hostIds.filter { it !in ids && it != pendingId }
 }
+
+/**
+ * Host views kept while Home's view is rebuilt (drawer, Settings), keyed by
+ * widget ID: a fourth widget-ID store, activity-scoped. A view comes back only
+ * for the provider@profile signature it was made for, and only while the
+ * package stamp and configuration it was made under still hold (trap #5);
+ * every miss means creating a fresh view, as Home did before this cache.
+ */
+class WidgetViewCache<V : Any> {
+    private class Entry<V>(val signature: String, val view: V) {
+        var size: Pair<Int, Int>? = null
+    }
+
+    private val entries = HashMap<Int, Entry<V>>()
+    private var madeUnder: Pair<Long, Any>? = null
+
+    /** Keeps only [ids], and nothing at all once [stamp] or [config] differ from the previous call. */
+    fun retain(ids: Collection<Int>, stamp: Long, config: Any) {
+        if (madeUnder != stamp to config) entries.clear()
+        madeUnder = stamp to config
+        entries.keys.retainAll(ids.toSet())
+    }
+
+    /** The view made for [signature]; one made for another provider or profile is dropped. */
+    fun reusable(id: Int, signature: String): V? {
+        val entry = entries[id] ?: return null
+        if (entry.signature == signature) return entry.view
+        entries.remove(id)
+        return null
+    }
+
+    fun put(id: Int, signature: String, view: V) {
+        entries[id] = Entry(signature, view)
+    }
+
+    fun evict(id: Int) {
+        entries.remove(id)
+    }
+
+    fun clear() = entries.clear()
+
+    /** False only when this is the size the cached view for [id] last reported; records it otherwise. */
+    fun sizeChanged(id: Int, widthDp: Int, heightDp: Int): Boolean {
+        val entry = entries[id] ?: return true
+        if (entry.size == widthDp to heightDp) return false
+        entry.size = widthDp to heightDp
+        return true
+    }
+}

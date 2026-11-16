@@ -75,4 +75,70 @@ class WidgetIdBookkeepingTest {
     fun orphanIds_noPending() {
         assertEquals(listOf(2), WidgetIdBookkeeping.orphanIds(intArrayOf(1, 2), listOf(1), pendingId = -1))
     }
+
+    private fun cacheWith(vararg entries: Pair<Int, String>) = WidgetViewCache<String>().apply {
+        retain(entries.map { it.first }, stamp = 1, config = "day")
+        entries.forEach { (id, signature) -> put(id, signature, "view$id") }
+    }
+
+    @Test
+    fun viewCache_reusesOnlyForTheSameProviderAndProfile() {
+        val cache = cacheWith(1 to "clock@user0")
+        assertEquals("view1", cache.reusable(1, "clock@user0"))
+        assertEquals("view1", cache.reusable(1, "clock@user0"))
+        assertNull(cache.reusable(1, "clock@user10"))
+        // The mismatched entry is gone, so it cannot come back for its old signature either.
+        assertNull(cache.reusable(1, "clock@user0"))
+        assertNull(cache.reusable(2, "clock@user0"))
+    }
+
+    @Test
+    fun viewCache_dropsIdsNoLongerOnHome() {
+        val cache = cacheWith(1 to "a", 2 to "b", 3 to "c")
+        cache.retain(listOf(3, 1), stamp = 1, config = "day")
+        assertEquals("view1", cache.reusable(1, "a"))
+        assertNull(cache.reusable(2, "b"))
+        assertEquals("view3", cache.reusable(3, "c"))
+    }
+
+    @Test
+    fun viewCache_dropsEverythingAfterAPackageOrConfigurationChange() {
+        val afterPackageChange = cacheWith(1 to "a")
+        afterPackageChange.retain(listOf(1), stamp = 2, config = "day")
+        assertNull(afterPackageChange.reusable(1, "a"))
+
+        val afterNightModeFlip = cacheWith(1 to "a")
+        afterNightModeFlip.retain(listOf(1), stamp = 1, config = "night")
+        assertNull(afterNightModeFlip.reusable(1, "a"))
+
+        // Views made after the change are reused while nothing changes again.
+        afterNightModeFlip.put(1, "a", "fresh")
+        afterNightModeFlip.retain(listOf(1), stamp = 1, config = "night")
+        assertEquals("fresh", afterNightModeFlip.reusable(1, "a"))
+    }
+
+    @Test
+    fun viewCache_evictAndClear() {
+        val cache = cacheWith(1 to "a", 2 to "b")
+        cache.evict(1)
+        assertNull(cache.reusable(1, "a"))
+        assertEquals("view2", cache.reusable(2, "b"))
+        cache.clear()
+        assertNull(cache.reusable(2, "b"))
+    }
+
+    @Test
+    fun viewCache_reportsEachSizeOnceUntilTheViewIsReplaced() {
+        val cache = cacheWith(1 to "a")
+        assertTrue(cache.sizeChanged(1, 360, 200))
+        assertFalse(cache.sizeChanged(1, 360, 200))
+        assertTrue(cache.sizeChanged(1, 360, 173))
+        assertFalse(cache.sizeChanged(1, 360, 173))
+        // A fresh view for the same ID reports again, as a newly created view always did.
+        cache.put(1, "a", "fresh")
+        assertTrue(cache.sizeChanged(1, 360, 173))
+        // An ID the cache does not hold always reports.
+        assertTrue(cache.sizeChanged(2, 360, 173))
+        assertTrue(cache.sizeChanged(2, 360, 173))
+    }
 }

@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.content.Intent
 import android.content.pm.LauncherApps
+import android.content.res.Configuration
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
@@ -30,6 +31,7 @@ import com.parem.launcher.R
 import com.parem.launcher.data.Constants
 import com.parem.launcher.data.Prefs
 import com.parem.launcher.databinding.FragmentHomeBinding
+import com.parem.launcher.helper.PackageChangeTracker
 import com.parem.launcher.helper.WidgetIdBookkeeping
 import com.parem.launcher.helper.WidgetPickerLabels
 import com.parem.launcher.helper.dpToPx
@@ -81,8 +83,19 @@ class HomeWidgetController(
         released = true
         widgetGestureDetectors.clear()
         reconcileJob?.cancel()
-        binding.widgetContainerAbove?.removeAllViews()
-        binding.widgetContainerBelow?.removeAllViews()
+        listOfNotNull(binding.widgetContainerAbove, binding.widgetContainerBelow).forEach(::clearWrappers)
+    }
+
+    // The host keeps every view it made. One left in a dropped wrapper would keep this
+    // whole Home tree alive through the overlay's listeners, also after Home is gone.
+    private fun detachHostView(wrapper: View?) {
+        val group = wrapper as? ViewGroup ?: return
+        (group.getChildAt(0) as? AppWidgetHostView)?.let(group::removeView)
+    }
+
+    private fun clearWrappers(container: ViewGroup) {
+        for (i in 0 until container.childCount) detachHostView(container.getChildAt(i))
+        container.removeAllViews()
     }
 
     // No landscape branch needed here: layout-land/fragment_home.xml places both
@@ -98,7 +111,6 @@ class HomeWidgetController(
     private var reconcileJob: Job? = null
     private var reconcileRequested = false
     private var forceRebuild = false
-    private var hasSweptOrphans = false
     private var renderedWidgets: List<Pair<Int, String?>>? = null
     private var renderedAbove: Boolean? = null
 
@@ -218,10 +230,10 @@ class HomeWidgetController(
             }
             val ids = prefs.getWidgetIdList()
             // Resume still checks availability, but host ID enumeration is only
-            // needed on the first scan and explicit provider/rebuild refreshes.
-            if (!hasSweptOrphans || force) {
+            // needed on the activity's first scan and explicit provider/rebuild refreshes.
+            if (!activity.widgetOrphansSwept || force) {
                 sweepOrphanIds(activity, ids)
-                hasSweptOrphans = true
+                activity.widgetOrphansSwept = true
             }
             // The manager may return null or throw for inaccessible profiles; both
             // are unknown and must never be treated as proof of an uninstall.
@@ -250,24 +262,42 @@ class HomeWidgetController(
             val sameSlots = renderedAbove == above && container.childCount == ids.size && ids.indices.all {
                 container.getChildAt(it) is FrameLayout && container.getChildAt(it).tag == ids[it]
             }
+            val views = activity.widgetViews
+            // Views of unavailable or removed IDs leave the cache, and all of them do once a
+            // package or the configuration changed: a fresh view would pick that up.
+            views.retain(ids.filter { infos[it] != null }, PackageChangeTracker.stamp(),
+                Configuration(context.applicationContext.resources.configuration))
             cancelPendingLongPresses()
             widgetGestureDetectors.clear()
-            if (!sameSlots) container.removeAllViews()
+            if (!sameSlots) clearWrappers(container)
             var failedToRender = false
             for ((index, id) in ids.withIndex()) {
-                val info = infos[id]?.first
+                val available = infos[id]
                 val old = if (sameSlots) container.getChildAt(index) as? FrameLayout else null
-                if (info == null && old?.getChildAt(0) is TextView) continue
-                if (old != null) container.removeViewAt(index)
-                if (info == null) addUnavailableWidget(id, index)
+                if (available == null && old?.getChildAt(0) is TextView) continue
+                if (old != null) {
+                    detachHostView(old)
+                    container.removeViewAt(index)
+                }
+                if (available == null) addUnavailableWidget(id, index)
                 else try {
-                    val view = activity.appWidgetHost.createView(context.applicationContext, id, info)
+                    val (info, providerKey) = available
+                    // A forced refresh still makes every valid widget anew, and an error view
+                    // gets the fresh attempt every return to Home used to give it
+                    val view = views.reusable(id, providerKey)
+                        ?.takeUnless { force || (it as? MainActivity.WidgetHostView)?.showedError == true }
+                        ?: activity.appWidgetHost.createView(context.applicationContext, id, info)
+                            .also { views.put(id, providerKey, it) }
                     addWidgetToContainer(view, id, index)
                 } catch (e: Exception) {
+                    views.evict(id)
                     CrashReporter.reportNonFatal("HomeWidgetController: widget view failed for id=$id", e)
                     failedToRender = true
                     // A partially added wrapper must not duplicate this slot.
-                    if (container.getChildAt(index)?.tag == id) container.removeViewAt(index)
+                    if (container.getChildAt(index)?.tag == id) {
+                        detachHostView(container.getChildAt(index))
+                        container.removeViewAt(index)
+                    }
                     addUnavailableWidget(id, index)
                 }
             }
@@ -337,6 +367,8 @@ class HomeWidgetController(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT
         )
+        // A reused view can still sit in the wrapper an earlier pass removed
+        (hostView.parent as? ViewGroup)?.removeView(hostView)
         wrapper.addView(hostView)
 
         // Invisible overlay to capture long-press; forwards all other events to widget
@@ -442,19 +474,14 @@ class HomeWidgetController(
         }
         wrapper.addView(resizeHandle)
 
+        // No size report here: every pass that adds a widget ends in
+        // resizeWidgetWrappers, which reports the final saved height once.
         container.addView(wrapper, index)
-
-        wrapper.post {
-            if (!isActive()) return@post
-            val widthDp = (wrapper.width / context.resources.displayMetrics.density).toInt()
-            val heightDp = (wrapper.height / context.resources.displayMetrics.density).toInt()
-            if (widthDp > 0 && heightDp > 0) {
-                notifyWidgetSize(hostView, widthDp, heightDp)
-            }
-        }
     }
 
     private fun notifyWidgetSize(hostView: AppWidgetHostView, widthDp: Int, heightDp: Int) {
+        // Each report is an options IPC and a provider callback; a re-parented view already sent its size.
+        if (mainActivity?.widgetViews?.sizeChanged(hostView.appWidgetId, widthDp, heightDp) == false) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // The framework subtracts host padding and supplies the provider's size list.
             hostView.updateAppWidgetSize(Bundle(), listOf(SizeF(widthDp.toFloat(), heightDp.toFloat())))

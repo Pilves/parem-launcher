@@ -406,5 +406,6 @@ per package; the rest of each of those fragments is still in
 - **M6-WP67 (PR #70):** Smoke CI runs reviewed single-device state and selection cases on the API 34 phone, and every unclassified case on all four emulator profiles, for both flavors.
 - **M6-WP69 (PR #73):** Onboarding, feature guides and selected settings and disclosure text use the approved shorter English copy; rapid multi-choice picker taps cannot remove a shifted second row.
 - **M6-WP70 (PR #81):** Drawer search normalises the query once per keystroke (`SearchMatcher.Query`), keys settings rows, hidden labels and contact sort names once per load, and reuses label and shortcut keys across list emissions and drawer opens.
+- **M6-WP72 (PR #83):** Returning to Home from the drawer or Settings re-parents cached widget views from `MainActivity.widgetViews` (`WidgetViewCache`) instead of a views IPC and inflation; the dropped Home tree no longer stays reachable through its host views.
 
 <!-- handoff:end -->

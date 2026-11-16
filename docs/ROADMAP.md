@@ -334,6 +334,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP70 | **Done** (PR #81). **Todo**. Do less work per keystroke in the app drawer | Drawer search helpers (`SearchMatcher`, `SettingsSearch`, `QuickActionParser`, `ContactMatcher`, `OmniboxResolver`, `HiddenAppHint`, `CurrencyRates`, `AppListSource`), `AppDrawerFragment`, `AppDrawerAdapter`, tests, changelog and handoff | Results, ordering, ties, tips and Private Space lock state identical to before, proven by parity tests; typing an app name on API 35+ makes no Private Space binder call |
 
+| M6-WP72 | **Done** (PR #83). **Todo**. Keep widget views across Home rebuilds | `ui/HomeWidgetController.kt`, widget host in `MainActivity.kt`, `WidgetViewCache`, widget tests, architecture trap #2, changelog and handoff | Returning from the drawer or Settings reuses each widget view without a views IPC or inflation; delete, provider change, package stamp, configuration, error view and forced refresh make a fresh view; the dropped Home tree is not kept alive; each widget size is reported once |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict

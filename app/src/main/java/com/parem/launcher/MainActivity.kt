@@ -3,7 +3,9 @@ package com.parem.launcher
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.appwidget.AppWidgetHost
+import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -11,6 +13,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.provider.Settings
 import android.view.KeyEvent
+import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,6 +33,7 @@ import com.parem.launcher.helper.GrayscaleController
 import com.parem.launcher.helper.HomeKeyInput
 import com.parem.launcher.helper.NightModeChange
 import com.parem.launcher.helper.TextScale
+import com.parem.launcher.helper.WidgetViewCache
 import com.parem.launcher.helper.getColorFromAttr
 import com.parem.launcher.helper.isDarkThemeOn
 import com.parem.launcher.helper.isParemDefault
@@ -62,6 +66,12 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var appWidgetHost: AppWidgetHost
     lateinit var appWidgetManager: AppWidgetManager
+    // Navigating to the drawer or Settings destroys Home's view; its widget
+    // views wait here instead of being inflated again on every return
+    val widgetViews = WidgetViewCache<AppWidgetHostView>()
+    // Orphan host IDs are swept on this activity's first widget scan and on
+    // forced ones; an ordinary return to Home only checks availability
+    var widgetOrphansSwept = false
     // The bind/configure step HomeWidgetController is waiting on (its keys, see
     // HomeWidgetController.PendingOp). Saved state, not a callback: a rotation or
     // process death under the system dialog must still finish or cancel the widget
@@ -115,8 +125,21 @@ class MainActivity : AppCompatActivity() {
         appWidgetHost = object : AppWidgetHost(this, Constants.APPWIDGET_HOST_ID) {
             override fun onProvidersChanged() {
                 super.onProvidersChanged()
-                runOnUiThread { homeFragment()?.widgetController?.requestReconcile(force = true) }
+                runOnUiThread {
+                    // Also when Home is away: its next view must not reuse these
+                    widgetViews.clear()
+                    homeFragment()?.widgetController?.requestReconcile(force = true)
+                }
             }
+
+            // Every path that deletes an ID (remove, swap, sweep, release) drops its view
+            override fun deleteAppWidgetId(appWidgetId: Int) {
+                widgetViews.evict(appWidgetId)
+                super.deleteAppWidgetId(appWidgetId)
+            }
+
+            override fun onCreateView(context: Context, appWidgetId: Int, appWidget: AppWidgetProviderInfo?): AppWidgetHostView =
+                WidgetHostView(context)
         }
 
         bindWidgetLauncher = registerForActivityResult(
@@ -354,6 +377,17 @@ class MainActivity : AppCompatActivity() {
                 themeCheckRetries = 0
             }
         }
+    }
+
+    /**
+     * Remembers falling back to the framework's error view, so Home makes a fresh
+     * view instead of reusing this one (never reset: a needless fresh view is harmless).
+     */
+    class WidgetHostView(context: Context) : AppWidgetHostView(context) {
+        var showedError = false
+            private set
+
+        override fun getErrorView(): View = super.getErrorView().also { showedError = true }
     }
 
     companion object {
