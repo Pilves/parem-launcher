@@ -26,8 +26,15 @@ object CurrencyRates {
     private const val FETCH_INTERVAL_MS = 24 * 60 * 60 * 1000L
     private const val RETRY_BACKOFF_MS = 10 * 60 * 1000L
 
-    fun cached(context: Context): CurrencyConverter.Rates? =
-        CurrencyConverter.Rates.deserialize(context.paremPrefs().getString(CURRENCY_RATES, null))
+    // The drawer reads the cache on every keystroke. Keyed on the stored string,
+    // so a newly fetched rate set is parsed on the next read.
+    @Volatile private var parsed: Pair<String?, CurrencyConverter.Rates?>? = null
+
+    fun cached(context: Context): CurrencyConverter.Rates? {
+        val stored = context.paremPrefs().getString(CURRENCY_RATES, null)
+        parsed?.let { (source, rates) -> if (source == stored) return rates }
+        return CurrencyConverter.Rates.deserialize(stored).also { parsed = stored to it }
+    }
 
     /** Downloads fresh rates if the cache is 24h old and no attempt failed in the last 10 min. */
     suspend fun fetchIfDue(context: Context): CurrencyConverter.Rates? = withContext(Dispatchers.IO) {

@@ -8,14 +8,19 @@ object HiddenAppHint {
 
     enum class EmptyTip { HIDDEN_APPS, SEARCH, NO_APPS }
 
-    fun emptyTip(query: String, privateSpaceLocked: Boolean, hiddenLabels: List<String>?): EmptyTip = when {
+    /** A hidden app's label, keyed once per load instead of on every keystroke. */
+    class Label(val text: String) {
+        internal val key: SearchMatcher.LabelKey = SearchMatcher.key(text)
+    }
+
+    fun emptyTip(query: String, privateSpaceLocked: Boolean, hiddenLabels: List<Label>?): EmptyTip = when {
         show(query, 0, privateSpaceLocked, hiddenLabels.orEmpty()) -> EmptyTip.HIDDEN_APPS
         canSearchWeb(query, hiddenLabels) -> EmptyTip.SEARCH
         else -> EmptyTip.NO_APPS
     }
 
     /** Fail closed until hidden labels are loaded; never rely on an asynchronous tip for privacy. */
-    fun canSearchWeb(query: String, hiddenLabels: List<String>?): Boolean =
+    fun canSearchWeb(query: String, hiddenLabels: List<Label>?): Boolean =
         hiddenLabels != null && !show(query, 0, privateSpaceLocked = false, hiddenLabels = hiddenLabels)
 
     /**
@@ -24,9 +29,10 @@ object HiddenAppHint {
      * it is skipped entirely so an empty result stays indistinguishable from a
      * locked one.
      */
-    fun show(query: String, visibleRows: Int, privateSpaceLocked: Boolean, hiddenLabels: List<String>): Boolean {
+    fun show(query: String, visibleRows: Int, privateSpaceLocked: Boolean, hiddenLabels: List<Label>): Boolean {
         if (query.isBlank() || visibleRows > 0 || privateSpaceLocked) return false
-        return hiddenLabels.any { SearchMatcher.matches(it, SearchMatcher.key(it), query) }
+        val prepared = SearchMatcher.Query(query)
+        return hiddenLabels.any { SearchMatcher.matches(it.text, it.key, prepared) }
     }
 }
 
@@ -35,7 +41,7 @@ class HiddenLabelLoad {
     private var generation = 0L
     private var keys: Set<String> = emptySet()
     private var stamp = 0L
-    var labels: List<String>? = null
+    var labels: List<HiddenAppHint.Label>? = null
         private set
 
     fun begin(hiddenKeys: Set<String>, packageStamp: Long = 0L): Long {
@@ -50,10 +56,10 @@ class HiddenLabelLoad {
     fun isStale(currentKeys: Set<String>, packageStamp: Long): Boolean =
         currentKeys != keys || packageStamp != stamp
 
-    fun labelsFor(currentKeys: Set<String>, packageStamp: Long): List<String>? =
+    fun labelsFor(currentKeys: Set<String>, packageStamp: Long): List<HiddenAppHint.Label>? =
         if (currentKeys.isEmpty()) emptyList() else if (isStale(currentKeys, packageStamp)) null else labels
 
     fun complete(token: Long, currentKeys: Set<String>, result: List<String>?, packageStamp: Long = 0L) {
-        if (isCurrent(token) && !isStale(currentKeys, packageStamp)) labels = result
+        if (isCurrent(token) && !isStale(currentKeys, packageStamp)) labels = result?.map { HiddenAppHint.Label(it) }
     }
 }

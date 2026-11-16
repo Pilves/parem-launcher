@@ -1,6 +1,7 @@
 name: Large text small phone capture
+# After merge, not per pull request: a pull request runs one smoke leg (smoke.yml).
 on:
-  pull_request:
+  push:
     branches: [master]
   workflow_dispatch:
 permissions:
