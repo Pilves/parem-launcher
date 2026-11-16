@@ -83,15 +83,19 @@ class HomeWidgetController(
         released = true
         widgetGestureDetectors.clear()
         reconcileJob?.cancel()
-        listOfNotNull(binding.widgetContainerAbove, binding.widgetContainerBelow).forEach { container ->
-            // The host keeps every view it made. One left in its wrapper would keep this
-            // whole Home tree alive through the overlay's listeners while Home is away.
-            for (i in 0 until container.childCount) {
-                val wrapper = container.getChildAt(i) as? ViewGroup ?: continue
-                (wrapper.getChildAt(0) as? AppWidgetHostView)?.let(wrapper::removeView)
-            }
-            container.removeAllViews()
-        }
+        listOfNotNull(binding.widgetContainerAbove, binding.widgetContainerBelow).forEach(::clearWrappers)
+    }
+
+    // The host keeps every view it made. One left in a dropped wrapper would keep this
+    // whole Home tree alive through the overlay's listeners, also after Home is gone.
+    private fun detachHostView(wrapper: View?) {
+        val group = wrapper as? ViewGroup ?: return
+        (group.getChildAt(0) as? AppWidgetHostView)?.let(group::removeView)
+    }
+
+    private fun clearWrappers(container: ViewGroup) {
+        for (i in 0 until container.childCount) detachHostView(container.getChildAt(i))
+        container.removeAllViews()
     }
 
     // No landscape branch needed here: layout-land/fragment_home.xml places both
@@ -265,13 +269,16 @@ class HomeWidgetController(
                 Configuration(context.applicationContext.resources.configuration))
             cancelPendingLongPresses()
             widgetGestureDetectors.clear()
-            if (!sameSlots) container.removeAllViews()
+            if (!sameSlots) clearWrappers(container)
             var failedToRender = false
             for ((index, id) in ids.withIndex()) {
                 val available = infos[id]
                 val old = if (sameSlots) container.getChildAt(index) as? FrameLayout else null
                 if (available == null && old?.getChildAt(0) is TextView) continue
-                if (old != null) container.removeViewAt(index)
+                if (old != null) {
+                    detachHostView(old)
+                    container.removeViewAt(index)
+                }
                 if (available == null) addUnavailableWidget(id, index)
                 else try {
                     val (info, providerKey) = available
@@ -286,7 +293,10 @@ class HomeWidgetController(
                     CrashReporter.reportNonFatal("HomeWidgetController: widget view failed for id=$id", e)
                     failedToRender = true
                     // A partially added wrapper must not duplicate this slot.
-                    if (container.getChildAt(index)?.tag == id) container.removeViewAt(index)
+                    if (container.getChildAt(index)?.tag == id) {
+                        detachHostView(container.getChildAt(index))
+                        container.removeViewAt(index)
+                    }
                     addUnavailableWidget(id, index)
                 }
             }
