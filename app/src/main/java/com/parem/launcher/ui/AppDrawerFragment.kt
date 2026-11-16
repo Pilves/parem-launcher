@@ -506,7 +506,7 @@ class AppDrawerFragment : BaseFragment() {
         field.postDelayed(announcement, 300)
     }
 
-    private fun currentHiddenLabels(): List<String>? =
+    private fun currentHiddenLabels(): List<HiddenAppHint.Label>? =
         hiddenLabels.labelsFor(prefs.hiddenApps, PackageChangeTracker.stamp())
 
     private fun canOpenImplicitSearch(query: String): Boolean {
