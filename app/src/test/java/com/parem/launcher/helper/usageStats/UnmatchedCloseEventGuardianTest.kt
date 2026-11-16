@@ -3,7 +3,9 @@ package com.parem.launcher.helper.usageStats
 import android.app.usage.UsageEvents
 import com.parem.launcher.helper.UsageEventFilter
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Test
+import kotlin.random.Random
 
 private const val RESUMED = UsageEvents.Event.ACTIVITY_RESUMED
 private const val PAUSED = UsageEvents.Event.ACTIVITY_PAUSED
@@ -156,12 +158,20 @@ private val DREAM_GOLDENS = listOf(
     DreamGolden("empty lookback", emptyList(), false),
 )
 
+private fun grouped(events: List<Ev>) =
+    GuardianLookback().apply { events.forEach { add(it.type, it.packageName, it.className, it.timestamp) } }
+
+/** The guardian's test(): its own dream check on the tested close, then the grouped lookback. */
+private fun GuardianLookback.test(pkg: String?, cls: String?, ts: Long) =
+    !UsageEventFilter.isDream(cls) && wasOpen(pkg, ts)
+
 class UnmatchedCloseEventGuardianTest {
 
     @Test
     fun goldens_pinTodaysUnmatchedCloseAnswers() {
         for (g in GOLDENS) {
             assertEquals(g.name, g.expected, LegacyGuardianScan.test(g.lookback, g.pkg, g.cls, g.ts))
+            assertEquals(g.name, g.expected, grouped(g.lookback).test(g.pkg, g.cls, g.ts))
         }
     }
 
@@ -169,6 +179,32 @@ class UnmatchedCloseEventGuardianTest {
     fun goldens_pinTodaysDreamAnswers() {
         for (g in DREAM_GOLDENS) {
             assertEquals(g.name, g.expected, LegacyGuardianScan.dreamActiveAt(g.lookback, CLOCK))
+            assertEquals(g.name, g.expected, grouped(g.lookback).dreamActive(CLOCK))
+        }
+    }
+
+    @Test
+    fun groupedLookback_matchesTheLinearScanOnRandomLogs() {
+        val random = Random(20261116)
+        val packages = listOf("a", "b", "c", null)
+        val classes = listOf("x.Main", "x.Other", DREAM, null)
+        val types = listOf(RESUMED, PAUSED, STOPPED, END_OF_DAY, CONTINUE_PREVIOUS_DAY, STARTUP, SHUTDOWN, CONFIG)
+        repeat(10_000) { run ->
+            // Eight timestamps: duplicates, ties with the tested close and out-of-order logs are common
+            val events = List(random.nextInt(30)) {
+                Ev(types.random(random), packages.random(random), classes.random(random), random.nextLong(8))
+            }
+            val lookback = grouped(events)
+            for (pkg in packages) {
+                for (ts in 0L until 8L) for (cls in listOf("x.Main", DREAM)) {
+                    if (LegacyGuardianScan.test(events, pkg, cls, ts) != lookback.test(pkg, cls, ts)) {
+                        fail("run $run: test($pkg, $cls, $ts) on $events")
+                    }
+                }
+                if (pkg != null && LegacyGuardianScan.dreamActiveAt(events, pkg) != lookback.dreamActive(pkg)) {
+                    fail("run $run: dreamActiveAt($pkg) on $events")
+                }
+            }
         }
     }
 }
