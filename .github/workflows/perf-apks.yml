@@ -1,0 +1,78 @@
+# Builds two refs as minified Play release APKs in one run, signed with the same
+# throwaway key, for before/after measurements on a test device: base installs as
+# com.parem.launcher.perf and head as com.parem.launcher.perfb, beside the store,
+# .qa and .debug packages. Never publishes; the key dies with the run.
+name: Perf APK pair
+
+on:
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Base ref, installs as com.parem.launcher.perf
+        required: true
+        default: master
+      head:
+        description: Head ref, installs as com.parem.launcher.perfb
+        required: true
+  # A change to this pipeline proves itself on its own pull request (base vs head)
+  pull_request:
+    branches: [master]
+    paths:
+      - .github/workflows/perf-apks.yml
+      - scripts/perf-apk.init.gradle
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      KEYSTORE_FILE: ${{ github.workspace }}/ci-perf.keystore
+      KEYSTORE_PASSWORD: android
+      KEY_ALIAS: androiddebugkey
+      KEY_PASSWORD: android
+    steps:
+      # This workflow's own ref, for the init script
+      - uses: actions/checkout@v4
+        with:
+          path: tools
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.base || github.event.pull_request.base.sha }}
+          path: base
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.head || github.event.pull_request.head.sha }}
+          path: head
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Create disposable signing key
+        run: keytool -genkeypair -keystore "$KEYSTORE_FILE" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 30 -dname 'CN=Android Debug,O=Android,C=US'
+      - name: Build base as .perf
+        working-directory: base
+        run: ./gradlew --init-script ../tools/scripts/perf-apk.init.gradle -PperfSuffix=.perf :app:assemblePlayRelease
+      - name: Build head as .perfb
+        working-directory: head
+        run: ./gradlew --init-script ../tools/scripts/perf-apk.init.gradle -PperfSuffix=.perfb :app:assemblePlayRelease
+      - name: Collect APKs and mappings
+        run: |
+          aapt2=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
+          mkdir -p out
+          for side in base head; do
+            cp "$side"/app/build/outputs/apk/play/release/app-play-release.apk "out/$side.apk"
+            cp "$side"/app/build/outputs/mapping/playRelease/mapping.txt "out/$side-mapping.txt"
+            echo "$side $(git -C "$side" rev-parse HEAD) $("$aapt2" dump badging "out/$side.apk" | head -1)" | tee -a out/MANIFEST.txt
+          done
+          grep -q "^base .*name='com.parem.launcher.perf'" out/MANIFEST.txt
+          grep -q "^head .*name='com.parem.launcher.perfb'" out/MANIFEST.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: perf-apks
+          path: out/
+          if-no-files-found: error
+          retention-days: 14

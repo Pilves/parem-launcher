@@ -332,6 +332,8 @@ subject to the audit notes and the product-owner brief.
 
 | M6-WP69 | **Done** (PR #73). **Todo**. Shorten approved English copy and guard rapid picker taps | Base English strings, multi-choice picker, tests and release notes | Approved copy retains keys and placeholders; a rapid second tap cannot change the next row |
 
+| M6-WP78 | **Todo**. Build base and head release APKs side by side for device measurements | `.github/workflows/perf-apks.yml`, `scripts/perf-apk.init.gradle`, roadmap and handoff | One dispatch builds two refs as minified Play release with one throwaway key, as `.perf` and `.perfb`, and uploads both APKs with their mappings; the CI-A gate changes follow separately |
+
 ## Recurring (no id)
 
 - **Upstream Olauncher review**, about monthly: `git fetch upstream`, verdict
