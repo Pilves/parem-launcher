@@ -14,10 +14,14 @@ object ContactMatcher {
 
     data class Contact(val name: String, val number: String) {
         // Computed eagerly so the cost lands at load time (Dispatchers.IO in
-        // ContactSearchManager) — match() runs per keystroke on the main
-        // thread and must not re-normalize every contact's name there.
+        // ContactSearchManager) — matching runs per keystroke on the main
+        // thread and must not re-normalize or re-lowercase every contact's name there.
         val searchKey: SearchMatcher.LabelKey = SearchMatcher.key(name)
+        internal val sortName: String = name.lowercase()
     }
+
+    // Stable: contacts that compare equal keep their list order
+    private val ORDER = compareBy<Pair<Contact, Int>>({ it.second }, { it.first.sortName })
 
     private val LETTER = Regex("\\p{L}")
 
@@ -32,19 +36,26 @@ object ContactMatcher {
     }
 
     /** Contacts whose name matches [query], best matches first, capped at [limit]. */
-    fun match(query: String, contacts: List<Contact>, limit: Int = 5): List<Contact> {
+    fun match(query: String, contacts: List<Contact>, limit: Int = 5): List<Contact> =
+        ranked(query, contacts).sortedWith(ORDER).map { it.first }.take(limit)
+
+    /**
+     * The first contact [match] would return, without sorting every match: the
+     * omnibox shows only one. minWith keeps the earliest of equal contacts, as
+     * the stable sort does.
+     */
+    fun best(query: String, contacts: List<Contact>): Contact? =
+        ranked(query, contacts).minWithOrNull(ORDER)?.first
+
+    private fun ranked(query: String, contacts: List<Contact>): List<Pair<Contact, Int>> {
         if (!looksLikeContactQuery(query)) return emptyList()
         val q = SearchMatcher.Query(query.trim())
         val normalizedQuery = q.key.normalized
-        return contacts
-            .mapNotNull { contact ->
-                val key = contact.searchKey
-                if (!SearchMatcher.matches(contact.name, key, q)) return@mapNotNull null
-                contact to rank(key, normalizedQuery)
-            }
-            .sortedWith(compareBy({ it.second }, { it.first.name.lowercase() }))
-            .map { it.first }
-            .take(limit)
+        return contacts.mapNotNull { contact ->
+            val key = contact.searchKey
+            if (!SearchMatcher.matches(contact.name, key, q)) return@mapNotNull null
+            contact to rank(key, normalizedQuery)
+        }
     }
 
     private fun rank(key: SearchMatcher.LabelKey, nq: String): Int {

@@ -103,6 +103,61 @@ class ContactMatcherTest {
     fun match_emptyContactListIsEmpty() {
         assertTrue(ContactMatcher.match("john", emptyList()).isEmpty())
     }
+    // --- best = the first of match, ties included ---
+
+    private val crowd = listOf(
+        Contact("John Smith", "1"), Contact("Ann Lee", "2"), Contact("ann lee", "3"), Contact("ANN LEE", "4"),
+        Contact("Joanna Kim", "5"), Contact("José García", "6"), Contact("jose garcia", "7"),
+        Contact("Annabel", "8"), Contact("Hannah Anders", "9"), Contact("Dr. Ann", "10"),
+        Contact("Zoë Ann", "11"), Contact("Anne-Marie", "12"), Contact("Ánna", "13"),
+        Contact("Ian Mann", "14"), Contact("Jo An", "15"), Contact("Ann Lee", "16"), Contact("Bob Jones", "17"),
+    )
+    private val crowdQueries = listOf("an", "ann", "ANN", " ann ", "jo", "jose", "JOSÉ", "ja", "ann lee",
+        "a l", "j s", "mar", "dr", "an.", "nna", "zz", "5+5", "a", "", "  jo  ")
+
+    @Test
+    fun match_ordersExactlyAsBeforeAtEveryLimit() {
+        for (contacts in listOf(crowd, crowd.reversed())) for (q in crowdQueries) for (limit in listOf(1, 5, 100)) {
+            assertEquals("'$q' limit $limit", previousMatch(q, contacts, limit), ContactMatcher.match(q, contacts, limit))
+        }
+    }
+
+    @Test
+    fun best_isTheFirstOfMatch() {
+        for (contacts in listOf(crowd, crowd.reversed())) for (q in crowdQueries) {
+            assertEquals("'$q'", ContactMatcher.match(q, contacts).firstOrNull(), ContactMatcher.best(q, contacts))
+        }
+    }
+
+    @Test
+    fun best_keepsListOrderAmongEqualContacts() {
+        // Same rank and the same name once lowercased: the earlier contact wins
+        assertEquals("2", ContactMatcher.best("ann lee", crowd)?.number)
+        assertEquals("16", ContactMatcher.best("ann lee", crowd.reversed())?.number)
+        assertEquals(listOf("2", "3", "4", "16"), ContactMatcher.match("ann lee", crowd, limit = 4).map { it.number })
+    }
+
+    // The ranking as it was before names were lowercased once per contact
+    private fun previousMatch(query: String, contacts: List<Contact>, limit: Int): List<Contact> {
+        if (!ContactMatcher.looksLikeContactQuery(query)) return emptyList()
+        val q = query.trim()
+        val nq = SearchMatcher.key(q).normalized
+        return contacts
+            .mapNotNull { contact ->
+                val key = contact.searchKey
+                if (!SearchMatcher.matches(contact.name, key, q)) return@mapNotNull null
+                contact to when {
+                    nq.isEmpty() -> 3
+                    key.normalized.startsWith(nq) -> 0
+                    key.words.any { it.startsWith(nq) } -> 1
+                    else -> 2
+                }
+            }
+            .sortedWith(compareBy({ it.second }, { it.first.name.lowercase() }))
+            .map { it.first }
+            .take(limit)
+    }
+
     @Test
     fun match_ranksNormalizedWholeNameBeforeLaterWords() {
         val result = ContactMatcher.match(" JÓ.-SE ", listOf(
